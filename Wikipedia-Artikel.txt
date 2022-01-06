@@ -1,0 +1,50 @@
+{{Infobox Software
+|Name= JavaMod
+|Screenshot= [[Datei:javamod.gif|254px|Screenshot unter Windows XP]]
+|Logo= [[Datei:quippy the kangaroo.gif|50px|JavaMod Logo]]
+|Beschreibung= Audiospieler
+|Hersteller= [https://www.quippy.de/ Daniel Becker]
+|AktuelleVersion= 2.0
+|AktuelleVersionFreigabeDatum= 12. Dezember 2010
+|Betriebssystem= [[Java-Plattform|Java]]
+|Kategorie= [[Audioplayer|Audiospieler]]
+|Lizenz= [[GPL]]
+|Deutsch= Nein
+|Website= [https://www.javamod.de www.javamod.de]
+}}
+
+'''JavaMod''' ist ein Multiplattform-[[Open-Source]]-[[Audioplayer]] auf Basis von [[Java-Plattform|Java]]. Die möglichst akkurate Wiedergabe von [[Mod (Dateiformat)|Mod-Audiodateien]] in Java, die [[Plattformunabhängigkeit]] und die Freigabe unter der [[GPL]] machen diesen [[Audioplayer|Mediaplayer]] interessant für Hobbyentwickler und Nostalgiker.
+
+== Überblick ==
+
+Daniel Becker begann mit der Entwicklung von Mod-Playern etwa 1998 – damals entstand das Programm [[DosMod]], welches sich optisch an den [[Dual Mod Player]] anlehnt und ausschließlich unter dem Betriebssystem [[Disk Operating System|MS-DOS]] in Kombination mit einer [[Sound Blaster|Sound-Blaster]]-Soundkarte funktionierte. DosMod konnte ausschließlich das [[ProTracker]]- und [[NoiseTracker]]-Format verarbeiten.
+
+Dieses Programm wurde in 2002 durch [[WinMod]] abgelöst. Dieser Modplayer war wesentlich fortschrittlicher und arbeitete unter [[Windows]] mit der [[DirectX]]-Library von [[Microsoft]] zusammen. Damit war dieser Modplayer nicht mehr von der installierten Sound-Hardware abhängig. Dieser Player konnte zusätzlich nun auch die Formate [[Scream Tracker|STM]] und [[S3M]] verarbeiten und war in der Soundausgabe qualitativ hochwertiger, da die [[Abtastung (Signalverarbeitung)|Samples]] interpoliert wurden.
+
+Schließlich wurde auch dieser Player zirka 2006 von JavaMod abgelöst. Dieser auf der [[Java-Plattform]] basierende Player unterstützt neben den üblichen [[Tracker (Musik)|Tracker]]-[[Dateiformat|Formaten]] [[Mod (Dateiformat)|Mod]] (mod, wow, ...), [[XM (Dateiformat)|XM]], [[Scream Tracker|STM]], [[S3M]] und [[Impulse Tracker|IT]] auch [[MP3]] und [[SHOUTcast]]-Radiostreams, das [[MOS Technology SID|SID]]-Format, das [[Ogg|OGG/Vorbis]]-Format, das [[Monkey’s_Audio|Monkeys's Audio]]-Format (APE) und auch die in Java [[Natives Datenformat|nativ]] abspielbaren Formate [[RIFF WAVE|WAV]], [[Audio Unit|AU]], [[AIFF]] und [[Musical Instrument Digital Interface|MID]] sowie durch einen vorgeschalteten Entpacker auch [[Resource_Interchange_File_Format|RIFF]]-Midi (RMI). Zudem wurde der [[Interpolation (Mathematik)|Interpolation]]s-Algorithmus wesentlich verbessert. Auch wurde zur Visualisierung neben dem üblichen [[Aussteuerungsmesser|Peak-Meter]] nun auch ein durch eine [[Schnelle Fourier-Transformation|Fast Fourier-Transformation]] erstelltes Spektrometer angezeigt.
+
+Die MP3-, SID-, OGG- und APE-Unterstützung wird durch Einbinden der Bibliotheken JLayer.jar V1.0.1, der JSidPlay V2 Library V1.4, der JOrbis.jar V0.0.17 und JMAC V1.47 erreicht. Diese Pakete sind sowohl im Source wie auch im ausgelieferten JAR bereits integriert. Die Bibliotheken wurden jeweils um die nicht benötigten Teile erleichtert und ggf. auch erweitert bzw. von Fehlern befreit.
+
+== Weblinks ==
+
+* [https://www.javamod.de JavaMod-Download von der Hersteller-Seite]
+* [https://www.javazoom.net/projects.html JLayer.jar von JZoom]
+* [https://jsidplay2.sourceforge.net/ JSidPlay V2 Library V1.4]
+* [https://jmac.sourceforge.net/ JMAC, Monkey's Audio Implementierung in Java]
+* [https://www.jcraft.com/jorbis/ JOrbis, Implementierung in Java]
+
+[[Kategorie:Freie Audiosoftware]]
+[[Kategorie:Tracker]]
+[[Kategorie:Freie Musiksoftware]]
+
+
+
+== Init-Quelle ==
+Entnommen aus der:
+* [http://de.wikipedia.org/wiki/JavaMod Wikipedia] 
+* [http://de.wikipedia.org/wiki/Wikipedia:L%C3%B6schkandidaten/28._Februar_2010#JavaMod_.28gel.C3.B6scht.29 Löschdiskussion bei Wikipedia]
+
+Erster Autor: [http://de.wikipedia.org/wiki/Benutzer:Quippy Quippy] angelegt am 13.02.2010 um 15:47,
+<br/> Alle Autoren: [http://de.wikipedia.org/wiki/Benutzer:Quippy Quippy], [http://de.wikipedia.org/wiki/Benutzer:Spuk968 Spuk968], [http://de.wikipedia.org/wiki/Benutzer:Mwmahlberg Mwmahlberg], [http://de.wikipedia.org/wiki/Benutzer:Tom_md Tom md], [http://de.wikipedia.org/wiki/Benutzer:YMS YMS], [http://de.wikipedia.org/wiki/Benutzer:Xqbot Xqbot], [http://de.wikipedia.org/wiki/Benutzer:NewShrek NewShrek]
+
+[[Kategorie:WikiPedia Deleted]]
