@@ -616,6 +616,10 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		
 		fileFilterLoad = new FileFilter[chooserFilterArray.size()];
 		chooserFilterArray.toArray(fileFilterLoad);
+		
+//		Print out all possible file extension for debugging
+//		for (int i=0; i<chooserFilterArray.size(); i++)
+//			System.out.println(chooserFilterArray.get(i).getDescription());
 
 		fileFilterExport = new FileFilter[1];
 		fileFilterExport[0] = new FileChooserFilter(javax.sound.sampled.AudioFileFormat.Type.WAVE.getExtension(), javax.sound.sampled.AudioFileFormat.Type.WAVE.toString());

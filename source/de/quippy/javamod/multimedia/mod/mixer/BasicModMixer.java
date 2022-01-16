@@ -2202,11 +2202,14 @@ public abstract class BasicModMixer
 				// Set the end position to check against...
 				int loopStart = 0; // if this is not changed, we have no loops
 				int loopEnd = sample.length;
+				int loopLength = loopEnd;
 				int inLoop = 0;
+				
 				if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
 				{
 					loopStart = sample.sustainLoopStart;
 					loopEnd = sample.sustainLoopStop;
+					loopLength = sample.sustainLoopLength;
 					inLoop = ModConstants.LOOP_SUSTAIN_ON;
 					aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 				}
@@ -2215,6 +2218,7 @@ public abstract class BasicModMixer
 				{
 					loopStart = sample.loopStart;
 					loopEnd = sample.loopStop;
+					loopLength = sample.loopLength;
 					inLoop = ModConstants.LOOP_ON;
 					aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 				}
@@ -2236,7 +2240,7 @@ public abstract class BasicModMixer
 					{
 						// This is needed if sample rate is very low. Than this will not have 
 						// a fraction in Tuning, but addition of 2 or even more.
-						final int aheadOfStop = (aktMemo.currentSamplePos - loopEnd) % sample.loopLength;
+						final int aheadOfStop = (aktMemo.currentSamplePos - loopEnd) % loopLength;
 						
 						// check if loop, that was enabled, is a ping pong
 						if ((inLoop == ModConstants.LOOP_ON && (sample.loopType & ModConstants.LOOP_IS_PINGPONG)!=0) ||
