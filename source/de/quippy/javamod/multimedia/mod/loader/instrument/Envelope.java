@@ -73,20 +73,20 @@ public class Envelope
 			else
 			if (loop && position>positions[loopEndPoint]) position = positions[loopStartPoint];
 		}
-		// End reached? We do not reset anymore to find NNAs beeing far beyond endpoint
-		//if (position>positions[endPoint]) position = positions[endPoint];
+		// End reached? We do reset behind positions[endpoint] to avoid overflow
+		if (position>positions[endPoint]) position = positions[endPoint]+1;
 		
 		return position;
 	}
 	/**
 	 * return true, if the positions is beyond end point
 	 * @since 12.06.2020
-	 * @param p
+	 * @param position
 	 * @return
 	 */
-	public boolean envelopeFinished(final int position, final boolean keyOff)
+	public boolean envelopeFinished(final int position)
 	{
-		return ((sustain || keyOff) && !loop && position>=positions[endPoint]);
+		return (position>positions[endPoint]);
 	}
 	/**
 	 * get the value at the positions

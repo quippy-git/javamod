@@ -664,6 +664,11 @@ public class ModConstants
 		0.0687859877943993d, 0.0673170387744904d, 0.0658794566988945d, 0.0644725710153580d
 	};
 	
+	public static final int IT_VolColumnPortaNotSpeedTranslation[] =
+	{
+	 	0x00, 0x01, 0x04, 0x08, 0x10, 0x20, 0x40, 0x60, 0x80, 0xFF
+	};
+	
 	/**
 	 * For the patterndisplay: retrieve a String for the given note index
 	 * @param index

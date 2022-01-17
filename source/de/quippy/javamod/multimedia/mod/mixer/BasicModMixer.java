@@ -77,6 +77,7 @@ public abstract class BasicModMixer
 
 		// Midi Macros
 		public int activeMidiMacro;
+		public int lastZxxParam;
 		
 		// Resonance Filter
 		public boolean filterOn;
@@ -163,6 +164,7 @@ public abstract class BasicModMixer
 			doSurround = false;
 			
 			activeMidiMacro = 0;
+			lastZxxParam = 0;
 			
 			filterOn = false;
 			filterMode = 0;
@@ -244,6 +246,7 @@ public abstract class BasicModMixer
 			autoVibratoTablePos = fromMe.autoVibratoTablePos;
 			autoVibratoAmplitude = fromMe.autoVibratoAmplitude;
 			activeMidiMacro = fromMe.activeMidiMacro;
+			lastZxxParam = fromMe.lastZxxParam;
 			filterOn = fromMe.filterOn;
 			filterMode = fromMe.filterMode;
 			resonance = fromMe.resonance;
@@ -959,7 +962,7 @@ public abstract class BasicModMixer
 	 * @param effektOp
 	 * @return
 	 */
-	protected abstract boolean isPortaToNoteEffekt(final int effekt, final int effektParam, final int notePeriod);
+	protected abstract boolean isPortaToNoteEffekt(final int effekt, final int effektParam, final int volEffekt, final int volEffektParam, final int notePeriod);
 	/**
 	 * Return true, if the effekt and effektop indicate the sample offset effekt
 	 * @since 19.06.2006
@@ -1009,14 +1012,14 @@ public abstract class BasicModMixer
 	protected void processEnvelopes(ChannelMemory aktMemo)
 	{
 		int currentVolume = aktMemo.currentVolume << ModConstants.VOLUMESHIFT; // typically it's the sample volume or a volume set 0..64
-		int currentPanning = aktMemo.panning; 
+		int currentPanning = aktMemo.panning;
 		int currentPeriod = aktMemo.currentNotePeriodSet;
 		final boolean isIT = (mod.getModType()&ModConstants.MODTYPE_IT)!=0;
 		final boolean isXM = (mod.getModType()&ModConstants.MODTYPE_XM)!=0;
 		
 		// The adjustments on the periods will change currentNotePeriodSet
 		// That's bad in envelopes, because we want to "add on" here
-		// and not above our self over and over again
+		// and not on top of our self over and over again
 		final int resetPeriodAfterEnvelopes = currentPeriod;
 
 		final Sample sample = aktMemo.currentSample;
@@ -1036,11 +1039,8 @@ public abstract class BasicModMixer
 					aktMemo.volEnvPos = volumeEnv.updatePosition(aktMemo.volEnvPos, aktMemo.keyOff);
 					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvPos, 0); // 0..512
 					currentVolume = (currentVolume * newVol) >> 9;
-					// With ITs: if Envelope is finished, activate note fade - but keep last Volume Envelope Position
-					if (isIT && volumeEnv.envelopeFinished(aktMemo.volEnvPos, aktMemo.keyOff))
-					{
-						aktMemo.keyOff = true;
-					}
+					// With ITs: if Envelope is finished, activate note fade via keyOff - but keep last Volume Envelope Position
+					if (isIT && volumeEnv.envelopeFinished(aktMemo.volEnvPos)) aktMemo.keyOff = true;
 				}
 			}
 
@@ -1114,13 +1114,13 @@ public abstract class BasicModMixer
 			{
 				aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
 				if (aktMemo.fadeOutVolume<0) aktMemo.fadeOutVolume = 0;
-				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> 16; // max: 65536
+				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
 			}
 			else
 				currentVolume = aktMemo.fadeOutVolume = 0;
 
 			// With IT a finished noteFade also sets the instrument as finished
-			if (isIT && currentVolume <= 0)
+			if (isIT && currentVolume <= 0 && isChannelActive(aktMemo))
 			{
 				aktMemo.instrumentFinished = true;
 				if (aktMemo.isNNA) aktMemo.channelNumber = -1;
@@ -1296,6 +1296,22 @@ public abstract class BasicModMixer
 		aktMemo.swingPanning = 0;
 	}
 	/**
+	 * @since 17.01.2022
+	 * @param aktMemo
+	 * @param currentValue
+	 * @param param
+	 * @return
+	 */
+	protected float calculateSmoothParamChange(final ChannelMemory aktMemo, final float currentValue, final float param)
+	{
+		// currentTick is counted down from currentTempo (aka currentTicksPerRow)
+		final int ticksLeft = currentTick;
+		if (ticksLeft > 1)
+			return currentValue + ((param - currentValue) / (float)ticksLeft);
+		else
+			return param;
+	}
+	/**
 	 * @since 16.06.2020
 	 * @param aktMemo
 	 * @param isSmoothMidi
@@ -1329,7 +1345,14 @@ public abstract class BasicModMixer
 				char cData1 = midiMacroArray[6];
 				int macroParam = 0;
 				if ((cData1 == 'z') || (cData1 == 'Z'))
-					macroParam = param;
+				{
+					macroParam = param&0x7F;
+					if (isSmoothMidi && aktMemo.lastZxxParam<0x80)
+					{
+						macroParam = (int)calculateSmoothParamChange(aktMemo, aktMemo.lastZxxParam, macroParam);
+					}
+					aktMemo.lastZxxParam = macroParam;
+				}
 				else
 				{
 					char cData2 = midiMacroArray[7];
@@ -1495,13 +1518,6 @@ public abstract class BasicModMixer
 				newChannel = memo;
 				break;
 			}
-			// we release NNA channels at fade out already
-			// so this is redundant
-//			if (memo.noteFade && memo.fadeOutVolume<=0)
-//			{
-//				newChannel = memo;
-//				break;
-//			}
 			
 			// to find the channel with the lowest volume,
 			// add left and right target volumes but add the current 
@@ -1635,7 +1651,9 @@ public abstract class BasicModMixer
 		final PatternElement element = aktMemo.currentElement;
 		
 		// Do Instrument default NNA
-		if ((element.getPeriod()>0 || element.getNoteIndex()>0) && !isPortaToNoteEffekt(aktMemo.currentEffekt, aktMemo.currentEffektParam, aktMemo.currentAssignedNotePeriod) && !isNNAEffekt(aktMemo.currentEffekt, aktMemo.currentEffektParam)) // New Note Action
+		if ((element.getPeriod()>0 || element.getNoteIndex()>0) && 
+				!isPortaToNoteEffekt(aktMemo.currentEffekt, aktMemo.currentEffektParam, aktMemo.currentVolumeEffekt, aktMemo.currentVolumeEffektOp, aktMemo.currentAssignedNotePeriod) && 
+				!isNNAEffekt(aktMemo.currentEffekt, aktMemo.currentEffektParam)) // New Note Action
 		{
 			doNNAAutoInstrument(aktMemo);
 		}
@@ -1705,7 +1723,7 @@ public abstract class BasicModMixer
 		else
 		if (((element.getPeriod()>0 || element.getNoteIndex()>0) || // if there is a note, we need to calc the new tuning and activate a previous set instrument
 				((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && element.getInstrument()>0)) && // and with impulsetracker, the old notevalue is used, if an instrument is set
-				!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, element.getPeriod())) // but ignore this if porta to note... 
+				!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod())) // but ignore this if porta to note... (FT2.14 does it like that, OMPT resets Instrument)
 		{
 			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back than
 			final Instrument inst = aktMemo.assignedInstrument; 
@@ -1900,13 +1918,14 @@ public abstract class BasicModMixer
 				// set all new effect parameter - we cannot process envelopes
 				// here, because first all effects must gain new parameter
 				// especially the global volumes!
-				if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0)
+				if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0)
 				{
 					// shared Effect memory EFG is sharing information only on tick 0!
-					// we cannot share during effects. Only with compat mode on!
+					// we cannot share during effects. Only with IT Compat Mode off!
+					// *** IT Compat Off means, old stm, s3m ... ***
 					if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) 
 						aktMemo.portaStepDown = aktMemo.portaStepUp = aktMemo.portaNoteStep = aktMemo.IT_EFG;
-					// IT: first Row, than column!
+					// IT: first Row, then column!
 					doRowEffects(aktMemo);
 					doVolumeColumnRowEffekt(aktMemo);
 				}
@@ -2340,6 +2359,12 @@ public abstract class BasicModMixer
 			// Fit into volume for the two channels
 			sampleL = (sampleL*(long)volL)>>ModConstants.MAXVOLUMESHIFT;
 			sampleR = (sampleR*(long)volR)>>ModConstants.MAXVOLUMESHIFT;
+			
+//			// Clipping
+//			if (sampleL > ModConstants.CLIPP32BIT_MAX) sampleL = ModConstants.CLIPP32BIT_MAX;
+//			else if (sampleL < ModConstants.CLIPP32BIT_MIN) sampleL = ModConstants.CLIPP32BIT_MIN;
+//			if (sampleR > ModConstants.CLIPP32BIT_MAX) sampleR = ModConstants.CLIPP32BIT_MAX;
+//			else if (sampleR < ModConstants.CLIPP32BIT_MIN) sampleR = ModConstants.CLIPP32BIT_MIN;
 
 			// and off you go
 			leftBuffer [i] += sampleL;
@@ -2364,35 +2389,11 @@ public abstract class BasicModMixer
 	{
 		// Remember changeable values
 		rampDataBufferSaveMemory.setUpFrom(aktMemo);
-//		final int currentTuningPos = aktMemo.currentTuningPos;
-//		final int currentSamplePos = aktMemo.currentSamplePos;
-//		final int interpolationMagic = aktMemo.interpolationMagic;
-//		final int loopCounter = aktMemo.loopCounter;
-//		final boolean isForwardDirection = aktMemo.isForwardDirection;
-//		final boolean instrumentFinished = aktMemo.instrumentFinished;
-//		final int actRampVolLeft = aktMemo.actRampVolLeft;
-//		final int actRampVolRight = aktMemo.actRampVolRight;
-//		final long filter_Y1 = aktMemo.filter_Y1;
-//		final long filter_Y2 = aktMemo.filter_Y2;
-//		final long filter_Y3 = aktMemo.filter_Y3;
-//		final long filter_Y4 = aktMemo.filter_Y4;
 		
 		mixChannelIntoBuffers(leftBuffer, rightBuffer, 0, ModConstants.VOL_RAMP_LEN, aktMemo);
 		
 		// set them back
 		aktMemo.setUpFrom(rampDataBufferSaveMemory);
-//		aktMemo.currentTuningPos = currentTuningPos;
-//		aktMemo.currentSamplePos = currentSamplePos;
-//		aktMemo.interpolationMagic = interpolationMagic;
-//		aktMemo.loopCounter = loopCounter;
-//		aktMemo.instrumentFinished = instrumentFinished;
-//		aktMemo.isForwardDirection = isForwardDirection;
-//		aktMemo.actRampVolLeft = actRampVolLeft;
-//		aktMemo.actRampVolRight = actRampVolRight;
-//		aktMemo.filter_Y1 = filter_Y1;
-//		aktMemo.filter_Y2 = filter_Y2;
-//		aktMemo.filter_Y3 = filter_Y3;
-//		aktMemo.filter_Y4 = filter_Y4;
 	}
 	/**
 	 * Will mix #count 32bit signed samples in stereo into the two buffer.
@@ -2422,7 +2423,7 @@ public abstract class BasicModMixer
 			endIndex += mixAmount;
 			leftOver -= mixAmount;
 			
-			for (int c=0 ; c<maxChannels; c++)
+			for (int c=0; c<maxChannels; c++)
 			{
 				final ChannelMemory aktMemo = channelMemory[c];
 

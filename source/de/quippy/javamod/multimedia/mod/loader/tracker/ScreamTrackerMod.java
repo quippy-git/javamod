@@ -198,7 +198,7 @@ public class ScreamTrackerMod extends Module
 					else 
 					{
 						// calculate the new note
-						noteIndex = ((ton>>4)+1)*12+(ton&0xF); // fit to it octacves
+						noteIndex = ((ton>>4)+1)*12+(ton&0xF); // fit to it octaves
 						if (noteIndex>=ModConstants.noteValues.length)
 						{
 							period = 0;
@@ -233,8 +233,16 @@ public class ScreamTrackerMod extends Module
 					currentElement.setInstrument(instrument);
 					if (volume!=-1)
 					{
-						currentElement.setVolumeEffekt(1);
-						currentElement.setVolumeEffektOp(volume);
+						if(volume >= 128 && volume <= 192)
+						{
+							currentElement.setVolumeEffekt(0x08);
+							currentElement.setVolumeEffektOp(volume - 128);
+						} 
+						else
+						{
+							currentElement.setVolumeEffekt(1);
+							currentElement.setVolumeEffektOp((volume>64)?64:volume);
+						}
 					}
 					currentElement.setEffekt(effekt);
 					currentElement.setEffektOp(effektOp);

@@ -324,18 +324,23 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// Checking for
 		if ((version & 0xF000)==0x5000)
 		{
-			setTrackerName("ModPlug Tracker " + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2));
 			if (reserved.equals("OMPT")) 
-				setModType(ModConstants.MODTYPE_MPT);
-			else
+			{
+				setTrackerName("OpenMPT Tracker " + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2));
 				setModType(ModConstants.MODTYPE_OMPT);
+			}
+			else
+			{
+				setTrackerName("ModPlug Tracker " + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2));
+				setModType(ModConstants.MODTYPE_MPT);
+			}
 		}
 		else
 		if (version == 0x0888 || cmwt==0x888)
 		{
-			setTrackerName("OpenMPT 1.17.02.26-1.18");
 			version=0x5117;
-			setModType(ModConstants.MODTYPE_MPT);
+			setTrackerName("OpenMPT 1.17.02.26-1.18");
+			setModType(ModConstants.MODTYPE_OMPT);
 		}
 		else
 		if (version == 0x0217 && cmwt==0x200 && reserved.length()==0)
@@ -344,13 +349,14 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			{
 				version=0x5109;
 				setTrackerName("ModPlug Tracker 1.09 - 1.16");
+				setModType(ModConstants.MODTYPE_MPT);
 			}
 			else
 			{
 				version=0x5117;
 				setTrackerName("OpenMPT 1.17 (compatibility export)");
+				setModType(ModConstants.MODTYPE_MPT);
 			}
-			setModType(ModConstants.MODTYPE_MPT);
 		}
 		else
 		if (version == 0x0214 && cmwt==0x202 && reserved.length()==0)

@@ -25,6 +25,7 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
+import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
 import de.quippy.javamod.system.Log;
 
 /**
@@ -357,7 +358,8 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0xE :	// Pattern Delay --> # of Rows
 						if (patternDelayCount<0) patternDelayCount=effektOp; // if currently in the patternDelay, do NOT reset the value. We would wait forever!!!
 						break;
-					case 0xF:	// Funk It!
+					case 0xF:	// set MIDI Makro (ProTracker: Funk It!)
+						if ((mod.getModType()&ModConstants.MODTYPE_XM)!=0) aktMemo.activeMidiMacro = aktMemo.effektParam&0x7F;
 						break;
 				}
 				break;
@@ -461,6 +463,9 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0xA: 			// Set High Offset
 						aktMemo.highSampleOffset = aktMemo.effektParam&0x0F;
 						break;
+					default :
+						Log.info(String.format("Unknown Extended Effekt: Effect:%02X Op:%02X in [Pattern:%03d: Row:%03d Channel:%03d]", Integer.valueOf(aktMemo.effekt), Integer.valueOf(aktMemo.effektParam), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
+						break;
 				}
 				break;
 			case 0x22: 			// Panbrello 
@@ -468,11 +473,28 @@ public class ProTrackerMixer extends BasicModMixer
 				if ((aktMemo.effektParam&0xF)!=0) aktMemo.panbrelloAmplitude = aktMemo.effektParam&0xF;
 				aktMemo.panbrelloOn = true;
 				break;
-			case 0x23: 			// set MIDI Makro
-				aktMemo.activeMidiMacro = aktMemo.effektParam&0x7F;
-				break;
+			case 0x23:			// Midi Macro
+				final MidiMacros macro = mod.getMidiConfig();
+				if (macro!=null)
+				{
+		            if (aktMemo.effektParam<0x80)
+		                processMIDIMacro(aktMemo, false, macro.getMidiSFXExt(aktMemo.activeMidiMacro), aktMemo.effektParam);
+		            else
+		                processMIDIMacro(aktMemo, false, macro.getMidiZXXExt(aktMemo.effektParam & 0x7F), 0);
+				}
+	            break;
+			case 0x24:			// Smooth Midi Macro
+				final MidiMacros smoothMacro = mod.getMidiConfig();
+				if (smoothMacro!=null)
+				{
+		            if (aktMemo.effektParam<0x80)
+		                processMIDIMacro(aktMemo, true, smoothMacro.getMidiSFXExt(aktMemo.activeMidiMacro), aktMemo.effektParam);
+		            else
+		                processMIDIMacro(aktMemo, true, smoothMacro.getMidiZXXExt(aktMemo.effektParam & 0x7F), 0);
+				}
+	            break;
 			default :
-				Log.info(String.format("Unknown Effekt: %02X %02X in [%03d: %03d/%03d]", Integer.valueOf(aktMemo.effekt), Integer.valueOf(aktMemo.effektParam), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
+				Log.info(String.format("Unknown Effekt: Effect:%02X Op:%02X in [Pattern:%03d: Row:%03d Channel:%03d]", Integer.valueOf(aktMemo.effekt), Integer.valueOf(aktMemo.effektParam), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
 				break;
 		}
 	}
@@ -884,7 +906,7 @@ public class ProTrackerMixer extends BasicModMixer
 				aktMemo.vibratoOn = true;
 				break;
 			case 0x08: // Set Panning
-				doPanning(aktMemo, aktMemo.volumeEffektOp, ModConstants.PanBits.Pan6Bit);
+				doPanning(aktMemo, aktMemo.volumeEffektOp, ModConstants.PanBits.Pan4Bit);
 				break;
 			case 0x09: // Panning Slide Left
 				aktMemo.panningSlideValue = -aktMemo.volumeEffektOp;
@@ -893,10 +915,11 @@ public class ProTrackerMixer extends BasicModMixer
 				aktMemo.panningSlideValue = aktMemo.volumeEffektOp;
 				break;
 			case 0x0B: // Tone Porta
-				if (aktMemo.assignedNotePeriod!=0) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
+				final PatternElement element = aktMemo.currentElement;
+				if (element!=null && (element.getPeriod()>0 && element.getNoteIndex()>0)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				if (aktMemo.volumeEffektOp!=0)
 				{
-					aktMemo.portaNoteStep = aktMemo.volumeEffektOp;
+					aktMemo.portaNoteStep = aktMemo.volumeEffektOp<<4;
 					if ((mod.getModType()&ModConstants.MODTYPE_XM)!=0) // ProTracker does not have volume effects
 					{
 						// Yes, FT2 is *that* weird. If there is a Mx command in the volume column
@@ -974,9 +997,9 @@ public class ProTrackerMixer extends BasicModMixer
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#isPortaToNoteEffekt(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)
 	 */
 	@Override
-	protected boolean isPortaToNoteEffekt(final int effekt, final int effektParam, final int notePeriod)
+	protected boolean isPortaToNoteEffekt(final int effekt, final int effektParam, final int volEffekt, final int volEffektParam, final int notePeriod)
 	{
-		return (effekt==0x03 || effekt==0x05) && notePeriod!=0;
+		return ((effekt==0x03 || effekt==0x05) || volEffekt==0x0B) && notePeriod!=0;
 	}
 	/**
 	 * @param aktMemo
