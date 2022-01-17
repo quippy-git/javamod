@@ -1,5 +1,5 @@
 # javamod
-JavaMod Player V3.1
+V3.2
 
 Code Compliance Level: JDK 1.8
 Build with openJDK 1.8
@@ -35,6 +35,21 @@ Planned:
 * read 7z archives
 * maybe: follow song with mod files (pattern display)
 
+New in Version 3.2
+* FIX: Sustain-Loop and normal Loop not correctly differed in
+       BasicModMixer::fitIntoLoops. Resulted in a Devision by Zero, if
+       sustain loop present, but no normal loop
+* FIX: Impulse Tracker Mods, saved by OpenModPlug, were often identified as
+       legacy Modplug Tracker files with then wrong settings in global
+       volume
+* FIX: end of envelopes now correctly identified, count of false active NNAs 
+       does not explode anymore
+* FIX: volume column effects for IT and XM, many fixes on IT mods necessary
+* FIX: s3m load volume column as panning, if above 128
+* FIX: stm, s3m and IT (with IT Compatmode OFF) share Porta memories
+* added Fine Midi Macros
+* added MidiMacros to XM
+       
 New in Version 3.1
 * FIX: Pattern/Sample/Instrument dialogs should only be created, if parent
        JDialog is present. Otherwise these will never get destroyed
@@ -67,7 +82,7 @@ New in Version 2.9
        in this combination. Schism 17.it did not test that
 * FIX: pattern break with row index stays in last pattern now, but only if
        "ignore loop" is not checked
-* FIX: Loading XMs with no samples for instruments, reset defaults than
+* FIX: Loading XMs with no samples for instruments, reset defaults then
 * FIX: Many wrong settings with S7x Effects - those need to be temporary!
        (Blue Flame.IT -- thanks for the hint, David)
 * Added technical song info for MP3 and APE
