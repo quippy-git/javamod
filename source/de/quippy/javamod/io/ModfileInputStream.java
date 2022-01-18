@@ -89,22 +89,18 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 			{
 				PowerPackerFile ppFile = new PowerPackerFile(this);
 				close();
-				tmpFile = null;
-				raFile = null;
-				buffer = ppFile.getBuffer();
-				bufferLength = buffer.length;
-				readPointer = 0;
+				fullFileCache = ppFile.getBuffer();
+				fullFileCache_length = fullFileCache.length;
+				fullFileCache_readPointer = 0;
 			}
 			else
 			if (XpkSqsh.isXPK_SQSH(this))
 			{
 				XpkSqsh xpkSqshFile = new XpkSqsh(this);
 				close();
-				tmpFile = null;
-				raFile = null;
-				buffer = xpkSqshFile.getBuffer();
-				bufferLength = buffer.length;
-				readPointer = 0;
+				fullFileCache = xpkSqshFile.getBuffer();
+				fullFileCache_length = fullFileCache.length;
+				fullFileCache_readPointer = 0;
 			}
 		}
 		catch (IOException ex)

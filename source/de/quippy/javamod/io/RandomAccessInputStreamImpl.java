@@ -41,24 +41,36 @@ import de.quippy.javamod.system.Log;
 /**
  * This class mappes the RandomAccessFile to an InputStream type of class.
  * You can also instantiate this class with an URL. If this URL is not of
- * protocol type "file://" the ressource will get downloaded and written to
+ * protocol type "file://" the resource will get downloaded and written to
  * a tmp file. The tempfile will be deleted with calling of "close".
  * Furthermore this input stream will also handle zip compressed content
- * If nothing else works the fallback strategy is to use an internal buffer.
+ * If nothing else works the fallback strategy is to use an internal fullFileCache.
  * This will be also used by PowerPacked Modes (see ModfileInputSteam)
+ * 
+ * Additionally, to speed up things, RandomAccessStreamImpl is provided with a 
+ * transparent buffer - changed on 18.01.22.
  * @author Daniel Becker
  * @since 31.12.2007
  */
 public class RandomAccessInputStreamImpl extends InputStream implements RandomAccessInputStream
 {
-	protected RandomAccessFile raFile = null;
-	protected File localFile = null;
-	protected File tmpFile = null;
-	protected int mark = 0;
+	private RandomAccessFile raFile = null;
+	private File localFile = null;
+	private File tmpFile = null;
+	private int mark = 0;
 	
-	protected byte[] buffer = null;
-	protected int readPointer = 0;
-	protected int bufferLength = 0;
+	/* The readBuffer - 8K should be sufficient */
+	private static final int STANDARD_LENGTH = 8192;
+	private byte[] randomAccessBuffer = null;		// the buffer
+	private int randomAccessBuffer_endPointer = 0;	// end pointer, equals length / bytes read
+	private int randomAccessBuffer_readPointer = 0; // the index into the buffer
+	private long randomAccessFilePosition = 0;		// position in file, start of buffer
+	private long randomAccessFileLength = 0;		// the whole file length
+	
+	/* The fullFileCache */
+	protected byte[] fullFileCache = null;
+	protected int fullFileCache_readPointer = 0;
+	protected int fullFileCache_length = 0;
 	
 	/**
 	 * Constructor for RandomAccessInputStreamImpl
@@ -72,7 +84,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 		{
 			file = unpackFromZIPFile(file.toURI().toURL());
 		}
-		raFile = new RandomAccessFile(localFile = file, "r");
+		openRandomAccessStream(localFile = file);
 	}
 	/**
 	 * Constructor for RandomAccessInputStreamImpl
@@ -95,7 +107,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 				{
 					file = unpackFromZIPFile(fromUrl);
 				}
-				raFile = new RandomAccessFile(localFile = file, "r");
+				openRandomAccessStream(localFile = file);
 			}
 			catch (URISyntaxException uriEx)
 			{
@@ -110,7 +122,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 			{
 				tmpFile = copyFullStream(inputStream);
 				try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
-				raFile = new RandomAccessFile(localFile = tmpFile, "r");
+				openRandomAccessStream(localFile = tmpFile);
 			}
 			catch (Throwable ex)
 			{
@@ -123,9 +135,9 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 				inputStream.close();
 				out.close();
 				
-				buffer = out.toByteArray();
-				bufferLength = buffer.length;
-				readPointer = 0;
+				fullFileCache = out.toByteArray();
+				fullFileCache_length = fullFileCache.length;
+				fullFileCache_readPointer = 0;
 				raFile = null;
 				localFile = null;
 			}
@@ -167,22 +179,94 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	 */
 	private void copyFullStream(InputStream inputStream, OutputStream out) throws IOException
 	{
-		byte[] input = new byte[8192];
+		byte[] input = new byte[STANDARD_LENGTH];
 		int len;
-		while ((len = inputStream.read(input, 0, 8192))!=-1)
+		while ((len = inputStream.read(input, 0, STANDARD_LENGTH))!=-1)
 		{
 			out.write(input, 0, len);
 		}
 	}
 	/**
 	 * Will return the local file this RandomAccessFile works on
-	 * or null using local buffer and no file
+	 * or null using local fullFileCache and no file
 	 * @since 09.01.2011
 	 * @return
 	 */
 	public File getFile()
 	{
 		return localFile;
+	}
+	/**
+	 * @since 18.01.2022
+	 * @param theFile
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	private void openRandomAccessStream(final File theFile) throws FileNotFoundException, IOException
+	{
+		raFile = new RandomAccessFile(theFile, "r");
+
+		randomAccessBuffer = new byte[STANDARD_LENGTH];
+		randomAccessFileLength = raFile.length();
+		
+		fillRandomAccessBuffer(0);
+	}
+	/**
+	 * @since 18.01.2022
+	 * @return
+	 * @throws IOException
+	 */
+	private int fillRandomAccessBuffer(final long fromWhere) throws IOException
+	{
+		if (raFile!=null)
+		{
+			if (fromWhere != raFile.getFilePointer()) raFile.seek(fromWhere);
+			randomAccessFilePosition = raFile.getFilePointer();
+			randomAccessBuffer_endPointer = raFile.read(randomAccessBuffer);
+			randomAccessBuffer_readPointer = 0;
+			return randomAccessBuffer_endPointer;
+		}
+		return -1;
+	}
+	/**
+	 * @since 18.01.2022
+	 * @param b
+	 * @param off
+	 * @param len
+	 * @return
+	 * @throws IOException
+	 */
+	private int readBytes_internal(byte b[], int off, int len) throws IOException
+	{
+		int read = len;
+		while (read>0)
+		{
+			int canRead = randomAccessBuffer_endPointer - randomAccessBuffer_readPointer;
+			if (canRead>read) canRead = read;
+			System.arraycopy(randomAccessBuffer, randomAccessBuffer_readPointer, b, off, canRead);
+			randomAccessBuffer_readPointer += canRead;
+			off+=canRead;
+			read -= canRead;
+			if (randomAccessBuffer_readPointer>=randomAccessBuffer_endPointer)
+			{
+				fillRandomAccessBuffer(this.getFilePointer());
+			}
+		}
+		return len;
+	}
+	/**
+	 * @since 18.01.2022
+	 * @return
+	 * @throws IOException
+	 */
+	private int readByte_internal() throws IOException
+	{
+		if (randomAccessBuffer_readPointer >= randomAccessBuffer_endPointer)
+		{
+			int read = fillRandomAccessBuffer(this.getFilePointer());
+			if (read==-1) return -1;
+		}
+		return (int)(randomAccessBuffer[randomAccessBuffer_readPointer++])&0xFF;
 	}
 	/**
 	 * @return
@@ -193,9 +277,9 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	public int available() throws IOException
 	{
 		if (raFile!=null)
-			return (int)(raFile.length() - raFile.getFilePointer());
+			return (int)(randomAccessFileLength - this.getFilePointer());
 		else
-			return bufferLength-readPointer;
+			return fullFileCache_length - fullFileCache_readPointer;
 	}
 	/**
 	 * @throws IOException
@@ -211,10 +295,18 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 			boolean ok = tmpFile.delete();
 			if (!ok) Log.error("Could not delete temporary file: " + tmpFile.getCanonicalPath());
 		}
+		
 		raFile = null;
-		buffer = null;
-		bufferLength = 0;
-		readPointer = 0;
+		tmpFile = null;
+		randomAccessBuffer = null;
+		randomAccessBuffer_endPointer = 0;
+		randomAccessBuffer_readPointer = 0;
+		randomAccessFilePosition = 0;
+		randomAccessFileLength = 0;
+		
+		fullFileCache = null;
+		fullFileCache_length = 0;
+		fullFileCache_readPointer = 0;
 	}
 	/**
 	 * @param readlimit
@@ -226,9 +318,9 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 		try
 		{
 			if (raFile!=null) 
-				mark = (int)raFile.getFilePointer();
+				mark = (int)this.getFilePointer();
 			else
-				mark = readPointer;
+				mark = fullFileCache_readPointer;
 		}
 		catch (IOException ex)
 		{
@@ -243,7 +335,419 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	{
 		return true;
 	}
-	/******************** added service methods for conversion ****************/
+	/**
+	 * @throws IOException
+	 * @see java.io.InputStream#reset()
+	 */
+	@Override
+	public synchronized void reset() throws IOException
+	{
+		if (raFile!=null)
+			this.seek(mark);
+		else
+			fullFileCache_readPointer = mark;
+	}
+	/**
+	 * @param n
+	 * @return
+	 * @throws IOException
+	 * @see java.io.InputStream#skip(long)
+	 */
+	@Override
+	public long skip(long n) throws IOException
+	{
+		if (raFile!=null)
+		{
+	        if (n <= 0) return 0;
+	        final long pos = randomAccessFilePosition + randomAccessBuffer_readPointer;
+	        long newpos = pos + n;
+	        if (newpos > randomAccessFileLength) newpos = randomAccessFileLength;
+	        this.seek(newpos);
+	        return newpos - pos;
+		}
+		else
+		{
+			if (n <= 0) return 0;
+			int newpos = fullFileCache_readPointer + (int)n;
+			if (newpos > fullFileCache_length) newpos = fullFileCache_length;
+			int skipped = newpos - fullFileCache_readPointer;
+			fullFileCache_readPointer = newpos;
+			return skipped;
+		}
+	}
+	/**
+	 * @param n
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#skipBytes(int)
+	 */
+	@Override
+	public int skipBytes(int n) throws IOException
+	{
+		return (int)skip(n);
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#getFilePointer()
+	 */
+	@Override
+	public long getFilePointer() throws IOException
+	{
+		if (raFile!=null)
+			return randomAccessFilePosition + randomAccessBuffer_readPointer;
+		else
+			return fullFileCache_readPointer;
+	}
+	/**
+	 * @param pos
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#seek(long)
+	 */
+	@Override
+	public void seek(long pos) throws IOException
+	{
+		if (raFile!=null)
+		{
+			if (pos > (randomAccessFilePosition + randomAccessBuffer_endPointer) ||
+				pos < randomAccessFilePosition)
+			{
+				fillRandomAccessBuffer(pos);
+			}
+			else
+				randomAccessBuffer_readPointer = (int)(pos - randomAccessFilePosition);
+		}
+		else
+			fullFileCache_readPointer = (int)pos;
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#getLength()
+	 */
+	@Override
+	public long getLength() throws IOException
+	{
+		return length();
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#length()
+	 */
+	@Override
+	public long length() throws IOException
+	{
+		if (raFile!=null)
+			return randomAccessFileLength;
+		else
+			return fullFileCache_length;
+	}
+/********************* Core Read Methods **************************************/	
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see java.io.InputStream#read()
+	 */
+	@Override
+	public int read() throws IOException
+	{
+		if (raFile!=null)
+			return readByte_internal();
+		else
+			return (fullFileCache_readPointer<fullFileCache_length)? ((int)fullFileCache[fullFileCache_readPointer++]) & 0xFF : -1;
+	}
+	/**
+	 * @param b
+	 * @param off
+	 * @param len
+	 * @return
+	 * @throws IOException
+	 * @see java.io.InputStream#read(byte[], int, int)
+	 */
+	@Override
+	public int read(byte[] b, int off, int len) throws IOException
+	{
+		if (raFile!=null)
+			return readBytes_internal(b, off, len);
+		else
+		{
+			if (b == null) 
+				throw new NullPointerException();
+			if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0))
+				throw new IndexOutOfBoundsException();
+			if (fullFileCache_readPointer >= fullFileCache_length)
+				return -1;
+			if (fullFileCache_readPointer + len > fullFileCache_length)
+				len = fullFileCache_length - fullFileCache_readPointer;
+			if (len <= 0)
+				return 0;
+			System.arraycopy(fullFileCache, fullFileCache_readPointer, b, off, len);
+			fullFileCache_readPointer += len;
+			return len;
+		}
+	}
+	/**
+	 * @param b
+	 * @return
+	 * @throws IOException
+	 * @see java.io.InputStream#read(byte[])
+	 */
+	@Override
+	public int read(byte[] b) throws IOException
+	{
+		return read(b, 0, b.length);
+	}
+	/**
+	 * @param b
+	 * @param offs
+	 * @param len
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readFully(byte[], int, int)
+	 */
+	@Override
+	public int readFully(byte[] b, int offs, int len) throws IOException
+	{
+		return read(b, offs, len);
+	}
+	/**
+	 * @param b
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readFully(byte[])
+	 */
+	@Override
+	public int readFully(byte[] b) throws IOException
+	{
+		return read(b);
+	}
+/*********************  Read & conversion Methods *****************************/	
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readByte()
+	 */
+	@Override
+	public byte readByte() throws IOException
+	{
+		return (byte)this.read();
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readBoolean()
+	 */
+	@Override
+	public boolean readBoolean() throws IOException
+	{
+		int ch = this.read();
+		if (ch < 0) throw new EOFException();
+		return (ch != 0);
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readChar()
+	 */
+	@Override
+	public char readChar() throws IOException
+	{
+		int ch1 = this.read();
+		int ch2 = this.read();
+		if ((ch1 | ch2) < 0) throw new EOFException();
+		return (char)((ch1 << 8) | (ch2));
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readShort()
+	 */
+	@Override
+	public short readShort() throws IOException
+	{
+		int ch1 = this.read();
+		int ch2 = this.read();
+		if ((ch1 | ch2) < 0) throw new EOFException();
+		return (short)((ch1 << 8) | (ch2));
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readDouble()
+	 */
+	@Override
+	public double readDouble() throws IOException
+	{
+		return Double.longBitsToDouble(this.readLong());
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readFloat()
+	 */
+	@Override
+	public float readFloat() throws IOException
+	{
+		return Float.intBitsToFloat(this.readInt());
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readInt()
+	 */
+	@Override
+	public int readInt() throws IOException
+	{
+		int ch1 = this.read();
+		int ch2 = this.read();
+		int ch3 = this.read();
+		int ch4 = this.read();
+		if ((ch1 | ch2 | ch3 | ch4) < 0) throw new EOFException();
+		return ((ch1 << 24) | (ch2 << 16) | (ch3 << 8) | (ch4));
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readLine()
+	 */
+	@Override
+	public String readLine() throws IOException
+	{
+		StringBuffer input = new StringBuffer();
+		int c = -1;
+		boolean eol = false;
+
+		while (!eol)
+		{
+			switch (c = read())
+			{
+				case -1:
+				case '\n':
+					eol = true;
+					break;
+				case '\r':
+					eol = true;
+					final long cur = getFilePointer();
+					if ((read()) != '\n') seek(cur);
+					break;
+				default:
+					input.append((char) c);
+					break;
+			}
+		}
+
+		if ((c == -1) && (input.length() == 0))
+		{
+			return null;
+		}
+		return input.toString();
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readLong()
+	 */
+	@Override
+	public long readLong() throws IOException
+	{
+		return ((long)(readInt()) << 32) + (readInt() & 0xFFFFFFFFL);
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readUnsignedByte()
+	 */
+	@Override
+	public int readUnsignedByte() throws IOException
+	{
+		int ch = this.read();
+		if (ch < 0) throw new EOFException();
+		return ch;
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readUnsignedShort()
+	 */
+	@Override
+	public int readUnsignedShort() throws IOException
+	{
+		int ch1 = this.read();
+		int ch2 = this.read();
+		if ((ch1 | ch2) < 0) throw new EOFException();
+		return (ch1 << 8) | (ch2);
+	}
+	/**
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#readUTF()
+	 */
+	@Override
+	public String readUTF() throws IOException
+	{
+		int utflen = this.readUnsignedShort();
+		byte[] bytearr = new byte[utflen];
+		char[] chararr = new char[utflen];
+
+		int c, char2, char3;
+		int count = 0;
+		int chararr_count = 0;
+
+		readFully(bytearr, 0, utflen);
+
+		while (count < utflen)
+		{
+			c = (int) bytearr[count] & 0xff;
+			if (c > 127) break;
+			count++;
+			chararr[chararr_count++] = (char) c;
+		}
+
+		while (count < utflen)
+		{
+			c = (int) bytearr[count] & 0xff;
+			switch (c >> 4)
+			{
+				case 0:
+				case 1:
+				case 2:
+				case 3:
+				case 4:
+				case 5:
+				case 6:
+				case 7:
+					/* 0xxxxxxx */
+					count++;
+					chararr[chararr_count++] = (char) c;
+					break;
+				case 12:
+				case 13:
+					/* 110x xxxx 10xx xxxx */
+					count += 2;
+					if (count > utflen) throw new UTFDataFormatException("malformed input: partial character at end");
+					char2 = (int) bytearr[count - 1];
+					if ((char2 & 0xC0) != 0x80) throw new UTFDataFormatException("malformed input around byte " + count);
+					chararr[chararr_count++] = (char) (((c & 0x1F) << 6) | (char2 & 0x3F));
+					break;
+				case 14:
+					/* 1110 xxxx 10xx xxxx 10xx xxxx */
+					count += 3;
+					if (count > utflen) throw new UTFDataFormatException("malformed input: partial character at end");
+					char2 = (int) bytearr[count - 2];
+					char3 = (int) bytearr[count - 1];
+					if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80)) throw new UTFDataFormatException("malformed input around byte " + (count - 1));
+					chararr[chararr_count++] = (char) (((c & 0x0F) << 12) | ((char2 & 0x3F) << 6) | ((char3 & 0x3F) << 0));
+					break;
+				default:
+					/* 10xx xxxx, 1111 xxxx */
+					throw new UTFDataFormatException("malformed input around byte " + count);
+			}
+		}
+		// The number of chars produced may be less than utflen
+		return new String(chararr, 0, chararr_count);
+	}
+/******************** added service methods for conversion ********************/
 	/**
 	 * @since 31.12.2007
 	 * @param strLength
@@ -324,348 +828,5 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	public long readIntelLong() throws IOException
 	{
 		return (((long)readIntelDWord())&0xFFFFFFFF) | (((long)readIntelDWord())<<32);
-//		return  (long)((readByte()&0xFF)    ) | (long)((readByte()&0xFF)<< 8) | (long)((readByte()&0xFF)<<16) | (long)((readByte()&0xFF)<<24) |
-//				(long)((readByte()&0xFF)<<32) | (long)((readByte()&0xFF)<<40) | (long)((readByte()&0xFF)<<48) | (long)((readByte()&0xFF)<<54);	
-	}
-	/**************************************************************************/
-	/**
-	 * @return
-	 * @throws IOException
-	 * @see java.io.InputStream#read()
-	 */
-	@Override
-	public int read() throws IOException
-	{
-		if (raFile!=null)
-			return raFile.read();
-		else
-			return (readPointer<bufferLength)? ((int)buffer[readPointer++]) & 0xFF : -1;
-	}
-	/**
-	 * @param b
-	 * @param off
-	 * @param len
-	 * @return
-	 * @throws IOException
-	 * @see java.io.InputStream#read(byte[], int, int)
-	 */
-	@Override
-	public int read(byte[] b, int off, int len) throws IOException
-	{
-		if (raFile!=null)
-			return raFile.read(b, off, len);
-		else
-		{
-			if (b == null) 
-				throw new NullPointerException();
-			if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0))
-				throw new IndexOutOfBoundsException();
-			if (readPointer >= bufferLength)
-				return -1;
-			if (readPointer + len > bufferLength)
-				len = bufferLength - readPointer;
-			if (len <= 0)
-				return 0;
-			System.arraycopy(buffer, readPointer, b, off, len);
-			readPointer += len;
-			return len;
-		}
-	}
-	/**
-	 * @param b
-	 * @return
-	 * @throws IOException
-	 * @see java.io.InputStream#read(byte[])
-	 */
-	@Override
-	public int read(byte[] b) throws IOException
-	{
-		return read(b, 0, b.length);
-	}
-	/**
-	 * @throws IOException
-	 * @see java.io.InputStream#reset()
-	 */
-	@Override
-	public synchronized void reset() throws IOException
-	{
-		if (raFile!=null)
-			raFile.seek(mark);
-		else
-			readPointer = mark;
-	}
-	/**
-	 * @param n
-	 * @return
-	 * @throws IOException
-	 * @see java.io.InputStream#skip(long)
-	 */
-	@Override
-	public long skip(long n) throws IOException
-	{
-		if (raFile!=null)
-			return (long)(raFile.skipBytes((int)n));
-		else
-		{
-			if (readPointer + n > bufferLength)
-			    n = bufferLength - readPointer;
-			if (n < 0) return 0;
-			readPointer += n;
-			return n;
-		}
-	}
-	/********************* Mapping to RandomAccessFile ************************/
-	public int skipBytes(int n) throws IOException
-	{
-		return (int)skip(n);
-	}
-	public long getFilePointer() throws IOException
-	{
-		if (raFile!=null)
-			return raFile.getFilePointer();
-		else
-			return readPointer;
-	}
-	public void seek(long pos) throws IOException
-	{
-		if (raFile!=null)
-			raFile.seek(pos);
-		else
-			readPointer = (int)pos;
-	}
-	public long getLength() throws IOException
-	{
-		if (raFile!=null)
-			return raFile.length();
-		else
-			return bufferLength;
-	}
-	public long length() throws IOException
-	{
-		return getLength();
-	}
-	public int readFully(byte[] b) throws IOException
-	{
-		if (raFile != null)
-		{
-			raFile.readFully(b);
-			return b.length;
-		}
-		else
-			return read(b);
-	}
-	public int readFully(byte[] b, int offs, int len) throws IOException
-	{
-		if (raFile != null)
-		{
-			raFile.readFully(b, offs, len);
-			return len;
-		}
-		else
-			return read(b, offs, len);
-	}
-	public byte readByte() throws IOException
-	{
-		if (raFile!=null)
-			return raFile.readByte();
-		else
-			return (byte)read();
-	}
-	public boolean readBoolean() throws IOException
-	{
-		if (raFile != null)
-			return raFile.readBoolean();
-		else
-		{
-			int ch = this.read();
-			if (ch < 0) throw new EOFException();
-			return (ch != 0);
-		}
-	}
-	public char readChar() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readChar();
-		else
-		{
-			int ch1 = this.read();
-			int ch2 = this.read();
-			if ((ch1 | ch2) < 0) throw new EOFException();
-			return (char)((ch1 << 8) | (ch2));
-		}
-	}
-	public short readShort() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readShort();
-		else
-		{
-			int ch1 = this.read();
-			int ch2 = this.read();
-			if ((ch1 | ch2) < 0) throw new EOFException();
-			return (short)((ch1 << 8) | (ch2));
-		}
-	}
-	public double readDouble() throws IOException
-	{
-		if (raFile != null)
-			return raFile.readDouble();
-		else
-			return Double.longBitsToDouble(readLong());
-	}
-	public float readFloat() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readFloat();
-		else
-			return Float.intBitsToFloat(readInt());
-	}
-	public int readInt() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readInt();
-		else
-		{
-			int ch1 = this.read();
-			int ch2 = this.read();
-			int ch3 = this.read();
-			int ch4 = this.read();
-			if ((ch1 | ch2 | ch3 | ch4) < 0) throw new EOFException();
-			return ((ch1 << 24) | (ch2 << 16) | (ch3 << 8) | (ch4));
-		}
-	}
-	public String readLine() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readLine();
-		else
-		{
-			StringBuffer input = new StringBuffer();
-			int c = -1;
-			boolean eol = false;
-
-			while (!eol)
-			{
-				switch (c = read())
-				{
-					case -1:
-					case '\n':
-						eol = true;
-						break;
-					case '\r':
-						eol = true;
-						final long cur = getFilePointer();
-						if ((read()) != '\n') seek(cur);
-						break;
-					default:
-						input.append((char) c);
-						break;
-				}
-			}
-
-			if ((c == -1) && (input.length() == 0))
-			{
-				return null;
-			}
-			return input.toString();
-		}
-	}
-	public long readLong() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readLong();
-		else
-			return ((long)(readInt()) << 32) + (readInt() & 0xFFFFFFFFL);
-	}
-	public int readUnsignedByte() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readUnsignedByte();
-		else
-		{
-			int ch = this.read();
-			if (ch < 0) throw new EOFException();
-			return ch;
-		}
-	}
-	public int readUnsignedShort() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readUnsignedShort();
-		else
-		{
-			int ch1 = this.read();
-			int ch2 = this.read();
-			if ((ch1 | ch2) < 0) throw new EOFException();
-			return (ch1 << 8) | (ch2);
-		}
-	}
-	public String readUTF() throws IOException
-	{
-		if (raFile != null) 
-			return raFile.readUTF();
-		else
-		{
-			int utflen = readUnsignedShort();
-			byte[] bytearr = new byte[utflen];
-			char[] chararr = new char[utflen];
-
-			int c, char2, char3;
-			int count = 0;
-			int chararr_count = 0;
-
-			readFully(bytearr, 0, utflen);
-
-			while (count < utflen)
-			{
-				c = (int) bytearr[count] & 0xff;
-				if (c > 127) break;
-				count++;
-				chararr[chararr_count++] = (char) c;
-			}
-
-			while (count < utflen)
-			{
-				c = (int) bytearr[count] & 0xff;
-				switch (c >> 4)
-				{
-					case 0:
-					case 1:
-					case 2:
-					case 3:
-					case 4:
-					case 5:
-					case 6:
-					case 7:
-						/* 0xxxxxxx */
-						count++;
-						chararr[chararr_count++] = (char) c;
-						break;
-					case 12:
-					case 13:
-						/* 110x xxxx 10xx xxxx */
-						count += 2;
-						if (count > utflen) throw new UTFDataFormatException("malformed input: partial character at end");
-						char2 = (int) bytearr[count - 1];
-						if ((char2 & 0xC0) != 0x80) throw new UTFDataFormatException("malformed input around byte " + count);
-						chararr[chararr_count++] = (char) (((c & 0x1F) << 6) | (char2 & 0x3F));
-						break;
-					case 14:
-						/* 1110 xxxx 10xx xxxx 10xx xxxx */
-						count += 3;
-						if (count > utflen) throw new UTFDataFormatException("malformed input: partial character at end");
-						char2 = (int) bytearr[count - 2];
-						char3 = (int) bytearr[count - 1];
-						if (((char2 & 0xC0) != 0x80) || ((char3 & 0xC0) != 0x80)) throw new UTFDataFormatException("malformed input around byte " + (count - 1));
-						chararr[chararr_count++] = (char) (((c & 0x0F) << 12) | ((char2 & 0x3F) << 6) | ((char3 & 0x3F) << 0));
-						break;
-					default:
-						/* 10xx xxxx, 1111 xxxx */
-						throw new UTFDataFormatException("malformed input around byte " + count);
-				}
-			}
-			// The number of chars produced may be less than utflen
-			return new String(chararr, 0, chararr_count);
-		}
 	}
 }
