@@ -2,10 +2,12 @@
 V3.2
 
 Code Compliance Level: JDK 1.8
-Build with openJDK 1.8
-However: run with modern Java (openJDK 11>, 64BIT) to gain full
-speed - 200+ NNAs are no problem than 
-
+Build with openJDK 1.8 update 311
+However: run with modern Java (openJDK >11, 64BIT) to gain full
+speed - 200+ NNAs are no problem then
+Heap Size with JDK8 (default of 256M) not sufficient with bigger mods. Either
+set -Xmx1024m parameter or use newer JDK 
+ 
 Supported file types:
 Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
 SID
@@ -14,7 +16,7 @@ FLAC
 APE (ape, apl, mac)
 OGG/Vorbis (ogg, oga)
 WAV, AU, AIFF
-MIDI (MID, RMF, RMI)
+MIDI (MID, RMF, RMI) with SF2 soundfont files
 OPL2/3 (ROL, LAA, CMF, DRO, SCI)
 Playlists PLS, M3U, M3U8, ZIP, CUE
 
@@ -25,8 +27,7 @@ Known issues:
   must be present when creating the config drop down list for selection.
 * Clean up effects - some are for IT only, some for XM only (copy&paste...)
 * On Linux gapless audio streams do not work if SourceLine Buffers drain out
-* mouse wheel (volume control) does not work with tray icon
-* keyboard shortcuts do not work with tray icon
+* Tray Icon: mouse wheel (volume control) & keyboard shortcuts does not work
 
 Planned:
 * WavPack and MusePack support
@@ -41,14 +42,17 @@ New in Version 3.2
        sustain loop present, but no normal loop
 * FIX: Impulse Tracker Mods, saved by OpenModPlug, were often identified as
        legacy Modplug Tracker files with then wrong settings in global
-       volume
-* FIX: end of envelopes now correctly identified, count of false active NNAs 
-       does not explode anymore
+       volume and preamp. New ModPlug-Songs were played fare to silent then
+* FIX: end of envelopes now correctly identified, count of active NNAs, that 
+       are not active anymore, does not explode anymore
 * FIX: volume column effects for IT and XM, many fixes on IT mods necessary
 * FIX: s3m load volume column as panning, if above 128
-* FIX: stm, s3m and IT (with IT Compatmode OFF) share Porta memories
+* FIX: also stm and s3m (with IT Compatmode OFF) share Porta memories now (like
+       IT did already)
 * added Fine Midi Macros
 * added MidiMacros to XM
+* Loading is much faster now. Provided RandomAccessStreamImpl with a buffer so
+  reading and seeking is done on the buffer. Using a buffer of 8K currently.
        
 New in Version 3.1
 * FIX: Pattern/Sample/Instrument dialogs should only be created, if parent

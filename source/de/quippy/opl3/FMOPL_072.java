@@ -77,28 +77,28 @@ public class FMOPL_072
 //#endif
 
 	/* output final shift */
-	private static final int FINAL_SH	= 0;
-	private static final int MAXOUT		= 0x00007FFF;
-	private static final int MINOUT		= 0xFFFF8000;
+	private static final int FINAL_SH		= 0;
+	private static final int MAXOUT			= 0x00007FFF;
+	private static final int MINOUT			= 0xFFFF8000;
 
 	private static final int FREQ_SH		= 16; // 16.16 fixed point (frequency calculations)
-	private static final int EG_SH		= 16; // 16.16 fixed point (EG timing)
-	private static final int LFO_SH		= 24; //  8.24 fixed point (LFO calculations)
-	//private static final int TIMER_SH	= 16; // 16.16 fixed point (timers calculations)
+	private static final int EG_SH			= 16; // 16.16 fixed point (EG timing)
+	private static final int LFO_SH			= 24; //  8.24 fixed point (LFO calculations)
+	//private static final int TIMER_SH		= 16; // 16.16 fixed point (timers calculations)
 	
-	private static final int FREQ_MASK	= ((1<<FREQ_SH)-1);
-	private static final int ENV_BITS 	= 10;
+	private static final int FREQ_MASK		= ((1<<FREQ_SH)-1);
+	private static final int ENV_BITS 		= 10;
 	private static final int ENV_LEN		= (1<<ENV_BITS);
 	private static final double ENV_STEP	= (128.0/ENV_LEN);
 	
-	private static final int MAX_ATT_INDEX = ((1<<(ENV_BITS-1))-1); /*511*/
-	private static final int MIN_ATT_INDEX = 0;
+	private static final int MAX_ATT_INDEX	= ((1<<(ENV_BITS-1))-1); /*511*/
+	private static final int MIN_ATT_INDEX	= 0;
 	
-	private static final int SIN_BITS 	  = 10;
-	private static final int SIN_LEN       = (1<<SIN_BITS);
-	private static final int SIN_MASK      = (SIN_LEN-1);
+	private static final int SIN_BITS		= 10;
+	private static final int SIN_LEN		= (1<<SIN_BITS);
+	private static final int SIN_MASK		= (SIN_LEN-1);
 	
-	private static final int TL_RES_LEN = 256; // 8 bits addressing (real chip)
+	private static final int TL_RES_LEN		= 256; // 8 bits addressing (real chip)
 	
 	/* register number to channel number, slot offset */
 	private static final int SLOT1 = 0;
@@ -769,40 +769,40 @@ public class FMOPL_072
 //#endif
 	private static class OPL_SLOT
 	{
-		private int ar;  // attack rate: AR<<2
-		private int dr;  // decay rate:  DR<<2
-		private int rr;  // release rate:RR<<2
-		private int KSR;  // key scale rate
-		private int ksl;  // keyscale level
-		private int ksr;  // key scale rate: kcode>>>KSR
-		private int mul;  // multiple: mul_tab[ML]
+		private int ar;						// attack rate: AR<<2
+		private int dr;						// decay rate:  DR<<2
+		private int rr;						// release rate:RR<<2
+		private int KSR;					// key scale rate
+		private int ksl;					// keyscale level
+		private int ksr;					// key scale rate: kcode>>>KSR
+		private int mul;					// multiple: mul_tab[ML]
 
 		/* Phase Generator */
-		private int Cnt;  // frequency counter
-		private int Incr;  // frequency counter step
-		private int FB;  // feedback shift value
-		private int[] connect1; // slot1 output pointer
-		private int[] op1_out = new int[2]; // slot1 output for feedback
-		private int CON;  // connection (algorithm) type
+		private int Cnt;					// frequency counter
+		private int Incr;					// frequency counter step
+		private int FB;						// feedback shift value
+		private int[] connect1;				// slot1 output pointer
+		private int[] op1_out = new int[2];	// slot1 output for feedback
+		private int CON;					// connection (algorithm) type
 
 		/* Envelope Generator */
-		private int eg_type;  // percussive/non-percussive mode
-		private int state;  // phase type
-		private int TL;  // total level: TL << 2
-		private int TLL;  // adjusted now TL
-		private int volume;  // envelope counter
-		private int sl;  // sustain level: sl_tab[SL]
-		private int eg_sh_ar;  // (attack state)
-		private int eg_sel_ar;  // (attack state)
-		private int eg_sh_dr;  // (decay state)
-		private int eg_sel_dr;  // (decay state)
-		private int eg_sh_rr;  // (release state)
-		private int eg_sel_rr;  // (release state)
-		private int key;  // 0 = KEY OFF, >0 = KEY ON
+		private int eg_type;				// percussive/non-percussive mode
+		private int state;					// phase type
+		private int TL;						// total level: TL << 2
+		private int TLL;					// adjusted now TL
+		private int volume;					// envelope counter
+		private int sl;						// sustain level: sl_tab[SL]
+		private int eg_sh_ar;				// (attack state)
+		private int eg_sel_ar;				// (attack state)
+		private int eg_sh_dr;				// (decay state)
+		private int eg_sel_dr;				// (decay state)
+		private int eg_sh_rr;				// (release state)
+		private int eg_sel_rr;				// (release state)
+		private int key;					// 0 = KEY OFF, >0 = KEY ON
 
 		/* LFO */
-		private int AMmask;  // LFO Amplitude Modulation enable mask
-		private int vib;  // LFO Phase Modulation enable flag (active high)
+		private int AMmask;					// LFO Amplitude Modulation enable mask
+		private int vib;					// LFO Phase Modulation enable flag (active high)
 
 		/* waveform select */
 		private int wavetable;
@@ -1115,36 +1115,36 @@ public class FMOPL_072
 		}
 
 		/* FM channel slots */
-		private OPL_CH[] P_CH = new OPL_CH[9];/* OPL/OPL2 chips have 9 channels*/
+		private OPL_CH[] P_CH = new OPL_CH[9];	/* OPL/OPL2 chips have 9 channels*/
 
-		private int  eg_cnt;                 /* global envelope generator counter    */
-		private int  eg_timer;               /* global envelope generator counter works at frequency = chipclock/72 */
-		private int  eg_timer_add;           /* step of eg_timer                     */
-		private int  eg_timer_overflow;      /* envelope generator timer overflows every 1 sample (on real chip) */
+		private int eg_cnt;						/* global envelope generator counter    */
+		private int eg_timer;					/* global envelope generator counter works at frequency = chipclock/72 */
+		private int eg_timer_add;				/* step of eg_timer                     */
+		private int eg_timer_overflow;			/* envelope generator timer overflows every 1 sample (on real chip) */
 
-		private int   rhythm;                 /* Rhythm mode                  */
+		private int rhythm;						/* Rhythm mode                  */
 
-		private int[] fn_tab = new int[1024]; /* fnumber->increment counter   */
+		private int[] fn_tab = new int[1024];	/* fnumber->increment counter   */
 
 		/* LFO */
-		private int  LFO_AM;
-		private int  LFO_PM;
+		private int LFO_AM;
+		private int LFO_PM;
 
-		private int  lfo_am_depth;
-		private int  lfo_pm_depth_range;
-		private int  lfo_am_cnt;
-		private int  lfo_am_inc;
-		private int  lfo_pm_cnt;
-		private int  lfo_pm_inc;
+		private int lfo_am_depth;
+		private int lfo_pm_depth_range;
+		private int lfo_am_cnt;
+		private int lfo_am_inc;
+		private int lfo_pm_cnt;
+		private int lfo_pm_inc;
 
-		private int  noise_rng;              /* 23 bit noise shift register  */
-		private int  noise_p;                /* current noise 'phase'        */
-		private int  noise_f;                /* current noise period         */
+		private int noise_rng;					/* 23 bit noise shift register  */
+		private int noise_p;					/* current noise 'phase'        */
+		private int noise_f;					/* current noise period         */
 
-		private int  wavesel;                /* waveform select enable flag  */
+		private int wavesel;					/* waveform select enable flag  */
 
-		private int[] T = new int[2];        /* timer counters               */
-		private int[] st = new int[2];       /* timer enable                 */
+		private int[] T = new int[2];			/* timer counters               */
+		private int[] st = new int[2];			/* timer enable                 */
 
 //	#if BUILD_Y8950
 //		/* Delta-T ADPCM unit (Y8950) */
@@ -1292,7 +1292,7 @@ public class FMOPL_072
 
 						if(op.eg_type!=0)    /* non-percussive mode */
 						{
-											/* do nothing */
+							/* do nothing */
 						}
 						else                /* percussive mode */
 						{
@@ -1461,7 +1461,6 @@ public class FMOPL_072
 		*/
 
 		/* calculate rhythm */
-
 		void CALC_RH()
 		{
 			final int noise = noise_rng & 1;
@@ -1469,7 +1468,6 @@ public class FMOPL_072
 			OPL_SLOT SLOT;
 			int out;
 			int env;
-
 
 			/* Bass Drum (verified on real YM3812):
 			  - depends on the channel 6 'connect' register:
@@ -1504,7 +1502,6 @@ public class FMOPL_072
 			if( env < ENV_QUIET )
 				output[0] += op_calc(SLOT.Cnt, env, phase_modulation[0], SLOT.wavetable) * 2;
 
-
 			/* Phase generation is based on: */
 			/* HH  (13) channel 7->slot 1 combined with channel 8->slot 2 (same combination as TOP CYMBAL but different output phases) */
 			/* SD  (16) channel 7->slot 1 */
@@ -1516,7 +1513,6 @@ public class FMOPL_072
 			/* SD  channel 7->slot2 */
 			/* TOM channel 8->slot1 */
 			/* TOP channel 8->slot2 */
-
 
 			/* The following formulas can be well optimized.
 			   I leave them in direct form for now (in case I've missed something).
@@ -1554,7 +1550,6 @@ public class FMOPL_072
 				/* when res2 = 1 phase = 0x200 | (0xd0>>2); */
 				if (res2!=0)
 					phase = (0x200|(0xd0>>2));
-
 
 				/* when phase & 0x200 is set and noise=1 then phase = 0x200|0xd0 */
 				/* when phase & 0x200 is set and noise=0 then phase = 0x200|(0xd0>>2), ie no change */
@@ -1747,7 +1742,6 @@ public class FMOPL_072
 			OPL_CH CH;
 			int slot;
 			int block_fnum;
-
 
 			/* adjust bus to 8 bits */
 			r &= 0xff;
@@ -1962,7 +1956,7 @@ public class FMOPL_072
 					/* BLK 2,1,0 bits -> bits 3,2,1 of kcode */
 					CH.kcode    = (CH.block_fnum&0x1c00)>>9;
 
-						/* the info below is actually opposite to what is stated in the Manuals (verifed on real YM3812) */
+					/* the info below is actually opposite to what is stated in the Manuals (verifed on real YM3812) */
 					/* if notesel == 0 -> lsb of kcode is bit 10 (MSB) of fnum  */
 					/* if notesel == 1 -> lsb of kcode is bit 9 (MSB-1) of fnum */
 					if ((mode&0x40)!=0)
