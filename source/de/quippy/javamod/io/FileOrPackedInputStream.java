@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessControlException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -81,10 +80,6 @@ public class FileOrPackedInputStream extends InputStream
 		try
 		{
 			stream = fromUrl.openStream();
-		}
-		catch (AccessControlException ex) // This happens with applets if controlled from outside
-		{
-			throw new AccessControlException("[FileOrPackedInputStream] Access denied: "+fromUrl.toString());
 		}
 		catch (Exception ex)
 		{
