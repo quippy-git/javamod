@@ -1,5 +1,5 @@
 # javamod
-V3.2
+Development version: 3.2
 
 Code Compliance Level: JDK 1.8
 Build with openJDK 1.8 update 311
@@ -40,23 +40,34 @@ New in Version 3.2
 * FIX: Sustain-Loop and normal Loop not correctly differed in
        BasicModMixer::fitIntoLoops. Resulted in a Devision by Zero, if
        sustain loop present, but no normal loop
+* FIX: refactoring of BasicModMixer::fitIntoLoops to be more precise, especially
+       with interpolation magic at loops. Plus ping pong loops optimized
 * FIX: Impulse Tracker Mods, saved by OpenModPlug, were often identified as
        legacy Modplug Tracker files with then wrong settings in global
        volume and preamp. New ModPlug-Songs were played fare to silent then
-* FIX: end of envelopes now correctly identified, count of active NNAs, that 
+* FIX: End of envelopes now correctly identified, count of active NNAs, that 
        are not active anymore, does not explode anymore
-* FIX: volume column effects for IT and XM, many fixes on IT mods necessary
+* FIX: volume column effects for IT and XM refactored, many fixes on
+       ImpulseTracker
 * FIX: s3m load volume column as panning, if above 128
 * FIX: also stm and s3m (with IT Compatmode OFF) share Porta memories now (like
        IT did already)
+* FIX: Calculating steps for sample data iteration exceeded integer for high
+       sample rates at base frequency (ImpulseTracker). Switched to long
+* FIX: loading of volume envelopes with old instruments (CmwT<0x200).
+       Did not skip 200 bytes of pre calculated volume envelope data. Is now
+       loaded, but not used (we could also skip those...)
+* FIX: Log.debug (instead of Log.info) for missing effects
 * added Fine Midi Macros
 * added MidiMacros to XM
+* added sanitize of envelope data
 * Loading is much faster now. Provided RandomAccessStreamImpl with a buffer so
   reading and seeking is done on the buffer. Using a buffer of 8K currently.
        
 New in Version 3.1
 * FIX: Pattern/Sample/Instrument dialogs should only be created, if parent
        JDialog is present. Otherwise these will never get destroyed
+* INITIAL GITHUB RELEASE
 
 New in Version 3.0
 * FIX: IT set global volume: normalize to 0x80 for *non*-IT Mods

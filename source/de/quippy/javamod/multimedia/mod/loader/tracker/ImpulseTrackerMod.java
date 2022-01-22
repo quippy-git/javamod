@@ -110,7 +110,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod#getChannelVolume(int)
 	 */
 	@Override
-	public int getChannelVolume(int channel)
+	public int getChannelVolume(final int channel)
 	{
 		return channelVolume[channel];
 	}
@@ -133,9 +133,9 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		return midiMacros;
 	}
 
-	private void readEnvelopeData(Envelope env, int add, ModfileInputStream inputStream) throws IOException
+	private void readEnvelopeData(final Envelope env, final int add, final int maxValue, final ModfileInputStream inputStream) throws IOException
 	{
-		long pos = inputStream.getFilePointer();
+		final long pos = inputStream.getFilePointer();
 		
 		env.setITType(inputStream.read());
 		int nPoints = inputStream.read();
@@ -158,6 +158,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		env.setPositions(points);
 		env.setValue(values);
 		
+		env.sanitize(maxValue);
+		
 		inputStream.seek(pos+82L);
 	}
 	/**
@@ -166,7 +168,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
 	 */
 	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
+	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
 	{
 		String id = inputStream.readString(4);
 		inputStream.seek(0);
@@ -178,7 +180,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
 	 */
 	@Override
-	protected Module getNewInstance(String fileName)
+	protected Module getNewInstance(final String fileName)
 	{
 		return new ImpulseTrackerMod(fileName);
 	}
@@ -188,7 +190,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	public void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	public void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_IT);
 		setSongRestart(0);
@@ -457,7 +459,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				currentIns.setVolumeFadeOut(inputStream.readIntelUnsignedWord() << 6);
 				currentIns.setNNA(inputStream.read());
 				currentIns.setDublicateNoteCheck(inputStream.read());
-				inputStream.skip(4);
+				inputStream.skip(2); // TrackerVersion, that saved the instrument - ignored
+				inputStream.skip(2); // NoS - ignored
 				currentIns.setGlobalVolume(128);
 				currentIns.setDefaultPan(128);
 			}
@@ -511,23 +514,38 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			
 			if (cmwt<0x200) // Old Instrument format
 			{
+				// now 200 bytes of volume envelope data follow, according to ITTECH.TXT,
+				// but we have no idea, what exactly that is and what it is used for.
+				// Educated guess: it is a pre-calculation of the volume envelope
+				// however, we read it, but do not use it (yet...)
+				// neither Schism nor ModPlug use it, do life calculations instead 
+				// we are in good company :)
+				byte [] volEnvelope = new byte[200];
+				inputStream.read(volEnvelope);
+				volumeEnvelope.setOldITVolumeEnvelope(volEnvelope);
+
+				// now for the envelope data
 				int [] volumeEnvelopePosition = new int[25];
 				int [] volumeEnvelopeValue = new int[25];
-				int nPoints = 0;
-				for (; nPoints<25; nPoints++)
+				int maxValues = 25;
+				for (int nPoints=0; nPoints<maxValues; nPoints++)
 				{
 					volumeEnvelopePosition[nPoints] = inputStream.read();
 					volumeEnvelopeValue[nPoints] = inputStream.read();
+					// end point indication: we can stop reading
+					// this is last data, file pointer is set to next instrument
+					if (volumeEnvelopePosition[nPoints]==0xFF) maxValues = nPoints; 
 				}
-				volumeEnvelope.setNPoints(nPoints);
+				volumeEnvelope.setNPoints(maxValues);
 				volumeEnvelope.setPositions(volumeEnvelopePosition);
 				volumeEnvelope.setValue(volumeEnvelopeValue);
+				volumeEnvelope.sanitize(64);
 			}
 			else
 			{
-				readEnvelopeData(volumeEnvelope, 0, inputStream); // 0..64
-				readEnvelopeData(panningEnvelope, 32, inputStream); //-32..+32
-				readEnvelopeData(pitchEnvelope, 32, inputStream); //-32..+32
+				readEnvelopeData(volumeEnvelope, 0, 64, inputStream); // 0..64, no transform
+				readEnvelopeData(panningEnvelope, 32, 64, inputStream); //-32..+32 - transformed to 0-64
+				readEnvelopeData(pitchEnvelope, 32, 64, inputStream); //-32..+32 - transformed to 0-64
 			}
 			
 			instrumentContainer.setInstrument(i, currentIns);

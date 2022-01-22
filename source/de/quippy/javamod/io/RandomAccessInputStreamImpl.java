@@ -266,7 +266,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 			int read = fillRandomAccessBuffer(this.getFilePointer());
 			if (read==-1) return -1;
 		}
-		return (int)(randomAccessBuffer[randomAccessBuffer_readPointer++])&0xFF;
+		return ((int)randomAccessBuffer[randomAccessBuffer_readPointer++])&0xFF;
 	}
 	/**
 	 * @return

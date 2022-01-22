@@ -105,7 +105,7 @@ public class PlaylistDropListener extends DropTargetAdapter
 
 				for (int i=0; i<files.size(); i++)
 				{
-					final String fileName = files.get(i).toString(); // can be files, an be strings...
+					final String fileName = files.get(i).toString(); // can be files, can be strings...
 					File f = new File(fileName);
 					if (f.isDirectory())
 					{

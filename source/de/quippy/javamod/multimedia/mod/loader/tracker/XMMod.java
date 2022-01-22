@@ -386,6 +386,9 @@ public class XMMod extends ProTrackerMod
 				volumeEnvelope.setXMType(inputStream.read());
 				panningEnvelope.setXMType(inputStream.read());
 				
+				volumeEnvelope.sanitize(64);
+				panningEnvelope.sanitize(64);
+				
 				vibratoType = inputStream.read();
 				vibratoSweep = inputStream.read();
 				vibratoDepth = inputStream.read();

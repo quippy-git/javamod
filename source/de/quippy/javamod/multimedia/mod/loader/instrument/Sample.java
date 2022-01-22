@@ -450,7 +450,7 @@ public class Sample
 	public void getInterpolatedSample(final long result[], final int doISP, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards, final int interpolationMagic)
 	{
 		// Shit happens... indeed!
-		if (sampleL!=null && currentSamplePos<=length)
+		if (sampleL!=null && currentSamplePos<length)
 		{
 			final int sampleIndex = currentSamplePos + ((interpolationMagic==0)?INTERPOLATION_LOOK_AHEAD:interpolationMagic);
 			// Now return correct sample

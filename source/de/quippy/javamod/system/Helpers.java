@@ -34,18 +34,13 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -1317,36 +1312,53 @@ public class Helpers
     	}
     	return copied;
 	}
-	/**
-	 * Create a copy of an Object by serialization
-	 * This is needed by NNAs
-	 * @since 10.06.2020
-	 * @return
-	 */
-	public static Object deepCopy(final Serializable fromMe)
+	public static int limit(final int value, final int minValue, final int maxValue)
 	{
-		ObjectOutputStream oos = null;
-		ObjectInputStream ois = null;
-		try
-		{
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			oos = new ObjectOutputStream(bos);
-			oos.writeObject(fromMe);
-			oos.flush();
-			ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
-			ois = new ObjectInputStream(bin);
-			// return the new object
-			return ois.readObject();
-		}
-		catch (Throwable ex)
-		{
-			Log.error("Cloning failed", ex);
-		}
-		finally
-		{
-			if (oos!=null) try { oos.close(); } catch (IOException ex) { /*NOOP*/}
-			if (ois!=null) try { ois.close(); } catch (IOException ex) { /*NOOP*/}
-		}
-		return null;
+		return (value>maxValue)?maxValue:((value>minValue)?minValue:value);
 	}
+	public static int limitMax(final int value, final int maxValue)
+	{
+		return (value>maxValue)?maxValue:value;
+	}
+	public static long limit(final long value, final long minValue, final long maxValue)
+	{
+		return (value>maxValue)?maxValue:((value>minValue)?minValue:value);
+	}
+	public static long limitMax(final long value, final long maxValue)
+	{
+		return (value>maxValue)?maxValue:value;
+	}
+//	/**
+//	 * Create a copy of an Object by serialization
+//	 * This is needed by NNAs
+//	 * Not fast enough - by far!!!! 
+//	 * @since 10.06.2020
+//	 * @return
+//	 */
+//	public static Object deepCopy(final Serializable fromMe)
+//	{
+//		ObjectOutputStream oos = null;
+//		ObjectInputStream ois = null;
+//		try
+//		{
+//			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//			oos = new ObjectOutputStream(bos);
+//			oos.writeObject(fromMe);
+//			oos.flush();
+//			ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
+//			ois = new ObjectInputStream(bin);
+//			// return the new object
+//			return ois.readObject();
+//		}
+//		catch (Throwable ex)
+//		{
+//			Log.error("Cloning failed", ex);
+//		}
+//		finally
+//		{
+//			if (oos!=null) try { oos.close(); } catch (IOException ex) { /*NOOP*/}
+//			if (ois!=null) try { ois.close(); } catch (IOException ex) { /*NOOP*/}
+//		}
+//		return null;
+//	}
 }

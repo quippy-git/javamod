@@ -32,15 +32,8 @@ public class Instrument
 	public int [] sampleIndex;
 	public int [] noteIndex;
 
-	public Envelope volumeEnvelope = null;
-	public Envelope panningEnvelope = null;
-	
-	public int volumeFadeOut = -1;
-
 	public String name;
 	
-	// Impulstracker Values, defaulted:
-	public Envelope pitchEnvelope = null;
 	public String dosFileName;
 	public int dublicateNoteCheck = -1;
 	public int dublicateNoteAction = -1;
@@ -57,6 +50,11 @@ public class Instrument
 	public int initialFilterCutoff = 0;
 	public int initialFilterResonance = 0;
 	
+	public Envelope volumeEnvelope = null;
+	public Envelope panningEnvelope = null;
+	public Envelope pitchEnvelope = null;
+	
+	public int volumeFadeOut = -1;
 	// MadTracker
 	public int filterMode = ModConstants.FLTMODE_UNCHANGED;
 	
@@ -105,98 +103,98 @@ public class Instrument
 	/**
 	 * @param name The name to set.
 	 */
-	public void setName(String name)
+	public void setName(final String name)
 	{
 		this.name = name;
 	}
 	/**
 	 * @param dosFileName the dosFileName to set
 	 */
-	public void setDosFileName(String dosFileName)
+	public void setDosFileName(final String dosFileName)
 	{
 		this.dosFileName = dosFileName;
 	}
 	/**
 	 * @param volumeFadeOut The volumeFadeOut to set.
 	 */
-	public void setVolumeFadeOut(int volumeFadeOut)
+	public void setVolumeFadeOut(final int volumeFadeOut)
 	{
 		this.volumeFadeOut = volumeFadeOut;
 	}
 	/**
 	 * @param dublicateNoteCheck the dublicateNoteCheck to set
 	 */
-	public void setDublicateNoteCheck(int dublicateNoteCheck)
+	public void setDublicateNoteCheck(final int dublicateNoteCheck)
 	{
 		this.dublicateNoteCheck = dublicateNoteCheck;
 	}
 	/**
 	 * @param dublicateNodeAction the dublicateNodeAction to set
 	 */
-	public void setDublicateNoteAction(int dublicateNoteAction)
+	public void setDublicateNoteAction(final int dublicateNoteAction)
 	{
 		this.dublicateNoteAction = dublicateNoteAction;
 	}
 	/**
 	 * @param nna the NewNoteAction to set
 	 */
-	public void setNNA(int nna)
+	public void setNNA(final int nna)
 	{
 		NNA = nna;
 	}
 	/**
 	 * @param pitchPanSeparation the pitchPanSeparation to set
 	 */
-	public void setPitchPanSeparation(int pitchPanSeparation)
+	public void setPitchPanSeparation(final int pitchPanSeparation)
 	{
 		this.pitchPanSeparation = pitchPanSeparation;
 	}
 	/**
 	 * @param pitchPanCenter the pitchPanCenter to set
 	 */
-	public void setPitchPanCenter(int pitchPanCenter)
+	public void setPitchPanCenter(final int pitchPanCenter)
 	{
 		this.pitchPanCenter = pitchPanCenter;
 	}
 	/**
 	 * @param globalVolume the globalVolume to set
 	 */
-	public void setGlobalVolume(int globalVolume)
+	public void setGlobalVolume(final int globalVolume)
 	{
 		this.globalVolume = globalVolume;
 	}
 	/**
 	 * @param defaultPan the defaultPan to set
 	 */
-	public void setDefaultPan(int defaultPan)
+	public void setDefaultPan(final int defaultPan)
 	{
 		this.defaultPan = defaultPan;
 	}
 	/**
 	 * @param randomVolumeVariation the randomVolumeVariation to set
 	 */
-	public void setRandomVolumeVariation(int randomVolumeVariation)
+	public void setRandomVolumeVariation(final int randomVolumeVariation)
 	{
 		this.randomVolumeVariation = randomVolumeVariation;
 	}
 	/**
 	 * @param randomPanningVariation the randomPanningVariation to set
 	 */
-	public void setRandomPanningVariation(int randomPanningVariation)
+	public void setRandomPanningVariation(final int randomPanningVariation)
 	{
 		this.randomPanningVariation = randomPanningVariation;
 	}
 	/**
 	 * @param initialFilterCutoff the initialFilterCutoff to set
 	 */
-	public void setInitialFilterCutoff(int initialFilterCutoff)
+	public void setInitialFilterCutoff(final int initialFilterCutoff)
 	{
 		this.initialFilterCutoff = initialFilterCutoff;
 	}
 	/**
 	 * @param initialFilterResonance the initialFilterResonance to set
 	 */
-	public void setInitialFilterResonance(int initialFilterResonance)
+	public void setInitialFilterResonance(final int initialFilterResonance)
 	{
 		this.initialFilterResonance = initialFilterResonance;
 	}

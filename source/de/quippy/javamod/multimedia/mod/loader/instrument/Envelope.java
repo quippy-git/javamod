@@ -21,6 +21,8 @@
  */
 package de.quippy.javamod.multimedia.mod.loader.instrument;
 
+import de.quippy.javamod.system.Helpers;
+
 /**
  * @author Daniel Becker
  * @since 19.06.2006
@@ -36,6 +38,7 @@ public class Envelope
 	public int loopEndPoint;
 	public int endPoint;
 	public boolean on, sustain, loop, carry, filter, xm_style;
+	public byte[] oldITVolumeEnvelope;
 	
 	private static final int SHIFT = 3;
 	private static final int MAXVALUE = 64<<SHIFT;
@@ -166,6 +169,34 @@ public class Envelope
 		xm_style = false;
 	}
 	/**
+	 * Let's do some range checks. Values are limited to not exceed maxValue.
+	 * Needs to be called by the loaders, when envelope set is finished
+	 * @since 22.01.2022
+	 * @param maxValue the maximum value
+	 */
+	public void sanitize(final int maxValue)
+	{
+		if (positions!=null && positions.length>0)
+		{
+			positions[0]=0;
+			value[0] = Helpers.limitMax(value[0], maxValue);
+			for (int pos=1; pos<=endPoint; pos++)
+			{
+				positions[pos] = Math.max(positions[pos], positions[pos - 1]);
+				value[pos] = Helpers.limitMax(value[pos], maxValue);
+			}
+			loopEndPoint = Helpers.limitMax(loopEndPoint, endPoint);
+			loopStartPoint = Helpers.limitMax(loopStartPoint, loopEndPoint);
+			sustainEndPoint = Helpers.limitMax(sustainEndPoint, endPoint);
+			sustainStartPoint = Helpers.limitMax(sustainStartPoint, sustainEndPoint);
+		}
+		else
+		{
+			endPoint = -1;
+			on=sustain=loop=carry=filter=xm_style=false;
+		}
+	}
+	/**
 	 * @param loopEndPoint The loopEndPoint to set.
 	 */
 	public void setLoopEndPoint(final int loopEndPoint)
@@ -231,5 +262,12 @@ public class Envelope
 	public void setSustainStartPoint(final int sustainStartPoint)
 	{
 		this.sustainStartPoint = sustainStartPoint;
+	}
+	/**
+	 * @param oldITVolumeEnvelope the oldITVolumeEnvelope to set
+	 */
+	public void setOldITVolumeEnvelope(final byte[] oldITVolumeEnvelope)
+	{
+		this.oldITVolumeEnvelope = oldITVolumeEnvelope;
 	}
 }

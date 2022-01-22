@@ -773,8 +773,8 @@ public abstract class BasicModMixer
 		if (frequencyTableType==ModConstants.IT_LINEAR_TABLE)
 		{
 			if (aktMemo.currentFinetuneFrequency <= 0) aktMemo.currentFinetuneFrequency = ModConstants.BASEFREQUENCY;
-			final int itTuning = (int)((((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * ((long)aktMemo.currentFinetuneFrequency))<<ModConstants.SHIFT) / ((long)sampleRate));
-			aktMemo.currentTuning = itTuning / newPeriod; 
+			final long itTuning = (((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * ((long)aktMemo.currentFinetuneFrequency))<<ModConstants.SHIFT) / ((long)sampleRate);
+			aktMemo.currentTuning = (int)(itTuning / (long)newPeriod); 
 		}
 		else
 			aktMemo.currentTuning = globalTuning / newPeriod; // in globalTuning, all constant values are already calculated. (see above)
@@ -2213,36 +2213,34 @@ public abstract class BasicModMixer
 			final int addToSamplePos = aktMemo.currentTuningPos >> ModConstants.SHIFT;
 			aktMemo.currentTuningPos &= ModConstants.SHIFT_MASK;
 
+			// Set the start/end loop position to check against...
+			int loopStart = 0; // if this is not changed, we have no loops
+			int loopEnd = sample.length;
+			int loopLength = loopEnd;
+			int inLoop = 0;
+			
+			if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
+			{
+				loopStart = sample.sustainLoopStart;
+				loopEnd = sample.sustainLoopStop;
+				loopLength = sample.sustainLoopLength;
+				inLoop = ModConstants.LOOP_SUSTAIN_ON;
+			}
+			else
+			if ((sample.loopType&ModConstants.LOOP_ON)!=0) 
+			{
+				loopStart = sample.loopStart;
+				loopEnd = sample.loopStop;
+				loopLength = sample.loopLength;
+				inLoop = ModConstants.LOOP_ON;
+			}
+
+			aktMemo.interpolationMagic = 0;
+			
 			// If Forward direction:
 			if (aktMemo.isForwardDirection)
 			{
 				aktMemo.currentSamplePos += addToSamplePos;
-				
-				// Set the end position to check against...
-				int loopStart = 0; // if this is not changed, we have no loops
-				int loopEnd = sample.length;
-				int loopLength = loopEnd;
-				int inLoop = 0;
-				
-				if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
-				{
-					loopStart = sample.sustainLoopStart;
-					loopEnd = sample.sustainLoopStop;
-					loopLength = sample.sustainLoopLength;
-					inLoop = ModConstants.LOOP_SUSTAIN_ON;
-					aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
-				}
-				else
-				if ((sample.loopType&ModConstants.LOOP_ON)!=0) 
-				{
-					loopStart = sample.loopStart;
-					loopEnd = sample.loopStop;
-					loopLength = sample.loopLength;
-					inLoop = ModConstants.LOOP_ON;
-					aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
-				}
-				else
-					aktMemo.interpolationMagic = 0;
 				
 				// do we have an overrun of border?
 				if (aktMemo.currentSamplePos >= loopEnd)
@@ -2257,9 +2255,9 @@ public abstract class BasicModMixer
 					}
 					else
 					{
-						// This is needed if sample rate is very low. Than this will not have 
+						// This is needed if sample rate is very low or baseFreq very high. Than this will not have 
 						// a fraction in Tuning, but addition of 2 or even more.
-						final int aheadOfStop = (aktMemo.currentSamplePos - loopEnd) % loopLength;
+						final int aheadOfStop = ((aktMemo.currentSamplePos - loopEnd + 1) % loopLength);
 						
 						// check if loop, that was enabled, is a ping pong
 						if ((inLoop == ModConstants.LOOP_ON && (sample.loopType & ModConstants.LOOP_IS_PINGPONG)!=0) ||
@@ -2268,13 +2266,11 @@ public abstract class BasicModMixer
 							aktMemo.isForwardDirection = false;
 							aktMemo.currentSamplePos = loopEnd - 1 - aheadOfStop;
 							aktMemo.loopCounter++;
-							aktMemo.interpolationMagic = (inLoop == ModConstants.LOOP_ON)?sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter):sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 						}
 						else
 						{
 							aktMemo.currentSamplePos = loopStart + aheadOfStop;
 							aktMemo.loopCounter++;
-							aktMemo.interpolationMagic = (inLoop == ModConstants.LOOP_ON)?sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter):sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 						}
 					}
 				}
@@ -2283,31 +2279,24 @@ public abstract class BasicModMixer
 			{
 				aktMemo.currentSamplePos -= addToSamplePos;
 
-				int loopStart = 0; // support Sound Control "Play Backwards" with no loops set
-				int inLoop = 0;
-				if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff)
-				{
-					loopStart = sample.sustainLoopStart;
-					inLoop = ModConstants.LOOP_SUSTAIN_ON;
-					aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
-				}
-				else
-				if ((sample.loopType&ModConstants.LOOP_ON)!=0)
-				{
-					loopStart = sample.loopStart;
-					inLoop = ModConstants.LOOP_ON;
-					aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
-				}
-				else
-					aktMemo.interpolationMagic = 0;
-
 				if (aktMemo.currentSamplePos < loopStart)
 				{
 					aktMemo.isForwardDirection = true;
-					aktMemo.currentSamplePos = loopStart;
-					aktMemo.interpolationMagic = (inLoop == ModConstants.LOOP_ON)?sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter):(inLoop == ModConstants.LOOP_SUSTAIN_ON)?sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter):0;
+					aktMemo.currentSamplePos = loopStart + (loopStart - aktMemo.currentSamplePos) % loopLength;
 				}
 			}
+			// after resposition of sample pointer, check for interpolation magic
+			if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
+			{
+				aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
+			}
+			else
+			if ((sample.loopType&ModConstants.LOOP_ON)!=0) 
+			{
+				aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
+			}
+			else
+				aktMemo.interpolationMagic = 0;
 		}
 	}
 	/**

@@ -1071,7 +1071,6 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 				{
 					final int middle = targetComponent.getHeight()>>1;
 					if (dropCoordinates.getY()<middle) index = 0; else index = playList.size();
-					
 				}
 				else
 				{
