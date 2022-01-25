@@ -47,6 +47,7 @@ public class ModConfigPanel extends JPanel
 	private JCheckBox playerSetUp_WideStereoMix = null;
 	private JCheckBox playerSetUp_NoiseReduction = null;
 	private JCheckBox playerSetUp_MegaBass = null;
+	private JCheckBox playerSetUp_DCRemoval = null;
 	private JCheckBox playerSetUp_fadeOutLoops = null;
 	private JCheckBox playerSetUp_ignoreLoops = null;
 	private JCheckBox playerSetUp_loopSong = null;
@@ -126,19 +127,20 @@ public class ModConfigPanel extends JPanel
 		this.add(getPlayerSetUp_WideStereoMix(),	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_NoiseReduction(),	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_MegaBass(),			Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_fadeOutLoops(),		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_ignoreLoops(),		Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_DCRemoval(),		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_fadeOutLoops(),		Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
 		this.add(getPlayerSetUp_L_SampleRate(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_Channels(),		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_BitsPerSample(),	Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_BufferSize(),		Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_loopSong(),			Helpers.getGridBagConstraint(4, 1, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_ignoreLoops(),		Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
 		this.add(getPlayerSetUp_SampleRate(),		Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_Channels(),			Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_BitsPerSample(),	Helpers.getGridBagConstraint(2, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_BufferSize(),		Helpers.getGridBagConstraint(3, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_loopSong(),			Helpers.getGridBagConstraint(4, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
 		this.add(getPlayerSetUp_L_DitherType(),			Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_DitherFilterType(),	Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -231,6 +233,33 @@ public class ModConfigPanel extends JPanel
 			});
 		}
 		return playerSetUp_MegaBass;
+	}
+	public JCheckBox getPlayerSetUp_DCRemoval()
+	{
+		if (playerSetUp_DCRemoval==null)
+		{
+			playerSetUp_DCRemoval = new JCheckBox();
+			playerSetUp_DCRemoval.setName("playerSetUp_DCRemoval");
+			playerSetUp_DCRemoval.setText("DC Removal");
+			playerSetUp_DCRemoval.setFont(Helpers.getDialogFont());
+			playerSetUp_DCRemoval.addItemListener(new ItemListener()
+			{
+				public void itemStateChanged(ItemEvent e)
+				{
+					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
+					{
+						ModContainer parent = getParentContainer();
+						if (parent!=null)
+						{
+							ModMixer currentMixer = parent.getCurrentMixer();
+							if (currentMixer!=null)
+								currentMixer.setDoDCRemoval(getPlayerSetUp_DCRemoval().isSelected());
+						}
+					}
+				}
+			});
+		}
+		return playerSetUp_DCRemoval;
 	}
 	public int getLoopValue()
 	{

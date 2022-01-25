@@ -528,10 +528,18 @@ public class LEDScrollPanel extends MeterPanelBase
 	private Color darkColor;
 	private Color lightColor;
 	
+	private int syncToFPScounter;
+	private int syncToFPSAdd;
+	// lets avoid floats, so we use the good old fractions by shifting
+	private static final int SYNC2FPS_BITS	= 16;
+	private static final int SYNC2FPS_FRAC	= 1<<SYNC2FPS_BITS;
+	private static final int SYNC2FPS_MASK	= SYNC2FPS_FRAC-1;
+	private static final int DEFAULT_FPS	= 30;
+
 	/**
 	 * Constructor for LEDScrollPanel
 	 */
-	public LEDScrollPanel(int updateRate, String scrollText, int anzChars, Color lightColor, Color darkColor)
+	public LEDScrollPanel(final int updateRate, final String scrollText, final int anzChars, final Color lightColor, final Color darkColor)
 	{
 		super(updateRate);
 		this.appendIndexMarker = -1;
@@ -548,6 +556,9 @@ public class LEDScrollPanel extends MeterPanelBase
 		this.currentScrollLayer = new byte[this.anzChars + 1][];
 		this.darkColor = darkColor;
 		this.lightColor = lightColor;
+		
+		syncToFPScounter = 0;
+		syncToFPSAdd = (DEFAULT_FPS<<SYNC2FPS_BITS) / updateRate;
 		
 		startThread();
 	}
@@ -630,41 +641,48 @@ public class LEDScrollPanel extends MeterPanelBase
 	@Override
 	protected synchronized void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
-		scrollBufferIndex++;
-		if (scrollBufferIndex>=6)
+		syncToFPScounter += syncToFPSAdd;
+		if (syncToFPScounter >= SYNC2FPS_FRAC)
 		{
-			scrollBufferIndex = 0;
-			scrollTextIndex++;
-			if (scrollTextIndex>=scrollText.length()) scrollTextIndex = 0;
+			scrollBufferIndex += syncToFPSAdd>>SYNC2FPS_BITS;
+			syncToFPScounter &= SYNC2FPS_MASK;
 			
-			if (appendIndexMarker!=-1 && scrollTextIndex>=appendIndexMarker)
+			if (scrollBufferIndex>=6)
 			{
-				scrollText = scrollText.substring(appendIndexMarker);
-				scrollTextIndex-=appendIndexMarker;
-				appendIndexMarker = -1;
-			}
-			
-			String c = String.valueOf(scrollText.charAt(scrollTextIndex));
-			byte [] newChar = ledCharSet.get(c);
-			if (newChar==null)
-			{
-				Log.debug("Charachter unknown: " + c + "[\\u"+ Integer.toHexString((int)c.charAt(0)) +"]");
-				newChar=ledCharSet.get("?");
-			}
-			
-			for (int i=0; i<anzChars; i++) currentScrollLayer[i] = currentScrollLayer[i+1];
-			currentScrollLayer[anzChars] = newChar;
-		}
+				scrollTextIndex += scrollBufferIndex / 6;
+				scrollBufferIndex %= 6;
 
-		if (g==null) return;
-		
-		int startIndex = scrollBufferIndex % 6;
-		int x=0;
-		for (int i=0; i<anzChars; i++)
-		{
-			byte[] display = currentScrollLayer[i];
-			int start = (i==0)?startIndex:0;
-			x = drawDots(g, start, 6, x, display, newWidth, newHeight);
+				if (scrollTextIndex>=scrollText.length()) scrollTextIndex = 0;
+				
+				if (appendIndexMarker!=-1 && scrollTextIndex>=appendIndexMarker)
+				{
+					scrollText = scrollText.substring(appendIndexMarker);
+					scrollTextIndex-=appendIndexMarker;
+					appendIndexMarker = -1;
+				}
+				
+				String c = String.valueOf(scrollText.charAt(scrollTextIndex));
+				byte [] newChar = ledCharSet.get(c);
+				if (newChar==null)
+				{
+					Log.debug("Charachter unknown: " + c + "[\\u"+ Integer.toHexString((int)c.charAt(0)) +"]");
+					newChar=ledCharSet.get("?");
+				}
+				
+				for (int i=0; i<anzChars; i++) currentScrollLayer[i] = currentScrollLayer[i+1];
+				currentScrollLayer[anzChars] = newChar;
+			}
+	
+			if (g==null) return;
+			
+			final int startIndex = scrollBufferIndex % 6;
+			int x=0;
+			for (int i=0; i<anzChars; i++)
+			{
+				byte[] display = currentScrollLayer[i];
+				int start = (i==0)?startIndex:0;
+				x = drawDots(g, start, 6, x, display, newWidth, newHeight);
+			}
 		}
 	}
 }

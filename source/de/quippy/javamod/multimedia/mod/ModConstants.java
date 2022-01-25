@@ -99,9 +99,6 @@ public class ModConstants
 	public static final int VOL_RAMP_LEN  = 1<<VOL_RAMP_FRAC;
 	public static final int VOLRAMPLEN_MS = 146;
 
-	public static final int XBASS_DELAY = 14;
-	public static final int XBASS_BUFFER = 64;
-
 	public static final int SM_PCMS		= 	0x00;					// PCM 8 Bit Signed
 	public static final int SM_PCMU		= 	0x01;					// PCM 8 Bit unsigned
 	public static final int SM_PCMD 	=	0x02;					// PCM 8 Bit delta values

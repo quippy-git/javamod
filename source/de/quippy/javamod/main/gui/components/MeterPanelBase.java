@@ -44,7 +44,7 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	private volatile int myLeft;
 	private volatile int myWidth;
 	private volatile int myHeight;
-	
+
 	private Image imageBuffer;
 	/**
 	 * Constructor for MeterPanelBase

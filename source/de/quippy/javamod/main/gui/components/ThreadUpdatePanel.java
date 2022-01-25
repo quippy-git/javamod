@@ -33,23 +33,26 @@ public abstract class ThreadUpdatePanel extends JPanel
 {
 	private static final long serialVersionUID = 499420014207584726L;
 
+	private int desiredFPS;
+	
 	private volatile boolean threadRunning;
 	private volatile int pause; // 0:nothing, 1:request, 2:in Pause
-	private final int desiredFPS;
 	private final MeterUpdateThread uiUpdateThread;
-	private final long nanoWait;
 
 	private static final class MeterUpdateThread extends Thread
 	{
+		private long nanoWait;
 		private final ThreadUpdatePanel me;
 		
-		public MeterUpdateThread(ThreadUpdatePanel me)
+		public MeterUpdateThread(ThreadUpdatePanel me, final long desiredFPS)
 		{
 			super();
 			this.me = me;
-			this.setName("ThreadUpdatePanel::" + me.getClass().getName());
-			this.setDaemon(true);
-			this.setPriority(Thread.MAX_PRIORITY);
+			nanoWait = 1000000000L / desiredFPS;
+			
+			setName("ThreadUpdatePanel::" + me.getClass().getName());
+			setDaemon(true);
+			setPriority(Thread.MAX_PRIORITY);
 		}
 		/**
 		 * Will do the Update of this... 
@@ -69,19 +72,19 @@ public abstract class ThreadUpdatePanel extends JPanel
 				{
 					Log.error(this.getName(), ex);
 				}
-				final long stillToWait = me.nanoWait - (System.nanoTime() - now);
-				if (stillToWait>0)
-				{
-					try { Thread.sleep(stillToWait/1000000L); } catch (InterruptedException ex) { /*noop*/ }
-				}
-				else
-				{
-					try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
-				}
 				if (me.pause==1)
 				{
 					me.pause=2;
 					while (me.pause==2) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
+				}
+				final long stillToWait = (nanoWait + now - System.nanoTime())/1000000L;
+				if (stillToWait>0)
+				{
+					try { Thread.sleep(stillToWait); } catch (InterruptedException ex) { /*noop*/ }
+				}
+				else
+				{
+					try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
 				}
 			}
 		}
@@ -94,8 +97,7 @@ public abstract class ThreadUpdatePanel extends JPanel
 	{
 		super();
 		this.desiredFPS = desiredFPS;
-		this.nanoWait = 1000000000L / (long)desiredFPS;
-		this.uiUpdateThread = new MeterUpdateThread(this);
+		uiUpdateThread = new MeterUpdateThread(this, desiredFPS);
 	}
 	/**
 	 * Will start the Thread
@@ -128,7 +130,7 @@ public abstract class ThreadUpdatePanel extends JPanel
 	}
 	/**
 	 * @since 11.09.2009
-	 * @return
+	 * @return -1 if not FPS is set
 	 */
 	public int getDesiredFPS()
 	{

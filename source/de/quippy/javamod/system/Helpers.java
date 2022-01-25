@@ -24,7 +24,11 @@ package de.quippy.javamod.system;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.DisplayMode;
 import java.awt.Font;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -391,6 +395,34 @@ public class Helpers
 
 		return new java.awt.Point(x, y);
 	}
+    /**
+     * @since 25.01.2022
+     * @param c
+     * @return DisplayMode of graphical context of given component 
+     */
+    public static DisplayMode getScreenInfoOf(final Component c)
+    {
+		final GraphicsConfiguration gc = c.getGraphicsConfiguration();
+		if (gc!=null)
+		{
+			final GraphicsDevice gd = gc.getDevice();
+			if (gd!=null)
+				return gd.getDisplayMode();
+		}
+		return null;
+    }
+    /**
+     * @since 25.01.2022
+     * @param c
+     * @return array if GraphicsDevices
+     */
+    public static GraphicsDevice[] getScreenInfos(final Component c)
+    {
+		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		if (env!=null)
+			return env.getScreenDevices();
+		return null;
+    }
 	/**
 	 * Register the droplistener to all components... 
 	 * @since: 12.10.2007

@@ -323,7 +323,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			}
 		}
 		
-		// Checking for
+		// Checking for (Open) ModPlug Tracker
 		if ((version & 0xF000)==0x5000)
 		{
 			if (reserved.equals("OMPT")) 

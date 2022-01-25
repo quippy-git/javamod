@@ -24,6 +24,7 @@ package de.quippy.javamod.main.gui;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.MenuItem;
@@ -1778,7 +1779,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (saLMeterPanel==null)
 		{
-			saLMeterPanel = new SAMeterPanel(50, 25);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			saLMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saLMeterPanel.setSize(d);
 			saLMeterPanel.setMaximumSize(d);
@@ -1793,7 +1796,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (saRMeterPanel==null)
 		{
-			saRMeterPanel = new SAMeterPanel(50, 25);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			saRMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saRMeterPanel.setSize(d);
 			saRMeterPanel.setMaximumSize(d);
@@ -1808,7 +1813,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (vuLMeterPanel==null)
 		{
-			vuLMeterPanel = new VUMeterPanel(50);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			vuLMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuLMeterPanel.setSize(d);
 			vuLMeterPanel.setMaximumSize(d);
@@ -1822,7 +1829,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (vuRMeterPanel==null)
 		{
-			vuRMeterPanel = new VUMeterPanel(50);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			vuRMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuRMeterPanel.setSize(d);
 			vuRMeterPanel.setMaximumSize(d);
@@ -1851,7 +1860,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		final int brick = 3;  // one brick is 3x3 pixel
 		if (ledScrollPanel==null)
 		{
-			ledScrollPanel = new LEDScrollPanel(30, Helpers.FULLVERSION + ' ' + Helpers.COPYRIGHT + "                  ", chars, Color.GREEN, Color.GRAY);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate()>>1:30;
+			ledScrollPanel = new LEDScrollPanel(refreshRate, Helpers.FULLVERSION + ' ' + Helpers.COPYRIGHT + "                  ", chars, Color.GREEN, Color.GRAY);
 			Dimension d = new Dimension((chars*brick*6)+4, (brick*8)+4);
 			ledScrollPanel.setSize(d);
 			ledScrollPanel.setMaximumSize(d);
@@ -1903,7 +1914,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (seekBarPanel==null)
 		{
-			seekBarPanel = new SeekBarPanel(30, false);
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate()>>1:30;
+			seekBarPanel = new SeekBarPanel(refreshRate, false);
 			seekBarPanel.setName("SeekBarPanel");
 			seekBarPanel.addListener(new SeekBarPanelListener()
 			{

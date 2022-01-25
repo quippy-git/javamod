@@ -127,8 +127,9 @@ public class SIDMixer extends BasicMixer
 	{
 		int oldSampleRate = sampleRate;
 
-		boolean wasPlaying = !isPaused();
-		if (wasPlaying) pausePlayback();
+		final boolean wasPaused = isPaused(); 
+		final boolean wasPlaying = isPlaying();
+		if (wasPlaying && !wasPaused) pausePlayback();
 
 		sampleRate = newSampleRate;
 		if (wasPlaying)
@@ -150,7 +151,8 @@ public class SIDMixer extends BasicMixer
 					((ReSIDBuilder)rs).sampling(sampleRate);
 				sidPlayer.config(sidConfig);
 			}
-			pausePlayback();
+
+			if (!wasPaused) pausePlayback();
 		}
 	}
 	public void setSIDModel(int newSidModel)

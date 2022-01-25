@@ -47,6 +47,7 @@ public class ModContainer extends MultimediaContainer
 	public static final String PROPERTY_PLAYER_WIDESTEREOMIX = "javamod.player.widestereomix"; 
 	public static final String PROPERTY_PLAYER_NOISEREDUCTION = "javamod.player.noisereduction"; 
 	public static final String PROPERTY_PLAYER_MEGABASS = "javamod.player.megabass"; 
+	public static final String PROPERTY_PLAYER_DCREMOVAL = "javamod.player.dcremoval"; 
 	public static final String PROPERTY_PLAYER_NOLOOPS = "javamod.player.noloops"; 
 	public static final String PROPERTY_PLAYER_MAXNNACHANNELS = "javamod.player.max_nna_channels"; 
 	public static final String PROPERTY_PLAYER_DITHERFILTER = "javamod.player.ditherfilter"; 
@@ -60,6 +61,7 @@ public class ModContainer extends MultimediaContainer
 	public static final String DEFAULT_WIDESTEREOMIX = "false";
 	public static final String DEFAULT_NOISEREDUCTION = "false";
 	public static final String DEFAULT_MEGABASS = "true";
+	public static final String DEFAULT_DCREMOVAL = "true";
 	public static final String DEFAULT_NOLOOPS = "1";
 	public static final String DEFAULT_MAXNNACHANNELS  = "200";
 	public static final String DEFAULT_INTERPOLATION_INDEX = "3";
@@ -173,7 +175,7 @@ public class ModContainer extends MultimediaContainer
 			final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
 			int loopValue = configPanel.getLoopValue();
 			if (loopValue == ModConstants.PLAYER_LOOP_DEACTIVATED) loopValue = ModConstants.PLAYER_LOOP_IGNORE;
-			ModMixer theMixer = new ModMixer(theMod, 8, 1, 22050, 0, false, false, false, loopValue, 0, 500, 0, 0, true);
+			ModMixer theMixer = new ModMixer(theMod, 8, 1, 22050, 0, false, false, false, false, loopValue, 0, 500, 0, 0, true);
 			duration = Long.valueOf(theMixer.getLengthInMilliseconds());
 		}
 		catch (Throwable ex)
@@ -251,6 +253,7 @@ public class ModContainer extends MultimediaContainer
 		configPanel.getPlayerSetUp_WideStereoMix().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX)));
 		configPanel.getPlayerSetUp_NoiseReduction().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION)));
 		configPanel.getPlayerSetUp_MegaBass().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS)));
+		configPanel.getPlayerSetUp_DCRemoval().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DCREMOVAL, DEFAULT_DCREMOVAL)));
 		configPanel.setLoopValue(Integer.parseInt(props.getProperty(PROPERTY_PLAYER_NOLOOPS, DEFAULT_NOLOOPS)));
 		configPanel.getPlayerSetUp_MaxNNAChannels().setSelectedItem(props.getProperty(PROPERTY_PLAYER_MAXNNACHANNELS, DEFAULT_MAXNNACHANNELS));
 		configPanel.getPlayerSetUp_DitherFilterType().setSelectedIndex(Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER)));
@@ -273,6 +276,7 @@ public class ModContainer extends MultimediaContainer
 		props.setProperty(PROPERTY_PLAYER_WIDESTEREOMIX, Boolean.toString(configPanel.getPlayerSetUp_WideStereoMix().isSelected()));
 		props.setProperty(PROPERTY_PLAYER_NOISEREDUCTION, Boolean.toString(configPanel.getPlayerSetUp_NoiseReduction().isSelected()));
 		props.setProperty(PROPERTY_PLAYER_MEGABASS, Boolean.toString(configPanel.getPlayerSetUp_MegaBass().isSelected()));
+		props.setProperty(PROPERTY_PLAYER_DCREMOVAL, Boolean.toString(configPanel.getPlayerSetUp_DCRemoval().isSelected()));
 		props.setProperty(PROPERTY_PLAYER_NOLOOPS, Integer.toString(configPanel.getLoopValue()));
 		props.setProperty(PROPERTY_PLAYER_MAXNNACHANNELS, configPanel.getPlayerSetUp_MaxNNAChannels().getSelectedItem().toString());
 		props.setProperty(PROPERTY_PLAYER_DITHERFILTER, Integer.toString(configPanel.getPlayerSetUp_DitherFilterType().getSelectedIndex()));
@@ -299,13 +303,14 @@ public class ModContainer extends MultimediaContainer
 		final boolean wideStereoMix = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX)); 
 		final boolean noiseReduction = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
 		final boolean megaBass = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS));
+		final boolean dcRemoval = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DCREMOVAL, DEFAULT_DCREMOVAL));
 		final int loopValue = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_NOLOOPS, DEFAULT_NOLOOPS));
 		final int maxNNAChannels = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_MAXNNACHANNELS, DEFAULT_MAXNNACHANNELS));
 		final int msBufferSize = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_MSBUFFERSIZE, DEFAULT_MSBUFFERSIZE));
 		final int ditherFilter = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 		final int ditherType = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		boolean ditherByPass = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
-		currentMixer = new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		currentMixer = new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
 		return currentMixer;
 	}
 	/**

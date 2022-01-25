@@ -27,6 +27,7 @@ import de.quippy.javamod.mixer.BasicMixer;
 import de.quippy.javamod.mixer.dsp.iir.filter.Dither;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
+import de.quippy.javamod.multimedia.mod.mixer.ModDSP;
 
 /**
  * @author Daniel Becker
@@ -46,22 +47,7 @@ public class ModMixer extends BasicMixer
 	private boolean doWideStereoMix;
 	private boolean doNoiseReduction;
 	private boolean doMegaBass;
-
-	// Wide Stereo Vars
-	private int maxWideStereo;
-	private long[] wideLBuffer;
-	private long[] wideRBuffer;
-	private int readPointer;
-	private int writePointer;
-	
-	// Bass Expansion: low-pass filter
-	private int nXBassSum;
-	private int nXBassBufferPos;
-	private int nXBassDlyPos;
-	private int nXBassMask;
-	private int nXBassDepth;
-	private long [] XBassBuffer;
-	private long [] XBassDelay;	
+	private boolean doDCRemoval;
 
 	// The mixing buffers
 	private long [] LBuffer;
@@ -82,10 +68,12 @@ public class ModMixer extends BasicMixer
 	
 	private long currentSamplesWritten;
 	
+	private ModDSP modDSP = new ModDSP();
+	
 	/**
 	 * Constructor for ModMixer
 	 */
-	public ModMixer(final Module mod, final int sampleSizeInBits, final int channels, final int sampleRate, final int doISP, final boolean doWideStereoMix, final boolean doNoiseReduction, final boolean doMegaBass, final int doNoLoops, final int maxNNAChannels, final int msBufferSize, final int ditherFilter, final int ditherType, final boolean ditherByPass)
+	public ModMixer(final Module mod, final int sampleSizeInBits, final int channels, final int sampleRate, final int doISP, final boolean doWideStereoMix, final boolean doNoiseReduction, final boolean doMegaBass, final boolean doDCremoval, final int doNoLoops, final int maxNNAChannels, final int msBufferSize, final int ditherFilter, final int ditherType, final boolean ditherByPass)
 	{
 		super();
 		this.mod = mod;
@@ -95,6 +83,7 @@ public class ModMixer extends BasicMixer
 		this.doWideStereoMix = (channels<2)?false:doWideStereoMix;
 		this.doNoiseReduction = doNoiseReduction;
 		this.doMegaBass = doMegaBass;
+		this.doDCRemoval = doDCremoval;
 		this.msBufferSize = msBufferSize;
 		this.ditherFilterType = ditherFilter;
 		this.ditherType = ditherType;
@@ -105,7 +94,7 @@ public class ModMixer extends BasicMixer
 	private void initialize()
 	{
 		// create the mixing buffers.
-		bufferSize = (msBufferSize * sampleRate + 500) / 1000;
+		bufferSize = (msBufferSize * sampleRate) / 1000;
 		LBuffer = new long[bufferSize];
 		RBuffer = new long[bufferSize];
 
@@ -117,13 +106,6 @@ public class ModMixer extends BasicMixer
 		outputBufferSize *= bytesPerSample;
 		output = new byte[outputBufferSize];
 		
-		// initialize the wide stereo mix
-		maxWideStereo = sampleRate / 50;
-		wideLBuffer = new long[maxWideStereo];
-		wideRBuffer = new long[maxWideStereo];
-		readPointer = 0;
-		writePointer=maxWideStereo-1;
-		
 		// initialize the dithering for lower sample rates
 		// always for maximum channels
 		dither = new Dither(2, sampleSizeInBits, ditherFilterType, ditherType, ditherByPass);
@@ -134,24 +116,10 @@ public class ModMixer extends BasicMixer
 		maximum = ModConstants.CLIPP32BIT_MAX >> shift;
 		minimum = ModConstants.CLIPP32BIT_MIN >> shift;
 		
-		initMegaBass();
+		// and init the modDSP (full!)
+		modDSP.initModDSP(sampleRate);
 		
 		setAudioFormat(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false)); // signed, little endian
-	}
-	private void initMegaBass()
-	{
-		int nXBassSamples = (sampleRate * ModConstants.XBASS_DELAY) / 10000;
-		if (nXBassSamples > ModConstants.XBASS_BUFFER) nXBassSamples = ModConstants.XBASS_BUFFER;
-		int mask = 2;
-		while (mask <= nXBassSamples) mask <<= 1;
-		
-		XBassBuffer = new long[ModConstants.XBASS_BUFFER];
-		XBassDelay = new long[ModConstants.XBASS_BUFFER];
-		nXBassMask = ((mask >> 1) - 1);
-		nXBassSum = 0;
-		nXBassBufferPos = 0;
-		nXBassDlyPos = 0;
-		nXBassDepth = 6;
 	}
 	/**
 	 * @param doNoiseReduction The doNoiseReduction to set.
@@ -159,6 +127,7 @@ public class ModMixer extends BasicMixer
 	public void setDoNoiseReduction(final boolean doNoiseReduction)
 	{
 		this.doNoiseReduction = doNoiseReduction;
+		if (doNoiseReduction) modDSP.initNoiseReduction();
 	}
 	/**
 	 * @param doWideStereoMix The doWideStereoMix to set.
@@ -166,6 +135,7 @@ public class ModMixer extends BasicMixer
 	public void setDoWideStereoMix(final boolean doWideStereoMix)
 	{
 		this.doWideStereoMix = doWideStereoMix;
+		if (doWideStereoMix) modDSP.initWideStereo(sampleRate);
 	}
 	/**
 	 * @param doMegaBass The doMegaBass to set.
@@ -173,6 +143,14 @@ public class ModMixer extends BasicMixer
 	public void setDoMegaBass(final boolean doMegaBass)
 	{
 		this.doMegaBass = doMegaBass;
+		if (doMegaBass) modDSP.initMegaBass(sampleRate);
+	}
+	/**
+	 * @param doDCRemoval the doDCRemoval to set
+	 */
+	public void setDoDCRemoval(boolean doDCRemoval)
+	{
+		this.doDCRemoval = doDCRemoval;
 	}
 	/**
 	 * @param doNoLoops the loop to set
@@ -195,8 +173,9 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldMsBufferSize = this.msBufferSize;
 
-		final boolean wasPlaying = !isPaused();
-		if (wasPlaying) pausePlayback();
+		final boolean wasPaused = isPaused(); 
+		final boolean wasPlaying = isPlaying();
+		if (wasPlaying && !wasPaused) pausePlayback();
 
 		this.msBufferSize = msBufferSize;
 		if (wasPlaying)
@@ -210,7 +189,7 @@ public class ModMixer extends BasicMixer
 				openAudioDevice();
 			}
 	
-			pausePlayback();
+			if (!wasPaused) pausePlayback();
 		}
 	}
 	/**
@@ -220,8 +199,9 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldSampleRate = this.sampleRate;
 
-		final boolean wasPlaying = !isPaused();
-		if (wasPlaying) pausePlayback();
+		final boolean wasPaused = isPaused(); 
+		final boolean wasPlaying = isPlaying();
+		if (wasPlaying && !wasPaused) pausePlayback();
 
 		this.sampleRate = sampleRate;
 		if (wasPlaying)
@@ -236,7 +216,7 @@ public class ModMixer extends BasicMixer
 				openAudioDevice();
 			}
 	
-			pausePlayback();
+			if (!wasPaused) pausePlayback();
 		}
 	}
 	/**
@@ -246,20 +226,24 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldsampleSizeInBits = this.sampleSizeInBits;
 
-		final boolean wasPlaying = !isPaused();
-		if (wasPlaying) pausePlayback();
+		final boolean wasPaused = isPaused(); 
+		final boolean wasPlaying = isPlaying();
+		if (wasPlaying && !wasPaused) pausePlayback();
 
 		this.sampleSizeInBits = sampleSizeInBits;
-		initialize();
-		openAudioDevice();
-		if (!isInitialized())
+		if (wasPlaying)
 		{
-			this.sampleSizeInBits = oldsampleSizeInBits;
 			initialize();
 			openAudioDevice();
+			if (!isInitialized())
+			{
+				this.sampleSizeInBits = oldsampleSizeInBits;
+				initialize();
+				openAudioDevice();
+			}
+	
+			if (!wasPaused) pausePlayback();
 		}
-
-		if (wasPlaying) pausePlayback();
 	}
 	/**
 	 * @param channels The channels to set.
@@ -413,9 +397,7 @@ public class ModMixer extends BasicMixer
 	public long getLengthInMilliseconds()
 	{
 		if (mod.getLengthInMilliseconds()==-1)
-		{
 			mod.setLengthInMilliseconds(modMixer.getLengthInMilliseconds());
-		}
 		return mod.getLengthInMilliseconds();
 	}
 	/**
@@ -454,18 +436,14 @@ public class ModMixer extends BasicMixer
 	@Override
 	public void startPlayback()
 	{
-		long leftNR = 0;
-		long rightNR = 0;
-
 		initialize();
 		currentSamplesWritten = 0; // not in initialize which is also called at freq. changes
 		
 		setIsPlaying();
 
-		final int xba = nXBassDepth+1;
-		final int xbamask = (1 << xba) - 1;
-		
 		if (getSeekPosition()>0) seek(getSeekPosition());
+		
+		final long[] samples = new long[2];
 		
 		try
 		{
@@ -475,7 +453,7 @@ public class ModMixer extends BasicMixer
 			int count;
 			do
 			{
-				// get "count" values of 32 bit signed sampledata for mixing
+				// get "count" values of 32 bit signed sample data for mixing
 				count = modMixer.mixIntoBuffer(LBuffer, RBuffer, bufferSize);
 				if (count > 0)
 				{
@@ -483,67 +461,34 @@ public class ModMixer extends BasicMixer
 					while (ix < count)
 					{
 						// get Sample and reset to zero - the samples are clipped
-						long lsample = LBuffer[ix]; LBuffer[ix]=0;
-						long rsample = RBuffer[ix]; RBuffer[ix]=0;
+						samples[0] = LBuffer[ix]; LBuffer[ix]=0;
+						samples[1] = RBuffer[ix]; RBuffer[ix]=0;
 						ix++;
 						
-						// WideStrereo Mixing - but only with stereo
-						if (doWideStereoMix && channels>1)
-						{
-							wideLBuffer[writePointer]=lsample;
-							wideRBuffer[writePointer++]=rsample;
-							if (writePointer>=maxWideStereo) writePointer=0;
-	
-							rsample+=(wideLBuffer[readPointer]>>1);
-							lsample+=(wideRBuffer[readPointer++]>>1);
-							if (readPointer>=maxWideStereo) readPointer=0;
-						}
-	
-						// MegaBass
-						if (doMegaBass)
-						{
-							nXBassSum -= XBassBuffer[nXBassBufferPos];
-							long tmp0 = lsample + rsample;
-							long tmp = (tmp0 + ((tmp0 >> 31) & xbamask)) >> xba;
-							XBassBuffer[nXBassBufferPos] = tmp;
-							nXBassSum += tmp;
-
-							long v = XBassDelay[nXBassDlyPos];
-							XBassDelay[nXBassDlyPos] = lsample;
-							lsample = v + nXBassSum;
-							
-							v = XBassDelay[nXBassDlyPos+1];
-							XBassDelay[nXBassDlyPos+1] = rsample;
-							rsample = v + nXBassSum;
-							
-							nXBassDlyPos = (nXBassDlyPos + 2) & nXBassMask;
-							nXBassBufferPos = (nXBassBufferPos+1) & nXBassMask;
-						}
+						// DC Removal
+						if (doDCRemoval) modDSP.processDCRemoval(samples);
 						
 						// Noise Reduction with a simple high pass filter:
-						if (doNoiseReduction)
-						{
-							long vnr = lsample>>1;
-							lsample = vnr + leftNR;
-							leftNR = vnr;
-							
-							vnr = rsample>>1;
-							rsample = vnr + rightNR;
-							rightNR = vnr;
-						}
+						if (doNoiseReduction) modDSP.processNoiseReduction(samples);
+
+						// MegaBass
+						if (doMegaBass) modDSP.processMegaBass(samples);
 						
-						// Reduce to samplesize by dithering - if necessary!
+						// WideStrereo Mixing - but only with stereo
+						if (doWideStereoMix && channels>1) modDSP.processWideStereo(samples);
+
+						// Reduce to sample size by dithering - if necessary!
 						if (sampleSizeInBits<32) // our maximum - no dithering needed
 						{
-							lsample = (long)(dither.process((double)lsample/(double)(0x7FFFFFFFL), 0)*(double)maximum);
-							rsample = (long)(dither.process((double)rsample/(double)(0x7FFFFFFFL), 1)*(double)maximum);
+							samples[0] = (long)((dither.process((double)samples[0]/(double)(0x7FFFFFFFL), 0)*(double)maximum) + 0.5d);
+							samples[1] = (long)((dither.process((double)samples[1]/(double)(0x7FFFFFFFL), 1)*(double)maximum) + 0.5d);
 						}
 
 						// Clip the values to target:
-						if (lsample > maximum) lsample = maximum;
-						else if (lsample < minimum) lsample = minimum;
-						if (rsample > maximum) rsample = maximum;
-						else if (rsample < minimum) rsample = minimum;
+						if (samples[0] > maximum) samples[0] = maximum;
+						else if (samples[0] < minimum) samples[0] = minimum;
+						if (samples[1] > maximum) samples[1] = maximum;
+						else if (samples[1] < minimum) samples[1] = minimum;
 						
 						// and after that put them into the outputbuffer
 						// to write to the soundstream
@@ -551,17 +496,17 @@ public class ModMixer extends BasicMixer
 						{
 							for (int i=0; i<rounds; i++)
 							{
-								output[ox] = (byte)lsample;
-								output[ox+rounds] = (byte)rsample;
+								output[ox] = (byte)samples[0];
+								output[ox+rounds] = (byte)samples[1];
 								ox++;
-								lsample>>=8;
-								rsample>>=8;
+								samples[0]>>=8;
+								samples[1]>>=8;
 							}
 							ox += rounds; // skip saved right channel
 						}
 						else
 						{
-							long sample = (lsample + rsample)>>1; 
+							long sample = (samples[0] + samples[1])>>1; 
 							for (int i=0; i<rounds; i++)
 							{
 								output[ox++] = (byte)sample;

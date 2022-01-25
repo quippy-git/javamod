@@ -61,8 +61,8 @@ public class VUMeterPanel extends MeterPanelBase
 	@Override
 	protected void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
 	{
-		rampDownValue = (float)getDesiredFPS()/1000F;
-		maxPeakLevelRampDownDelay = rampDownValue/100f;
+		rampDownValue = 2.5f / (float)getDesiredFPS();
+		maxPeakLevelRampDownDelay = rampDownValue / 100f;
 		maxPeakLevelRampDownValue = 0;
 
 		myAnzLines = newHeight>>1;

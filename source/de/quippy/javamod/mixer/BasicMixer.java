@@ -114,7 +114,7 @@ public abstract class BasicMixer extends Mixer
 	@Override
 	public boolean isPlaying()
 	{
-		return (!isStopped());
+		return !isStopped();
 	}
 	/**
 	 * @return

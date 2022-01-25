@@ -130,8 +130,8 @@ public class SAMeterPanel extends MeterPanelBase
 	@Override
     protected void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
     {
-		rampDownValue = (float)getDesiredFPS()/2000F;
-		maxPeakLevelRampDownDelay = rampDownValue/50F;
+		rampDownValue = 1.25f / (float)getDesiredFPS();
+		maxPeakLevelRampDownDelay = rampDownValue / 50f;
 		
 		if (newTop<0 || newLeft<0 || newWidth<0 || newHeight<0) return;
 

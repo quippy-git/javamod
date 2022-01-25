@@ -55,7 +55,7 @@ public abstract class BasicModMixer
 		public int assignedNotePeriod, assignedNoteIndex, effekt, effektParam, volumeEffekt, volumeEffektOp, assignedInstrumentIndex;
 		public Instrument assignedInstrument;
 		
-		// currentNoteperiod and these down here are than the values to handle with
+		// currentNoteperiod and these down here are then the values to handle with
 		public int currentNotePeriod, currentFinetuneFrequency;
 		public int currentNotePeriodSet; // used to save the current note period set with "setNewPlayerTuningFor"
 		public int currentFineTune, currentTranspose;
@@ -488,8 +488,8 @@ public abstract class BasicModMixer
 		extraAttenuation = 1;
 		useGlobalPreAmp = false;
 		useSoftPanning = false;
-		// Legacy (O)MPT?
-		if ((mod.getModType()&ModConstants.MODTYPE_MPT)==ModConstants.MODTYPE_MPT)
+
+		if ((mod.getModType()&ModConstants.MODTYPE_MPT)==ModConstants.MODTYPE_MPT) // Legacy MPT?
 		{
 			// differences to standard:
 			// globalVolumeToMaster = false (otherwise true) - we do not use this
@@ -506,11 +506,16 @@ public abstract class BasicModMixer
 			extraAttenuation = 4;
 		}
 		else
-		if ((mod.getModType()&ModConstants.MODTYPE_OMPT)==ModConstants.MODTYPE_OMPT)
+		if ((mod.getModType()&ModConstants.MODTYPE_OMPT)==ModConstants.MODTYPE_OMPT) // Open Modplug Tracker?
 		{
 			extraAttenuation = 0;
 			useSoftPanning = true;
 		}
+//		else // Open ModPlug does it like this but we will not. FT2 with default AMP x4 is even more silent
+//		if ((mod.getModType()&ModConstants.MODTYPE_XM)==ModConstants.MODTYPE_XM) // XM Mod?
+//		{
+//			extraAttenuation = 0;
+//		}
 		
 		leftOver = samplePerTicks = calculateSamplesPerTick();
 		
@@ -557,7 +562,6 @@ public abstract class BasicModMixer
 			}
 		}
 	}
-
 	/**
 	 * Does only a forward seek, so starts from the beginning
 	 * @since 25.07.2020
@@ -638,7 +642,7 @@ public abstract class BasicModMixer
 		for (int i=0; i<maxChannels; i++)
 		{
 			final ChannelMemory aktMemo = channelMemory[i]; 
-			if (isChannelActive(aktMemo)/* && (aktMemo.actVolumeLeft | aktMemo.actVolumeRight)>0*/) result++;
+			if (isChannelActive(aktMemo)) result++;
 		}
 		return result;
 	}
@@ -697,7 +701,7 @@ public abstract class BasicModMixer
 				return (ModConstants.FreqS3MTable[noteIndex%12] << 7) >> (noteIndex/12);
 
 			case ModConstants.AMIGA_TABLE:
-				return ModConstants.protracker_fineTunedPeriods[(aktMemo.currentFineTune>>ModConstants.PERIOD_SHIFT)+8][period-25]; // We have less Octaves!
+				return ModConstants.protracker_fineTunedPeriods[(aktMemo.currentFineTune>>ModConstants.PERIOD_SHIFT)+8][period-25]; // Amiga has less octaves!
 			
 			case ModConstants.XM_AMIGA_TABLE:
 				int fineTune=aktMemo.currentFineTune;
@@ -2214,7 +2218,7 @@ public abstract class BasicModMixer
 			aktMemo.currentTuningPos &= ModConstants.SHIFT_MASK;
 
 			// Set the start/end loop position to check against...
-			int loopStart = 0; // if this is not changed, we have no loops
+			int loopStart = 0;
 			int loopEnd = sample.length;
 			int loopLength = loopEnd;
 			int inLoop = 0;
@@ -2235,8 +2239,6 @@ public abstract class BasicModMixer
 				inLoop = ModConstants.LOOP_ON;
 			}
 
-			aktMemo.interpolationMagic = 0;
-			
 			// If Forward direction:
 			if (aktMemo.isForwardDirection)
 			{
@@ -2255,9 +2257,9 @@ public abstract class BasicModMixer
 					}
 					else
 					{
-						// This is needed if sample rate is very low or baseFreq very high. Than this will not have 
+						// This is needed if sample rate is very low or baseFreq very high. Then this will not have 
 						// a fraction in Tuning, but addition of 2 or even more.
-						final int aheadOfStop = ((aktMemo.currentSamplePos - loopEnd + 1) % loopLength);
+						final int aheadOfStop = ((aktMemo.currentSamplePos - loopEnd) % loopLength);
 						
 						// check if loop, that was enabled, is a ping pong
 						if ((inLoop == ModConstants.LOOP_ON && (sample.loopType & ModConstants.LOOP_IS_PINGPONG)!=0) ||
@@ -2282,16 +2284,16 @@ public abstract class BasicModMixer
 				if (aktMemo.currentSamplePos < loopStart)
 				{
 					aktMemo.isForwardDirection = true;
-					aktMemo.currentSamplePos = loopStart + (loopStart - aktMemo.currentSamplePos) % loopLength;
+					aktMemo.currentSamplePos = loopStart + ((loopStart - aktMemo.currentSamplePos) % loopLength);
 				}
 			}
-			// after resposition of sample pointer, check for interpolation magic
-			if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
+			// after reposition of sample pointer, check for interpolation magic
+			if (inLoop == ModConstants.LOOP_SUSTAIN_ON && !aktMemo.keyOff) // Sustain Loop on?
 			{
 				aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 			}
 			else
-			if ((sample.loopType&ModConstants.LOOP_ON)!=0) 
+			if (inLoop == ModConstants.LOOP_ON) 
 			{
 				aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos, aktMemo.loopCounter);
 			}
@@ -2349,12 +2351,6 @@ public abstract class BasicModMixer
 			sampleL = (sampleL*(long)volL)>>ModConstants.MAXVOLUMESHIFT;
 			sampleR = (sampleR*(long)volR)>>ModConstants.MAXVOLUMESHIFT;
 			
-//			// Clipping
-//			if (sampleL > ModConstants.CLIPP32BIT_MAX) sampleL = ModConstants.CLIPP32BIT_MAX;
-//			else if (sampleL < ModConstants.CLIPP32BIT_MIN) sampleL = ModConstants.CLIPP32BIT_MIN;
-//			if (sampleR > ModConstants.CLIPP32BIT_MAX) sampleR = ModConstants.CLIPP32BIT_MAX;
-//			else if (sampleR < ModConstants.CLIPP32BIT_MIN) sampleR = ModConstants.CLIPP32BIT_MIN;
-
 			// and off you go
 			leftBuffer [i] += sampleL;
 			rightBuffer[i] += sampleR;

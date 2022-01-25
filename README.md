@@ -58,11 +58,22 @@ New in Version 3.2
        Did not skip 200 bytes of pre calculated volume envelope data. Is now
        loaded, but not used (we could also skip those...)
 * FIX: Log.debug (instead of Log.info) for missing effects
-* added Fine Midi Macros
-* added MidiMacros to XM
-* added sanitize of envelope data
-* Loading is much faster now. Provided RandomAccessStreamImpl with a buffer so
-  reading and seeking is done on the buffer. Using a buffer of 8K currently.
+* FIX: When a MOD was playing, changing MOD sample rate, channels, bits also
+       changed current audio line, even though e.g. mp3 was playing. 
+       Not healthy for playback.
+* NEW: added Fine Midi Macros
+* NEW: added MidiMacros to XM
+* NEW: added sanitize of envelope data
+* NEW: Loading is much faster now. Provided RandomAccessStreamImpl with a buffer
+       so reading and seeking is done on the buffer. Using a buffer of 8K
+       currently.
+* NEW: Screen refresh rate is now considered to define refresh FPS of LED
+       Scroller, peak meter, update panel, etc.
+* NEW: MegaBass implementation changed to the last one of Olivier Lapicque from
+       ModPlug Tracker. I like that mega bass :)
+       Doing so we moved also other DSP modifications to the new separate
+       class ModDSP
+* NEW: added DC removal and made it configurable
        
 New in Version 3.1
 * FIX: Pattern/Sample/Instrument dialogs should only be created, if parent
