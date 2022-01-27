@@ -1041,7 +1041,7 @@ public abstract class BasicModMixer
 				if (volEnvOn)
 				{
 					aktMemo.volEnvPos = volumeEnv.updatePosition(aktMemo.volEnvPos, aktMemo.keyOff);
-					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvPos, 0); // 0..512
+					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvPos); // 0..512
 					currentVolume = (currentVolume * newVol) >> 9;
 					// With ITs: if Envelope is finished, activate note fade via keyOff - but keep last Volume Envelope Position
 					if (isIT && volumeEnv.envelopeFinished(aktMemo.volEnvPos)) aktMemo.keyOff = true;
@@ -1056,7 +1056,7 @@ public abstract class BasicModMixer
 				if (panEnvOn)
 				{
 					aktMemo.panEnvPos = panningEnv.updatePosition(aktMemo.panEnvPos, aktMemo.keyOff);
-					final int newPanValue = panningEnv.getValueForPosition(aktMemo.panEnvPos, 256) - 256; // result 0-512
+					final int newPanValue = panningEnv.getValueForPosition(aktMemo.panEnvPos) - 256; // result -256..256
 					currentPanning += (newPanValue * ((currentPanning >= 128)?(256 - currentPanning):currentPanning)) >> 8;
 				}
 			}
@@ -1076,7 +1076,7 @@ public abstract class BasicModMixer
 				if (pitchEnvOn)
 				{
 					aktMemo.pitchEnvPos = pitchEnv.updatePosition(aktMemo.pitchEnvPos, aktMemo.keyOff);
-					int pitchValue = pitchEnv.getValueForPosition(aktMemo.pitchEnvPos, 256) - 256;
+					int pitchValue = pitchEnv.getValueForPosition(aktMemo.pitchEnvPos) - 256; // result -256..256
 					if (pitchEnv.filter)
 						setupChannelFilter(aktMemo, !aktMemo.filterOn, pitchValue);
 					else
@@ -1676,9 +1676,9 @@ public abstract class BasicModMixer
 		{
 			Sample newSample = null;
 			Instrument newInstrument = aktMemo.assignedInstrument; // same as element.getInstrument - in this case. Was copied 
-			// Get the correct sample from the mapping table
+			// Get the correct sample from the mapping table, but only if we also have a note index
 			if (newInstrument!=null)
-				newSample = mod.getInstrumentContainer().getSample(newInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1));
+				if (aktMemo.assignedNoteIndex>0) newSample = mod.getInstrumentContainer().getSample(newInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1));
 			else
 				newSample = mod.getInstrumentContainer().getSample(aktMemo.assignedInstrumentIndex-1);
 
@@ -1813,7 +1813,7 @@ public abstract class BasicModMixer
 			
 			// Now set the player Tuning and reset some things in advance.
 			// normally we are here, because a note was set in the pattern.
-			// Except for IT-MODs - than we are here, because either note or
+			// Except for IT-MODs - then we are here, because either note or
 			// instrument were set. If no notevalue was set, the old 
 			// notevalue is to be used.
 			// However, we do not reset the instrument here - the reset was 

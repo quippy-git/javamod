@@ -224,9 +224,12 @@ public class ModConfigPanel extends JPanel
 						ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
+							final boolean selected = getPlayerSetUp_MegaBass().isSelected();
+							// With Mega Bass, we should also do DC Removal - so activate it automatically. User can still deselect it again
+							if (selected) getPlayerSetUp_DCRemoval().setSelected(true);
 							ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
-								currentMixer.setDoMegaBass(getPlayerSetUp_MegaBass().isSelected());
+								currentMixer.setDoMegaBass(selected);
 						}
 					}
 				}

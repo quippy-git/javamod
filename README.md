@@ -8,7 +8,7 @@ speed - 200+ NNAs are no problem then
 Heap Size with JDK8 (default of 256M) not sufficient with bigger mods. Either
 set -Xmx1024m parameter or use newer JDK 
  
-Supported file types:
+## Supported file types:
 Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
 SID
 MP3 (Files and Streams)
@@ -20,23 +20,34 @@ MIDI (MID, RMF, RMI) with SF2 soundfont files
 OPL2/3 (ROL, LAA, CMF, DRO, SCI)
 Playlists PLS, M3U, M3U8, ZIP, CUE
 
-Known issues:
+## Third-party libraries
+JavaMod incorporates modified versions of the following libraries.
+
+* jflac (http://jflac.sourceforge.net/)
+* jlayer (https://github.com/wkpark/JLayer (was http://www.javazoom.net/javalayer/javalayer.html))
+* jmac (http://jmac.sourceforge.net/)
+* jorbis (http://www.jcraft.com/jorbis/)
+* sidplay2 (http://sidplay2.sourceforge.net/)
+* OPL3 (https://opl3.cozendey.com/)
+* FMOPL (https://github.com/mamedev/mame - was removed 03/2021)
+
+## Known issues:
 * reading midi devices in MidiContainer can take a long time on Linux
   as here we can have a whole bunch of devices. Asynchronous loading
   is not an option. Lazy loading does not help as the available MidiDevices 
   must be present when creating the config drop down list for selection.
 * Clean up effects - some are for IT only, some for XM only (copy&paste...)
 * On Linux gapless audio streams do not work if SourceLine Buffers drain out
-* Tray Icon: mouse wheel (volume control) & keyboard shortcuts does not work
+* Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
 
-Planned:
+## Planned:
 * WavPack and MusePack support
 * MO3 support
 * Midi, AdLib with Mods
 * read 7z archives
 * maybe: follow song with mod files (pattern display)
 
-New in Version 3.2
+## New in Version 3.2
 * FIX: Sustain-Loop and normal Loop not correctly differed in
        BasicModMixer::fitIntoLoops. Resulted in a Devision by Zero, if
        sustain loop present, but no normal loop
@@ -59,11 +70,17 @@ New in Version 3.2
        loaded, but not used (we could also skip those...)
 * FIX: Log.debug (instead of Log.info) for missing effects
 * FIX: When a MOD was playing, changing MOD sample rate, channels, bits also
-       changed current audio line, even though e.g. mp3 was playing. 
-       Not healthy for playback.
+       changed current audio line, even though e.g. mp3 is playing. Not healthy
+       for playback if the global line is cut away during playing
+       (BTW: same for SIDs)
+* FIX: Instrument set, but no note - with XMs/ITs lookup in mapping resulted in
+       Exception
+* FIX: Iconified and deiconified with system tray should now work with Linux
+       (KDE) as well
+* FIX: Icons (Tray and GUI) keep aspect ratio now
 * NEW: added Fine Midi Macros
 * NEW: added MidiMacros to XM
-* NEW: added sanitize of envelope data
+* NEW: added sanitize of envelope data, optimized envelope processing
 * NEW: Loading is much faster now. Provided RandomAccessStreamImpl with a buffer
        so reading and seeking is done on the buffer. Using a buffer of 8K
        currently.
@@ -74,13 +91,14 @@ New in Version 3.2
        Doing so we moved also other DSP modifications to the new separate
        class ModDSP
 * NEW: added DC removal and made it configurable
+* NEW: added additional command line parameters
        
-New in Version 3.1
+## New in Version 3.1
 * FIX: Pattern/Sample/Instrument dialogs should only be created, if parent
        JDialog is present. Otherwise these will never get destroyed
 * INITIAL GITHUB RELEASE
 
-New in Version 3.0
+## New in Version 3.0
 * FIX: IT set global volume: normalize to 0x80 for *non*-IT Mods
 * FIX: MP3 info panel: Label "Duration" is "Bit Rate"
 * FIX: Detailed progress bar while export did not restart properly
@@ -95,7 +113,7 @@ New in Version 3.0
 * FIX: Display samples without SampleInterpolationLookAheads
 * FIX: SampleInterpolationLookAhead with stereo samples
 
-New in Version 2.9
+## New in Version 2.9
 * FIX: saving a relativized path into a playlist failed on Linux. Here a file
        path is case sensitive!
 * FIX: some ROL songs did not load properly
@@ -119,7 +137,7 @@ New in Version 2.9
   OPL2
 * supporting ProTracker STK file now - are like STM
 
-New in Version 2.8
+## New in Version 2.8
 * fixed NullPointer when deleting whole playlist and adding new entries
 * Clean Up:
   moved all mod constants from class Helper to new class ModConstants.
@@ -141,7 +159,7 @@ New in Version 2.8
 * added support for rol, laa, cmf, dro, sci by migration of mid.cpp, dro[2].cpp
   and rol.cpp from adplug project + effekter.c from own (very old) ROL project
 
-New in Version 2.7.1
+## New in Version 2.7.1
 * The OPL3 support was already implemented - but as pure beta yet not activated,
   Release because:
 * fixed: nasty NullPointerException when pattern, sample and instrument dialog
@@ -149,7 +167,7 @@ New in Version 2.7.1
   They get initialized than to get the loaded information data, but the 
   ModInfoPanel is not yet added to its JFrame so: no RootPane at that moment.
 
-New in Version 2.7
+## New in Version 2.7
 * added second detail progress bar with wav export or playlist copy
 * fixed update of playlist for songname and duration blocking whole UI
   (Things in EventQueue.invokeLater should't take long... learned something)  
@@ -192,7 +210,7 @@ New in Version 2.7
 * added display dialogs for mods: pattern data, samples and instruments
   They are reachable by pressing the buttons in the mod info dialog box
 
-New in Version 2.6
+## New in Version 2.6
 * fixed icon size in tray icon
 * save selected SA-Meter visual style 
 * fixed a playback issue if hardware buffers are smaller than the mixing buffer
@@ -244,7 +262,7 @@ New in Version 2.6
 * fixed glissando
 * several other small bug fixes in playback
   
-New in Version 2.5
+## New in Version 2.5
 * fixed Volume Slide in s3m impulse- and fasttracker - boy what a mess!
 * added *2/3 table for Qxy in Fasttracker Mods
 * Retrig note memory reseted to zero with Q00 instead of keeping memory
@@ -252,7 +270,7 @@ New in Version 2.5
 * fixed an issue with SID output settings virtual stereo and 44.1MHz
 * changing virtual stereo during playback is fixed
 
-New in Version 2.4
+## New in Version 2.4
 * radio header encoding is translated by ISO-8859-1 and not UTF-8
 * radio stream description is now displayed as well
 * new "Export selected files to wav" - is usefull if e.g. a cue sheet with one
@@ -265,12 +283,12 @@ New in Version 2.4
   now
 * switched repositories from CVS to SVN
 
-New in Version 2.3
+## New in Version 2.3
 * now also https radio streams are supported
 * initially wrong positioned icy-metaint points in streams are now supported
 * relative file names in playlists at saving time to location of playlist
 
-New in Version 2.3
+## New in Version 2.3
 * Pattern Pos Jump did not work if infinite loops are disabled
   Furthermore Pattern Jump Position set is channel specific
 * Streaming of OGG Streams works - sort of...
@@ -282,7 +300,7 @@ New in Version 2.3
   are always absolute
 * introducing HttpResource for web-Radio - this supports also 302, moved
 
-New in Version 2.2
+## New in Version 2.2
 * added internal mod buffer length in config dialog
 * Fixed a bug in ID3v2 Tag decoding with Strings and missing encoding
 * MP3 playback optimized, dropping zero padded samples
@@ -299,7 +317,7 @@ New in Version 2.2
 * removing illegal characters from Strings (<0x20)
 * updating streaming of mp3 radio streams
 
-New in Version 2.1
+## New in Version 2.1
 * copy all files in a playlist to a certain directory - in playlist order
   sometimes useful when creating music collections on USB sticks
 * deletion of elements in the playlists resets index
@@ -315,7 +333,7 @@ New in Version 2.1
   --> arrays are now loaded as a resource from files
 * SampleOffset now playes only with a note given
 
-New in Version 2.0
+## New in Version 2.0
 * Needs Java 6 now!!!
 * Tray Icon support added (--> JDK6)
 * Seeking speedup with FLAC, APE and wav
@@ -343,7 +361,7 @@ New in Version 2.0
   info panel but not the main dialog
 * fixed a potential bug with comparing two URLs (does a dns lookup)
 
-New in Version 1.9.4.7
+## New in Version 1.9.4.7
 * Export of whole playlist: if a playlist is present, all files of this list
   will be exported
 * reorganized the audio processor for DSP-visual effects. Samples only need to
@@ -355,7 +373,7 @@ New in Version 1.9.4.7
 * Jump pattern effect did not work... (it has never so far actually...)
 * CAUTION: CHANGED COMMANDLINE AND APPLET VALUE FOR -l PARAMETER TO 0, 1, 2
 
-New in Version 1.9.4.6
+## New in Version 1.9.4.6
 * many minor errors
 * SID Config: 
   * Filter setting had no affect
@@ -373,19 +391,19 @@ New in Version 1.9.4.6
   * moving entries in large lists works now
   * marking and demarking (i.e. ctrl-A) does not move the visiable rect anymore
 
-New in Version 1.9.4.5
+## New in Version 1.9.4.5
 * added Playlist Repeat for GUI, commandline and applet. Use parameter "j" to set state
 * Config Panel is now using a tab panel to make all configs accessible
 * sid has a config panel now
 
-New in Version 1.9.4.4
+## New in Version 1.9.4.4
 * Applets loading of Mods did not work any more
 * Applets create security exception with Java 6 - only optimization of error handling
 * initial Volume with applets or command line will work
 * balance is now also set after loading (in GUI, like volume)
 * midis with capturing will stop (draining a line from which is never read will lead into an endless loop!)
 
-New in Version 1.9.4.3
+## New in Version 1.9.4.3
 * The applet JavaModApplet_OldSchoolDemo moved to a separate project
 * added public methods to the applet to allow applet control via javascript
   see also the applet test page on quippy.de
@@ -399,7 +417,7 @@ New in Version 1.9.4.3
 * Dropping a folder into playlist will collect all Files getting found from there on
 * working on MIDI capturing - hope it helps...
 
-New in Version 1.9.4.2
+## New in Version 1.9.4.2
 * after correcting the file and url handling with applets, the local
   files and playlists did not work any more... fixed
   --> NEVER HTML-encode your playlists
@@ -408,7 +426,7 @@ New in Version 1.9.4.2
 * new Applet: de.quippy.javamod.main.applet.JavaModApplet_OldSchoolDemo - try it out ;)
 * reconstructing Applet class hierarchy 
 
-New in Version 1.9.4.1
+## New in Version 1.9.4.1
 * File-Handling with applets is somewhat difficult. The algorithem guessing the
   correct filename or url was improved. Relative URL / local files are allowed now
   and tried to be found using the URL of the playlist.
@@ -417,7 +435,7 @@ New in Version 1.9.4.1
   correct - streaming is now recognized by contentlength==-1 (this might 
   also fail though...)
 
-New in Version 1.9.4.0
+## New in Version 1.9.4.0
 * After installing ape support, FLAC as the more widly spreaded codec needs 
   to be supported as well
 * Updated About-Dialog, mentioning all decoders and versions used
@@ -445,13 +463,13 @@ New in Version 1.9.4.0
   get rendered directly into the same line - this results in gapless rendering
   as appreciated with e.g. audio books
 
-New in Version 1.9.3.5
+## New in Version 1.9.3.5
 * as stumbling over an ape decoder I decided to implement that too
   APE-Decoding is slow - very slow! You will see while seeking.
 * added command line option for the GUI - can now instantly load a file or
   playlist file
 
-New in Version 1.9.3.4
+## New in Version 1.9.3.4
 * improvement of midi playback
 * export to wav for midi implemented (port selection is implemented)
   --> this all will only work with one sound card installed or lucky selections
@@ -464,7 +482,7 @@ New in Version 1.9.3.4
 * fixed error with unloadable files - they are now skipped in playlist
 * fixed that "all playable files" also contains playlists
 
-New in Version 1.9.3.3
+## New in Version 1.9.3.3
 * Bugfix with PitchEnvelopes: are used as filter- or pitchenvelopes. Reading
   flag now.
 * Reconstructing volume handling
@@ -472,24 +490,24 @@ New in Version 1.9.3.3
 * Bug: songarrangement contains illegal pattern num - are now dropped during
   loading of modules
   
-New in Version 1.9.3.2
+## New in Version 1.9.3.2
 * Bugfix with XMs: 
   - Envelopes need to be processed at new rows 
   - and the fade out volume hits only with active envelope; otherwise note cut
 * Applet got the seekbar included
 
-New in Version 1.9.3.1
+## New in Version 1.9.3.1
 * Bugfix when loading certain STMs - ID was unknown. Fix with a fall back
   strategy now - loading with all known loaders - the one who can load without
   error winns - if no loader can load, mod is corrupt.
 
-New in Version 1.9.3
+## New in Version 1.9.3
 * Moving packages for modplayback to de.quippy.javamod.mod.*
 * Bugfixing of code inserted with 1.9.2 
   - Problem with NoteDelay after insertion of wrong code
   - bad sound with instruments reaching volume 0 (VolSlide)
 
-New in Version 1.9.2
+## New in Version 1.9.2
 * super.paintComponent() in MeterPanelBase is not necessary - speedup gui repaint
 * generating local file names from playlist files improved
 * Threads are now final
@@ -511,7 +529,7 @@ New in Version 1.9.2
   * maxChannelCount with ITs was 1 less
   * and a lot more with ITs
 
-New in Version 1.9.1
+## New in Version 1.9.1
 * PowerPacker 2.0-Files are now supported
 * Mod-Loader is selected by header
 * file extension for mods are only needed to differ between mods and mp3s or others
@@ -523,7 +541,7 @@ New in Version 1.9.1
 * Version-History now in javamod_version.txt
 * Displaying version history as menu or if version is newer
 
-New in Version 1.9
+## New in Version 1.9
 * SID-Support
 * displaying time code of mods (can take some time with ITs or long pieces)
 * jump in wavs and mods

@@ -73,10 +73,10 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	 */
 	private static void showHelp()
 	{
-		Log.info("java -jar ./javamod [-rx] [-b{8,16,24}] [-s{+,-}] [-i{+,-}] [-w{+,-}] [-n{+,-}] [-m{+,-}] [-l{+,-}] [-h{+,-}] [-j{+,-}] [-v0.0-1.0]");
-		Log.info("                    [-eWAVFILE] MODFILE\n");
+		Log.info("java -jar ./javamod [-rx] [-b{8,16,24}] [-s{+,-}] [-i{+,-}] [-w{+,-}] [-n{+,-}] [-m{+,-}] [-d{+,-}] [-l{+,-}] [-ax] [-h{+,-}]");
+		Log.info("                    [-j{+,-}] [-v0.0-1.0] [-eWAVFILE] MODFILE\n");
 		Log.info("-rx        : use Samplerate x (8000/11025/22050/44100/96000...");
-		Log.info("                               anything allowed, your soundhardware supports)");
+		Log.info("                               anything your soundhardware supports)");
 		Log.info("-b8/16/24  : #Bits per sample");
 		Log.info("-s+/-      : Stereo/Mono");
 		Log.info("-i0/1/2/3  : interpolation: 0:none; 1:linear; 2:cubic spline; 3:fir interpolation");
@@ -84,11 +84,14 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 		Log.info("-w+/-      : do/don't wide stereo mix");
 		Log.info("-n+/-      : do/don't noise reduction");
 		Log.info("-m+/-      : do/don't mega bass");
-		Log.info("-l0/1/2    : set infinit loop handling: 0:original; 1:fade out; 2:ignore");
+		Log.info("-d+/-      : do/don't dc removal");
+		Log.info("-l0/1/2/4  : set loop handling: 0:original; 1:fade out; 2:ignore; 4:loop song (4 can be added to 0, 1 or 2)");
+		Log.info("-ax        : set max NNAs channels used");
 		Log.info("-h+/-      : do/don't shuffle playlists after loading");
 		Log.info("-j+/-      : do/don't repeat playlist");
 		Log.info("-v0.0-1.0  : set volume");
 		Log.info("-eWAVEFILE : export to wave file");
+		Log.info("Dithering  : no dithering settings in command line version");
 	}
 	/**
 	 * Will parse the parameters and set the internal values
@@ -120,6 +123,9 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 					case 'm':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_MEGABASS, (op.charAt(0)=='+')?"TRUE":"FALSE");
 						break;
+					case 'd':
+						props.setProperty(ModContainer.PROPERTY_PLAYER_DCREMOVAL, (op.charAt(0)=='+')?"TRUE":"FALSE");
+						break;
 					case 'l':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_NOLOOPS, Integer.toString(Integer.parseInt(op.substring(0,1))));
 						break;
@@ -141,6 +147,9 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 					case 'r':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, Integer.toString(Integer.parseInt(op)));
 						break;
+					case 'a':
+						props.setProperty(ModContainer.PROPERTY_PLAYER_MAXNNACHANNELS, Integer.toString(Integer.parseInt(op)));
+						break;
 					case 'e':
 						wavFileName = new File(op);
 						break;
@@ -157,7 +166,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 				{
 					modFileName = new URL(fileName);
 				}
-				catch (MalformedURLException ex) // This is evil, but I dont want to test on local files myself...
+				catch (MalformedURLException ex) // This is evil, but I don't want to test on local files myself...
 				{
 					try
 					{

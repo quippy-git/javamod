@@ -40,8 +40,9 @@ public class Envelope
 	public boolean on, sustain, loop, carry, filter, xm_style;
 	public byte[] oldITVolumeEnvelope;
 	
-	private static final int SHIFT = 3;
+	private static final int SHIFT = 16;
 	private static final int MAXVALUE = 64<<SHIFT;
+	private static final int BACKSHIFT = SHIFT - 3;
 
 	/**
 	 * Constructor for Envelope
@@ -58,28 +59,28 @@ public class Envelope
 	 * @param keyOff
 	 * @return
 	 */
-	public int updatePosition(int position, final boolean keyOff)
+	public int updatePosition(final int position, final boolean keyOff)
 	{
 		// we start at "-1" so first add one...
-		position++;
-		// difference between xm and it is only the way of comparison
+		int pos = position + 1;
+		// difference between xm and it is the way of comparison
 		// >= (==) a point or > a point...
 		if (xm_style) 
 		{
-			if (sustain && !keyOff && position>=positions[sustainEndPoint]) position = positions[sustainStartPoint]; 
+			if (sustain && !keyOff && pos>=positions[sustainEndPoint]) pos = positions[sustainStartPoint]; 
 			else 
-			if (loop && position>=positions[loopEndPoint]) position = positions[loopStartPoint];
+			if (loop && pos>=positions[loopEndPoint]) pos = positions[loopStartPoint];
 		}
 		else
 		{
-			if (sustain && !keyOff && position>positions[sustainEndPoint]) position = positions[sustainStartPoint]; 
+			if (sustain && !keyOff && pos>positions[sustainEndPoint]) pos = positions[sustainStartPoint]; 
 			else
-			if (loop && position>positions[loopEndPoint]) position = positions[loopStartPoint];
+			if (loop && pos>positions[loopEndPoint]) pos = positions[loopStartPoint];
 		}
 		// End reached? We do reset behind positions[endpoint] to avoid overflow
-		if (position>positions[endPoint]) position = positions[endPoint]+1;
+		if (pos>positions[endPoint]) pos = positions[endPoint]+1;
 		
-		return position;
+		return pos;
 	}
 	/**
 	 * return true, if the positions is beyond end point
@@ -99,45 +100,43 @@ public class Envelope
 	 * @param defautlValue the defaultValue (middle-Position 256 with a range 0..512)
 	 * @return
 	 */
-	public int getValueForPosition(int p, final int defautlValue)
+	public int getValueForPosition(final int position)
 	{
-		int pt = endPoint;
-		for (int i=0; i<pt; i++)
+		int index = endPoint;
+		for (int i=0; i<index; i++)
+			if (positions[i]>position) index = i; // results in a break
+
+		int x2 = positions[index];
+		int y1 = 0;
+
+		// if we land directly on an envelope point, do nothing
+		if (position>=x2) 
+			y1 = value[index]<<SHIFT;
+		else
 		{
-			if (p <= positions[i]) 
-			{ 
-				pt = i; 
-				break; 
+			// if we are somewhere in between two points, do a linear interpolation
+			int y2 = value[index]<<SHIFT;
+			int x1 = 0;
+			
+			// get previous point, if any
+			if (index>0)
+			{
+				y1 = value[index - 1]<<SHIFT; 
+				x1 = positions[index - 1];
+			}
+			// else { x1 = 0; y1 = 0; }
+
+			if(x2>x1 && position>x1)
+			{
+				y1 += ((y2 - y1) * (position - x1)) / (x2 - x1);
 			}
 		}
-		int x2 = positions[pt];
-		int x1, v;
-		if (p>=x2)
-		{
-			v = value[pt]<<SHIFT;
-			x1 = x2;
-		}
-		else
-		if (pt>0)
-		{
-			v = value[pt-1]<<SHIFT;
-			x1 = positions[pt-1];
-		}
-		else
-		{
-			x1 = 0; v=defautlValue;
-		}
-		
-		if (p>x2) p=x2;
-		if ((x2>x1) && (p>x1))
-		{
-			v += ((p - x1) * ((value[pt]<<SHIFT) - v)) / (x2 - x1);
-		}
-		if (v<0) v=0;
-		else
-		if (v>MAXVALUE) v = MAXVALUE;
-		
-		return v;
+
+		// Limit, just in case
+		if (y1<0) y1=0;
+		else if (y1>MAXVALUE) y1=MAXVALUE;
+
+		return y1>>BACKSHIFT;
 	}
 	/**
 	 * Sets the boolean values corresponding to the flag value

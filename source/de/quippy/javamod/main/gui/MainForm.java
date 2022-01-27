@@ -305,6 +305,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	
 	private ArrayList<URL> lastLoaded;
 	private ArrayList<Window> windows;
+	private boolean[] windowsVisibleState;
 	
 	private boolean inExportMode;
 	
@@ -612,16 +613,10 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		System.arraycopy(PlayList.SUPPORTEDPLAYLISTS, 0, fullSupportedExtensions, 0, PlayList.SUPPORTEDPLAYLISTS.length);
 		System.arraycopy(containerExtensions, 0, fullSupportedExtensions, PlayList.SUPPORTEDPLAYLISTS.length, containerExtensions.length);
 		chooserFilterArray.add(new FileChooserFilter(fullSupportedExtensions, "All playable files"));
-		// add default "all files" - WE DO NOT DO THAT ANYMORE ;)
-//		chooserFilterArray.add(new FileChooserFilter("*", "All files"));
 		
 		fileFilterLoad = new FileFilter[chooserFilterArray.size()];
 		chooserFilterArray.toArray(fileFilterLoad);
 		
-//		Print out all possible file extension for debugging
-//		for (int i=0; i<chooserFilterArray.size(); i++)
-//			System.out.println(chooserFilterArray.get(i).getDescription());
-
 		fileFilterExport = new FileFilter[1];
 		fileFilterExport[0] = new FileChooserFilter(javax.sound.sampled.AudioFileFormat.Type.WAVE.getExtension(), javax.sound.sampled.AudioFileFormat.Type.WAVE.toString());
 	}
@@ -679,7 +674,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			@Override
 			public void windowIconified(WindowEvent e)
 			{
-				if (useSystemTray) setVisible(false);
+				if (useSystemTray) doIconify();
 			}
 			/**
 			 * @param e
@@ -689,7 +684,8 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			@Override
 			public void windowDeiconified(WindowEvent e)
 			{
-				if (useSystemTray) setVisible(true);
+				if (useSystemTray) doDeIconify();
+				toFront(); // MakeMainWindowVisible does this also, if other child windows are open and gain focus
 			}
 		});
 	    setSize(mainDialogSize);
@@ -1445,6 +1441,47 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return closeItem;
 	}
+	/**
+	 * Do what is needed to iconify the MainForm, if in system tray.
+	 * Because with Linux (or KDE) a "setVisible(false)" with
+	 * a "setVisible(true)" at deiconify does not work,
+	 * we need to dispose and restore afterwards
+	 * @since 26.01.2022
+	 */
+	private void doIconify()
+	{
+		if (useSystemTray && (getExtendedState() & ICONIFIED)==0)
+		{
+			windowsVisibleState = new boolean[windows.size()];
+			for (int x=0; x<windows.size(); x++)
+				windowsVisibleState[x] = windows.get(x).isVisible();
+			dispose();
+		}
+	}
+	/**
+	 * Do what is needed to deiconify the MainForm, if in system tray.
+	 * This will result in the event "windowDeiconified", which
+	 * is handled above (see initialize, anonymous class)
+	 * Is also called in "doClose" when frame is iconified into the
+	 * system tray - we need to restore windows to save positions and visible
+	 * state to the property file.
+	 * @since 26.01.2022
+	 */
+	private void doDeIconify()
+	{
+		if ((getExtendedState() & ICONIFIED)!=0)
+		{
+			setVisible(true);
+			setExtendedState(getExtendedState() & ~ICONIFIED); // JFrame.setState is obsolete!!
+
+			if (useSystemTray && windowsVisibleState!=null)
+			{
+				for (int x=0; x<windows.size(); x++)
+					windows.get(x).setVisible(windowsVisibleState[x]);
+				windowsVisibleState = null;
+			}
+		}
+	}
 	private TrayIcon getTrayIcon()
 	{
 		if (javaModTrayIcon==null)
@@ -1454,7 +1491,8 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			{
 				Image trayIconImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
 				Dimension trayIconSize = SystemTray.getSystemTray().getTrayIconSize();
-				javaModTrayIcon = new TrayIcon(trayIconImage.getScaledInstance(trayIconSize.width, trayIconSize.height, Image.SCALE_SMOOTH));
+				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
+				javaModTrayIcon = new TrayIcon(trayIconImage.getScaledInstance(-1, trayIconSize.height, Image.SCALE_SMOOTH));
 				javaModTrayIcon.addMouseListener(new MouseAdapter()
 				{
 					@Override
@@ -1462,9 +1500,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 					{
 						if (SwingUtilities.isLeftMouseButton(e))
 						{
-							final MainForm me = MainForm.this;
-							me.setVisible(true);
-							me.setExtendedState(me.getExtendedState() & ~ICONIFIED);
+							MainForm.this.doDeIconify();
 						}
 					}
 				});
@@ -1521,11 +1557,13 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			if (iconURL!=null)
 			{
 				Image tempImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
+				// Create some typical dimensions of our Icon for Java to use.
+				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				windowIcons = new ArrayList<Image>();
-				windowIcons.add(tempImage.getScaledInstance( 16,  16, Image.SCALE_SMOOTH));
-				windowIcons.add(tempImage.getScaledInstance( 32,  32, Image.SCALE_SMOOTH));
-				windowIcons.add(tempImage.getScaledInstance( 64,  64, Image.SCALE_SMOOTH));
-				windowIcons.add(tempImage.getScaledInstance(128, 128, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1,  16, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1,  32, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1,  64, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1, 128, Image.SCALE_SMOOTH));
 			}
 		}
 		return windowIcons;
@@ -2254,7 +2292,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	private void doClose()
 	{
 		// set visible, if system tray active and frame is iconified
-		if (useSystemTray && (getExtendedState()&ICONIFIED)!=0) setVisible(true);
+		doDeIconify();
 		
 		doStopPlaying();
 		getSeekBarPanel().pauseThread();
