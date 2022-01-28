@@ -1674,13 +1674,22 @@ public abstract class BasicModMixer
 
 		if (element.getInstrument()>0)
 		{
-			Sample newSample = null;
 			Instrument newInstrument = aktMemo.assignedInstrument; // same as element.getInstrument - in this case. Was copied 
-			// Get the correct sample from the mapping table, but only if we also have a note index
-			if (newInstrument!=null)
-				if (aktMemo.assignedNoteIndex>0) newSample = mod.getInstrumentContainer().getSample(newInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1));
-			else
-				newSample = mod.getInstrumentContainer().getSample(aktMemo.assignedInstrumentIndex-1);
+			// Get the correct sample from the mapping table, if there is an instrument set
+			Sample newSample = (newInstrument!=null)?
+			                       ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
+			                           mod.getInstrumentContainer().getSample(newInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1))
+			                           :null)
+			                       :mod.getInstrumentContainer().getSample(aktMemo.assignedInstrumentIndex-1);
+//			The above in normal code :)
+//			Sample newSample = null;
+//			if (newInstrument!=null)
+//			{
+//				// but only if we also have a note index, if not, ignore it!
+//				if (aktMemo.assignedNoteIndex>0) newSample = mod.getInstrumentContainer().getSample(newInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1));
+//			}
+//			else
+//				newSample = mod.getInstrumentContainer().getSample(aktMemo.assignedInstrumentIndex-1);
 
 			// Normally Volume and panning is set here.
 			// With FastTracker however (FastTracker 2.09!), these values 

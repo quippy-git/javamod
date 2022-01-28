@@ -9,16 +9,16 @@ Heap Size with JDK8 (default of 256M) not sufficient with bigger mods. Either
 set -Xmx1024m parameter or use newer JDK 
  
 ## Supported file types:
-Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
-SID
-MP3 (Files and Streams)
-FLAC
-APE (ape, apl, mac)
-OGG/Vorbis (ogg, oga)
-WAV, AU, AIFF
-MIDI (MID, RMF, RMI) with SF2 soundfont files
-OPL2/3 (ROL, LAA, CMF, DRO, SCI)
-Playlists PLS, M3U, M3U8, ZIP, CUE
+* Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
+* SID
+* MP3 (Files and Streams)
+* FLAC
+* APE (ape, apl, mac)
+* OGG/Vorbis (ogg, oga)
+* WAV, AU, AIFF
+* MIDI (MID, RMF, RMI) with SF2 soundfont files
+* OPL2/3 (ROL, LAA, CMF, DRO, SCI)
+* Playlists PLS, M3U, M3U8, ZIP, CUE
 
 ## Third-party libraries
 JavaMod incorporates modified versions of the following libraries.
@@ -376,20 +376,20 @@ JavaMod incorporates modified versions of the following libraries.
 ## New in Version 1.9.4.6
 * many minor errors
 * SID Config: 
-  * Filter setting had no affect
-  * added a scrollpane to enable scrolling
-  * all elements can be changed during playback
-  * changing virtual stereo does work
+  - Filter setting had no affect
+  - added a scrollpane to enable scrolling
+  - all elements can be changed during playback
+  - changing virtual stereo does work
 * play and stop with SIDs does not automaticly increase song number anymore
 * changed listeners of checkboxes from ChangeListeners to ItemListeners
 * fixed several bugs with the playlist gui
-  * Editing entries produced encoded URL-Strings
-  * Entries not found were set to NULL
-  * saving playlists with NULL-Entries did not work
-  * synchronizing methods to get parallel changes handled
-  * active element is always visable now
-  * moving entries in large lists works now
-  * marking and demarking (i.e. ctrl-A) does not move the visiable rect anymore
+  - Editing entries produced encoded URL-Strings
+  - Entries not found were set to NULL
+  - saving playlists with NULL-Entries did not work
+  - synchronizing methods to get parallel changes handled
+  - active element is always visable now
+  - moving entries in large lists works now
+  - marking and demarking (i.e. ctrl-A) does not move the visiable rect anymore
 
 ## New in Version 1.9.4.5
 * added Playlist Repeat for GUI, commandline and applet. Use parameter "j" to set state
