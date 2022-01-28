@@ -1,5 +1,5 @@
-# javamod
-Development version: 3.2
+# JavaMod V3.2
+Development version: 3.3
 
 Code Compliance Level: JDK 1.8
 Build with openJDK 1.8 update 311
