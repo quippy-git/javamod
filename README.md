@@ -1,12 +1,8 @@
-# JavaMod V3.2
-Development version: 3.3
+# JavaMod V3.3
+Development version: 3.4
 
-Code Compliance Level: JDK 1.8
-Build with openJDK 1.8 update 311
-However: run with modern Java (openJDK >11, 64BIT) to gain full
-speed - 200+ NNAs are no problem then
-Heap Size with JDK8 (default of 256M) not sufficient with bigger mods. Either
-set -Xmx1024m parameter or use newer JDK 
+Code Compliance Level: JDK 17
+Build with openJDK 17.0.2
  
 ## Supported file types:
 * Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
@@ -37,6 +33,7 @@ JavaMod incorporates modified versions of the following libraries.
   is not an option. Lazy loading does not help as the available MidiDevices 
   must be present when creating the config drop down list for selection.
 * Clean up effects - some are for IT only, some for XM only (copy&paste...)
+  (Mostly done, still needs QS)
 * On Linux gapless audio streams do not work if SourceLine Buffers drain out
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
 
@@ -46,6 +43,17 @@ JavaMod incorporates modified versions of the following libraries.
 * Midi, AdLib with Mods
 * read 7z archives
 * maybe: follow song with mod files (pattern display)
+
+## New in Version 3.3
+* IMPORTANT: as JDK 8 LTS support will be over in two years (security) and
+       normal support is already over, JavaMod is now using JDK 17 (LTS).
+       As the compile level changed, you *must* use JDK 17 to run JavaMod!
+* NEW: Replaced Wide Stereo with a real virtual surround
+* FIX: Legacy ModPlug Tracker (1.17RC2 and lower) files have correct
+       volume now. I did things too easy!
+* FIX: iconify and deIconify fixed so that with tray icon entry in task bar
+       is gone
+* FIX: MP3: added "Info" tag to "Xing" tag to read as CBR
 
 ## New in Version 3.2
 * FIX: Sustain-Loop and normal Loop not correctly differed in
@@ -163,8 +171,8 @@ JavaMod incorporates modified versions of the following libraries.
 * The OPL3 support was already implemented - but as pure beta yet not activated,
   Release because:
 * fixed: nasty NullPointerException when pattern, sample and instrument dialog
-  have never been opened yet and switching back from other media file than mod.
-  They get initialized than to get the loaded information data, but the 
+  have never been opened yet and switching back from other media file then mod.
+  They get initialized then to get the loaded information data, but the 
   ModInfoPanel is not yet added to its JFrame so: no RootPane at that moment.
 
 ## New in Version 2.7
@@ -213,7 +221,7 @@ JavaMod incorporates modified versions of the following libraries.
 ## New in Version 2.6
 * fixed icon size in tray icon
 * save selected SA-Meter visual style 
-* fixed a playback issue if hardware buffers are smaller than the mixing buffer
+* fixed a playback issue if hardware buffers are smaller then the mixing buffer
 * fixed (hopefully) swing gui errors from playlist
 * fix for KDE Bugs in Drag&Drop with wrongly encoded URLs
 * fix with GaplessAudioStream - it's now really gapless. 

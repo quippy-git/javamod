@@ -120,18 +120,14 @@ public final class Bitstream implements BitstreamErrors
 	 0x00001FFF, 0x00003FFF, 0x00007FFF, 0x0000FFFF,
      0x0001FFFF };
 
+	private final BufferedInputStream	buffered_in;
 	private final PushbackInputStream	source;
-
 	private final Header			header = new Header();
-
 	private final byte				syncbuf[] = new byte[4];
 
 	private Crc16[]					crc = new Crc16[1];
-
 	private byte[]					rawid3v2 = null;
-
 	private boolean					firstframe = true;
-
 
 	/**
 	 * Construct a IBitstream that reads data from a
@@ -139,20 +135,19 @@ public final class Bitstream implements BitstreamErrors
 	 *
 	 * @param in	The InputStream to read from.
 	 */
-	public Bitstream(InputStream in)
+	public Bitstream(final InputStream in)
 	{
 		if (in==null) throw new NullPointerException("in");
-		in = new BufferedInputStream(in);		
-		loadID3v2(in);
+		buffered_in = new BufferedInputStream(in);		
+		loadID3v2(buffered_in);
 		firstframe = true;
-		//source = new PushbackInputStream(in, 1024);
-		source = new PushbackInputStream(in, BUFFER_INT_SIZE*4);
-		
+		source = new PushbackInputStream(buffered_in, BUFFER_INT_SIZE*4);
+
 		closeFrame();
 		current_frame_number = -1;
 		last_frame_number = -1;
 	}
-
+	
 	/**
 	 * Return position of the first audio header.
 	 * @return size of ID3v2 tag frames.
@@ -429,15 +424,13 @@ public final class Bitstream implements BitstreamErrors
 
 	int syncHeader(byte syncmode) throws BitstreamException
 	{
-		boolean sync;
-		int headerstring;
 		// read additional 2 bytes
 		int bytesRead = readBytes(syncbuf, 0, 3);
 
 		if (bytesRead!=3) throw newBitstreamException(STREAM_EOF, null);
 
-		headerstring = ((syncbuf[0] << 16) & 0x00FF0000) | ((syncbuf[1] << 8) & 0x0000FF00) | ((syncbuf[2] << 0) & 0x000000FF);
-
+		int headerstring = ((syncbuf[0] << 16) & 0x00FF0000) | ((syncbuf[1] << 8) & 0x0000FF00) | ((syncbuf[2] << 0) & 0x000000FF);
+		boolean sync;
 		do
 		{
 			headerstring <<= 8;

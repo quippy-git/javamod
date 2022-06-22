@@ -36,29 +36,48 @@ package de.quippy.mp3.decoder;
  */
 public final class Header
 {
-	public  static final int[][]	frequencies =
-						{{22050, 24000, 16000, 1},
-						{44100, 48000, 32000, 1},
-						{11025, 12000, 8000, 1}};	// SZD: MPEG25
+	public static final int MPEG2_LSF	= 0;
+	public static final int MPEG1 		= 1;
+	public static final int MPEG25_LSF	= 2;	// SZD
 
-	/**
-	 * Constant for MPEG-2 LSF version
-	 */
-	public static final int		MPEG2_LSF = 0;
-	public static final int		MPEG25_LSF = 2;	// SZD
+	public static final int STEREO			= 0;
+	public static final int JOINT_STEREO	= 1;
+	public static final int DUAL_CHANNEL	= 2;
+	public static final int SINGLE_CHANNEL	= 3;
+	
+	public static final int FOURTYFOUR_POINT_ONE	= 0;
+	public static final int FOURTYEIGHT				= 1;
+	public static final int THIRTYTWO				= 2;
 
-	/**
-	 * Constant for MPEG-1 version
-	 */
-	public static final int		MPEG1 = 1;
+	private static final int sample_frequencies[][] = // h_version, h_sample_frequency
+		{{22050, 24000, 16000, 0}, // MPEG2_LSF
+		 {44100, 48000, 32000, 0}, // MPEG1
+		 {11025, 12000,  8000, 0}};// MPEG25_LSF
+	private static final int samples_per_frame[][] = // h_layer-1, h_version
+		{{ 384, 1152,  576}, // MPEG2_LSF
+		 { 384, 1152, 1152}, // MPEG1
+		 { 384, 1152,  576}};// MPEG25_LSF
+	private static float [] h_vbr_time_per_frame = {384, 1152, 1152};
 
-	public static final int		STEREO = 0;
-	public static final int		JOINT_STEREO = 1;
-	public static final int		DUAL_CHANNEL = 2;
-	public static final int		SINGLE_CHANNEL = 3;
-	public static final int		FOURTYFOUR_POINT_ONE = 0;
-	public static final int		FOURTYEIGHT=1;
-	public static final int		THIRTYTWO=2;
+	private static final int bitrates[][][] = // h_version, h_layer - 1, h_bitrate_index
+	{
+		{
+			{	0 /* free format */, 32000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 176000, 192000, 224000, 256000, 0},
+			{	0 /* free format */,  8000, 16000, 24000, 32000, 40000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0},
+			{	0 /* free format */,  8000, 16000, 24000, 32000, 40000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0}
+		},
+		{
+			{	0 /* free format */, 32000, 64000, 96000, 128000, 160000, 192000, 224000, 256000, 288000, 320000, 352000, 384000, 416000, 448000, 0},
+			{	0 /* free format */, 32000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 160000, 192000, 224000, 256000, 320000, 384000, 0},
+			{	0 /* free format */, 32000, 40000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 160000, 192000, 224000, 256000, 320000, 0}
+		},
+		// SZD: MPEG2.5
+		{
+			{	0 /* free format */, 32000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 176000, 192000, 224000, 256000, 0},
+			{	0 /* free format */,  8000, 16000, 24000, 32000, 40000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0},
+			{	0 /* free format */,  8000, 16000, 24000, 32000, 40000, 48000, 56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0}
+		}
+	};
 
 	private int				h_layer, h_protection_bit, h_bitrate_index,
 	  						h_padding_bit, h_mode_extension;
@@ -67,9 +86,7 @@ public final class Header
 	private int				h_sample_frequency;
 	private int				h_number_of_subbands, h_intensity_stereo_bound;
 	private boolean			h_copyright, h_original;
-	// VBR support added by E.B
-	private double[] 		h_vbr_time_per_frame = {-1, 384, 1152, 1152};
-	private boolean			h_vbr;
+	private boolean			h_vbr, h_vbr_info;
 	private int				h_vbr_frames;
 	private int				h_vbr_scale;
 	private int				h_vbr_bytes;
@@ -78,15 +95,17 @@ public final class Header
 	private byte			syncmode = Bitstream.INITIAL_SYNC;
 	private Crc16			crc;
 
-	public short			checksum;
-	public int				framesize;
-	public int				nSlots;
+	private short			checksum;
+	private int				framesize;
+	private int				nSlots;
 
-	private int				_headerstring = -1; // E.B
+	private int				headerstring = -1; // E.B
 
 	Header()
 	{
+		super();
 	}
+	
 	public String toString()
 	{
 		StringBuilder buffer = new StringBuilder(200);
@@ -106,13 +125,10 @@ public final class Header
 	 */
 	void read_header(Bitstream stream, Crc16[] crcp) throws BitstreamException
 	{
-		int headerstring;
-		int channel_bitrate;
 		boolean sync = false;
 		do
 		{
 			headerstring = stream.syncHeader(syncmode);
-			_headerstring = headerstring; // E.B
 			if (syncmode == Bitstream.INITIAL_SYNC)
 			{
 				h_version = ((headerstring >>> 19) & 1);
@@ -136,28 +152,31 @@ public final class Header
 				h_intensity_stereo_bound = (h_mode_extension << 2) + 4;
 			else
 				h_intensity_stereo_bound = 0; // should never be used
-			if (((headerstring >>> 3) & 1) == 1)
-				h_copyright = true;
-			if (((headerstring >>> 2) & 1) == 1)
-				h_original = true;
+			h_copyright = (((headerstring >>> 3) & 1) == 1);
+			h_original = (((headerstring >>> 2) & 1) == 1);
 			// calculate number of subbands:
 			if (h_layer == 1)
 				h_number_of_subbands = 32;
 			else
 			{
-				channel_bitrate = h_bitrate_index;
+				int channel_bitrate = h_bitrate_index;
 				// calculate bitrate per channel:
 				if (h_mode != SINGLE_CHANNEL)
-					if (channel_bitrate == 4)
+				{
+					if (channel_bitrate <= 5)
 						channel_bitrate = 1;
 					else
 						channel_bitrate -= 4;
+				}
 				if ((channel_bitrate == 1) || (channel_bitrate == 2))
+				{
 					if (h_sample_frequency == THIRTYTWO)
 						h_number_of_subbands = 12;
 					else
 						h_number_of_subbands = 8;
-				else if ((h_sample_frequency == FOURTYEIGHT) || ((channel_bitrate >= 3) && (channel_bitrate <= 5)))
+				}
+				else
+				if ((h_sample_frequency == FOURTYEIGHT) || ((channel_bitrate >= 3) && (channel_bitrate <= 5)))
 					h_number_of_subbands = 27;
 				else
 					h_number_of_subbands = 30;
@@ -168,7 +187,7 @@ public final class Header
 			calculate_framesize();
 			// read framedata:
 			int framesizeloaded = stream.read_frame_data(framesize);
-			if ((framesize >=0) && (framesizeloaded != framesize))
+			if ((framesize >= 0) && (framesizeloaded != framesize))
 			{
 				// Data loaded does not match to expected framesize,
 				// it might be an ID3v1 TAG. (Fix 11/17/04).
@@ -232,10 +251,10 @@ public final class Header
 	 */
 	void parseVBR(byte[] firstframe) throws BitstreamException
 	{
+		final byte tmp[] = new byte[4];
+
 		// Trying Xing header.
-		String xing = "Xing";
-		byte tmp[] = new byte[4];
-		int offset = 0;
+		int offset;
 		// Compute "Xing" offset depending on MPEG version and channels.
 		if (h_version == MPEG1) 
 		{
@@ -250,11 +269,13 @@ public final class Header
 		try
 		{
 			System.arraycopy(firstframe, offset, tmp, 0, 4);
-			// Is "Xing" ?
-			if (xing.equals(new String(tmp)))
+			final int header = (tmp[0] << 24)&0xFF000000 | (tmp[1] << 16)&0x00FF0000 | (tmp[2] << 8)&0x0000FF00 | tmp[3]&0x000000FF;
+			// Is "Xing" or Info?
+			if (header == 0x58696E67 || header == 0x496E666F) //"Xing".equals(new String(tmp))) || "Info".equals(new String(tmp)))
 			{
-				//Yes.
-				h_vbr = true;
+				//Yes
+				h_vbr = true; //(header == 0x58696E67);
+				h_vbr_info = (header == 0x496E666F);
 				h_vbr_frames = -1;
 				h_vbr_bytes = -1;
 				h_vbr_scale = -1;
@@ -301,13 +322,13 @@ public final class Header
 		}
 		
 		// Trying VBRI header.			
-		String vbri = "VBRI";
 		offset = 36-4;
 		try
 		{
 			System.arraycopy(firstframe, offset, tmp, 0, 4);
+			final int header = (tmp[0] << 24)&0xFF000000 | (tmp[1] << 16)&0x00FF0000 | (tmp[2] << 8)&0x0000FF00 | tmp[3]&0x000000FF;
 			// Is "VBRI" ?
-			if (vbri.equals(new String(tmp)))
+			if (header==0x56425249) //"VBRI".equals(new String(tmp)))
 			{
 				//Yes.
 				h_vbr = true;
@@ -325,8 +346,6 @@ public final class Header
 				h_vbr_frames = (tmp[0] << 24)&0xFF000000 | (tmp[1] << 16)&0x00FF0000 | (tmp[2] << 8)&0x0000FF00 | tmp[3]&0x000000FF;
 				length += 4;	
 				//System.out.println("VBR:"+vbri+" Frames:"+ h_vbr_frames +" Size:"+h_vbr_bytes);
-				// TOC
-				// TODO				
 			}
 		}
 		catch (ArrayIndexOutOfBoundsException e)
@@ -359,7 +378,7 @@ public final class Header
 	/**
 	 * Returns Frequency.
 	 */
-	public int frequency() {return frequencies[h_version][h_sample_frequency];}
+	public int frequency() {return sample_frequencies[h_version][h_sample_frequency];}
 
 	/**
 	 * Returns Mode.
@@ -371,43 +390,63 @@ public final class Header
 	 */
 	public boolean checksums()
 	{
-		if (h_protection_bit == 0) return true;
-	  else return false;
+		if (h_protection_bit == 0)
+			return true;
+		else
+			return false;
 	}
 
 	/**
 	 * Returns Copyright.
 	 */
-	public boolean copyright() { return h_copyright; }
+	public boolean copyright()
+	{
+		return h_copyright;
+	}
 
 	/**
 	 * Returns Original.
 	 */
-	public boolean original() { return h_original; }
+	public boolean original()
+	{
+		return h_original;
+	}
 
 	/**
 	 * Return VBR.
 	 * @return true if VBR header is found
 	 */
-	public boolean vbr() { return h_vbr; }
+	public boolean vbr()
+	{
+		return h_vbr;
+	}
 
 	/**
 	 * Return VBR scale.
 	 * @return scale of -1 if not available
 	 */
-	public int vbr_scale() { return h_vbr_scale; }
+	public int vbr_scale()
+	{
+		return h_vbr_scale;
+	}
 
 	/**
 	 * Return VBR TOC.
 	 * @return vbr toc ot null if not available
 	 */
-	public byte[] vbr_toc() { return h_vbr_toc; }
+	public byte[] vbr_toc()
+	{
+		return h_vbr_toc;
+	}
 
 	/**
 	 * Returns Checksum flag.
 	 * Compares computed checksum with stream checksum.
 	 */
-	public boolean checksum_ok () { return (checksum == crc.checksum()); }
+	public boolean checksum_ok()
+	{
+		return (checksum == crc.checksum());
+	}
 
 	// Seeking and layer III stuff
 	/**
@@ -422,83 +461,60 @@ public final class Header
 	/**
 	 * Returns Slots.
 	 */
-	public int slots() { return nSlots; }
+	public int slots()
+	{
+		return nSlots;
+	}
 
 	/**
 	 * Returns Mode Extension.
 	 */
-	public int mode_extension() { return h_mode_extension; }
+	public int mode_extension()
+	{
+		return h_mode_extension;
+	}
 
-	// E.B -> private to public
-	public static final int bitrates[][][] = {
-		{{0 /*free format*/, 32000, 48000, 56000, 64000, 80000, 96000,
-	  112000, 128000, 144000, 160000, 176000, 192000 ,224000, 256000, 0},
-	 	{0 /*free format*/, 8000, 16000, 24000, 32000, 40000, 48000,
-	  56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0},
-	 	{0 /*free format*/, 8000, 16000, 24000, 32000, 40000, 48000,
-	  56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0}},
-
-		{{0 /*free format*/, 32000, 64000, 96000, 128000, 160000, 192000,
-	   224000, 256000, 288000, 320000, 352000, 384000, 416000, 448000, 0},
-	  {0 /*free format*/, 32000, 48000, 56000, 64000, 80000, 96000,
-	   112000, 128000, 160000, 192000, 224000, 256000, 320000, 384000, 0},
-	  {0 /*free format*/, 32000, 40000, 48000, 56000, 64000, 80000,
-	   96000, 112000, 128000, 160000, 192000, 224000, 256000, 320000, 0}},
-		// SZD: MPEG2.5
-		{{0 /*free format*/, 32000, 48000, 56000, 64000, 80000, 96000,
-	  112000, 128000, 144000, 160000, 176000, 192000 ,224000, 256000, 0},
-	 	{0 /*free format*/, 8000, 16000, 24000, 32000, 40000, 48000,
-	  56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0},
-	 	{0 /*free format*/, 8000, 16000, 24000, 32000, 40000, 48000,
-	  56000, 64000, 80000, 96000, 112000, 128000, 144000, 160000, 0}},
-
-		};
-
-	// E.B -> private to public
 	/**
 	 * Calculate Frame size.
 	 * Calculates framesize in bytes excluding header size.
 	 */
-	public int calculate_framesize()
+	private int calculate_framesize()
 	{
-
-	 if (h_layer == 1)
-	 {
-	   framesize = (12 * bitrates[h_version][0][h_bitrate_index]) /
-	               frequencies[h_version][h_sample_frequency];
-	   if (h_padding_bit != 0 ) framesize++;
-	   framesize <<= 2;		// one slot is 4 bytes long
-	   nSlots = 0;
-	 }
-	 else
-	 {
-	   framesize = (144 * bitrates[h_version][h_layer - 1][h_bitrate_index]) /
-	               frequencies[h_version][h_sample_frequency];
-	   if (h_version == MPEG2_LSF || h_version == MPEG25_LSF) framesize >>= 1;	// SZD
-	   if (h_padding_bit != 0) framesize++;
-	   // Layer III slots
-	   if (h_layer == 3)
-	   {
-	     if (h_version == MPEG1)
-	     {
-	  		 nSlots = framesize - ((h_mode == SINGLE_CHANNEL) ? 17 : 32) // side info size
-	  								  -  ((h_protection_bit!=0) ? 0 : 2) 		       // CRC size
-	  								  - 4; 								             // header size
-	     }
-	     else
-		 {  // MPEG-2 LSF, SZD: MPEG-2.5 LSF
-	        nSlots = framesize - ((h_mode == SINGLE_CHANNEL) ?  9 : 17) // side info size
-	  					   		  -  ((h_protection_bit!=0) ? 0 : 2) 		       // CRC size
-	  								  - 4; 								             // header size
-	     }
-	   }
-	   else
-	   {
-	  	 nSlots = 0;
-	   }
-	 }
-	 framesize -= 4;             // subtract header size
-	 return framesize;
+		if (h_layer == 1)
+		{
+			framesize = (12 * bitrates[h_version][0][h_bitrate_index]) / sample_frequencies[h_version][h_sample_frequency];
+			if (h_padding_bit != 0) framesize++;
+			framesize <<= 2; // one slot is 4 bytes long
+			nSlots = 0;
+		}
+		else
+		{
+			framesize = (144 * bitrates[h_version][h_layer - 1][h_bitrate_index]) / sample_frequencies[h_version][h_sample_frequency];
+			if (h_version == MPEG2_LSF || h_version == MPEG25_LSF) framesize >>= 1; // SZD
+			if (h_padding_bit != 0) framesize++;
+			// Layer III slots
+			if (h_layer == 3)
+			{
+				if (h_version == MPEG1)
+				{
+					nSlots = framesize - ((h_mode == SINGLE_CHANNEL)   ? 17 : 32)	// side info size
+											- ((h_protection_bit != 0) ?  0 :  2)	// CRC size
+											- 4;									// header size
+				}
+				else
+				{ // MPEG-2 LSF, SZD: MPEG-2.5 LSF
+					nSlots = framesize - ((h_mode == SINGLE_CHANNEL)   ? 9 : 17)	// side info size
+											- ((h_protection_bit != 0) ? 0 :  2)	// CRC size
+											- 4;									// header size
+				}
+			}
+			else
+			{
+				nSlots = 0;
+			}
+		}
+		framesize -= 4; // subtract header size
+		return framesize;
 	}
 
 	/**
@@ -506,31 +522,34 @@ public final class Header
 	 * @param streamsize
 	 * @return number of frames
 	 */
-	public int max_number_of_frames(int streamsize)  // E.B
+	private int max_number_of_frames(int streamsize)  // E.B
 	{
-		if (h_vbr == true) return h_vbr_frames;
+		if (h_vbr)
+			return h_vbr_frames;
 		else
 		{
-			if ((framesize + 4 - h_padding_bit) == 0) return 0;
-			else return(streamsize / (framesize + 4 - h_padding_bit));
+			final int real_frame_size = framesize + 4 - h_padding_bit; 
+			if (real_frame_size == 0) return 0;
+			else return(streamsize / real_frame_size);
 		}
 	}
 
-	/**
-	 * Returns the maximum number of frames in the stream.
-	 * @param streamsize
-	 * @return number of frames
-	 */
-	public int min_number_of_frames(int streamsize) // E.B
-	{
-		if (h_vbr == true) return h_vbr_frames;
-		else
-		{
-	  		if ((framesize + 5 - h_padding_bit) == 0) return 0;
-	  		else return(streamsize / (framesize + 5 - h_padding_bit));
-		}
-	}
-
+//	/**
+//	 * Returns the maximum number of frames in the stream.
+//	 * @param streamsize
+//	 * @return number of frames
+//	 */
+//	private int min_number_of_frames(int streamsize) // E.B
+//	{
+//		if (h_vbr)
+//			return h_vbr_frames;
+//		else
+//		{
+//			final int real_frame_size = framesize + 5 - h_padding_bit;
+//			if (real_frame_size == 0) return 0;
+//			else return(streamsize / real_frame_size);
+//		}
+//	}
 
 	/**
 	 * Returns ms/frame.
@@ -538,18 +557,23 @@ public final class Header
 	 */
 	public float ms_per_frame() // E.B
 	{
+		if (h_layer<=0) return 0f;
 		if (h_vbr == true)
 		{			
-			double tpf = h_vbr_time_per_frame[layer()] / frequency();
+			float tpf = h_vbr_time_per_frame[h_layer-1] * 1000f / sample_frequencies[h_version][h_sample_frequency];
 			if ((h_version == MPEG2_LSF) || (h_version == MPEG25_LSF)) tpf /= 2;
-			return ((float) (tpf * 1000));
+			return tpf;
 		}
 		else
 		{
-			float ms_per_frame_array[][] = {{8.707483f,  8.0f, 12.0f},
-											{26.12245f, 24.0f, 36.0f},
-											{26.12245f, 24.0f, 36.0f}};
-			return(ms_per_frame_array[h_layer-1][h_sample_frequency]);
+			final float sampleFrequency = (float)sample_frequencies[h_version][h_sample_frequency];
+			final float samplesPerFrame = (float)samples_per_frame[h_layer-1][h_version];
+			return samplesPerFrame * 1000f / sampleFrequency;
+//			final float ms_per_frame_array[][] =
+//			{{ 8.707483f,  8.0f, 12.0f},
+//			 {26.12245f , 24.0f, 36.0f},
+//			 {26.12245f , 24.0f, 36.0f}};
+//			return(ms_per_frame_array[h_layer-1][h_sample_frequency]);
 		}
 	}
 
@@ -560,7 +584,7 @@ public final class Header
 	 */
 	public float total_ms(int streamsize) // E.B
 	{
-		return(max_number_of_frames(streamsize) * ms_per_frame());
+		return (max_number_of_frames(streamsize) * ms_per_frame());
 	}
 
 	/**
@@ -568,7 +592,28 @@ public final class Header
 	 */
 	public int getSyncHeader() // E.B
 	{
-		return _headerstring;
+		return headerstring;
+	}
+
+	/**
+	 * Returns the number of subbands in the current frame.
+	 * @return number of subbands
+	 */
+	public int number_of_subbands()
+	{
+		return h_number_of_subbands;
+	}
+
+	/**
+	 * Returns Intensity Stereo.
+	 * (Layer II joint stereo only).
+	 * Returns the number of subbands which are in stereo mode,
+	 * subbands above that limit are in intensity stereo mode.
+	 * @return intensity
+	 */
+	public int intensity_stereo_bound()
+	{
+		return h_intensity_stereo_bound;
 	}
 
 	// functions which return header informations as strings:
@@ -579,70 +624,34 @@ public final class Header
 	{
 		switch (h_layer)
 		{
-	   case 1:
-	  	return "I";
-	   case 2:
-	  	return "II";
-	   case 3:
-	  	return "III";
+			case 1:
+				return "I";
+			case 2:
+				return "II";
+			case 3:
+				return "III";
 		}
-	  return null;
+		return null;
 	}
-
-	// E.B -> private to public
-	public static final String bitrate_str[][][] = {
-		{{"free format", "32 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s",
-	  "80 kbit/s", "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s",
-	  "160 kbit/s", "176 kbit/s", "192 kbit/s", "224 kbit/s", "256 kbit/s",
-	  "forbidden"},
-	  {"free format", "8 kbit/s", "16 kbit/s", "24 kbit/s", "32 kbit/s",
-	  "40 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s", "80 kbit/s",
-	  "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s", "160 kbit/s",
-	  "forbidden"},
-	  {"free format", "8 kbit/s", "16 kbit/s", "24 kbit/s", "32 kbit/s",
-	  "40 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s", "80 kbit/s",
-	  "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s", "160 kbit/s",
-	  "forbidden"}},
-
-	  {{"free format", "32 kbit/s", "64 kbit/s", "96 kbit/s", "128 kbit/s",
-	  "160 kbit/s", "192 kbit/s", "224 kbit/s", "256 kbit/s", "288 kbit/s",
-	  "320 kbit/s", "352 kbit/s", "384 kbit/s", "416 kbit/s", "448 kbit/s",
-	  "forbidden"},
-	  {"free format", "32 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s",
-	  "80 kbit/s", "96 kbit/s", "112 kbit/s", "128 kbit/s", "160 kbit/s",
-	  "192 kbit/s", "224 kbit/s", "256 kbit/s", "320 kbit/s", "384 kbit/s",
-	  "forbidden"},
-	  {"free format", "32 kbit/s", "40 kbit/s", "48 kbit/s", "56 kbit/s",
-	  "64 kbit/s", "80 kbit/s" , "96 kbit/s", "112 kbit/s", "128 kbit/s",
-	  "160 kbit/s", "192 kbit/s", "224 kbit/s", "256 kbit/s", "320 kbit/s",
-	  "forbidden"}},
-		// SZD: MPEG2.5
-		{{"free format", "32 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s",
-	  "80 kbit/s", "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s",
-	  "160 kbit/s", "176 kbit/s", "192 kbit/s", "224 kbit/s", "256 kbit/s",
-	  "forbidden"},
-	  {"free format", "8 kbit/s", "16 kbit/s", "24 kbit/s", "32 kbit/s",
-	  "40 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s", "80 kbit/s",
-	  "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s", "160 kbit/s",
-	  "forbidden"},
-	  {"free format", "8 kbit/s", "16 kbit/s", "24 kbit/s", "32 kbit/s",
-	  "40 kbit/s", "48 kbit/s", "56 kbit/s", "64 kbit/s", "80 kbit/s",
-	  "96 kbit/s", "112 kbit/s", "128 kbit/s", "144 kbit/s", "160 kbit/s",
-	  "forbidden"}},
-	  };
 
 	/**
 	 * Return Bitrate.
-	 * @param vbr_average: true--> print average bitrate with vbr 
-	 * @return bitrate in bps
+	 * @param vbr_average: true --> print average bitrate with vbr 
+	 * @return bitrate in kbit/s
 	 */
 	public String bitrate_string(boolean vbr_average)
 	{
 		if (h_vbr && vbr_average)
 		{
-			return "VBR: " + Integer.toString(bitrate()/1000)+" kbit/s";		
+			return ((h_vbr_info)?"CBR: ":"VBR: ") + Integer.toString(bitrate() / 1000) + " kbit/s";
 		}
-	  else return bitrate_str[h_version][h_layer - 1][h_bitrate_index];
+		else
+		{
+			if (h_layer<=0)
+				return "0 kbit/s";
+			else
+				return Integer.toString(bitrates[h_version][h_layer - 1][h_bitrate_index] / 1000) + " kbit/s";
+		}
 	}
 
 	/**
@@ -692,31 +701,7 @@ public final class Header
 	 */
 	public String sample_frequency_string()
 	{
-		switch (h_sample_frequency)
-		{
-	    case THIRTYTWO:
-	  	if (h_version == MPEG1)
-	  		return "32 kHz";
-	  	else if (h_version == MPEG2_LSF)
-	    	return "16 kHz";
-	    else	// SZD
-	    	return "8 kHz";
-	    case FOURTYFOUR_POINT_ONE:
-	  	if (h_version == MPEG1)
-	  		return "44.1 kHz";
-	  	else if (h_version == MPEG2_LSF)
-	    	return "22.05 kHz";
-		else	// SZD
-	    	return "11.025 kHz";
-	    case FOURTYEIGHT:
-	  	if (h_version == MPEG1)
-	  		return "48 kHz";
-	  	else if (h_version == MPEG2_LSF)
-	    	return "24 kHz";
-		else	// SZD
-			return "12 kHz";
-	  }
-	  return(null);
+		return Float.toString(sample_frequencies[h_version][h_sample_frequency]) + " Hz";
 	}
 
 	/**
@@ -724,18 +709,18 @@ public final class Header
 	 */
 	public String mode_string()
 	{
-	   switch (h_mode)
-	   {
-	     case STEREO:
-	  	return "Stereo";
-	     case JOINT_STEREO:
-	  	return "Joint stereo";
-	     case DUAL_CHANNEL:
-	  	return "Dual channel";
-	     case SINGLE_CHANNEL:
-	  	return "Single channel";
-	   }
-	   return null;
+		switch (h_mode)
+		{
+			case STEREO:
+				return "Stereo";
+			case JOINT_STEREO:
+				return "Joint stereo";
+			case DUAL_CHANNEL:
+				return "Dual channel";
+			case SINGLE_CHANNEL:
+				return "Single channel";
+		}
+		return null;
 	}
 
 	/**
@@ -744,30 +729,15 @@ public final class Header
 	 */
 	public String version_string()
 	{
-	  switch (h_version)
-	  {
-	    case MPEG1:
-	      return "MPEG-1";
-	    case MPEG2_LSF:
-	      return "MPEG-2 LSF";
-	    case MPEG25_LSF:	// SZD
-	      return "MPEG-2.5 LSF";
-	  }
-	  return(null);
+		switch (h_version)
+		{
+			case MPEG1:
+				return "MPEG-1";
+			case MPEG2_LSF:
+				return "MPEG-2 LSF";
+			case MPEG25_LSF: // SZD
+				return "MPEG-2.5 LSF";
+		}
+		return null;
 	}
-
-	/**
-	 * Returns the number of subbands in the current frame.
-	 * @return number of subbands
-	 */
-	public int number_of_subbands() {return h_number_of_subbands;}
-
-	/**
-	 * Returns Intensity Stereo.
-	 * (Layer II joint stereo only).
-	 * Returns the number of subbands which are in stereo mode,
-	 * subbands above that limit are in intensity stereo mode.
-	 * @return intensity
-	 */
-	public int intensity_stereo_bound() {return h_intensity_stereo_bound;}
 }

@@ -942,8 +942,8 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			{
 				try
 				{
-					final Rectangle2D r1 = getPlaylistTextArea().modelToView(element.getStartOffset());
-					final Rectangle2D r2 = getPlaylistTextArea().modelToView(element.getEndOffset()-1);
+					final Rectangle2D r1 = getPlaylistTextArea().modelToView2D(element.getStartOffset());
+					final Rectangle2D r2 = getPlaylistTextArea().modelToView2D(element.getEndOffset()-1);
 					final Rectangle r = new Rectangle((int)r1.getX(), (int)r1.getY(), (int)(r2.getX()-r1.getX()), (int)r1.getHeight());
 					final Rectangle intersect = r.intersection(getPlaylistTextArea().getVisibleRect());
 					if (!intersect.isEmpty() && intersect.height==r.height) return i;
@@ -963,7 +963,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	private int getSelectedIndexFromPoint(Point position, boolean returnNearest)
 	{
-		final int modelPos = getPlaylistTextArea().viewToModel(position);
+		final int modelPos = getPlaylistTextArea().viewToModel2D(position);
 
 		final HTMLDocument doc = (HTMLDocument)getPlaylistTextArea().getDocument();
 		final Element table = (doc!=null)?doc.getElement("TABLE"):null;
@@ -975,8 +975,8 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			final Element selectedElement = table.getElement(index);
 			try
 			{
-				final Rectangle2D r1 = getPlaylistTextArea().modelToView(selectedElement.getStartOffset());
-				final Rectangle2D r2 = getPlaylistTextArea().modelToView(selectedElement.getEndOffset()-1);
+				final Rectangle2D r1 = getPlaylistTextArea().modelToView2D(selectedElement.getStartOffset());
+				final Rectangle2D r2 = getPlaylistTextArea().modelToView2D(selectedElement.getEndOffset()-1);
 				final Rectangle r = new Rectangle((int)r1.getX(), (int)r1.getY(), (int)(r2.getX()-r1.getX()), (int)r1.getHeight());
 				if (!returnNearest && !r.contains(position)) 
 					return -1;
@@ -1010,8 +1010,8 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 				{
 					try
 					{
-						final Rectangle2D r1 = getPlaylistTextArea().modelToView(element.getStartOffset());
-						final Rectangle2D r2 = getPlaylistTextArea().modelToView(element.getEndOffset()-1);
+						final Rectangle2D r1 = getPlaylistTextArea().modelToView2D(element.getStartOffset());
+						final Rectangle2D r2 = getPlaylistTextArea().modelToView2D(element.getEndOffset()-1);
 						
 						if (r1!=null && r2!=null)
 						{

@@ -201,7 +201,7 @@ public class IcyInputStream extends BufferedInputStream
 	 * Read the metaint tag from header - if present
 	 * If a metaint is there, read the first chunk of data till first
 	 * metaint. If a meta-information tag is in that read chunk of data
-	 * the meta-information came initially earlier - than synch on that
+	 * the meta-information came initially earlier - then synch on that
 	 * @since 20.12.2017
 	 * @param metaIntString
 	 */
@@ -371,7 +371,7 @@ public class IcyInputStream extends BufferedInputStream
 	 * a tag for each one.
 	 * <p>
 	 * Hilariously, the inline data format is totally different
-	 * than the top-of-stream header.  For example, here's a
+	 * then the top-of-stream header.  For example, here's a
 	 * block I saw on "Final Fantasy Radio":
 	 * <pre>
 	 * StreamTitle='Final Fantasy 8 - Nobuo Uematsu - Blue Fields';StreamUrl='';

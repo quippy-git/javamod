@@ -483,39 +483,54 @@ public abstract class BasicModMixer
 		globalFilterMode = false; // IT default: every note resets filter to current values set - flattens the filter envelope
 		swinger = new Random(0xAFFEAFFEAFFEAFFEL);
 
-		// get MasterVolume from mod plus masterVolumeAttenuation
-		masterVolume = mod.getMixingPreAmp();
-		extraAttenuation = 1;
-		useGlobalPreAmp = false;
-		useSoftPanning = false;
-
 		if ((mod.getModType()&ModConstants.MODTYPE_MPT)==ModConstants.MODTYPE_MPT) // Legacy MPT?
 		{
-			// differences to standard:
-			// globalVolumeToMaster = false (otherwise true) - we do not use this
-			// MIXER_ATTENUATION = 4 (otherwise 1 (legacy mods))
-			// with preAmp PreAmpShift is 7, otherwise 8
-
-			// Do Pre-Amp - with legacy ModPlug Tracker this was used...
+			// Do global Pre-Amp - with legacy ModPlug Tracker this was used...
+			// legacy: that is MPT <=1.17RC2
 			int channels = mod.getNChannels();
+			if (channels<1) channels = 1; 
+			else 
 			if (channels>31) channels = 31;
-			masterVolume = (0x80 * mod.getMixingPreAmp())>>6; // no Mixer PreAmp, so just do the math
-			masterVolume = (masterVolume << 7) / ModConstants.PreAmpTable[channels>>1]; // no DSP AGC, so only PreAmp
-			useGlobalPreAmp = true;
-			// and set extraAttenuation
-			extraAttenuation = 4;
+
+			// (Open)MPT uses 0x100 as maxBaseVolume, so original 0x80 maxBaseVolume
+			// of IT, which JavaMod uses, needs to be doubled
+			int realMasterVolume = mod.getBaseVolume()<<1;
+			if (realMasterVolume > 0x80)
+			{
+				//Attenuate global pre-amp depending on number of channels
+				realMasterVolume = 0x80 + (((realMasterVolume - 0x80) * (channels + 4)) >> 4);
+			}
+			masterVolume = (realMasterVolume * mod.getMixingPreAmp())>>6;
+			// no DSP automatic gain control (AGC) switch with JavaMod, so only PreAmp version:
+			masterVolume = (masterVolume << 7) / ModConstants.PreAmpTable[channels>>1];
+
+			extraAttenuation = 4; // set extraAttenuation
+			useGlobalPreAmp = true; // with preAmp PreAmpShift is 7, otherwise 8
+			useSoftPanning = false;
 		}
 		else
 		if ((mod.getModType()&ModConstants.MODTYPE_OMPT)==ModConstants.MODTYPE_OMPT) // Open Modplug Tracker?
 		{
+			masterVolume = mod.getMixingPreAmp();
 			extraAttenuation = 0;
+			useGlobalPreAmp = false;
 			useSoftPanning = true;
 		}
-//		else // Open ModPlug does it like this but we will not. FT2 with default AMP x4 is even more silent
+//		else // Open ModPlug does it like this but we will not - too loud. FT2 with default AMP x4 is even more silent
 //		if ((mod.getModType()&ModConstants.MODTYPE_XM)==ModConstants.MODTYPE_XM) // XM Mod?
 //		{
+//			masterVolume = mod.getMixingPreAmp();
 //			extraAttenuation = 0;
+//			useGlobalPreAmp = false;
+//			useSoftPanning = false;
 //		}
+		else // default protracker, FT2, s3m, ...
+		{
+			masterVolume = mod.getMixingPreAmp();
+			extraAttenuation = 1;
+			useGlobalPreAmp = false;
+			useSoftPanning = false;
+		}
 		
 		leftOver = samplePerTicks = calculateSamplesPerTick();
 		
@@ -1576,7 +1591,7 @@ public abstract class BasicModMixer
 		{
 			// NNA_CUT is default for instruments with no NNA
 			// so do not copy this to a new channel for just finishing
-			// it off than.
+			// it off then.
 			if (currentInstrument.NNA != ModConstants.NNA_CUT)
 			{
 				final int nna;// = (currentNNAChannel.tempNNAAction!=-1)?currentNNAChannel.tempNNAAction:NNA;
@@ -1738,7 +1753,7 @@ public abstract class BasicModMixer
 				((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && element.getInstrument()>0)) && // and with impulsetracker, the old notevalue is used, if an instrument is set
 				!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod())) // but ignore this if porta to note... (FT2.14 does it like that, OMPT resets Instrument)
 		{
-			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back than
+			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back then
 			final Instrument inst = aktMemo.assignedInstrument; 
 			boolean newInstrumentWasSet = false;
 			boolean useFilter = !globalFilterMode;
@@ -1854,7 +1869,7 @@ public abstract class BasicModMixer
 	}
 	/**
 	 * Do first row or tick effects.
-	 * IT: first Row, than VolumeColumn
+	 * IT: first Row, then VolumeColumn
 	 * Others: vice versa
 	 * @since 18.09.2010
 	 * @param aktMemo
@@ -1912,7 +1927,7 @@ public abstract class BasicModMixer
 				}
 				else
 				{
-					// IT: first Row, than column!
+					// IT: first Row, then column!
 					if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0)
 					{
 						doTickEffekts(aktMemo);
@@ -2031,7 +2046,7 @@ public abstract class BasicModMixer
 			}
 		}
 		// with Row Effects, first all rows effect parameter need to be
-		// processed - than we can do the envelopes and volume effects
+		// processed - then we can do the envelopes and volume effects
 		for (int c=0; c<maxChannels; c++)
 			processEnvelopes(channelMemory[c]);
 
@@ -2128,7 +2143,7 @@ public abstract class BasicModMixer
 					// and step to the next row... Even if there are no more -  we will find out later!
 					// However: if doRowEvents sets a patternDelay (patternDelayCount!=-1)
 					// we should not move on, but process the patternDelay on the currentRow set
-					// and if the patternDelayCount is finished, move on than.
+					// and if the patternDelayCount is finished, move on then.
 					if (patternDelayCount<=0)
 					{
 						currentRow++;

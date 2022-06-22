@@ -27,7 +27,6 @@ import de.quippy.javamod.mixer.BasicMixer;
 import de.quippy.javamod.mixer.dsp.iir.filter.Dither;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
-import de.quippy.javamod.multimedia.mod.mixer.ModDSP;
 
 /**
  * @author Daniel Becker
@@ -135,7 +134,8 @@ public class ModMixer extends BasicMixer
 	public void setDoWideStereoMix(final boolean doWideStereoMix)
 	{
 		this.doWideStereoMix = doWideStereoMix;
-		if (doWideStereoMix) modDSP.initWideStereo(sampleRate);
+//		if (doWideStereoMix) modDSP.initWideStereo(sampleRate);
+		if (doWideStereoMix) modDSP.initSurround(sampleRate);
 	}
 	/**
 	 * @param doMegaBass The doMegaBass to set.
@@ -475,7 +475,8 @@ public class ModMixer extends BasicMixer
 						if (doMegaBass) modDSP.processMegaBass(samples);
 						
 						// WideStrereo Mixing - but only with stereo
-						if (doWideStereoMix && channels>1) modDSP.processWideStereo(samples);
+						//if (doWideStereoMix && channels>1) modDSP.processWideStereo(samples);
+						if (doWideStereoMix && channels>1) modDSP.processStereoSurround(samples);
 
 						// Reduce to sample size by dithering - if necessary!
 						if (sampleSizeInBits<32) // our maximum - no dithering needed

@@ -69,7 +69,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		else // For IT no limits... But no wrap around with 32Bit either :)
 		{
 			aktMemo.portaStepUpEnd = 0; 
-			aktMemo.portaStepDownEnd = 0x00FFFFFF; // Short.MAX_VALUE<<ModConstants.PERIOD_SHIFT <- this is signed 0x7ffff than
+			aktMemo.portaStepDownEnd = 0x00FFFFFF; // Short.MAX_VALUE<<ModConstants.PERIOD_SHIFT <- this is signed 0x7ffff then
 		}
 	}
 	/**

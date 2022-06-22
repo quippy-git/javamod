@@ -87,7 +87,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.2";
+	public static final String VERSION = "V3.3";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -200,7 +200,7 @@ public class Helpers
 	 * Loads a C-Type String. In C/C++ strings end with a NULL-byte. We search for it
 	 * and skip the rest. Furthermore we convert to UNICODE
 	 * By the way: sometimes the C-Strings are not terminated. We need to do that
-	 * ourself than!
+	 * ourself then!
 	 * @param input
 	 * @param start
 	 * @param length
@@ -214,7 +214,7 @@ public class Helpers
 	 * Loads a C-Type String. In C/C++ strings end with a NULL-byte. We search for it
 	 * and skip the rest. Furthermore we convert to UNICODE
 	 * By the way: sometimes the C-Strings are not terminated. We need to do that
-	 * ourself than!
+	 * ourself then!
 	 * @param input
 	 * @param start
 	 * @param len
@@ -847,7 +847,7 @@ public class Helpers
 		return false;
 	}
 	/**
-	 * Checks first the File exists method - will try URL than
+	 * Checks first the File exists method - will try URL then
 	 * @since 01.05.2011
 	 * @param url
 	 * @return

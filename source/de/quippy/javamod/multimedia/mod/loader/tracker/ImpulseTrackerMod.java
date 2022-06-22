@@ -267,7 +267,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		special = inputStream.readIntelUnsignedWord();
 		final boolean hasSongMessage = ((special&0x01)!=0);
 		//final boolean hasEditHistory = ((special&0x02)!=0); // we do not want to know for playback
-		final boolean hasSpecialData = ((special&0x04)!=0); // this is special data - read a int and than int-times 8 bytes 
+		final boolean hasSpecialData = ((special&0x04)!=0); // this is special data - read a int and then int-times 8 bytes 
 		final boolean hasMidiMacros = ((flags&0x80)!=0) || ((special&0x08)!=0);
 		
 		//GV:       Global volume. (0->128) All volumes are adjusted by this

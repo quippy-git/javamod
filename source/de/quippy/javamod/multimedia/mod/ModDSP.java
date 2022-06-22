@@ -19,7 +19,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------
  */
-package de.quippy.javamod.multimedia.mod.mixer;
+package de.quippy.javamod.multimedia.mod;
 
 /**
  * This class contains certain DSP effects that can be used on
@@ -32,6 +32,9 @@ public class ModDSP
 	private static final int DEFAULT_XBASS_RANGE	= 14;	// (x+2)*20 Hz (320Hz)
 	private static final int DEFAULT_XBASS_DEPTH	=  6;	// 1+(3>>(x-4)) (+6dB)
 	private static final int DCR_AMOUNT				=  9;
+//	private static final int DEFAULT_WIDE_MS		= 20;
+	private static final int DEFAULT_SURROUND_MS	= 20;
+	private static final int DEFAULT_SURROUND_DEPTH	= 12;
 
 	// Bass Expansion: low-pass filter
 	private long nXBassFlt_Y1;
@@ -50,12 +53,32 @@ public class ModDSP
 	private long leftNR;
 	private long rightNR;
 	
-	// Wide Stereo Mix
-	private int maxWideStereo;
-	private long[] wideLBuffer;
-	private long[] wideRBuffer;
-	private int readPointer;
-	private int writePointer;
+//	// Wide Stereo Mix
+//	private int maxWideStereo;
+//	private long[] wideLBuffer;
+//	private long[] wideRBuffer;
+//	private int readPointer;
+//	private int writePointer;
+	
+	// Surround Mix
+	// Surround Encoding: 1 delay line + low-pass filter + high-pass filter
+	private int nSurroundSize;
+	private int nSurroundPos;
+	private int nDolbyDepth;
+
+	// Surround Biquads
+	private long nDolbyHP_Y1;
+	private long nDolbyHP_X1;
+	private long nDolbyLP_Y1;
+	private long nDolbyHP_B0;
+	private long nDolbyHP_B1;
+	private long nDolbyHP_A1;
+	private long nDolbyLP_B0;
+	private long nDolbyLP_B1;
+	private long nDolbyLP_A1;
+
+	private long surroundBuffer[];
+	
 
 	/**
 	 * Constructor for ModDSP
@@ -74,7 +97,12 @@ public class ModDSP
 		initMegaBass(sampleFreq);
 		initDCRemoval();
 		initNoiseReduction();
-		initWideStereo(sampleFreq);
+//		initWideStereo(sampleFreq);
+		initSurround(sampleFreq);
+	}
+	private static double sgn(double x)
+	{
+		return (x >= 0) ? 1.0d : -1.0d; 
 	}
 	/**
 	 * @since 25.01.2022
@@ -105,7 +133,7 @@ public class ModDSP
 		if (quad != 0)
 		{
 			double lambda = (gainPI2 - gainDC2) / quad;
-			alpha  = lambda - Math.signum(lambda)*Math.sqrt(lambda*lambda - 1.0d);
+			alpha  = lambda - sgn(lambda)*Math.sqrt(lambda*lambda - 1.0d);
 		}
 
 		beta0 = 0.5d * ((gainDC + gainPI) + (gainDC - gainPI) * alpha);
@@ -122,6 +150,10 @@ public class ModDSP
 		out[1] = (long)((b0 * scale) + 0.5d);
 		out[2] = (long)((b1 * scale) + 0.5d);
 	}
+	/**
+	 * @since 25.01.2022
+	 * @param sampleFreq
+	 */
 	public void initMegaBass(final int sampleFreq)
 	{
 		nXBassFlt_Y1 = 0;
@@ -148,6 +180,10 @@ public class ModDSP
 		nXBassFlt_B0 = result[1];
 		nXBassFlt_B1 = result[2];
 	}
+	/**
+	 * @since 25.01.2022
+	 * @param sample
+	 */
 	public void processMegaBass(final long[] sample)
 	{
 		long x1 = nXBassFlt_X1;
@@ -163,6 +199,9 @@ public class ModDSP
 		nXBassFlt_X1 = x1;
 		nXBassFlt_Y1 = y1;
 	}
+	/**
+	 * @since 25.01.2022
+	 */
 	public void initDCRemoval()
 	{
 		// DC Removal Biquad
@@ -171,6 +210,10 @@ public class ModDSP
 		nDCRFlt_Y1r = 0;
 		nDCRFlt_X1r = 0;
 	}
+	/**
+	 * @since 25.01.2022
+	 * @param sample
+	 */
 	public void processDCRemoval(final long[] sample)
 	{
 		long y1l = nDCRFlt_Y1l, x1l = nDCRFlt_X1l;
@@ -194,11 +237,18 @@ public class ModDSP
 		nDCRFlt_Y1r = y1r;
 		nDCRFlt_X1r = x1r;
 	}
+	/**
+	 * @since 25.01.2022
+	 */
 	public void initNoiseReduction()
 	{
 		leftNR = 0;
 		rightNR = 0;
 	}
+	/**
+	 * @since 25.01.2022
+	 * @param sample
+	 */
 	public void processNoiseReduction(final long[] sample)
 	{
 		long vnr = sample[0]>>1;
@@ -209,23 +259,93 @@ public class ModDSP
 		sample[1] = vnr + rightNR;
 		rightNR = vnr;
 	}
-	public void initWideStereo(final int sampleFreq)
+////////////////////////////////////////////////////////////////////////////////
+// SIMPLE WIDE STEREO REMOVED, REPLACED BY Surround
+//	/**
+//	 * @since 25.01.2022
+//	 * @param sampleFreq
+//	 */
+//	public void initWideStereo(final int sampleFreq)
+//	{
+//		// initialize the wide stereo mix
+//		maxWideStereo = (DEFAULT_WIDE_MS * sampleFreq) / 1000;
+//		wideLBuffer = new long[maxWideStereo];
+//		wideRBuffer = new long[maxWideStereo];
+//		readPointer = 0;
+//		writePointer=maxWideStereo-1;
+//	}
+//	/**
+//	 * @since 25.01.2022
+//	 * @param sample
+//	 */
+//	public void processWideStereo(final long[] sample)
+//	{
+//		wideLBuffer[writePointer]=sample[0];
+//		wideRBuffer[writePointer++]=sample[1];
+//		if (writePointer>=maxWideStereo) writePointer=0;
+//
+//		sample[1]+=(wideLBuffer[readPointer]>>1);
+//		sample[0]+=(wideRBuffer[readPointer++]>>1);
+//		if (readPointer>=maxWideStereo) readPointer=0;
+//	}
+////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * @since 05.02.2022
+	 * @param sampleFreq
+	 */
+	public void initSurround(final int sampleFreq)
 	{
-		// initialize the wide stereo mix
-		maxWideStereo = sampleFreq / 50; // (20*sampleFreq)/1000 => 20ms buffer
-		wideLBuffer = new long[maxWideStereo];
-		wideRBuffer = new long[maxWideStereo];
-		readPointer = 0;
-		writePointer=maxWideStereo-1;
-	}
-	public void processWideStereo(final long[] sample)
-	{
-		wideLBuffer[writePointer]=sample[0];
-		wideRBuffer[writePointer++]=sample[1];
-		if (writePointer>=maxWideStereo) writePointer=0;
+		nSurroundSize = (DEFAULT_SURROUND_MS * sampleFreq) / 1000;
+		surroundBuffer = new long[nSurroundSize];
 
-		sample[1]+=(wideLBuffer[readPointer]>>1);
-		sample[0]+=(wideRBuffer[readPointer++]>>1);
-		if (readPointer>=maxWideStereo) readPointer=0;
+		nDolbyDepth = DEFAULT_SURROUND_DEPTH;
+		// because of defaults we do not need to check this
+		//if (nDolbyDepth < 1) nDolbyDepth = 1; else if (nDolbyDepth > 16) nDolbyDepth = 16;
+
+		nSurroundPos = 0;
+
+		// Setup biquad filters
+		long [] result = new long[3];
+		shelfEQ(1024, result, 200, sampleFreq, 0, 0.5d, 1);
+		nDolbyHP_A1 = result[0];
+		nDolbyHP_B0 = result[1];
+		nDolbyHP_B1 = result[2];
+		shelfEQ(1024, result, 7000, sampleFreq, 1, 0.75d, 0);
+		nDolbyLP_A1 = result[0];
+		nDolbyLP_B0 = result[1];
+		nDolbyLP_B1 = result[2];
+		nDolbyHP_X1 = nDolbyHP_Y1 = nDolbyLP_Y1 = 0;
+		// Surround Level
+		nDolbyHP_B0 = (nDolbyHP_B0 * nDolbyDepth) >> 5;
+		nDolbyHP_B1 = (nDolbyHP_B1 * nDolbyDepth) >> 5;
+		// +6dB
+		nDolbyLP_B0 <<= 1;
+		nDolbyLP_B1 <<= 1;
+	}
+	/**
+	 * @since 05.02.2022
+	 * @param sample
+	 */
+	public void processStereoSurround(final long[] sample)
+	{
+		// Delay
+		final long sEcho = surroundBuffer[nSurroundPos];
+		surroundBuffer[nSurroundPos++] = (sample[0]+sample[1]+256) >> 9;
+		if (nSurroundPos >= nSurroundSize) nSurroundPos = 0;
+
+		// High-pass
+		final long v0 = (nDolbyHP_B0 * sEcho + nDolbyHP_B1 * nDolbyHP_X1 + nDolbyHP_A1 * nDolbyHP_Y1) >> 10;
+		
+		// Low-pass
+		final long v = (nDolbyLP_B0 * v0 + nDolbyLP_B1 * nDolbyHP_Y1 + nDolbyLP_A1 * nDolbyLP_Y1) >> (10-8);
+		
+		// Add echo
+		sample[0] += v;
+		sample[1] -= v;
+		
+		// and remember
+		nDolbyHP_Y1 = v0;
+		nDolbyHP_X1 = sEcho;
+		nDolbyLP_Y1 = v >> 8;
 	}
 }

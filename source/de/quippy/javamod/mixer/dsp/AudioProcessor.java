@@ -8,7 +8,7 @@
  * signal processing call backs doing their things and will return a 
  * byte array of sampledata coresponding to the audio format provided 
  *
- * Depending on the frames per second this data is than send split into
+ * Depending on the frames per second this data is then send split into
  * left and right channel to all callbacks who whant to be informed.
  * 
  * Created on 29.09.2007 by Daniel Becker

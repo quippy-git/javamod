@@ -674,7 +674,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			@Override
 			public void windowIconified(WindowEvent e)
 			{
-				if (useSystemTray) doIconify();
+				doIconify();
 			}
 			/**
 			 * @param e
@@ -684,7 +684,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			@Override
 			public void windowDeiconified(WindowEvent e)
 			{
-				if (useSystemTray) doDeIconify();
+				doDeIconify();
 				toFront(); // MakeMainWindowVisible does this also, if other child windows are open and gain focus
 			}
 		});
@@ -1450,12 +1450,15 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	 */
 	private void doIconify()
 	{
-		if (useSystemTray && (getExtendedState() & ICONIFIED)==0)
+		if (useSystemTray)
 		{
+			// no check, if iconified, as that *will* be true already!
+			// remember visiable state of all windows
 			windowsVisibleState = new boolean[windows.size()];
 			for (int x=0; x<windows.size(); x++)
 				windowsVisibleState[x] = windows.get(x).isVisible();
 			dispose();
+			setVisible(false);
 		}
 	}
 	/**
@@ -1469,7 +1472,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	 */
 	private void doDeIconify()
 	{
-		if ((getExtendedState() & ICONIFIED)!=0)
+		if (useSystemTray && (getExtendedState() & ICONIFIED)!=0)
 		{
 			setVisible(true);
 			setExtendedState(getExtendedState() & ~ICONIFIED); // JFrame.setState is obsolete!!
