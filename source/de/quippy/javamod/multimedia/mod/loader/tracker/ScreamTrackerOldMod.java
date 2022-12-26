@@ -246,7 +246,7 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(byte[])
 	 */
 	@Override
-	public void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
 		inputStream.seek(0x14);
 		setTrackerName(getModType(inputStream.readString(8)));

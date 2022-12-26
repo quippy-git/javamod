@@ -190,7 +190,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	public void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_IT);
 		setSongRestart(0);

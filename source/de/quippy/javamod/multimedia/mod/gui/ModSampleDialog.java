@@ -51,6 +51,8 @@ public class ModSampleDialog extends JDialog
 {
 	private static final long serialVersionUID = -9058637708283713743L;
 
+	private static String [] AUTOVIBRATO_TYPES = new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
+
 	private JLabel labelSelectSample = null;
 	private JSpinner selectSample = null;
 	private JTextField sampleType = null;
@@ -821,31 +823,63 @@ public class ModSampleDialog extends JDialog
 		}
 		return imageBufferPanel;
 	}
-	private static String [] AUTOVIBRATO_TYPES = new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
+	private void clearSample()
+	{
+		getSampleType().setText(Helpers.EMPTY_STING);
+		getSampleName().setText(Helpers.EMPTY_STING);
+		getDosFileName().setText(Helpers.EMPTY_STING);
+		getDefaultVolume().setText(Helpers.EMPTY_STING);
+		getGlobalVolume().setText(Helpers.EMPTY_STING);
+		getSetPan().setFixedState(false);
+		getSetPanValue().setText(Helpers.EMPTY_STING);
+		getFineTuneValue().setText(Helpers.EMPTY_STING);
+		getBaseFreqValue().setText(Helpers.EMPTY_STING);
+		getTransposeValue().setText(Helpers.EMPTY_STING);
+		getLoopTypeValue().setText(Helpers.EMPTY_STING);
+		getLoopStartValue().setText(Helpers.EMPTY_STING);
+		getLoopEndValue().setText(Helpers.EMPTY_STING);
+		getSustainLoopTypeValue().setText(Helpers.EMPTY_STING);
+		getSustainLoopStartValue().setText(Helpers.EMPTY_STING);
+		getSustainLoopEndValue().setText(Helpers.EMPTY_STING);
+		getAutoVibTypeValue().setText(Helpers.EMPTY_STING);
+		getAutoVibDepthValue().setText(Helpers.EMPTY_STING);
+		getAutoVibSweepValue().setText(Helpers.EMPTY_STING);
+		getAutoVibRateValue().setText(Helpers.EMPTY_STING);
+		// can handle NULL-Sample:
+		getImageBufferPanel().setSample(null);
+		getImageBufferPanel().drawMe();
+	}
 	private void fillWithSample(final Sample sample)
 	{
-		getSampleType().setText(sample.getSampleTypeString());
-		getSampleName().setText(sample.name);
-		getDosFileName().setText(sample.dosFileName);
-		getDefaultVolume().setText(Integer.toString(sample.volume));
-		getGlobalVolume().setText(Integer.toString(sample.globalVolume));
-		getSetPan().setFixedState(sample.panning!=-1);
-		getSetPanValue().setText(Integer.toString(sample.panning));
-		getFineTuneValue().setText(Integer.toString(sample.fineTune));
-		getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
-		getTransposeValue().setText(Integer.toString(sample.transpose));
-		getLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_IS_PINGPONG)==0?"On":"Bidi");
-		getLoopStartValue().setText(Integer.toString(sample.loopStart));
-		getLoopEndValue().setText(Integer.toString(sample.loopStop));
-		getSustainLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_SUSTAIN_IS_PINGPONG)==0?"On":"Bidi");
-		getSustainLoopStartValue().setText(Integer.toString(sample.sustainLoopStart));
-		getSustainLoopEndValue().setText(Integer.toString(sample.sustainLoopStop));
-		getAutoVibTypeValue().setText(AUTOVIBRATO_TYPES[sample.vibratoType]);
-		getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
-		getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
-		getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
-		getImageBufferPanel().setSample(sample);
-		getImageBufferPanel().drawMe();
+		if (sample==null)
+		{
+			clearSample();
+		}
+		else
+		{
+			getSampleType().setText(sample.getSampleTypeString());
+			getSampleName().setText(sample.name);
+			getDosFileName().setText(sample.dosFileName);
+			getDefaultVolume().setText(Integer.toString(sample.volume));
+			getGlobalVolume().setText(Integer.toString(sample.globalVolume));
+			getSetPan().setFixedState(sample.panning!=-1);
+			getSetPanValue().setText(Integer.toString(sample.panning));
+			getFineTuneValue().setText(Integer.toString(sample.fineTune));
+			getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
+			getTransposeValue().setText(Integer.toString(sample.transpose));
+			getLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_IS_PINGPONG)==0?"On":"Bidi");
+			getLoopStartValue().setText(Integer.toString(sample.loopStart));
+			getLoopEndValue().setText(Integer.toString(sample.loopStop));
+			getSustainLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_SUSTAIN_IS_PINGPONG)==0?"On":"Bidi");
+			getSustainLoopStartValue().setText(Integer.toString(sample.sustainLoopStart));
+			getSustainLoopEndValue().setText(Integer.toString(sample.sustainLoopStop));
+			getAutoVibTypeValue().setText(AUTOVIBRATO_TYPES[sample.vibratoType]);
+			getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
+			getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
+			getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
+			getImageBufferPanel().setSample(sample);
+			getImageBufferPanel().drawMe();
+		}
 	}
 	public void fillWithSamples(final Sample [] samples)
 	{
@@ -855,7 +889,9 @@ public class ModSampleDialog extends JDialog
 			ArrayList<Integer> list = new ArrayList<Integer>(samples.length);
 			for (int i=0; i<samples.length; i++) list.add(Integer.valueOf(i+1));
 			getSelectSample().setModel(new SpinnerListModel(list));
-			if (samples[0]!=null) fillWithSample(samples[0]);
+			fillWithSample(samples[0]);
 		}
+		else
+			clearSample();
 	}
 }

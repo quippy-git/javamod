@@ -203,7 +203,7 @@ public class XMMod extends ProTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	public void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_XM);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
@@ -465,6 +465,7 @@ public class XMMod extends ProTrackerMod
 				// Panning 0..255
 				current.setPanning(inputStream.read());
 				
+				// Transpose -128..127
 				int transpose = inputStream.read();
 				current.setTranspose((transpose>0x7F)?transpose-0x100:transpose);
 				

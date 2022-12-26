@@ -273,17 +273,17 @@ public class Sample
 	{
 		StringBuilder bf = new StringBuilder(this.name);
 		bf.append('(').
-			append(getSampleTypeString()).append(',').
-			append("fineTune:").append(fineTune).append(',').
-			append("transpose:").append(transpose).append(',').
-			append("baseFrequency:").append(baseFrequency).append(',').
-			append("volume:").append(volume).append(',').
-			append("panning:").append(panning).append(',').
-			append("loopStart:").append(loopStart).append(',').
-			append("loopStop:").append(loopStop).append(')').
-			append("loopLength:").append(loopLength).append(',').
-			append("SustainloopStart:").append(sustainLoopStart).append(',').
-			append("SustainloopStop:").append(sustainLoopStop).append(')').
+			append(getSampleTypeString()).append(", ").
+			append("fineTune:").append(fineTune).append(", ").
+			append("transpose:").append(transpose).append(", ").
+			append("baseFrequency:").append(baseFrequency).append(", ").
+			append("volume:").append(volume).append(", ").
+			append("panning:").append(panning).append(", ").
+			append("loopStart:").append(loopStart).append(", ").
+			append("loopStop:").append(loopStop).append(", ").
+			append("loopLength:").append(loopLength).append(", ").
+			append("SustainloopStart:").append(sustainLoopStart).append(", ").
+			append("SustainloopStop:").append(sustainLoopStop).append(", ").
 			append("SustainloopLength:").append(sustainLoopLength).append(')');
 		
 		return bf.toString();

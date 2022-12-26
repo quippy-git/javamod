@@ -154,7 +154,7 @@ public class ProTrackerMod extends Module
 	 */
 	private String getModType(String kennung)
 	{
-		songFlags |= ModConstants.SONG_AMIGALIMITS;
+		songFlags = ModConstants.SONG_AMIGALIMITS;
 		songFlags |= ModConstants.SONG_ISSTEREO;
 
 		if (kennung.length()==4)
@@ -345,24 +345,24 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	public void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
 		inputStream.seek(1080);
 		setModID(inputStream.readString(4));
 		inputStream.seek(0);
 		setTrackerName(getModType(getModID()));
 		setModType(ModConstants.MODTYPE_MOD);
+		setTempo(6);
 		setBPMSpeed(125);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
 		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
-		setMixingPreAmp((preAmp<0x20)?0x20:(preAmp>0x80)?0x80:preAmp);
-		setTempo(6);
+		setMixingPreAmp((preAmp<ModConstants.DEFAULT_MIXING_PREAMP)?ModConstants.DEFAULT_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
 		
 		setSongName(inputStream.readString(20));
 
 		setNInstruments(getNSamples());
 		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
-		this.setInstrumentContainer(instrumentContainer);
+		setInstrumentContainer(instrumentContainer);
 		for (int i=0; i<getNSamples(); i++)
 		{
 			Sample current = new Sample();

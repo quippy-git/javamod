@@ -98,7 +98,7 @@ public class PatternElement
 		sb.append(' ');
 		if (effekt!=0)
 		{
-			if (effekt<0x0F)
+			if (effekt<=0x0F)
 				sb.append(ModConstants.getAsHex(effekt, 1));
 			else
 				sb.append((char)('F' + effekt - 0x0F));

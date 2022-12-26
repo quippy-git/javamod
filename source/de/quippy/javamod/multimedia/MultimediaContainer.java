@@ -54,7 +54,7 @@ public abstract class MultimediaContainer
 	 */
 	public MultimediaContainer getInstance(URL url)
 	{
-		this.fileURL = url;
+		setFileURL(url);
 		return this;
 	}
 	/**
@@ -64,6 +64,14 @@ public abstract class MultimediaContainer
 	public URL getFileURL()
 	{
 		return fileURL;
+	}
+	/**
+	 * @since 19.12.2022
+	 * @param url
+	 */
+	public void setFileURL(URL url)
+	{
+		this.fileURL = url;
 	}
 	/**
 	 * @since 23.12.2010

@@ -930,53 +930,60 @@ public class ModInstrumentDialog extends JDialog
 	}
 	private void fillWithInstrument(Instrument instrument)
 	{
-		getInstrumentName().setText(instrument.name);
-		getFileName().setText(instrument.dosFileName);
-		
-		getGlobalVolume().setText(Integer.toString(instrument.globalVolume));
-		getFadeOutVolume().setText(Integer.toString(instrument.volumeFadeOut));
-		getSetPan().setFixedState(instrument.defaultPan!=-1);
-		getSetPanValue().setText(Integer.toString(instrument.defaultPan));
-		
-		getPitchPanSep().setText(Integer.toString(instrument.pitchPanSeparation));
-		getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(instrument.pitchPanCenter + 1));
-
-		if (instrument.initialFilterResonance!=-1)
+		if (instrument==null)
 		{
-			getSetResonance().setFixedState((instrument.initialFilterResonance&0x80)!=0);
-			getResonanceValue().setText(Integer.toString(instrument.initialFilterResonance&0x7F));
+			clearInstrument();
 		}
 		else
 		{
-			getSetResonance().setFixedState(false);
-			getResonanceValue().setText("-1");
+			getInstrumentName().setText(instrument.name);
+			getFileName().setText(instrument.dosFileName);
+			
+			getGlobalVolume().setText(Integer.toString(instrument.globalVolume));
+			getFadeOutVolume().setText(Integer.toString(instrument.volumeFadeOut));
+			getSetPan().setFixedState(instrument.defaultPan!=-1);
+			getSetPanValue().setText(Integer.toString(instrument.defaultPan));
+			
+			getPitchPanSep().setText(Integer.toString(instrument.pitchPanSeparation));
+			getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(instrument.pitchPanCenter + 1));
+	
+			if (instrument.initialFilterResonance!=-1)
+			{
+				getSetResonance().setFixedState((instrument.initialFilterResonance&0x80)!=0);
+				getResonanceValue().setText(Integer.toString(instrument.initialFilterResonance&0x7F));
+			}
+			else
+			{
+				getSetResonance().setFixedState(false);
+				getResonanceValue().setText("-1");
+			}
+			if (instrument.initialFilterCutoff!=-1)
+			{
+				getSetCutOff().setFixedState((instrument.initialFilterCutoff&0x80)!=0);
+				getCutOffValue().setText(Integer.toString(instrument.initialFilterCutoff&0x7F));
+			}
+			else
+			{
+				getSetCutOff().setFixedState(false);
+				getCutOffValue().setText("-1");
+			}
+			
+			getVolumeVariation().setText(Integer.toString(instrument.randomVolumeVariation));
+			getPanningVariation().setText(Integer.toString(instrument.randomPanningVariation));
+			getResonanceVariation().setText(Integer.toString(instrument.randomResonanceVariation));
+			getCutOffVariation().setText(Integer.toString(instrument.randomCutOffVariation));
+			
+			getActionNNA().setText(getNNAActionString(instrument.NNA));
+			getCheckDNA().setText(getDNACheckString(instrument.dublicateNoteCheck));
+			getActionDNA().setText(getDNAActionString(instrument.dublicateNoteAction));
+			
+			getSampleMap().setText(getSampleMapString(instrument.noteIndex, instrument.sampleIndex));
+			getSampleMap().select(0,0);
+			
+			getVolumeEnvelopePanel().setEnvelope(instrument.volumeEnvelope, EnvelopeType.volume);
+			getPanningEnvelopePanel().setEnvelope(instrument.panningEnvelope, EnvelopeType.panning);
+			getPitchEnvelopePanel().setEnvelope(instrument.pitchEnvelope, EnvelopeType.pitch);
 		}
-		if (instrument.initialFilterCutoff!=-1)
-		{
-			getSetCutOff().setFixedState((instrument.initialFilterCutoff&0x80)!=0);
-			getCutOffValue().setText(Integer.toString(instrument.initialFilterCutoff&0x7F));
-		}
-		else
-		{
-			getSetCutOff().setFixedState(false);
-			getCutOffValue().setText("-1");
-		}
-		
-		getVolumeVariation().setText(Integer.toString(instrument.randomVolumeVariation));
-		getPanningVariation().setText(Integer.toString(instrument.randomPanningVariation));
-		getResonanceVariation().setText(Integer.toString(instrument.randomResonanceVariation));
-		getCutOffVariation().setText(Integer.toString(instrument.randomCutOffVariation));
-		
-		getActionNNA().setText(getNNAActionString(instrument.NNA));
-		getCheckDNA().setText(getDNACheckString(instrument.dublicateNoteCheck));
-		getActionDNA().setText(getDNAActionString(instrument.dublicateNoteAction));
-		
-		getSampleMap().setText(getSampleMapString(instrument.noteIndex, instrument.sampleIndex));
-		getSampleMap().select(0,0);
-		
-		getVolumeEnvelopePanel().setEnvelope(instrument.volumeEnvelope, EnvelopeType.volume);
-		getPanningEnvelopePanel().setEnvelope(instrument.panningEnvelope, EnvelopeType.panning);
-		getPitchEnvelopePanel().setEnvelope(instrument.pitchEnvelope, EnvelopeType.pitch);
 	}
 	public void fillWithInstrumentArray(final Instrument [] instruments)
 	{
@@ -986,7 +993,7 @@ public class ModInstrumentDialog extends JDialog
 			ArrayList<Integer> list = new ArrayList<Integer>(instruments.length);
 			for (int i=0; i<instruments.length; i++) list.add(Integer.valueOf(i+1));
 			getSelectInstrument().setModel(new SpinnerListModel(list));
-			if (instruments[0]!=null) fillWithInstrument(instruments[0]);
+			fillWithInstrument(instruments[0]);
 		}
 		else
 			clearInstrument();

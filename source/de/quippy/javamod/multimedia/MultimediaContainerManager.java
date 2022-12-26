@@ -163,6 +163,15 @@ public class MultimediaContainerManager
 
 		return baseContainer;
 	}
+	/**
+	 * Will use getMultimediaContainerSingleton to retrieve the basic singleton
+	 * and then create an instance by getInstance on that singleton
+	 * This will also update the Info-Panels, if getInstance is overridden
+	 * @since 19.12.2022
+	 * @param url
+	 * @return
+	 * @throws UnsupportedAudioFileException
+	 */
 	public static MultimediaContainer getMultimediaContainer(URL url) throws UnsupportedAudioFileException
 	{
 		MultimediaContainer baseContainer = getMultimediaContainerSingleton(url);
@@ -228,8 +237,15 @@ public class MultimediaContainerManager
 		try
 		{
 			MultimediaContainer container = getMultimediaContainerSingleton(url);
-			if (container!=null) 
+			if (container!=null)
+			{
+				// The container needs to know the URL if 
+				// MultimediaContainer::getSongNameFromURL is used
+				// Typically we would use "getInstance" for that, but
+				// that will update the infodialogs also
+				container.setFileURL(url);
 				return container.getSongInfosFor(url);
+			}
 		}
 		catch (UnsupportedAudioFileException ex)
 		{

@@ -328,31 +328,45 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 		}
 		return modInfo_Trackername;
 	}
-	public void fillInfoPanelWith(Module currentMod)
+	public void fillInfoPanelWith(final Module currentMod)
 	{
-		String modFileName = currentMod.getFileName();
-		int i = modFileName.lastIndexOf(File.separatorChar);
-		if (i==-1) i= modFileName.lastIndexOf('/');
-    	getModInfo_Filename().setText(modFileName.substring(i+1));
-    	getModInfo_Filename().select(0, 0);
-    	getModInfo_Modname().setText(currentMod.getSongName());
-    	getModInfo_Modname().select(0, 0);
-    	getModInfo_Trackername().setText(currentMod.toShortInfoString());
-    	getModInfo_Trackername().select(0, 0);
-    	StringBuilder songInfos = new StringBuilder();
-    	String songMessage = currentMod.getSongMessage();
-    	if (songMessage!=null && songMessage.length()>0) songInfos.append("Song Message:\n").append(songMessage).append("\n\n");
-    	songInfos.append(currentMod.getInstrumentContainer().toString());
-    	getModInfo_Instruments().setText(songInfos.toString());
-    	getModInfo_Instruments().select(0, 0);
-    	
-    	// Only do this, if we have a parent dialog. If not, these dialogs will never
-    	// get destroyed (and will never be visible anyways...)
-    	if (parent!=null)
-    	{
-	    	getModPatternDialog().fillWithPatternArray(currentMod.getSongLength(), currentMod.getArrangement(), currentMod.getPatternContainer().getPattern());
-	    	getModSampleDialog().fillWithSamples(currentMod.getInstrumentContainer().getSamples());
-	    	getModInstrumentDialog().fillWithInstrumentArray(currentMod.getInstrumentContainer().getInstruments());
-    	}
+		if (currentMod==null)
+		{
+	    	getModInfo_Filename().setText(Helpers.EMPTY_STING);
+	    	getModInfo_Modname().setText(Helpers.EMPTY_STING);
+	    	getModInfo_Trackername().setText(Helpers.EMPTY_STING);
+	    	getModInfo_Instruments().setText(Helpers.EMPTY_STING);
+		}
+		else
+		{
+			String modFileName = currentMod.getFileName();
+			int i = modFileName.lastIndexOf(File.separatorChar);
+			if (i==-1) i= modFileName.lastIndexOf('/');
+	    	getModInfo_Filename().setText(modFileName.substring(i+1));
+	    	getModInfo_Filename().select(0, 0);
+	    	getModInfo_Modname().setText(currentMod.getSongName());
+	    	getModInfo_Modname().select(0, 0);
+	    	getModInfo_Trackername().setText(currentMod.toShortInfoString());
+	    	getModInfo_Trackername().select(0, 0);
+	    	StringBuilder songInfos = new StringBuilder();
+	    	String songMessage = currentMod.getSongMessage();
+	    	if (songMessage!=null && songMessage.length()>0) songInfos.append("Song Message:\n").append(songMessage).append("\n\nInstrument Names:\n");
+	    	if (currentMod.getInstrumentContainer()!=null)
+	    		songInfos.append(currentMod.getInstrumentContainer().toString());
+	    	getModInfo_Instruments().setText(songInfos.toString());
+	    	getModInfo_Instruments().select(0, 0);
+	    	
+	    	// Only do this, if we have a parent dialog. If not, these dialogs will never
+	    	// get destroyed (and will never be visible anyways...)
+	    	if (parent!=null)
+	    	{
+	    		if (currentMod.getPatternContainer()!=null) getModPatternDialog().fillWithPatternArray(currentMod.getSongLength(), currentMod.getArrangement(), currentMod.getPatternContainer().getPattern());
+		    	if (currentMod.getInstrumentContainer()!=null)
+		    	{
+		    		getModSampleDialog().fillWithSamples(currentMod.getInstrumentContainer().getSamples());
+		    		getModInstrumentDialog().fillWithInstrumentArray(currentMod.getInstrumentContainer().getInstruments());
+		    	}
+	    	}
+		}
 	}
 }

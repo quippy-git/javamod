@@ -1294,18 +1294,21 @@ public abstract class BasicModMixer
 		}
 		else
 		{
+			// ModConstants.PanBits.Pan8Bit // 0..255
 			if ((modType&ModConstants.MODTYPE_S3M)==0)
 			{
 				aktMemo.panning = param&0xFF;
 			}
 			else
 			{
+				// This is special operation for S3M
+				// ModConstants.PanBits.Pan8Bit now // 0..128
 				if (param <= 0x80) // 7 Bit plus surround
 				{
-					aktMemo.panning = aktMemo.effektParam<<1;
+					aktMemo.panning = param<<1;
 				}
 				else
-				if (aktMemo.effektParam==0xA4) // magic!
+				if (param==0xA4) // magic!
 				{
 					aktMemo.doSurround = true;
 					aktMemo.panning = 0x80;

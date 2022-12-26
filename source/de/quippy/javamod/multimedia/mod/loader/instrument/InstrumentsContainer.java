@@ -167,7 +167,8 @@ public class InstrumentsContainer
 			if (instruments!=null && instruments.length>0) bf.append("\nSamples:\n");
 			for (int i=0; i<samples.length; i++)
 			{
-				bf.append(samples[i].toShortString()).append('\n');
+				if (samples[i]!=null) bf.append(samples[i].toShortString());
+				bf.append('\n');
 			}
 		}
 		return bf.toString();

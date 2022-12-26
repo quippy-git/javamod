@@ -154,6 +154,29 @@ public class ScreamTrackerMod extends Module
 		return null;
 	}
 	/**
+	 * @param inputStream
+	 * @return true, if this is a protracker mod, false if this is not clear
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
+	 */
+	@Override
+	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
+	{
+		inputStream.seek(0x2C);
+		String s3mID = inputStream.readString(4);
+		inputStream.seek(0);
+		return s3mID.equals("SCRM"); 
+	}
+	/**
+	 * @param fileName
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
+	 */
+	@Override
+	protected Module getNewInstance(String fileName)
+	{
+		return new ScreamTrackerMod(fileName);
+	}
+	/**
 	 * Set a Pattern by interpreting
 	 * @param input
 	 * @param offset
@@ -252,34 +275,11 @@ public class ScreamTrackerMod extends Module
 	}
 	/**
 	 * @param inputStream
-	 * @return true, if this is a protracker mod, false if this is not clear
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
-	 */
-	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
-	{
-		inputStream.seek(0x2C);
-		String s3mID = inputStream.readString(4);
-		inputStream.seek(0);
-		return s3mID.equals("SCRM"); 
-	}
-	/**
-	 * @param fileName
-	 * @return
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
-	 */
-	@Override
-	protected Module getNewInstance(String fileName)
-	{
-		return new ScreamTrackerMod(fileName);
-	}
-	/**
-	 * @param inputStream
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(byte[])
 	 */
 	@Override
-	public void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_S3M);
 		setSongRestart(0);
@@ -465,8 +465,7 @@ public class ScreamTrackerMod extends Module
 			
 			// Length
 			int sampleLength = inputStream.readIntelDWord();
-			if (sampleLength<4) sampleLength = 0;
-			if (instrumentType!=1) sampleLength=0;
+			if (sampleLength<4 || instrumentType!=1) sampleLength = 0;
 			current.setLength(sampleLength);
 			
 			// Repeat start and stop
@@ -516,7 +515,7 @@ public class ScreamTrackerMod extends Module
 			current.setName(inputStream.readString(28));
 			
 			// Key
-			inputStream.skip(4); // should be "SCRS" (sample) or "SCRI" (adlib instrument) - we ignore that
+			inputStream.skip(4); // should be "SCRS" (sample) or "SCRI" (adlib instrument) - we ignore that, because of already known "instrumentType"
 			
 			current.setPanning(-1);
 			

@@ -87,7 +87,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.3";
+	public static final String VERSION = "V3.4";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -1195,6 +1195,7 @@ public class Helpers
 	}
 	/**
 	 * Registers all Classes that should not load during playback
+	 * This is also for registering all supported "plugin" loaders at the factory
 	 * @since 26.12.2007
 	 * @throws ClassNotFoundException
 	 */
@@ -1213,6 +1214,8 @@ public class Helpers
 		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");
 		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");
 		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");
+		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");
+		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");
 
 		// The following are essential for registration at the MultimediaContainerManager
 		Class.forName("de.quippy.javamod.multimedia.mod.ModContainer"); // ModContainer uses the ModFactory!!

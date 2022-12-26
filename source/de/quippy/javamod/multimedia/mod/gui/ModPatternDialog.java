@@ -299,10 +299,16 @@ public class ModPatternDialog extends JDialog
 	}
 	public void fillWithPatternArray(final int songLength, final int [] arrangement, final Pattern [] patterns)
 	{
-		if (arrangement==null || patterns==null) return;
 		this.arrangement = new int [songLength];
-		for (int i=0; i<songLength; i++) this.arrangement[i] = arrangement[i];
-		this.patterns = patterns;
+		if (patterns==null)
+		{
+			getTextView_PatternData().setText(Helpers.EMPTY_STING);
+		}
+		else
+		{
+			for (int i=0; i<songLength; i++) this.arrangement[i] = arrangement[i];
+			this.patterns = patterns;
+		}
 		fillButtonsForArrangement();
 		if (buttonArrangement!=null && buttonArrangement.length>0 && buttonArrangement[0]!=null) 
 			buttonArrangement[0].doClick();
