@@ -238,21 +238,26 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	 */
 	private int readBytes_internal(byte b[], int off, int len) throws IOException
 	{
+		if (randomAccessBuffer_endPointer<0) return -1; // already at end of stream, nothing more to read!
+		
 		int read = len;
-		while (read>0)
+		while (read>0 && randomAccessBuffer_endPointer>=0)
 		{
 			int canRead = randomAccessBuffer_endPointer - randomAccessBuffer_readPointer;
-			if (canRead>read) canRead = read;
-			System.arraycopy(randomAccessBuffer, randomAccessBuffer_readPointer, b, off, canRead);
-			randomAccessBuffer_readPointer += canRead;
-			off+=canRead;
-			read -= canRead;
-			if (randomAccessBuffer_readPointer>=randomAccessBuffer_endPointer)
+			if (canRead>0)
+			{
+				if (canRead>read) canRead = read;
+				System.arraycopy(randomAccessBuffer, randomAccessBuffer_readPointer, b, off, canRead);
+				randomAccessBuffer_readPointer += canRead;
+				off += canRead;
+				read -= canRead;
+			}
+			if (randomAccessBuffer_readPointer>=randomAccessBuffer_endPointer && read>0)
 			{
 				fillRandomAccessBuffer(this.getFilePointer());
 			}
 		}
-		return len;
+		return len - read;
 	}
 	/**
 	 * @since 18.01.2022

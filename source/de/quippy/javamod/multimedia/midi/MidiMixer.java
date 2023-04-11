@@ -177,9 +177,7 @@ public class MidiMixer extends BasicMixer
 	protected void seek(long milliseconds)
 	{
 		if (sequencer!=null)
-		{
 			sequencer.setMicrosecondPosition(milliseconds*1000L);
-		}
 		else
 			seekPosition = milliseconds;
 	}
@@ -190,7 +188,10 @@ public class MidiMixer extends BasicMixer
 	@Override
 	public void setMillisecondPosition(long milliseconds)
 	{
-		seek(milliseconds);
+		if (!isPlaying())
+			super.setMillisecondPosition(milliseconds); // save for later!
+		else
+			seek(milliseconds);
 	}
 	/**
 	 * 
@@ -321,7 +322,7 @@ public class MidiMixer extends BasicMixer
 			sequencer.setSequence(sequence);
 			sequencer.open();
 
-			if (! (sequencer instanceof Synthesizer))
+			if (!(sequencer instanceof Synthesizer))
 			{
 				setNewOutputDevice(outputDeviceInfo);
 			}

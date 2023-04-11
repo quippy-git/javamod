@@ -202,6 +202,9 @@ public abstract class BasicMixer extends Mixer
 		{
 			try
 			{
+				// This triggers the playback routine in the respective Mixers to
+				// stop playback and prepare seeking
+				// ONLY difference is with midi, as there is no separate digital data send
 				seeking = ISDOING;
 				while (isSeeking()) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP */ }
 				stopLine(true);

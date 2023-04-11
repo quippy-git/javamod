@@ -314,15 +314,6 @@ public class SIDMixer extends BasicMixer
 			pausePlayback();
 		}
 	}
-	/**
-	 * @param milliseconds
-	 * @see de.quippy.javamod.mixer.Mixer#setMillisecondPosition(long)
-	 */
-	@Override
-	public void setMillisecondPosition(long milliseconds)
-	{
-		seek(milliseconds);
-	}
 	private byte[] getOutputBuffer(int length)
 	{
 		if (output == null || output.length < length) output = new byte[length];
@@ -338,6 +329,8 @@ public class SIDMixer extends BasicMixer
 		initialize();
 		parentSIDContainer.nameChanged();
 		setIsPlaying();
+
+		if (getSeekPosition()>0) seek(getSeekPosition());
 
 		try
 		{
@@ -400,6 +393,14 @@ public class SIDMixer extends BasicMixer
 					while (isPaused())
 					{
 						try { Thread.sleep(10L); } catch (InterruptedException ex) { /* noop */ }
+					}
+				}
+				if (isInSeeking())
+				{
+					setIsSeeking();
+					while (isInSeeking())
+					{
+						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}

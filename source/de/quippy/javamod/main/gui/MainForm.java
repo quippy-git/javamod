@@ -2561,6 +2561,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	 */
 	private void exportFileToWave(final URL sourceFile, final File targetFile, final long fromMillisecondPosition, final long duration, final ProgressDialog progress)
 	{
+		Updater updater = null;
 		try
 		{
 			MultimediaContainer newContainer = MultimediaContainerManager.getMultimediaContainer(sourceFile);
@@ -2577,20 +2578,22 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			    	mixer.setExportFile(targetFile);
 			    	mixer.setMillisecondPosition(fromMillisecondPosition);
 			    	if (duration>-1) mixer.setStopMillisecondPosition(fromMillisecondPosition + duration);
-					Updater updater = null;
 		    		if (progress != null)
 		    		{
 			    		updater = new Updater(mixer, fromMillisecondPosition, duration, progress);
 		    			updater.start();
 		    		}
 		    		mixer.startPlayback();
-			    	if (updater!=null) updater.stopMe();
 				}
 			}
 		}
 		catch (Throwable ex)
 		{
 			Log.error("[MainForm::exportToWave]", ex);
+		}
+		finally
+		{
+	    	if (updater!=null) updater.stopMe();
 		}
 	}
 	private SimpleTextViewerDialog getSimpleTextViewerDialog()

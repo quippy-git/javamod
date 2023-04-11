@@ -71,6 +71,7 @@ import de.quippy.javamod.main.playlist.PlayListEntry;
 import de.quippy.javamod.main.playlist.PlaylistChangedListener;
 import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
+import de.quippy.javamod.system.StringUtils;
 
 /**
  * @author Daniel Becker
@@ -1152,8 +1153,8 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			.append("font-family:").append(Helpers.getTextAreaFont().getFamily()).append("; ")
 			.append("font-size:").append(Helpers.getTextAreaFont().getSize()).append(';')
 			.append("font-weight:").append(entry.isActive()?"bold":"normal").append(';')
-			.append("\"><TD ID=\"").append(getTextID(index)).append("\" align=\"left\" nowrap>").append(songname.replace(" ", "&nbsp;"))
-			.append("</TD><TD ID=\"").append(getDurationID(index)).append("\" align=\"right\" nowrap>").append(duration.replace(" ", "&nbsp;")).append("</TD></TR>");
+			.append("\"><TD ID=\"").append(getTextID(index)).append("\" align=\"left\" nowrap>").append(StringUtils.encodeHtml(songname))
+			.append("</TD><TD ID=\"").append(getDurationID(index)).append("\" align=\"right\" nowrap>").append(StringUtils.encodeHtml(duration)).append("</TD></TR>");
 		return html.toString();
 	}
 	private void createList(final int makeThisIndexVisable)

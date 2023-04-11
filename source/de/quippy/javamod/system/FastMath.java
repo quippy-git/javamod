@@ -133,14 +133,14 @@ public class FastMath
 	public static double fastSqrt(double a)
 	{
 		long x = Double.doubleToLongBits(a) >> 32;
-		double y = Double.longBitsToDouble(x + 1072632448L << 31);
+		double y = Double.longBitsToDouble(x + 0x3FEF1280L << 31);
 		return y;
 	}
 
 	public static double sqrt(double a)
 	{
 		long x = Double.doubleToLongBits(a) >> 32;
-		double y = Double.longBitsToDouble(x + 1072632448L << 31);
+		double y = Double.longBitsToDouble(x + 0x3FEF1280L << 31);
 		y = (y + a / y) * 0.5D;
 		return y;
 	}

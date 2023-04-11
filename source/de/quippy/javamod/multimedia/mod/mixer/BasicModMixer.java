@@ -1711,7 +1711,7 @@ public abstract class BasicModMixer
 
 			// Normally Volume and panning is set here.
 			// With FastTracker however (FastTracker 2.09!), these values 
-			// are not used, if there is a new(!) sample with no note. Than
+			// are not used, if there is a new(!) sample with no note. Then
 			// ignore them (only, if it is the same...)
 			// Long running samples are "reactivated", because volume of
 			// zero is reset to sample default volume. They are however
@@ -1752,9 +1752,9 @@ public abstract class BasicModMixer
 			initNoteFade(aktMemo);
 		}
 		else
-		if (((element.getPeriod()>0 || element.getNoteIndex()>0) || // if there is a note, we need to calc the new tuning and activate a previous set instrument
-				((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && element.getInstrument()>0)) && // and with impulsetracker, the old notevalue is used, if an instrument is set
-				!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod())) // but ignore this if porta to note... (FT2.14 does it like that, OMPT resets Instrument)
+		if ((element.getPeriod()>0 || element.getNoteIndex()>0) || // if there is a note, we need to calc the new tuning and activate a previous set instrument
+				((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && element.getInstrument()>0)) // but with scream tracker like mods, the old notevalue is used, if an instrument is set
+				/* && !isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod()))*/ // but ignore this if porta to note... (however, OMPT resets Instrument)
 		{
 			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back then
 			final Instrument inst = aktMemo.assignedInstrument; 
@@ -1780,7 +1780,7 @@ public abstract class BasicModMixer
 						if (useFilter && inst.filterMode!=ModConstants.FLTMODE_UNCHANGED) aktMemo.filterMode = inst.filterMode;
 
 						// set random variations
-						// first reset. This can be done safely here, because either IT-Mods have no instrumtents at all
+						// first reset. This can be done safely here, because either IT-Mods have no instruments at all
 						// or all samples are accessed through instruments. There is no mix
 						aktMemo.swingVolume = aktMemo.swingPanning = aktMemo.swingResonance = aktMemo.swingCutOff = 0;
 						
@@ -1797,7 +1797,7 @@ public abstract class BasicModMixer
 						{
 							aktMemo.swingPanning = (int)((inst.randomPanningVariation<<2) * (swinger.nextInt() % 0x80)) >> 7;
 						}
-						// ModPlugTracker extended instrumtents. Not read yet!
+						// ModPlugTracker extended instruments. Not read yet!
 						if (inst.randomResonanceVariation>=0)
 						{
 							aktMemo.swingResonance = (((int)(inst.randomResonanceVariation * (swinger.nextInt() % 0x80)) >> 7) * aktMemo.resonance + 1) >> 7;
@@ -1824,7 +1824,7 @@ public abstract class BasicModMixer
 						resetForNewSample(aktMemo);
 						resetEnvelopes(aktMemo);
 					}
-					//else // nononono... With IT this has to be checked! Always!
+					// With IT this has to be checked! Always! 
 					// IT-MODS (and derivates) reset here, because a sample set is relevant (see below)
 					if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && 
 						(aktMemo.instrumentFinished || (element.getPeriod()>0 || element.getNoteIndex()>0)))
@@ -1838,34 +1838,39 @@ public abstract class BasicModMixer
 				}
 			}
 			
-			// Now set the player Tuning and reset some things in advance.
-			// normally we are here, because a note was set in the pattern.
-			// Except for IT-MODs - then we are here, because either note or
-			// instrument were set. If no notevalue was set, the old 
-			// notevalue is to be used.
-			// However, we do not reset the instrument here - the reset was 
-			// already done above - so this is here for all sane players :)
-			if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)==0) // MOD, XM...
+			// Till now we totally ignored all of the above, if this was a porta to note effect.
+			// However, at least the instrument should be (re-)set. We only do not set the note period!
+			// This is not like FT2.09 does it!
+			if (!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod()))
 			{
-				resetAllEffects(aktMemo, element, true); // Reset Tremolo and such things... Forced! because of a new note
-				aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-				resetInstrumentPointers(aktMemo);
-				resetEnvelopes(aktMemo);
-			}
+				// Now set the player Tuning and reset some things in advance.
+				// normally we are here, because a note was set in the pattern.
+				// Except for IT-MODs - then we are here, because either note or
+				// instrument were set. If no notevalue was set, the old 
+				// notevalue is to be used.
+				// However, we do not reset the instrument here - the reset was 
+				// already done above - so this is here for all sane players :)
+				if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)==0) // MOD, XM...
+				{
+					resetAllEffects(aktMemo, element, true); // Reset Tremolo and such things... Forced! because of a new note
+					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
+					resetInstrumentPointers(aktMemo);
+					resetEnvelopes(aktMemo);
+				}
 			
-			// With impulse tracker, again we are here because of an instrument
-			// set - we should now only reset the tuning (like automatically with
-			// all others) when we have a note/period or a new instrument
-			if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0)
-			{
-				if ((element.getPeriod()>0 || element.getNoteIndex()>0) || newInstrumentWasSet)
+				// With impulse tracker, again we are here because of an instrument
+				// set - we should now only reset the tuning (like automatically with
+				// all others) when we have a note/period or a new instrument
+				if ((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0)
+				{
+					if ((element.getPeriod()>0 || element.getNoteIndex()>0) || newInstrumentWasSet)
+						setNewPlayerTuningFor(aktMemo, aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
+					// and set the resonance, settings were stored above in instr. value copy
+					if ((/*aktMemo.resonance>0 || */aktMemo.cutOff<0x7F) && useFilter) setupChannelFilter(aktMemo, true, 256);
+				}
+				else // reset to last known note period if instrument is set without note (or current, which is set anyways)
 					setNewPlayerTuningFor(aktMemo, aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-				// and set the resonance, settings were stored above in instr. value copy
-				if ((/*aktMemo.resonance>0 || */aktMemo.cutOff<0x7F) && useFilter) setupChannelFilter(aktMemo, true, 256);
 			}
-			else // reset to last known note period if instrument is set without note (or current, which is set anyways)
-				setNewPlayerTuningFor(aktMemo, aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-
 			// write back, if noteIndex was changed by instrument note mapping
 			aktMemo.assignedNoteIndex = savedNoteIndex;
 		}

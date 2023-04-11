@@ -1,11 +1,11 @@
-# JavaMod V3.3
-Development version: 3.4
+# JavaMod V3.4
+Development version: 3.5
 
 Code Compliance Level: JDK 17
 Build with openJDK 17.0.2
  
 ## Supported file types:
-* Mods (NST, MOD, WOW, XM, STM, S3M, IT, PowerPacker)
+* Mods (FAR, NST, MOD, MTM, STK, WOW, XM, STM, S3M, IT, PowerPacker)
 * SID
 * MP3 (Files and Streams)
 * FLAC
@@ -34,7 +34,9 @@ JavaMod incorporates modified versions of the following libraries.
   must be present when creating the config drop down list for selection.
 * Clean up effects - some are for IT only, some for XM only (copy&paste...)
   (Mostly done, still needs QS)
-* On Linux gapless audio streams do not work if SourceLine Buffers drain out
+* On Linux 
+  * gapless audio streams do not work if SourceLine Buffers drain out
+  * JDialogs, when set visible, will not come to front
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
 
 ## Planned:
@@ -43,6 +45,28 @@ JavaMod incorporates modified versions of the following libraries.
 * Midi, AdLib with Mods
 * read 7z archives
 * maybe: follow song with mod files (pattern display)
+
+## New in Version 3.4
+* NEW: Added Farandole (*.FAR) support (no idea, why... Maybe, because I could).
+       FAR-Files are mapped to S3M, makes things easy. However, slides are not
+       perfect, yet
+* NEW: Added MultiTrakker support (*.MTM), because I have some of those. So why
+       not? They are mapped to ProTracker / XM Modules
+* FIX: added NULL-Pointer checks and clearing sample/instrument/pattern-dialogs,
+       because Farandole in S3M leaves patterns and samples empty
+* FIX: All multimediafiles relying on MultimediaContainer::getSongNameFromURL
+       need the URL updated in the BaseContainer - is now done.
+       Flaw was probably only visible with MIDIs
+* FIX: SIDMixer must not implemented setMillisecondposition. Wav-Export of File
+       does not work.
+* FIX: RandomAccessFile wants to read beyond end of file
+* FIX: Exporting to wave would leave a thread running when encountering an
+       exception
+* FIX: PortaToNote: if an instrument is set, that was ignored, as FT2.09 does it.
+       Fixed it, as new trackers also do not ignore it, and new compositions
+       relay on that.
+* FIX: Playlist - as we use a HTML Table for representation we need to masquerade
+       all HTML special characters - not only spaces
 
 ## New in Version 3.3
 * IMPORTANT: as JDK 8 LTS support will be over in two years (security) and
