@@ -152,22 +152,22 @@ public class SeekBarPanel extends ThreadUpdatePanel
 		}
 		return timeTextField;
 	}
-	public javax.swing.JLabel getTimeLabel()
+	public JLabel getTimeLabel()
 	{
 		if (timeLabel==null)
 		{
-			timeLabel = new javax.swing.JLabel();
+			timeLabel = new JLabel();
 			timeLabel.setName("timeLabel");
 			timeLabel.setText("time");
 			timeLabel.setFont(Helpers.getDialogFont());
 		}
 		return timeLabel;
 	}
-	public javax.swing.JTextField getKBSField()
+	public JTextField getKBSField()
 	{
 		if (KBSField==null)
 		{
-			KBSField = new javax.swing.JTextField("--");
+			KBSField = new JTextField("--");
 			KBSField.setHorizontalAlignment(JTextField.TRAILING);
 			KBSField.setEditable(false);
 			KBSField.setName("KBSField");
@@ -183,22 +183,22 @@ public class SeekBarPanel extends ThreadUpdatePanel
 		}
 		return KBSField;
 	}
-	public javax.swing.JLabel getKBSLabel()
+	public JLabel getKBSLabel()
 	{
 		if (KBSLabel==null)
 		{
-			KBSLabel = new javax.swing.JLabel();
+			KBSLabel = new JLabel();
 			KBSLabel.setName("KBSLabel");
 			KBSLabel.setText("KB/s");
 			KBSLabel.setFont(Helpers.getDialogFont());
 		}
 		return KBSLabel;
 	}
-	public javax.swing.JTextField getKHZField()
+	public JTextField getKHZField()
 	{
 		if (KHZField==null)
 		{
-			KHZField = new javax.swing.JTextField("--");
+			KHZField = new JTextField("--");
 			KHZField.setHorizontalAlignment(JTextField.TRAILING);
 			KHZField.setEditable(false);
 			KHZField.setName("KHzField");
@@ -214,22 +214,22 @@ public class SeekBarPanel extends ThreadUpdatePanel
 		}
 		return KHZField;
 	}
-	public javax.swing.JLabel getKHZLabel()
+	public JLabel getKHZLabel()
 	{
 		if (KHZLabel==null)
 		{
-			KHZLabel = new javax.swing.JLabel();
+			KHZLabel = new JLabel();
 			KHZLabel.setName("KHzLabel");
 			KHZLabel.setText("KHz");
 			KHZLabel.setFont(Helpers.getDialogFont());
 		}
 		return KHZLabel;
 	}
-	public javax.swing.JTextField getActiveChannelsTextField()
+	public JTextField getActiveChannelsTextField()
 	{
 		if (activeChannelsTextField==null)
 		{
-			activeChannelsTextField = new javax.swing.JTextField("--");
+			activeChannelsTextField = new JTextField("--");
 			activeChannelsTextField.setHorizontalAlignment(JTextField.TRAILING);
 			activeChannelsTextField.setEditable(false);
 			activeChannelsTextField.setName("activeChannelsTextField");
@@ -245,11 +245,11 @@ public class SeekBarPanel extends ThreadUpdatePanel
 		}
 		return activeChannelsTextField;
 	}
-	public javax.swing.JLabel getActiveChannelsLabel()
+	public JLabel getActiveChannelsLabel()
 	{
 		if (activeChannelsLabel==null)
 		{
-			activeChannelsLabel = new javax.swing.JLabel();
+			activeChannelsLabel = new JLabel();
 			activeChannelsLabel.setName("activeChannelsLabel");
 			activeChannelsLabel.setText("Chn");
 			activeChannelsLabel.setFont(Helpers.getDialogFont());
@@ -308,6 +308,10 @@ public class SeekBarPanel extends ThreadUpdatePanel
 		{
 			final long timeCode = currentMixer.getMillisecondPosition();
 			getTimeBar().setValue((int)timeCode);
+			
+// Example of displaying the CPU Usage
+//			com.sun.management.OperatingSystemMXBean bean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+//		    System.out.print((int)(bean.getCpuLoad()*100)+"%\r");
 			
 			if (!showBarOnly)
 			{

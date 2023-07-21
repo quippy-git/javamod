@@ -35,479 +35,479 @@ public class LEDScrollPanel extends MeterPanelBase
 {
 	private static final long serialVersionUID = 8634277922087324325L;
 
-	private static HashMap<String, byte[]> ledCharSet;
+	private static HashMap<Character, byte[]> ledCharSet;
 	static
 	{
-		ledCharSet = new HashMap<String, byte[]>();
-		ledCharSet.put(" ", ((new byte[]
+		ledCharSet = new HashMap<Character, byte[]>();
+		ledCharSet.put(Character.valueOf(' '), ((new byte[]
 		{
 				0, 0, 0, 0, 0
 		})));
-		ledCharSet.put("A", ((new byte[]
+		ledCharSet.put(Character.valueOf('A'), ((new byte[]
 		{
 				126, 9, 9, 9, 126
 		})));
-		ledCharSet.put("a", ((new byte[]
+		ledCharSet.put(Character.valueOf('a'), ((new byte[]
 		{
 				32, 84, 84, 84, 120
 		})));
-		ledCharSet.put("á", ((new byte[]
+		ledCharSet.put(Character.valueOf('á'), ((new byte[]
 		{
 		 		32, 84, 86, 85, 120
 		})));
-		ledCharSet.put("à", ((new byte[]
+		ledCharSet.put(Character.valueOf('à'), ((new byte[]
 		{
          		32, 85, 86, 84, 120
 		})));
-		ledCharSet.put("B", ((new byte[]
+		ledCharSet.put(Character.valueOf('B'), ((new byte[]
 		{
 				127, 73, 73, 73, 62
 		})));
-		ledCharSet.put("b", ((new byte[]
+		ledCharSet.put(Character.valueOf('b'), ((new byte[]
 		{
 				127, 68, 68, 68, 56
 		})));
-		ledCharSet.put("C", ((new byte[]
+		ledCharSet.put(Character.valueOf('C'), ((new byte[]
 		{
 				62, 65, 65, 65, 34
 		})));
-		ledCharSet.put("c", ((new byte[]
+		ledCharSet.put(Character.valueOf('c'), ((new byte[]
 		{
 				56, 68, 68, 68, 0
 		})));
-		ledCharSet.put("D", ((new byte[]
+		ledCharSet.put(Character.valueOf('D'), ((new byte[]
 		{
 				65, 127, 65, 65, 62
 		})));
-		ledCharSet.put("d", ((new byte[]
+		ledCharSet.put(Character.valueOf('d'), ((new byte[]
 		{
 				56, 68, 68, 72, 127
 		})));
-		ledCharSet.put("E", ((new byte[]
+		ledCharSet.put(Character.valueOf('E'), ((new byte[]
 		{
 				127, 73, 73, 65, 65
 		})));
-		ledCharSet.put("e", ((new byte[]
+		ledCharSet.put(Character.valueOf('e'), ((new byte[]
 		{
 				56, 84, 84, 84, 24
 		})));
-		ledCharSet.put("é", ((new byte[]
+		ledCharSet.put(Character.valueOf('é'), ((new byte[]
 		{
 				56, 84, 86, 85, 24
 		})));
-		ledCharSet.put("è", ((new byte[]
+		ledCharSet.put(Character.valueOf('è'), ((new byte[]
 		{
 				56, 85, 86, 84, 24
 		})));
-		ledCharSet.put("F", ((new byte[]
+		ledCharSet.put(Character.valueOf('F'), ((new byte[]
 		{
 				127, 9, 9, 1, 1
 		})));
-		ledCharSet.put("f", ((new byte[]
+		ledCharSet.put(Character.valueOf('f'), ((new byte[]
 		{
 				8, 126, 9, 1, 2
 		})));
-		ledCharSet.put("G", ((new byte[]
+		ledCharSet.put(Character.valueOf('G'), ((new byte[]
 		{
 				62, 65, 65, 73, 58
 		})));
-		ledCharSet.put("g", ((new byte[]
+		ledCharSet.put(Character.valueOf('g'), ((new byte[]
 		{
 				72, 84, 84, 84, 60
 		})));
-		ledCharSet.put("H", ((new byte[]
+		ledCharSet.put(Character.valueOf('H'), ((new byte[]
 		{
 				127, 8, 8, 8, 127
 		})));
-		ledCharSet.put("h", ((new byte[]
+		ledCharSet.put(Character.valueOf('h'), ((new byte[]
 		{
 				127, 8, 4, 4, 120
 		})));
-		ledCharSet.put("I", ((new byte[]
+		ledCharSet.put(Character.valueOf('I'), ((new byte[]
 		{
 				0, 65, 127, 65, 0
 		})));
-		ledCharSet.put("i", ((new byte[]
+		ledCharSet.put(Character.valueOf('i'), ((new byte[]
 		{
 				0, 68, 125, 64, 0
 		})));
-		ledCharSet.put("í", ((new byte[]
+		ledCharSet.put(Character.valueOf('í'), ((new byte[]
 		{
 				0, 68, 126, 65, 0
 		})));
-		ledCharSet.put("ì", ((new byte[]
+		ledCharSet.put(Character.valueOf('ì'), ((new byte[]
 		{
 				0, 69, 126, 64, 0
 		})));
-		ledCharSet.put("J", ((new byte[]
+		ledCharSet.put(Character.valueOf('J'), ((new byte[]
 		{
 				32, 64, 65, 63, 1
 		})));
-		ledCharSet.put("j", ((new byte[]
+		ledCharSet.put(Character.valueOf('j'), ((new byte[]
 		{
 				32, 64, 68, 61, 0
 		})));
-		ledCharSet.put("K", ((new byte[]
+		ledCharSet.put(Character.valueOf('K'), ((new byte[]
 		{
 				127, 8, 20, 34, 65
 		})));
-		ledCharSet.put("k", ((new byte[]
+		ledCharSet.put(Character.valueOf('k'), ((new byte[]
 		{
 				127, 16, 40, 68, 0
 		})));
-		ledCharSet.put("L", ((new byte[]
+		ledCharSet.put(Character.valueOf('L'), ((new byte[]
 		{
 				127, 64, 64, 64, 64
 		})));
-		ledCharSet.put("l", ((new byte[]
+		ledCharSet.put(Character.valueOf('l'), ((new byte[]
 		{
 				0, 65, 127, 64, 0
 		})));
-		ledCharSet.put("M", ((new byte[]
+		ledCharSet.put(Character.valueOf('M'), ((new byte[]
 		{
 				127, 2, 12, 2, 127
 		})));
-		ledCharSet.put("m", ((new byte[]
+		ledCharSet.put(Character.valueOf('m'), ((new byte[]
 		{
 				124, 4, 24, 4, 120
 		})));
-		ledCharSet.put("N", ((new byte[]
+		ledCharSet.put(Character.valueOf('N'), ((new byte[]
 		{
 				127, 4, 8, 16, 127
 		})));
-		ledCharSet.put("n", ((new byte[]
+		ledCharSet.put(Character.valueOf('n'), ((new byte[]
 		{
 				124, 8, 4, 4, 120
 		})));
-		ledCharSet.put("O", ((new byte[]
+		ledCharSet.put(Character.valueOf('O'), ((new byte[]
 		{
 				62, 65, 65, 65, 62
 		})));
-		ledCharSet.put("o", ((new byte[]
+		ledCharSet.put(Character.valueOf('o'), ((new byte[]
 		{
 				56, 68, 68, 68, 56
 		})));
-		ledCharSet.put("ó", ((new byte[]
+		ledCharSet.put(Character.valueOf('ó'), ((new byte[]
 		{
          		56, 68, 70, 69, 56
 		})));
-		ledCharSet.put("ò", ((new byte[]
+		ledCharSet.put(Character.valueOf('ò'), ((new byte[]
 		{
          		56, 69, 70, 68, 56
 		})));
-		ledCharSet.put("P", ((new byte[]
+		ledCharSet.put(Character.valueOf('P'), ((new byte[]
 		{
 				127, 9, 9, 9, 6
 		})));
-		ledCharSet.put("p", ((new byte[]
+		ledCharSet.put(Character.valueOf('p'), ((new byte[]
 		{
 				124, 20, 20, 20, 8
 		})));
-		ledCharSet.put("Q", ((new byte[]
+		ledCharSet.put(Character.valueOf('Q'), ((new byte[]
 		{
 				62, 65, 81, 33, 94
 		})));
-		ledCharSet.put("q", ((new byte[]
+		ledCharSet.put(Character.valueOf('q'), ((new byte[]
 		{
 				8, 20, 20, 20, 124
 		})));
-		ledCharSet.put("R", ((new byte[]
+		ledCharSet.put(Character.valueOf('R'), ((new byte[]
 		{
 				127, 9, 25, 41, 70
 		})));
-		ledCharSet.put("r", ((new byte[]
+		ledCharSet.put(Character.valueOf('r'), ((new byte[]
 		{
 				124, 8, 4, 4, 8
 		})));
-		ledCharSet.put("S", ((new byte[]
+		ledCharSet.put(Character.valueOf('S'), ((new byte[]
 		{
 				38, 73, 73, 73, 50
 		})));
-		ledCharSet.put("s", ((new byte[]
+		ledCharSet.put(Character.valueOf('s'), ((new byte[]
 		{
 				72, 84, 84, 84, 32
 		})));
-		ledCharSet.put("T", ((new byte[]
+		ledCharSet.put(Character.valueOf('T'), ((new byte[]
 		{
 				1, 1, 127, 1, 1
 		})));
-		ledCharSet.put("t", ((new byte[]
+		ledCharSet.put(Character.valueOf('t'), ((new byte[]
 		{
 				4, 63, 68, 64, 64
 		})));
-		ledCharSet.put("U", ((new byte[]
+		ledCharSet.put(Character.valueOf('U'), ((new byte[]
 		{
 				63, 64, 64, 64, 63
 		})));
-		ledCharSet.put("u", ((new byte[]
+		ledCharSet.put(Character.valueOf('u'), ((new byte[]
 		{
 				60, 64, 64, 32, 124
 		})));
-		ledCharSet.put("ú", ((new byte[]
+		ledCharSet.put(Character.valueOf('ú'), ((new byte[]
 		{
 				60, 64, 66, 33, 124
 		})));
-		ledCharSet.put("ù", ((new byte[]
+		ledCharSet.put(Character.valueOf('ù'), ((new byte[]
 		{
 				60, 65, 66, 32, 124
 		})));
-		ledCharSet.put("V", ((new byte[]
+		ledCharSet.put(Character.valueOf('V'), ((new byte[]
 		{
 				7, 24, 96, 24, 7
 		})));
-		ledCharSet.put("v", ((new byte[]
+		ledCharSet.put(Character.valueOf('v'), ((new byte[]
 		{
 				28, 32, 64, 32, 28
 		})));
-		ledCharSet.put("W", ((new byte[]
+		ledCharSet.put(Character.valueOf('W'), ((new byte[]
 		{
 				127, 32, 24, 32, 127
 		})));
-		ledCharSet.put("w", ((new byte[]
+		ledCharSet.put(Character.valueOf('w'), ((new byte[]
 		{
 				60, 64, 48, 64, 60
 		})));
-		ledCharSet.put("X", ((new byte[]
+		ledCharSet.put(Character.valueOf('X'), ((new byte[]
 		{
 				99, 20, 8, 20, 99
 		})));
-		ledCharSet.put("x", ((new byte[]
+		ledCharSet.put(Character.valueOf('x'), ((new byte[]
 		{
 				68, 40, 16, 40, 68
 		})));
-		ledCharSet.put("Y", ((new byte[]
+		ledCharSet.put(Character.valueOf('Y'), ((new byte[]
 		{
 				7, 8, 120, 8, 7
 		})));
-		ledCharSet.put("y", ((new byte[]
+		ledCharSet.put(Character.valueOf('y'), ((new byte[]
 		{
 				12, 80, 80, 80, 60
 		})));
-		ledCharSet.put("Z", ((new byte[]
+		ledCharSet.put(Character.valueOf('Z'), ((new byte[]
 		{
 				97, 81, 73, 69, 67
 		})));
-		ledCharSet.put("z", ((new byte[]
+		ledCharSet.put(Character.valueOf('z'), ((new byte[]
 		{
 				68, 100, 84, 76, 68
 		})));
-		ledCharSet.put("0", ((new byte[]
+		ledCharSet.put(Character.valueOf('0'), ((new byte[]
 		{
 				62, 81, 73, 69, 62
 		})));
-		ledCharSet.put("1", ((new byte[]
+		ledCharSet.put(Character.valueOf('1'), ((new byte[]
 		{
 				0, 66, 127, 64, 0
 		})));
-		ledCharSet.put("2", ((new byte[]
+		ledCharSet.put(Character.valueOf('2'), ((new byte[]
 		{
 				98, 81, 81, 73, 70
 		})));
-		ledCharSet.put("3", ((new byte[]
+		ledCharSet.put(Character.valueOf('3'), ((new byte[]
 		{
 				34, 65, 73, 73, 54
 		})));
-		ledCharSet.put("4", ((new byte[]
+		ledCharSet.put(Character.valueOf('4'), ((new byte[]
 		{
 				24, 20, 18, 127, 16
 		})));
-		ledCharSet.put("5", ((new byte[]
+		ledCharSet.put(Character.valueOf('5'), ((new byte[]
 		{
 				39, 69, 69, 69, 57
 		})));
-		ledCharSet.put("6", ((new byte[]
+		ledCharSet.put(Character.valueOf('6'), ((new byte[]
 		{
 				60, 74, 73, 73, 49
 		})));
-		ledCharSet.put("7", ((new byte[]
+		ledCharSet.put(Character.valueOf('7'), ((new byte[]
 		{
 				1, 113, 9, 5, 3
 		})));
-		ledCharSet.put("8", ((new byte[]
+		ledCharSet.put(Character.valueOf('8'), ((new byte[]
 		{
 				54, 73, 73, 73, 54
 		})));
-		ledCharSet.put("9", ((new byte[]
+		ledCharSet.put(Character.valueOf('9'), ((new byte[]
 		{
 				70, 73, 73, 41, 30
 		})));
-		ledCharSet.put("~", ((new byte[]
+		ledCharSet.put(Character.valueOf('~'), ((new byte[]
 		{
 				2, 1, 2, 4, 2
 		})));
-		ledCharSet.put("`", ((new byte[]
+		ledCharSet.put(Character.valueOf('`'), ((new byte[]
 		{
 				1, 2, 4, 0, 0
 		})));
-		ledCharSet.put("!", ((new byte[]
+		ledCharSet.put(Character.valueOf('!'), ((new byte[]
 		{
 				0, 0, 111, 0, 0
 		})));
-		ledCharSet.put("@", ((new byte[]
+		ledCharSet.put(Character.valueOf('@'), ((new byte[]
 		{
 				62, 65, 93, 85, 14
 		})));
-		ledCharSet.put("#", ((new byte[]
+		ledCharSet.put(Character.valueOf('#'), ((new byte[]
 		{
 				20, 127, 20, 127, 20
 		})));
-		ledCharSet.put("$", ((new byte[]
+		ledCharSet.put(Character.valueOf('$'), ((new byte[]
 		{
 				44, 42, 127, 42, 26
 		})));
-		ledCharSet.put("%", ((new byte[]
+		ledCharSet.put(Character.valueOf('%'), ((new byte[]
 		{
 				38, 22, 8, 52, 50
 		})));
-		ledCharSet.put("^", ((new byte[]
+		ledCharSet.put(Character.valueOf('^'), ((new byte[]
 		{
 				4, 2, 1, 2, 4
 		})));
-		ledCharSet.put("&", ((new byte[]
+		ledCharSet.put(Character.valueOf('&'), ((new byte[]
 		{
 				54, 73, 86, 32, 80
 		})));
-		ledCharSet.put("*", ((new byte[]
+		ledCharSet.put(Character.valueOf('*'), ((new byte[]
 		{
 				42, 28, 127, 28, 42
 		})));
-		ledCharSet.put("(", ((new byte[]
+		ledCharSet.put(Character.valueOf('('), ((new byte[]
 		{
 				0, 0, 62, 65, 0
 		})));
-		ledCharSet.put(")", ((new byte[]
+		ledCharSet.put(Character.valueOf(')'), ((new byte[]
 		{
 				0, 65, 62, 0, 0
 		})));
-		ledCharSet.put("-", ((new byte[]
+		ledCharSet.put(Character.valueOf('-'), ((new byte[]
 		{
 				8, 8, 8, 8, 8
 		})));
-		ledCharSet.put("_", ((new byte[]
+		ledCharSet.put(Character.valueOf('_'), ((new byte[]
 		{
 				64, 64, 64, 64, 64
 		})));
-		ledCharSet.put("+", ((new byte[]
+		ledCharSet.put(Character.valueOf('+'), ((new byte[]
 		{
 				8, 8, 127, 8, 8
 		})));
-		ledCharSet.put("=", ((new byte[]
+		ledCharSet.put(Character.valueOf('='), ((new byte[]
 		{
 				36, 36, 36, 36, 36
 		})));
-		ledCharSet.put("\\", ((new byte[]
+		ledCharSet.put(Character.valueOf('\\'), ((new byte[]
 		{
 				3, 4, 8, 16, 96
 		})));
-		ledCharSet.put("|", ((new byte[]
+		ledCharSet.put(Character.valueOf('|'), ((new byte[]
 		{
 				0, 0, 127, 0, 0
 		})));
-		ledCharSet.put("{", ((new byte[]
+		ledCharSet.put(Character.valueOf('{'), ((new byte[]
 		{
 				0, 8, 54, 65, 65
 		})));
-		ledCharSet.put("}", ((new byte[]
+		ledCharSet.put(Character.valueOf('}'), ((new byte[]
 		{
 				65, 65, 54, 8, 0
 		})));
-		ledCharSet.put("[", ((new byte[]
+		ledCharSet.put(Character.valueOf('['), ((new byte[]
 		{
 				0, 127, 65, 65, 0
 		})));
-		ledCharSet.put("]", ((new byte[]
+		ledCharSet.put(Character.valueOf(']'), ((new byte[]
 		{
 				0, 65, 65, 127, 0
 		})));
-		ledCharSet.put(":", ((new byte[]
+		ledCharSet.put(Character.valueOf(':'), ((new byte[]
 		{
 				0, 0, 54, 54, 0
 		})));
-		ledCharSet.put(";", ((new byte[]
+		ledCharSet.put(Character.valueOf(';'), ((new byte[]
 		{
 				0, 91, 59, 0, 0
 		})));
-		ledCharSet.put(",", ((new byte[]
+		ledCharSet.put(Character.valueOf(','), ((new byte[]
 		{
 				0, 0, 88, 56, 0
 		})));
-		ledCharSet.put(".", ((new byte[]
+		ledCharSet.put(Character.valueOf('.'), ((new byte[]
 		{
 				0, 96, 96, 0, 0
 		})));
-		ledCharSet.put("<", ((new byte[]
+		ledCharSet.put(Character.valueOf('<'), ((new byte[]
 		{
 				8, 20, 34, 65, 0
 		})));
-		ledCharSet.put(">", ((new byte[]
+		ledCharSet.put(Character.valueOf('>'), ((new byte[]
 		{
 				65, 34, 20, 8, 0
 		})));
-		ledCharSet.put("?", ((new byte[]
+		ledCharSet.put(Character.valueOf('?'), ((new byte[]
 		{
 				2, 1, 89, 5, 2
 		})));
-		ledCharSet.put("/", ((new byte[]
+		ledCharSet.put(Character.valueOf('/'), ((new byte[]
 		{
 				96, 16, 8, 4, 3
 		})));
-		ledCharSet.put("'", ((new byte[]
+		ledCharSet.put(Character.valueOf('\''), ((new byte[]
 		{
 				0, 0, 7, 0, 0
 		})));
-		ledCharSet.put("\"", ((new byte[]
+		ledCharSet.put(Character.valueOf('\"'), ((new byte[]
 		{
 				0, 7, 0, 7, 0
 		})));
-		ledCharSet.put("´", ((new byte[]
+		ledCharSet.put(Character.valueOf('´'), ((new byte[]
 		{
          		0, 0, 4, 2, 1
 		})));
-		ledCharSet.put("`", ((new byte[]
+		ledCharSet.put(Character.valueOf('`'), ((new byte[]
 		{
          		1, 2, 4, 0, 0
 		})));
-		ledCharSet.put("\344", ((new byte[]
+		ledCharSet.put(Character.valueOf('\344'), ((new byte[]
 		{
 				32, 85, 84, 85, 120
 		})));
-		ledCharSet.put("\304", ((new byte[]
+		ledCharSet.put(Character.valueOf('\304'), ((new byte[]
 		{
 				124, 19, 18, 19, 124
 		})));
-		ledCharSet.put("\366", ((new byte[]
+		ledCharSet.put(Character.valueOf('\366'), ((new byte[]
 		{
 				56, 69, 68, 69, 56
 		})));
-		ledCharSet.put("\326", ((new byte[]
+		ledCharSet.put(Character.valueOf('\326'), ((new byte[]
 		{
 				60, 67, 66, 67, 60
 		})));
-		ledCharSet.put("\374", ((new byte[]
+		ledCharSet.put(Character.valueOf('\374'), ((new byte[]
 		{
 				60, 65, 64, 33, 124
 		})));
-		ledCharSet.put("\334", ((new byte[]
+		ledCharSet.put(Character.valueOf('\334'), ((new byte[]
 		{
 				62, 65, 64, 65, 62
 		})));
-		ledCharSet.put("\337", ((new byte[]
+		ledCharSet.put(Character.valueOf('\337'), ((new byte[]
 		{
 				126, 33, 73, 78, 112
 		})));
-		ledCharSet.put("\u20AC", ((new byte[] // €
+		ledCharSet.put(Character.valueOf('\u20AC'), ((new byte[] // €
 		{
 				62, 85, 85, 65, 34
 		})));
-		ledCharSet.put("\u2591", ((new byte[] // ░
+		ledCharSet.put(Character.valueOf('\u2591'), ((new byte[] // ░
 		{
 				85, 0, 85, 0, 85
 		})));
-		ledCharSet.put("\u2592", ((new byte[] // 
+		ledCharSet.put(Character.valueOf('\u2592'), ((new byte[] // 
 		{
 				85, 42, 85, 42, 85
 		})));
-		ledCharSet.put("©", ((new byte[]
+		ledCharSet.put(Character.valueOf('©'), ((new byte[]
 		{
 				62, 73, 85, 85, 62
 		})));
@@ -534,7 +534,7 @@ public class LEDScrollPanel extends MeterPanelBase
 	private static final int SYNC2FPS_BITS	= 16;
 	private static final int SYNC2FPS_FRAC	= 1<<SYNC2FPS_BITS;
 	private static final int SYNC2FPS_MASK	= SYNC2FPS_FRAC-1;
-	private static final int DEFAULT_FPS	= 30;
+	private static final int DEFAULT_FPS	= 25;
 
 	/**
 	 * Constructor for LEDScrollPanel
@@ -644,7 +644,7 @@ public class LEDScrollPanel extends MeterPanelBase
 		syncToFPScounter += syncToFPSAdd;
 		if (syncToFPScounter >= SYNC2FPS_FRAC)
 		{
-			scrollBufferIndex += syncToFPSAdd>>SYNC2FPS_BITS;
+			scrollBufferIndex++;
 			syncToFPScounter &= SYNC2FPS_MASK;
 			
 			if (scrollBufferIndex>=6)
@@ -661,12 +661,12 @@ public class LEDScrollPanel extends MeterPanelBase
 					appendIndexMarker = -1;
 				}
 				
-				String c = String.valueOf(scrollText.charAt(scrollTextIndex));
+				Character c = Character.valueOf(scrollText.charAt(scrollTextIndex));
 				byte [] newChar = ledCharSet.get(c);
 				if (newChar==null)
 				{
-					Log.debug("Charachter unknown: " + c + "[\\u"+ Integer.toHexString((int)c.charAt(0)) +"]");
-					newChar=ledCharSet.get("?");
+					Log.debug("Charachter unknown: " + c.toString() + "[\\u"+ Integer.toHexString((int)c.charValue()) +"]");
+					newChar=ledCharSet.get(Character.valueOf('?'));
 				}
 				
 				for (int i=0; i<anzChars; i++) currentScrollLayer[i] = currentScrollLayer[i+1];

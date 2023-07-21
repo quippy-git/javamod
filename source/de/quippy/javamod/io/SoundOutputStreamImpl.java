@@ -334,18 +334,15 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	 */
 	public synchronized void setVolume(final float gain)
 	{
-		if (currentVolume != gain)
+		currentVolume = gain;
+		if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.MASTER_GAIN))
 		{
-			currentVolume = gain;
-		    if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.MASTER_GAIN))
-		    {
-		    	FloatControl gainControl = (FloatControl)sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
-		        float dB = (float)(Helpers.getDBValueFrom(gain));
-		        if (dB > gainControl.getMaximum()) dB = gainControl.getMaximum();
-		        else
-		        if (dB < gainControl.getMinimum()) dB = gainControl.getMinimum();
-	        	gainControl.setValue(dB);
-		    }
+	    	FloatControl gainControl = (FloatControl)sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
+	        float dB = (float)(Helpers.getDBValueFrom(gain));
+	        if (dB > gainControl.getMaximum()) dB = gainControl.getMaximum();
+	        else
+	        if (dB < gainControl.getMinimum()) dB = gainControl.getMinimum();
+        	gainControl.setValue(dB);
 		}
 	}
 	/**
@@ -355,16 +352,13 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	 */
 	public synchronized void setBalance(final float balance)
 	{
-		if (currentBalance != balance)
-		{
-			currentBalance = balance;
-		    if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.BALANCE))
-		    {
-		    	FloatControl balanceControl = (FloatControl)sourceLine.getControl(FloatControl.Type.BALANCE);
-		    	if (balance <= balanceControl.getMaximum() && balance >= balanceControl.getMinimum())
-		    		balanceControl.setValue(balance);
-		    }
-		}
+		currentBalance = balance;
+	    if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.BALANCE))
+	    {
+	    	FloatControl balanceControl = (FloatControl)sourceLine.getControl(FloatControl.Type.BALANCE);
+	    	if (balance <= balanceControl.getMaximum() && balance >= balanceControl.getMinimum())
+	    		balanceControl.setValue(balance);
+	    }
 	}
 	/**
 	 * @param audioProcessor the audioProcessor to set

@@ -73,7 +73,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	 */
 	private static void showHelp()
 	{
-		Log.info("java -jar ./javamod [-rx] [-b{8,16,24}] [-s{+,-}] [-i{+,-}] [-w{+,-}] [-n{+,-}] [-m{+,-}] [-d{+,-}] [-l{+,-}] [-ax] [-h{+,-}]");
+		Log.info("java -jar ./javamod [-rx] [-b{8,16,24,32}] [-s{+,-}] [-i{+,-}] [-w{+,-}] [-n{+,-}] [-m{+,-}] [-d{+,-}] [-l{+,-}] [-ax] [-h{+,-}]");
 		Log.info("                    [-j{+,-}] [-v0.0-1.0] [-eWAVFILE] MODFILE\n");
 		Log.info("-rx        : use Samplerate x (8000/11025/22050/44100/96000...");
 		Log.info("                               anything your soundhardware supports)");
@@ -140,7 +140,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 						break;
 					case 'b':
 						int sampleSizeInBits = Integer.parseInt(op);
-						if (sampleSizeInBits!=8 && sampleSizeInBits!=16 && sampleSizeInBits!=24)
+						if (sampleSizeInBits!=8 && sampleSizeInBits!=16 && sampleSizeInBits!=24 && sampleSizeInBits!=32)
 							throw new RuntimeException("samplesize of " + sampleSizeInBits + " is not supported");
 						props.setProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, Integer.toString(sampleSizeInBits));			
 						break;
@@ -155,6 +155,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 						break;
 					case 'v':
 						initialVolume = Float.parseFloat(op);
+						break;
 					default:
 						throw new RuntimeException("Unknown parameter: " + args[i].charAt(1));
 				}
@@ -311,7 +312,11 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 				me.parseParameters(args);
 				me.loadMultimediaOrPlayListFile(me.modFileName);
 				me.doStartPlaying();
-				while (true) { Thread.sleep(10L); }
+				while (!me.playerThread.getHasFinishedNormaly())
+				{
+					Thread.sleep(10L);
+					if (!me.playerThread.isRunning()) break;
+				}
 			}
 		}
 		catch (Exception ex)

@@ -292,12 +292,12 @@ public class ModConfigPanel extends JPanel
 			getPlayerSetUp_ignoreLoops().setSelected(false);
 		}
 		else
-		if ((newLoopValue&=ModConstants.PLAYER_LOOP_IGNORE)!=0)
+		if ((newLoopValue&ModConstants.PLAYER_LOOP_IGNORE)!=0)
 		{
 			getPlayerSetUp_fadeOutLoops().setSelected(false);
 			getPlayerSetUp_ignoreLoops().setSelected(true);
 		}
-		if ((newLoopValue&=ModConstants.PLAYER_LOOP_LOOPSONG)!=0)
+		if ((newLoopValue&ModConstants.PLAYER_LOOP_LOOPSONG)!=0)
 		{
 			getPlayerSetUp_loopSong().setSelected(true);
 		}

@@ -323,7 +323,7 @@ public class XMMod extends ProTrackerMod
 			final int instrumentHeaderSize = inputStream.readIntelDWord();
 			currentIns.setName(inputStream.readString(22));
 			/*int insType = */inputStream.read();
-			final int anzSamples = inputStream.readIntelUnsignedWord();
+			final int anzSamples = inputStream.readIntelWord();
 			
 			final int [] sampleIndex = new int[96];
 			final int [] noteIndex = new int[96];

@@ -130,8 +130,6 @@ package de.quippy.javamod.io;
 
 import java.io.IOException;
 
-import de.quippy.javamod.system.Helpers;
-
 /**
  * This class will decompress the input from any inputStream into an internal
  * buffer with the powerpacker algorithem and give access to this buffer
@@ -171,7 +169,7 @@ public class PowerPackerFile
 				if (bitCount == 0)
 				{
 					bitCount = 8;
-					if (filePointer>3) filePointer--;
+					if (filePointer>0) filePointer--;
 					source.seek(filePointer);
 					bitBuffer = source.read();
 				}
@@ -208,10 +206,9 @@ public class PowerPackerFile
 	{
 		long pos = input.getFilePointer();
 		input.seek(0);
-		byte [] ppId = new byte [4];
-		input.read(ppId, 0, 4);
+		final int PP20ID = input.read()<<24 | input.read()<<16 | input.read()<<8 | input.read();
 		input.seek(pos);
-		return Helpers.retrieveAsString(ppId, 0, 4).equals("PP20");
+		return PP20ID == 0x50503230; 
 	}
 	/**
 	 * Will unpack powerpacker 2.0 packed contend while reading from the packed Stream
@@ -221,39 +218,40 @@ public class PowerPackerFile
 	 * @param buffer
 	 * @throws IOException
 	 */
-	private void pp20DoUnpack(RandomAccessInputStream source, byte [] buffer) throws IOException
+	private void pp20DoUnpack(RandomAccessInputStream source, final int srcLen, byte [] buffer, final int dstLen) throws IOException
 	{
-		BitBuffer bitBuffer = new BitBuffer(source, (int)source.getLength()-4);
-		source.seek(source.getLength()-1);
+		BitBuffer bitBuffer = new BitBuffer(source, srcLen-4);
+		source.seek(srcLen-1);
 		int skip = source.read();
 		bitBuffer.getBits(skip);
-		int nBytesLeft = buffer.length;
+		int nBytesLeft = dstLen;
 		while (nBytesLeft > 0)
 		{
 			if (bitBuffer.getBits(1) == 0)
 			{
 				int n = 1;
-				while (n < nBytesLeft)
+				while (n <= nBytesLeft)
 				{
-					int code = (int)bitBuffer.getBits(2);
+					final int code = bitBuffer.getBits(2);
 					n += code;
 					if (code != 3) break;
 				}
+				if (n>nBytesLeft) n=nBytesLeft;
 				for (int i=0; i<n; i++)
 				{
-					buffer[--nBytesLeft] = (byte)bitBuffer.getBits(8);
+					buffer[--nBytesLeft] = (byte)(bitBuffer.getBits(8)&0xFF);
 				}
 				if (nBytesLeft == 0) break;
 			}
 			
-			int n = bitBuffer.getBits(2)+1;
+			int n = bitBuffer.getBits(2) + 1;
 			source.seek(n+3);
 			int nbits = source.read();
 			int nofs;
 			if (n==4)
 			{
 				nofs = bitBuffer.getBits( (bitBuffer.getBits(1)!=0) ? nbits : 7 );
-				while (n < nBytesLeft)
+				while (n <= nBytesLeft)
 				{
 					int code = bitBuffer.getBits(3);
 					n += code;
@@ -264,25 +262,40 @@ public class PowerPackerFile
 			{
 				nofs = bitBuffer.getBits(nbits);
 			}
+			
+			if (n>nBytesLeft) n=nBytesLeft;
 			for (int i=0; i<=n; i++)
 			{
-				buffer[nBytesLeft-1] = (nBytesLeft+nofs < buffer.length) ? buffer[nBytesLeft+nofs] : 0;
+				buffer[nBytesLeft-1] = (nBytesLeft+nofs < dstLen) ? buffer[nBytesLeft+nofs] : 0;
 				if ((--nBytesLeft)==0) break;
 			}
 		}
 	}
+
 	private byte[] readAndUnpack(RandomAccessInputStream source) throws IOException
 	{
 		source.seek(0); // Just in case...
 		final int PP20ID = source.read()<<24 | source.read()<<16 | source.read()<<8 | source.read();
-		final int length = (int)source.getLength();
-		if (length<256 || PP20ID != 0x50503230) throw new IOException("Not a powerpacker file!");
+		final int srcLen = (int)source.getLength();
+		if (srcLen<256 || PP20ID != 0x50503230) throw new IOException("Not a powerpacker file!");
 		// Destination Length at the end of file:
-		source.seek(length - 4);
+		source.seek(srcLen - 4);
 		final int destLen = source.read()<<16 | source.read() << 8 | source.read();
-		if (destLen < 512 || destLen > 0x400000 || destLen > (length<<3)) throw new IOException("Length of " + length + " is not supported!");
+		if (destLen < 512 || destLen > 0x400000 || destLen > (srcLen<<3)) throw new IOException("Length of " + srcLen + " is not supported!");
 		final byte [] dstBuffer = new byte[destLen];
-		pp20DoUnpack(source, dstBuffer);
+		pp20DoUnpack(source, srcLen, dstBuffer, destLen);
+//		// Debug - write buffer to disc		
+//		try
+//		{
+//			File f = new File("test.mod");
+//			FileOutputStream outputStream = new FileOutputStream(f);
+//			outputStream.write(dstBuffer);
+//			outputStream.close();
+//		}
+//		catch (Exception ex)
+//		{
+//		}
+		
 		return dstBuffer;
 	}
 }

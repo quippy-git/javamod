@@ -445,6 +445,9 @@ public class ModMixer extends BasicMixer
 		
 		final long[] samples = new long[2];
 		
+		// how many Samples can we write out? We will need that to reset the currentSamplesWritten if MOD is looped.
+		final long allSamplesWritten = (getLengthInMilliseconds()!=-1)?getLengthInMilliseconds() * sampleRate / 1000L:-1;
+		
 		try
 		{
 			openAudioDevice();
@@ -519,6 +522,9 @@ public class ModMixer extends BasicMixer
 					writeSampleDataToLine(output, 0, ox);
 
 					currentSamplesWritten += count;
+					// let's reset the amount of samples written if we did a loop...
+					if (allSamplesWritten!=-1 && currentSamplesWritten>allSamplesWritten) currentSamplesWritten -= allSamplesWritten;
+
 				}
 				
 				if (stopPositionIsReached()) setIsStopping();

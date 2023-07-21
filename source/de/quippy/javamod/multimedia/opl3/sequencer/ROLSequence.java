@@ -611,7 +611,8 @@ public class ROLSequence extends OPL3Sequence
 			// this ignores the mode value in the header and sets to fix kNumPercussiveVoices
 			// if
 			// a) we want this check (comp_mode == true)
-			// b) either "(AdLib file-mode)" or ".ROL" can be found in the header comment
+			// b) "(AdLib file-mode)" can be found in the header comment
+			// c) but not ".ROL" 
 //	        if (comp_mode && mpROLHeader.comment.contains("(AdLib file-mode)") && mpROLHeader.comment.indexOf(".ROL")==-1)
 //	        	comp_mode = false;
 			final int numVoices = /* (comp_mode)? kNumPercussiveVoices : */(mpROLHeader.mode != 0) ? kNumMelodicVoices : kNumPercussiveVoices;

@@ -1,6 +1,3 @@
-# JavaMod V3.4
-Development version: 3.5
-
 Code Compliance Level: JDK 17
 Build with openJDK 17.0.2
  
@@ -46,6 +43,30 @@ JavaMod incorporates modified versions of the following libraries.
 * read 7z archives
 * maybe: follow song with mod files (pattern display)
 
+## Download of compiled version and source code
+* https://javamod.de/javamod.php
+* https://quippy.de/mod.php
+* https://sourceforge.net/projects/javamod/
+* https://github.com/quippy-git/javamod
+
+
+## New in Version 3.5
+* FIX: PortaToNote: if an instrument is set, that was ignored, as FT2.09 does it.
+       Fix for the fix: (re-)set a NEW instrument, but do nothing when instrument
+       does not change.
+* FIX: Powerpacked MODs were not correctly read at all circumstances
+* FIX: CommandLine: missing break statement. Setting volume fell through to
+       default, which through an exception
+* FIX: CommandLine stayed in an endless loop even after piece finished
+* FIX: CommandLine did not end in case of a RuntimeException
+* FIX: CommandLine: supports 32 Bit now, as GUI does
+* FIX: Error in ModConfigPanel::setLoopValue defaulted loop to 0
+* FIX: setting balance and volume did not work as source line is not present
+       first. Re-set later was unintentionally ignored
+* FIX: reading # of Samples at XMs as unsigned word, 0xFFFF will not be
+       interpreted as -1. That is bad
+* FIX: If a mod is looping, time code is reset
+ 
 ## New in Version 3.4
 * NEW: Added Farandole (*.FAR) support (no idea, why... Maybe, because I could).
        FAR-Files are mapped to S3M, makes things easy. However, slides are not

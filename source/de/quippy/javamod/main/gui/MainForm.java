@@ -1902,7 +1902,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		if (ledScrollPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate()>>1:30;
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
 			ledScrollPanel = new LEDScrollPanel(refreshRate, Helpers.FULLVERSION + ' ' + Helpers.COPYRIGHT + "                  ", chars, Color.GREEN, Color.GRAY);
 			Dimension d = new Dimension((chars*brick*6)+4, (brick*8)+4);
 			ledScrollPanel.setSize(d);
@@ -1956,7 +1956,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		if (seekBarPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate()>>1:30;
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
 			seekBarPanel = new SeekBarPanel(refreshRate, false);
 			seekBarPanel.setName("SeekBarPanel");
 			seekBarPanel.addListener(new SeekBarPanelListener()

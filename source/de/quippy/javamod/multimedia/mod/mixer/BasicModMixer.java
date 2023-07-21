@@ -1680,6 +1680,8 @@ public abstract class BasicModMixer
 			doNNAAutoInstrument(aktMemo);
 		}
 
+		// do we have an instrument change? Need that as an exception for porta to note
+		boolean instrumentChange = (aktMemo.currentAssignedInstrumentIndex>0 && aktMemo.currentAssignedInstrumentIndex != aktMemo.assignedInstrumentIndex);
 		// copy last seen values from pattern
 		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
 		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex; 
@@ -1752,9 +1754,10 @@ public abstract class BasicModMixer
 			initNoteFade(aktMemo);
 		}
 		else
-		if ((element.getPeriod()>0 || element.getNoteIndex()>0) || // if there is a note, we need to calc the new tuning and activate a previous set instrument
+		if (	((element.getPeriod()>0 || element.getNoteIndex()>0) || // if there is a note, we need to calc the new tuning and activate a previous set instrument
 				((mod.getModType()&ModConstants.MODTYPE_SCREAMTRACKER)!=0 && element.getInstrument()>0)) // but with scream tracker like mods, the old notevalue is used, if an instrument is set
-				/* && !isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod()))*/ // but ignore this if porta to note... (however, OMPT resets Instrument)
+				 && (!isPortaToNoteEffekt(aktMemo.effekt, aktMemo.effektParam, aktMemo.volumeEffekt, aktMemo.volumeEffektOp, element.getPeriod()) || instrumentChange) // but ignore this if porta to note - but not if instrument change...
+			)
 		{
 			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back then
 			final Instrument inst = aktMemo.assignedInstrument; 
