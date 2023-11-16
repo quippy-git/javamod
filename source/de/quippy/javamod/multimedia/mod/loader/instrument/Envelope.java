@@ -201,10 +201,10 @@ public class Envelope
 			}
 
 			// limit loop and sustain loop positions to the maximum
-			loopStartPoint = Helpers.limitMax(loopStartPoint, endPoint);
-			loopEndPoint = Helpers.limitMax(loopEndPoint, loopStartPoint);
-			sustainStartPoint = Helpers.limitMax(sustainStartPoint, endPoint);
-			sustainEndPoint = Helpers.limitMax(sustainEndPoint, sustainStartPoint);
+			loopEndPoint = Helpers.limitMax(loopEndPoint, endPoint);
+			loopStartPoint = Helpers.limitMax(loopStartPoint, loopEndPoint);
+			sustainEndPoint = Helpers.limitMax(sustainEndPoint, endPoint);
+			sustainStartPoint = Helpers.limitMax(sustainStartPoint, sustainEndPoint);
 		}
 		else
 		{

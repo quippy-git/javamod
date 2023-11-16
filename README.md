@@ -93,6 +93,7 @@ JavaMod incorporates modified versions of the following libraries:
        (AGAiN - FairStars MP3 Recorderkg.XM vs. TIMEAGO.IT)
 * FIX: IT Compatibility: Ensure that there is no pan swing, panbrello, panning
        envelopes, etc. applied on surround channels.
+* FIX: Looping a song needs complete reset on all and everything
 
 ## New in Version 3.5
 * FIX: PortaToNote: if an instrument is set, that was ignored, as FT2.09 does it.

@@ -2201,6 +2201,7 @@ public abstract class BasicModMixer
 							currentPatternIndex = mod.getArrangement()[currentArrangement];
 							currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
 							currentRow = 0;
+							initializeMixer();
 							if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
 								doLoopingGlobalFadeout = true;
 						}
