@@ -32,6 +32,7 @@
 package de.quippy.javamod.multimedia.opl3.sequencer;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 
 import de.quippy.javamod.io.RandomAccessInputStreamImpl;
@@ -373,8 +374,8 @@ public class MIDSequence extends OPL3Sequence
 		RandomAccessInputStreamImpl inputStream = null;
 		try
 		{
-			final URL patchFileURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), patchFileName);
-			if (!Helpers.urlExists(patchFileURL)) return false;
+			//final URL patchFileURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), patchFileName);
+			final URL patchFileURL = (new URI(fileURL.getProtocol(), fileURL.getUserInfo(), fileURL.getHost(), fileURL.getPort(), patchFileName, fileURL.getQuery(), fileURL.getRef())).toURL();			if (!Helpers.urlExists(patchFileURL)) return false;
 			inputStream = new RandomAccessInputStreamImpl(patchFileURL);
 			if (inputStream.available()==0) return false;
 			
@@ -388,16 +389,16 @@ public class MIDSequence extends OPL3Sequence
 					int l = i*48+k;
 					for (int j=0; j<28; j++) ins[j] = inputStream.read();
 
-					myinsbank[l][0] = (ins[ 9] * 0x80) + (ins[10] * 0x40) + (ins[ 5] * 0x20) + (ins[11] * 0x10) + ins[ 1]; // 1=ins5
-					myinsbank[l][1] = (ins[22] * 0x80) + (ins[23] * 0x40) + (ins[18] * 0x20) + (ins[24] * 0x10) + ins[14]; // 1=ins18
-					myinsbank[l][2] = (ins[ 0] << 6) + ins[ 8];
-					myinsbank[l][3] = (ins[13] << 6) + ins[21];
-					myinsbank[l][4] = (ins[ 3] << 4) + ins[ 6];
-					myinsbank[l][5] = (ins[16] << 4) + ins[19];
-					myinsbank[l][6] = (ins[ 4] << 4) + ins[ 7];
-					myinsbank[l][7] = (ins[17] << 4) + ins[20];
-					myinsbank[l][8] =  ins[26];
-					myinsbank[l][9] =  ins[27];
+					myinsbank[l][0]  = (ins[ 9] * 0x80) + (ins[10] * 0x40) + (ins[ 5] * 0x20) + (ins[11] * 0x10) + ins[ 1]; // 1=ins5
+					myinsbank[l][1]  = (ins[22] * 0x80) + (ins[23] * 0x40) + (ins[18] * 0x20) + (ins[24] * 0x10) + ins[14]; // 1=ins18
+					myinsbank[l][2]  = (ins[ 0] << 6) + ins[ 8];
+					myinsbank[l][3]  = (ins[13] << 6) + ins[21];
+					myinsbank[l][4]  = (ins[ 3] << 4) + ins[ 6];
+					myinsbank[l][5]  = (ins[16] << 4) + ins[19];
+					myinsbank[l][6]  = (ins[ 4] << 4) + ins[ 7];
+					myinsbank[l][7]  = (ins[17] << 4) + ins[20];
+					myinsbank[l][8]  =  ins[26];
+					myinsbank[l][9]  =  ins[27];
 					myinsbank[l][10] = ((ins[2] << 1)) + (1 - (ins[12] & 1));
 
 					stins++;

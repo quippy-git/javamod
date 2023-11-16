@@ -31,6 +31,7 @@ import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.ModuleFactory;
+import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
 import de.quippy.javamod.system.Log;
 
 /**
@@ -291,8 +292,10 @@ public class ModContainer extends MultimediaContainer
 	@Override
 	public Mixer createNewMixer()
 	{
-		if (currentMod==null) return null;
+		deregisterUpdateListener();
 
+		if (currentMod==null) return null;
+		
 		Properties props = new Properties();
 		configurationSave(props);
 		
@@ -311,7 +314,45 @@ public class ModContainer extends MultimediaContainer
 		final int ditherType = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		boolean ditherByPass = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
 		currentMixer = new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		
+		registerUpdateListener();
+		
 		return currentMixer;
+	}
+	/**
+	 * @since 11.11.2023
+	 * @param currentMixer
+	 */
+	private void deregisterUpdateListener()
+	{
+		// These null checks are a bit superfluous, because we know when we call it
+		if (currentMixer!=null && modInfoPanel!=null)
+		{
+			BasicModMixer mixer = currentMixer.getModMixer();
+			if (mixer!=null)
+			{
+				mixer.deregisterUpdateListener(modInfoPanel.getModPatternDialog());
+			}
+		}
+		// always stop the update thread - if it is not there, this does no harm
+		modInfoPanel.getModPatternDialog().stopUpdateThread();
+	}
+	/**
+	 * @since 11.11.2023
+	 * @param currentMixer
+	 */
+	private void registerUpdateListener()
+	{
+		// These null checks are a bit superfluous, because we know when we call it
+		if (currentMixer!=null && modInfoPanel!=null)
+		{
+			BasicModMixer mixer = currentMixer.getModMixer();
+			if (mixer!=null)
+			{
+				mixer.registerUpdateListener(modInfoPanel.getModPatternDialog());
+				modInfoPanel.getModPatternDialog().startUpdateThread();
+			}
+		}
 	}
 	/**
 	 * @since 14.10.2007
@@ -324,5 +365,13 @@ public class ModContainer extends MultimediaContainer
 	public Module getCurrentMod()
 	{
 		return currentMod;
+	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+		deregisterUpdateListener();
 	}
 }

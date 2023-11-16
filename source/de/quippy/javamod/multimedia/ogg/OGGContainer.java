@@ -184,4 +184,11 @@ public class OGGContainer extends MultimediaContainer
 	public void configurationSave(Properties props)
 	{
 	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }

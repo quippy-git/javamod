@@ -34,7 +34,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 public class SampleImagePanel extends ImagePanel
 {
 	private static final long serialVersionUID = 1757748155250484172L;
-    private static final Color LOOP_COLOR = Color.blue;
+    private static final Color LOOP_COLOR = Color.yellow;
     private static final Color SUSTAINLOOP_COLOR = Color.green;
     private static final Color LINE_COLOR = Color.darkGray;
     private static final Color WAVE_COLOR = Color.red;
@@ -65,6 +65,9 @@ public class SampleImagePanel extends ImagePanel
 
 		g.setColor(BACKGROUND_COLOR);
 		g.fillRect(newLeft, newTop, newWidth, newHeight);
+		
+		// We need some insets
+		newLeft+=1; newTop+=1; newWidth-=3; newHeight-=3;
 		
 		if (sample==null)
 		{
@@ -108,7 +111,7 @@ public class SampleImagePanel extends ImagePanel
 		if (buffer!=null)
 		{
 			final int anzSamples = sample.length;
-	//		final double xFactor = (double)width / (double)anzSamples;
+	//		final double xFactor = (double)width / (double)(anzSamples-1);
 	//		final double yFactor = (double)halfHeight / (double)ModConstants.CLIPP32BIT_MAX;
 			
 			int xpOld = 0;
@@ -119,7 +122,7 @@ public class SampleImagePanel extends ImagePanel
 	//			int xp = (int)((double)i * xFactor);
 	//			int yp = halfHeight - (int)((double)buffer[i + Sample.INTERPOLATION_LOOK_AHEAD] * yFactor);
 	
-				int xp = (int)(((long)i*(long)width)/(long)anzSamples);
+				int xp = (int)(((long)i*(long)width)/(long)(anzSamples-1));
 				int yp = halfHeight - (int)((buffer[i + Sample.INTERPOLATION_LOOK_AHEAD]*(long)halfHeight)>>31);
 
 				if (xp<0) xp=0; else if (xp>width) xp=width;

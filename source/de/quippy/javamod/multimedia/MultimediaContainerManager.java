@@ -72,7 +72,7 @@ public class MultimediaContainerManager
 	}
 	public static void getContainerConfigs(Properties intoProps)
 	{
-		fireConfiggurationSave();
+		fireConfigurationSave();
 		Enumeration<Object> propertyEnum = getContainerConfigs().keys();
 		while (propertyEnum.hasMoreElements())
 		{
@@ -98,7 +98,7 @@ public class MultimediaContainerManager
 		for (int i=0; i<listeners.size(); i++)
 			listeners.get(i).configurationChanged(getContainerConfigs());
 	}
-	private static void fireConfiggurationSave()
+	private static void fireConfigurationSave()
 	{
 		ArrayList<MultimediaContainer> listeners = getContainerArray();
 		for (int i=0; i<listeners.size(); i++)
@@ -106,17 +106,33 @@ public class MultimediaContainerManager
 	}
 	public static void registerContainer(MultimediaContainer container)
 	{
-		getContainerArray().add(container);
-		String [] extensions = container.getFileExtensionList();
-		for (int i=0; i<extensions.length; i++)
-			getFileExtensionMap().put(extensions[i], container);
+		if (container!=null)
+		{
+			getContainerArray().add(container);
+			String [] extensions = container.getFileExtensionList();
+			for (int i=0; i<extensions.length; i++)
+				getFileExtensionMap().put(extensions[i], container);
+		}
 	}
 	public static void deregisterContainer(MultimediaContainer container)
 	{
-		getContainerArray().remove(container);
-		String [] extensions = container.getFileExtensionList();
-		for (int i=0; i<extensions.length; i++)
-			getFileExtensionMap().remove(extensions[i]);
+		if (container!=null)
+		{
+			getContainerArray().remove(container);
+			String [] extensions = container.getFileExtensionList();
+			for (int i=0; i<extensions.length; i++)
+				getFileExtensionMap().remove(extensions[i]);
+		}
+	}
+	public static void cleanUpAllContainers()
+	{
+		ArrayList<MultimediaContainer> containers = getContainerArray();
+		for (int i=0; i<containers.size(); i++)
+		{
+			MultimediaContainer container = containers.get(i); 
+			deregisterContainer(container);
+			container.cleanUp();
+		}
 	}
 	public static void updateLookAndFeel()
 	{
@@ -155,7 +171,7 @@ public class MultimediaContainerManager
 		if (baseContainer==null) baseContainer = getFileExtensionMap().get(Helpers.getPreceedingExtensionFrom(fileName));
 		if (baseContainer==null) // no extensions found?!
 		{
-			if (url.getProtocol().equalsIgnoreCase("file")) 
+			if (Helpers.isFile(url))
 				throw new UnsupportedAudioFileException(fileName); // in Filemode we are ready now
 			else
 				baseContainer = getFileExtensionMap().get("mp3"); // otherwise we try a streaming protocol!
@@ -207,7 +223,7 @@ public class MultimediaContainerManager
 	}
 	public static String getSongNameFromURL(URL url)
 	{
-		if (url==null) return "";
+		if (url==null) return Helpers.EMPTY_STING;
 
 		String result = Helpers.createStringFomURL(url);
 		final int lastSlash = result.lastIndexOf('/');
@@ -217,7 +233,7 @@ public class MultimediaContainerManager
 	}
 	public static String getSongNameFromFile(File fileName)
 	{
-		if (fileName==null) return "";
+		if (fileName==null) return Helpers.EMPTY_STING;
 
 		String result = fileName.getAbsolutePath();
 		final int lastSlash = result.lastIndexOf(File.separatorChar);
@@ -237,15 +253,7 @@ public class MultimediaContainerManager
 		try
 		{
 			MultimediaContainer container = getMultimediaContainerSingleton(url);
-			if (container!=null)
-			{
-				// The container needs to know the URL if 
-				// MultimediaContainer::getSongNameFromURL is used
-				// Typically we would use "getInstance" for that, but
-				// that will update the infodialogs also
-				container.setFileURL(url);
-				return container.getSongInfosFor(url);
-			}
+			if (container!=null) return container.getSongInfosFor(url);
 		}
 		catch (UnsupportedAudioFileException ex)
 		{

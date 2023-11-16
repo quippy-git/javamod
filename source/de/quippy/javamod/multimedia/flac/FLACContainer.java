@@ -249,4 +249,11 @@ public class FLACContainer extends MultimediaContainer
 	public void configurationSave(Properties props)
 	{
 	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }

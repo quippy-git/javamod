@@ -104,6 +104,7 @@ public class ModMixer extends BasicMixer
 		final int bytesPerSample = sampleSizeInBits>>3; // DIV 8;
 		outputBufferSize *= bytesPerSample;
 		output = new byte[outputBufferSize];
+		setSourceLineBufferSize(outputBufferSize);
 		
 		// initialize the dithering for lower sample rates
 		// always for maximum channels
@@ -387,7 +388,10 @@ public class ModMixer extends BasicMixer
 	@Override
 	protected void seek(final long milliseconds)
 	{
+		final boolean fireUpdateStatus = modMixer.getFireUpdates();
+		modMixer.setFireUpdates(false);
 		currentSamplesWritten = modMixer.seek(milliseconds);
+		modMixer.setFireUpdates(fireUpdateStatus);
 	}
 	/**
 	 * 
@@ -452,6 +456,8 @@ public class ModMixer extends BasicMixer
 		{
 			openAudioDevice();
 			if (!isInitialized()) return;
+			
+			modMixer.setFireUpdates(true);
 			
 			int count;
 			do
@@ -560,6 +566,7 @@ public class ModMixer extends BasicMixer
 		}
 		finally
 		{
+			modMixer.setFireUpdates(false);
 			setIsStopped();
 			closeAudioDevice();
 		}

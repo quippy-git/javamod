@@ -57,6 +57,48 @@ public class PatternElement
 		this.effekt = 0;
 		this.effektOp = 0;
 	}
+///////////////////////////////////////////////////////////////////////////////
+// WE CAN SEPARATE THIS TO ALLOW DETAILED STRING. But we want to be fast...
+///////////////////////////////////////////////////////////////////////////////
+//	public String getVolumeEffektString()
+//	{
+//		if (volumeEffekt==0) return " ..";
+//		
+//		StringBuilder sb = new StringBuilder();
+//		switch (volumeEffekt)
+//		{
+//			case 0x01: sb.append('v'); break;
+//			case 0x02: sb.append('d'); break;
+//			case 0x03: sb.append('c'); break;
+//			case 0x04: sb.append('b'); break;
+//			case 0x05: sb.append('a'); break;
+//			case 0x06: sb.append('u'); break;
+//			case 0x07: sb.append('h'); break;
+//			case 0x08: sb.append('p'); break;
+//			case 0x09: sb.append('l'); break;
+//			case 0x0A: sb.append('r'); break;
+//			case 0x0B: sb.append('g'); break;
+//			case 0x0C: sb.append('e'); break;
+//			case 0x0D: sb.append('f'); break;
+//			case 0x0E: sb.append('o'); break;
+//			case 0x0F: sb.append('?'); break;
+//		}
+//		sb.append(ModConstants.getAsHex(volumeEffektOp, 2));
+//		return sb.toString();
+//	}
+//	public String getEffektString()
+//	{
+//		if (effekt==0) return "...";
+//		
+//		StringBuilder sb = new StringBuilder();
+//		if (effekt<=0x0F)
+//			sb.append(ModConstants.getAsHex(effekt, 1));
+//		else
+//			sb.append((char)('F' + effekt - 0x0F));
+//		sb.append(ModConstants.getAsHex(effektOp, 2));
+//		return sb.toString();
+//	}
+///////////////////////////////////////////////////////////////////////////////
 	/**
 	 * @return
 	 * @see java.lang.Object#toString()
@@ -64,10 +106,11 @@ public class PatternElement
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder(ModConstants.getNoteNameForIndex(noteIndex));
-		if ((period==0 && noteIndex!=0) || (period!=0 && noteIndex==0))
-			sb.append('!');
-		else
+		StringBuilder sb = new StringBuilder(" ");
+		sb.append(ModConstants.getNoteNameForIndex(noteIndex));
+//		if ((period==0 && noteIndex!=0) || (period!=0 && noteIndex==0))
+//			sb.append('!');
+//		else
 			sb.append(' ');
 		if (instrument!=0) sb.append(ModConstants.getAsHex(instrument, 2)); else sb.append("..");
 		if (volumeEffekt!=0)

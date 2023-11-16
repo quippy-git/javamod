@@ -21,9 +21,11 @@
  */
 package de.quippy.javamod.multimedia.mod.mixer;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.gui.ModUpdateListener;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
@@ -347,7 +349,8 @@ public abstract class BasicModMixer
 	protected boolean useGlobalPreAmp, useSoftPanning;
 	protected int currentTick, currentRow, currentArrangement, currentPatternIndex;
 	protected int samplePerTicks;
-	private int leftOver; // the amount of data left to finish mixing a tick
+	protected int leftOverSamplesPerTick; // the amount of data left to finish mixing a tick
+	protected long samplesMixed; // the whole amount of samples mixed - as a time index for events
 
 	protected int patternDelayCount, patternTicksDelayCount;
 	protected Pattern currentPattern;
@@ -375,6 +378,10 @@ public abstract class BasicModMixer
 	protected long [] nvRampL;
 	protected long [] nvRampR;
 	
+	// The listeners for update events - so far only one known off
+	private ArrayList<ModUpdateListener> listeners;
+	private boolean fireUpdates = false;
+
 	/**
 	 * Constructor for BasicModMixer
 	 */
@@ -391,6 +398,8 @@ public abstract class BasicModMixer
 		vRampR = new long [ModConstants.VOL_RAMP_LEN];
 		nvRampL = new long [ModConstants.VOL_RAMP_LEN];
 		nvRampR = new long [ModConstants.VOL_RAMP_LEN];
+		
+		listeners = new ArrayList<ModUpdateListener>();
 		
 		initializeMixer();
 	}
@@ -460,8 +469,7 @@ public abstract class BasicModMixer
 	}
 	/**
 	 * Do own inits
-	 * Especially do the init of the panning depending
-	 * on ModType
+	 * Especially do the init of the panning depending on ModType
 	 * @return
 	 */
 	protected abstract void initializeMixer(final int channel, final ChannelMemory aktMemo);
@@ -532,7 +540,8 @@ public abstract class BasicModMixer
 			useSoftPanning = false;
 		}
 		
-		leftOver = samplePerTicks = calculateSamplesPerTick();
+		leftOverSamplesPerTick = samplePerTicks = calculateSamplesPerTick();
+		samplesMixed = 0;
 		
 		currentTick = currentArrangement = currentRow = 0;
 		patternDelayCount = patternTicksDelayCount = -1;
@@ -597,7 +606,7 @@ public abstract class BasicModMixer
 		// Silence all and everything to avoid clicks and arbitrary sounds...
 		for (int c=0; c<maxChannels; c++)
 		{
-			ChannelMemory aktMemo = channelMemory[c];
+			final ChannelMemory aktMemo = channelMemory[c];
 			aktMemo.actVolumeLeft = aktMemo.actVolumeRight = aktMemo.currentVolume = 
 			aktMemo.actRampVolLeft = aktMemo.actRampVolRight = 0;
 		}
@@ -631,18 +640,18 @@ public abstract class BasicModMixer
 	}
 	/**
 	 * Will create a long representing current
-	 * positions. Form is as follows:
-	 * 0x1234 5678 9ABC DEF0:
-	 *   1234: currentArrangement position (>>48)
-	 *   5678: current Pattern Number (>>32)
-	 *   9ABC: current Row (>>16)
-	 *   DEF0: current tick
+	 * positions. Form is as follows:<br>
+	 * 0x1234 5678 9ABC DEF0:<br>
+	 *   1234: currentArrangement position (>>48)<br>
+	 *   5678: current Pattern Number (>>32)<br>
+	 *   9ABC: current Row (>>16)<br>
+	 *   DEF0: current tick<br>
 	 * @since 30.03.2010
 	 * @return
 	 */
 	public long getCurrentPatternPosition()
 	{
-		return ((currentArrangement&0xFFFF)<<48) | ((currentPatternIndex&0xFFFF)<<32) | ((currentRow&0xFFFF)<<16) | ((currentTempo - currentTick)&0xFFFF);
+		return ((long)(currentArrangement&0xFFFF)<<48) | ((long)(currentPatternIndex&0xFFFF)<<32) | ((long)(currentRow&0xFFFF)<<16) | ((long)(currentTempo - currentTick)&0xFFFF);
 	}
 	/**
 	 * Will return all channels, that are active for rendering
@@ -660,6 +669,14 @@ public abstract class BasicModMixer
 			if (isChannelActive(aktMemo)) result++;
 		}
 		return result;
+	}
+	/**
+	 * @since 11.11.2023
+	 * @return true, if mod playback is finished
+	 */
+	public boolean getModFinished()
+	{
+		return modFinished;
 	}
 	/**
 	 * Normally you would use the formula (25*samplerate)/(bpm*10)
@@ -694,7 +711,7 @@ public abstract class BasicModMixer
 	 * With Mods the AMIGA_TABLE, IT_AMIGA_TABLE and XM_AMIGA_TABLE result in 
 	 * the approximate same values, but to be purly compatible and correct,
 	 * we use the protracker fintune period tables!
-	 * The IT_AMIGA_TABLE is for STM and S3M and IT...
+	 * The IT_AMIGA_TABLE is for STM, S3M and IT...
 	 * Be careful: if XM_* is used, we expect a noteIndex (0..119), no period!
 	 * @param aktMemo
 	 * @param period or noteIndex
@@ -1187,6 +1204,9 @@ public abstract class BasicModMixer
 			currentPanning = (currentPanning * panSep)>>7;
 			currentPanning +=128;
 		}
+		
+		// IT Compatibility: Ensure that there is no pan swing, panbrello, panning envelopes, etc. applied on surround channels.
+		if (isIT && aktMemo.doSurround) currentPanning = 128;
 		
 		aktMemo.actRampVolLeft = aktMemo.actVolumeLeft;
 		aktMemo.actRampVolRight = aktMemo.actVolumeRight;
@@ -1878,6 +1898,42 @@ public abstract class BasicModMixer
 			aktMemo.assignedNoteIndex = savedNoteIndex;
 		}
 	}
+	public void registerUpdateListener(final ModUpdateListener listener)
+	{
+		if (listeners!=null && !listeners.contains(listener)) listeners.add(listener);
+	}
+	public void deregisterUpdateListener(final ModUpdateListener listener)
+	{
+		if (listeners!=null && listeners.contains(listener)) listeners.remove(listener);
+	}
+	public void setFireUpdates(final boolean newFireUpdates)
+	{
+		fireUpdates = newFireUpdates;
+	}
+	public boolean getFireUpdates()
+	{
+		return fireUpdates;
+	}
+	public void firePositionUpdate()
+	{
+		if (listeners!=null && fireUpdates)
+		{
+			ModUpdateListener.InformationObject information = new ModUpdateListener.InformationObject();
+			information.samplesMixed = samplesMixed;
+			information.timeCode = (samplesMixed * 1000L) / sampleRate;
+			information.position = getCurrentPatternPosition();
+			for (ModUpdateListener listener : listeners)
+			{
+				listener.getMixerInformation(information);
+			}
+			// Manual Version, maybe the above is more optimized
+//			final int size = listeners.size();
+//			for (int i=0; i<size; i++)
+//			{
+//				listeners.get(i).followSong(information);
+//			}
+		}
+	}
 	/**
 	 * Do first row or tick effects.
 	 * IT: first Row, then VolumeColumn
@@ -1992,8 +2048,12 @@ public abstract class BasicModMixer
 	{
 		final PatternRow patternRow = currentPattern.getPatternRow(currentRow);
 		if (patternRow==null) return;
-		
+
+		// inform listeners, that we are in a new row!
+		firePositionUpdate();
+
 		patternRow.setRowPlayed();
+
 		for (int c=0; c<maxChannels; c++)
 		{
 			final ChannelMemory aktMemo = channelMemory[c];
@@ -2234,6 +2294,7 @@ public abstract class BasicModMixer
 					processEffekts(true, channelMemory[c]);
 			}
 		}
+
 		return false;
 	}
 	/**
@@ -2301,7 +2362,10 @@ public abstract class BasicModMixer
 							(inLoop == ModConstants.LOOP_SUSTAIN_ON && (sample.loopType & ModConstants.LOOP_SUSTAIN_IS_PINGPONG)!=0))
 						{
 							aktMemo.isForwardDirection = false;
-							aktMemo.currentSamplePos = loopEnd - 1 - aheadOfStop;
+							if ((mod.getModType()&ModConstants.MODTYPE_FASTTRACKER)!=0) // Protracker / XM need one less here!
+								aktMemo.currentSamplePos = loopEnd - aheadOfStop;
+							else
+								aktMemo.currentSamplePos = loopEnd - 1 - aheadOfStop;
 							aktMemo.loopCounter++;
 						}
 						else
@@ -2434,14 +2498,14 @@ public abstract class BasicModMixer
 
 		while (endIndex < maxEndIndex && !modFinished)
 		{
-			mixAmount = endIndex+leftOver;
+			mixAmount = endIndex+leftOverSamplesPerTick;
 			if (mixAmount>=maxEndIndex)
 				mixAmount = maxEndIndex - endIndex;
 			else
-				mixAmount = leftOver;
+				mixAmount = leftOverSamplesPerTick;
 			
 			endIndex += mixAmount;
-			leftOver -= mixAmount;
+			leftOverSamplesPerTick -= mixAmount;
 			
 			for (int c=0; c<maxChannels; c++)
 			{
@@ -2475,10 +2539,11 @@ public abstract class BasicModMixer
 			}
 
 			startIndex += mixAmount;
-			if (leftOver<=0)
+			if (leftOverSamplesPerTick<=0)
 			{
 				modFinished = doRowAndTickEvents();
-				leftOver = samplePerTicks; // Speed changes also change samplePerTicks - so always after doTickEvents!
+				samplesMixed += samplePerTicks;
+				leftOverSamplesPerTick = samplePerTicks; // Speed changes also change samplePerTicks - so always after doTickEvents!
 			}
 		}
 

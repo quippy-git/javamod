@@ -97,16 +97,9 @@ public class FileOrPackedInputStream extends InputStream
 			if (slashIndex<0) break;
 			fileNamePortion = Helpers.createStringFromURLString(path.substring(slashIndex)) + fileNamePortion;
 			path = path.substring(0, slashIndex);
-			URL newUrl = new URL(path);
-			ZipInputStream input = null;
-			try
-			{
-				input = new ZipInputStream(newUrl.openStream());
-			}
-			catch (Throwable e)
-			{
-				continue;
-			}
+			URL newUrl = Helpers.createURLfromString(path);
+			if (newUrl == null) continue;
+			ZipInputStream input = new ZipInputStream(newUrl.openStream());
 			String zipEntryName = fileNamePortion.substring(1);
 			ZipEntry entry;
 			while ((entry = input.getNextEntry())!=null)

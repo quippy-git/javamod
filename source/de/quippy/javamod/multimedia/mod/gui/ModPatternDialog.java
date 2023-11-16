@@ -38,17 +38,156 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
+import javax.swing.text.Caret;
 
 import de.quippy.javamod.multimedia.mod.loader.pattern.Pattern;
+import de.quippy.javamod.system.CircularBuffer;
 import de.quippy.javamod.system.Helpers;
 
 /**
  * @author Daniel Becker
  * @since 25.07.2020
  */
-public class ModPatternDialog extends JDialog
+public class ModPatternDialog extends JDialog implements ModUpdateListener
 {
 	private static final long serialVersionUID = 4511905120124137632L;
+	
+	/**
+	 * This thread will update the pattern view and show the current pattern
+	 * plus highlight the current row.
+	 * We use a thread approach, because we do not want the mixing to be
+	 * interrupted by a listener routine doing arbitrary things. This way that 
+	 * is decoupled. Furthermore, we will synchronize to the time index send
+	 * with each event - and that is done best in this local thread.
+	 * 
+	 * Whoever wants to be informed needs to implement the ModUpdateListener
+	 * interface and register at BasicModMixer::registerUpdateListener
+	 * 
+	 * The linkage of ModPatternDialog and this songFollower is done in the
+	 * ModContainer::createNewMixer. When a new mod mixer is created, we will
+	 * first de-register the previous one and stop the songFollower thread - 
+	 * but not earlier.  
+	 * 
+	 * In ModMixer::startPlayback we will toggle the fireUpdates-Flag in
+	 * BasicModMixer to prevent updates fired when we do not want to get
+	 * informed of any.
+	 * 
+	 * @author Daniel Becker
+	 * @since 11.11.2023
+	 */
+	private class SongFollower extends Thread
+	{
+		private CircularBuffer<ModUpdateListener.InformationObject> buffer;
+		private volatile boolean running;
+		private volatile boolean hasStopped;
+		private long additionalWait;
+		private long lastTimeCode;
+
+		public SongFollower()
+		{
+			super();
+			buffer = new CircularBuffer<ModUpdateListener.InformationObject>(128);
+			running = true;
+			hasStopped = false;
+			additionalWait = 0;
+			lastTimeCode = 0;
+			setName("InformerThread");
+			setDaemon(true);
+//			try { this.setPriority(Thread.MAX_PRIORITY); } catch (SecurityException ex) { /*NOOP*/ }
+		}
+		/**
+		 * Add an event from outside
+		 * @since 13.11.2023
+		 * @param information
+		 */
+		public void push(final ModUpdateListener.InformationObject information)
+		{
+			buffer.push(information);
+		}
+		/**
+		 * This will stop the thread gracefully and halt it. After this call
+		 * the thread is gone!
+		 * @since 13.11.2023
+		 */
+		public void stopMe()
+		{
+			running = false;
+			buffer.flush();
+			while (!hasStopped) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+		}
+		/**
+		 * Do everything that is needed to display a new pattern.
+		 * @since 13.11.2023
+		 * @param information
+		 */
+		private void displayPattern(final ModUpdateListener.InformationObject information)
+		{
+			if (ModPatternDialog.this.isVisible() && information!=null)
+			{
+				try
+				{
+					final int index = (int)((information.position >> 48)&0xFFFF);
+					if (index!=currentIndex && index<buttonArrangement.length)
+		            	fillWithArrangementIndex(index);
+					
+					final int row = (int)((information.position >> 16)&0xFFFF);
+					final int patternIndex = arrangement[index];
+					Pattern pattern = patterns[patternIndex];
+					if (pattern!=null)
+					{
+						int lineLength = pattern.getPatternRowCharacterLength() + 1;
+						int startIndex = row * lineLength;
+						getTextView_PatternData().setCaretPosition(startIndex);
+						getTextView_PatternData().moveCaretPosition(startIndex + lineLength);
+					}
+				}
+				catch (Throwable ex)
+				{
+					//If anything happens here, it stays here.
+				}
+			}
+		}
+		public void run()
+		{
+			hasStopped=false;
+			while (running)
+			{
+				// wait for the first event to appear
+				while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP*/ }
+				if (!running) break; // if we got stopped meanwhile, let's drop out... 
+				
+				while (!buffer.isEmpty())
+				{
+					final long startNanoTime = System.nanoTime();
+
+					ModUpdateListener.InformationObject information = buffer.pop();
+
+					long nanoWait = ((information.timeCode - lastTimeCode) * 1000000L) - additionalWait;
+					lastTimeCode = information.timeCode;
+
+					if (nanoWait > 0) // are we far behind?!
+						try { Thread.sleep(nanoWait/1000000L); } catch (InterruptedException ex) { /*NOOP*/ }
+					else
+					{
+						nanoWait = 0;
+						try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP*/ }
+					}
+					
+					displayPattern(information);
+
+					// if this was the last event in the queue, wait for the next one - typically this is a pattern delay...
+					while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP*/ }
+					if (!running) break; // if we got stopped meanwhile, let's drop out... 
+
+					additionalWait = System.nanoTime() - startNanoTime - nanoWait;
+				}
+			}
+			hasStopped=true;
+		}
+	}
+
+	// The UpdateListener Thread - to decouple whoever wants to get informed
+	private SongFollower songFollower;
 
 	private JScrollPane scrollPane_ArrangementData = null;
 	private JPanel arrangementPanel = null;
@@ -57,6 +196,7 @@ public class ModPatternDialog extends JDialog
 	private JButton nextPatternButton = null;
 	private JButton prevPatternButton = null;
 	private JScrollPane scrollPane_PatternData = null;
+//	private JTextPane textArea_PatternData= null;
 	private JTextArea textArea_PatternData= null;
 	private JToggleButton [] buttonArrangement;
 	private ButtonGroup buttonGroup = null;
@@ -64,6 +204,32 @@ public class ModPatternDialog extends JDialog
 	private int [] arrangement;
 	private Pattern [] patterns;
 	private int currentIndex;
+	
+//	private static final char[] EOL_ARRAY = { '\n' };
+//	private static Color NOTECOLOR = new Color(0x00, 0x33, 0xCC);
+//	private static Color INSTRUMENTCOLOR = new Color(0x00, 0x99, 0xCC);
+//	private static Color VOLUMECOLOR = new Color(0x00, 0x99, 0x33);
+//	private static Color EFFECTCOLOR = new Color(0xCC, 0x00, 0xCC);
+//	private AttributeSet foregroundAttSet;
+//	private AttributeSet noteAttSet;
+//	private AttributeSet instrumentAttSet;
+//	private AttributeSet volumeAttSet;
+//	private AttributeSet effectAttSet;
+//
+//	private class InternalDefaultStyleDocument extends DefaultStyledDocument
+//	{
+//		private static final long serialVersionUID = 8443419464715235236L;
+//
+//		public void processBatchUpdates(final int offs, final ArrayList<ElementSpec> batch) throws BadLocationException
+//		{
+//			ElementSpec[] inserts = new ElementSpec[batch.size()];
+//			batch.toArray(inserts);
+//
+//			super.insert(offs, inserts);
+//		}
+//	}
+//	private InternalDefaultStyleDocument EMPTY_DOCUMENT = null;
+
 	/**
 	 * Constructor for ModPatternDialog
 	 */
@@ -117,6 +283,37 @@ public class ModPatternDialog extends JDialog
 		setPreferredSize(getSize());
         pack();
 		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
+	}
+	/**
+	 * push an event into the songFollower queue
+	 * @param information
+	 * @see de.quippy.javamod.multimedia.mod.gui.ModUpdateListener#getMixerInformation(de.quippy.javamod.multimedia.mod.gui.ModUpdateListener.InformationObject)
+	 */
+	public void getMixerInformation(final ModUpdateListener.InformationObject information)
+	{
+		if (songFollower!=null) songFollower.push(information);
+	}
+	/**
+	 * Stop the thread
+	 * @since 13.11.2023
+	 */
+	public void stopUpdateThread()
+	{
+		if (songFollower!=null)
+		{
+			songFollower.stopMe();
+			songFollower = null;
+		}
+	}
+	/**
+	 * Create and start the Thread
+	 * @since 13.11.2023
+	 */
+	public void startUpdateThread()
+	{
+		if (songFollower!=null) stopUpdateThread();
+		songFollower = new SongFollower();
+		songFollower.start();
 	}
 	private void doClose()
 	{
@@ -181,6 +378,39 @@ public class ModPatternDialog extends JDialog
 		}
 		return scrollPane_PatternData;
 	}
+//	private JTextPane getTextView_PatternData()
+//	{
+//		if (textArea_PatternData==null)
+//		{
+//			textArea_PatternData = new JTextPane(new InternalDefaultStyleDocument())
+//			{
+//				// Hack: make this TextPane not wrap at border!
+//				private static final long serialVersionUID = 4656803550646960929L;
+//
+//				public boolean getScrollableTracksViewportWidth()
+//				{
+//					return getUI().getPreferredSize(this).width <= getParent().getSize().width;
+//				}
+//			};
+//			textArea_PatternData.setName("modInfo_Instruments");
+//			textArea_PatternData.setFont(Helpers.getTextAreaFont());
+//			Caret caret = textArea_PatternData.getCaret();
+//			if (caret!=null)
+//			{
+//				caret.setVisible(true);
+//				caret.setSelectionVisible(true);
+//			}
+//
+//			EMPTY_DOCUMENT = new InternalDefaultStyleDocument();
+//	        StyleContext sc = StyleContext.getDefaultStyleContext();
+//	        foregroundAttSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, textArea_PatternData.getForeground());
+//    		noteAttSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, NOTECOLOR);
+//	        instrumentAttSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, INSTRUMENTCOLOR);
+//	        volumeAttSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, VOLUMECOLOR);
+//	        effectAttSet = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, EFFECTCOLOR);
+//		}
+//		return textArea_PatternData;
+//	}
 	private JTextArea getTextView_PatternData()
 	{
 		if (textArea_PatternData==null)
@@ -189,7 +419,12 @@ public class ModPatternDialog extends JDialog
 			textArea_PatternData.setName("modInfo_Instruments");
 			textArea_PatternData.setEditable(false);
 			textArea_PatternData.setFont(Helpers.getTextAreaFont());
-			fillWithArrangementIndex(0);
+			Caret caret = textArea_PatternData.getCaret();
+			if (caret!=null)
+			{
+				caret.setVisible(true);
+				caret.setSelectionVisible(true);
+			}
 		}
 		return textArea_PatternData;
 	}
@@ -249,7 +484,8 @@ public class ModPatternDialog extends JDialog
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if (arrangement!=null && currentIndex>0) buttonArrangement[currentIndex-1].doClick();
+					if (arrangement!=null && currentIndex>0)
+		            	fillWithArrangementIndex(currentIndex-1);
 				}
 			});
 		}
@@ -269,31 +505,86 @@ public class ModPatternDialog extends JDialog
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					if (arrangement!=null && currentIndex<(arrangement.length-1)) buttonArrangement[currentIndex+1].doClick();
+					if (arrangement!=null && currentIndex<(arrangement.length-1))
+		            	fillWithArrangementIndex(currentIndex+1);
 				}
 			});
 		}
 		return nextPatternButton;
 	}
+//	private void fillWithArrangementIndex(final int index)
+//	{
+//		if (arrangement!=null)
+//		{
+//			buttonArrangement[currentIndex = index].setSelected(true);
+//			InternalDefaultStyleDocument doc = (InternalDefaultStyleDocument)getTextView_PatternData().getDocument(); 
+//			getTextView_PatternData().setDocument(EMPTY_DOCUMENT);
+//			try { doc.remove(0, doc.getLength()); } catch (Throwable ex) { /*NOOP */ }
+//			final int patternIndex = arrangement[currentIndex];
+//			Pattern pattern = patterns[patternIndex];
+//			if (pattern!=null)
+//			{
+//				PatternRow [] patternRows = pattern.getPatternRows();
+//				if (patternRows!=null)
+//				{
+//					// Somehow this is upside down after batch insert...
+//					for (int row=patternRows.length-1; row>=0; row--)
+//					{
+//						PatternElement [] patternElements = patternRows[row].getPatternElements();
+//						if (patternElements!=null)
+//						{
+//							final ArrayList<ElementSpec> elementSpecs = new ArrayList<ElementSpec>();
+//
+//							String line = patternRows[row].toString();
+//
+//							elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, (ModConstants.getAsHex(row, 2) + " |").toCharArray(), 0, 4));
+//							for (int c=0; c<patternElements.length; c++)
+//							{
+//								int channelOffset = c*16;
+//								elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 1)).toCharArray(), 0, 1));
+//								elementSpecs.add(new ElementSpec(noteAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 3)).toCharArray(), 0, 3));
+//								elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 1)).toCharArray(), 0, 1));
+//								elementSpecs.add(new ElementSpec(instrumentAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 2)).toCharArray(), 0, 2));
+//								elementSpecs.add(new ElementSpec(volumeAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 3)).toCharArray(), 0, 3));
+//								elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 1)).toCharArray(), 0, 1));
+//								elementSpecs.add(new ElementSpec(effectAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 3)).toCharArray(), 0, 3));
+//								elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, line.substring(channelOffset, channelOffset = (channelOffset + 2)).toCharArray(), 0, 2));
+//							}
+//							elementSpecs.add(new ElementSpec(foregroundAttSet, ElementSpec.ContentType, EOL_ARRAY, 0, 1));
+//							Element paragraph = doc.getParagraphElement(0);
+//							AttributeSet pattr = paragraph.getAttributes();
+//							elementSpecs.add(new ElementSpec(null, ElementSpec.EndTagType));
+//							elementSpecs.add(new ElementSpec(pattr, ElementSpec.StartTagType));
+//							
+//							try
+//							{
+//								doc.processBatchUpdates(0, elementSpecs);
+//							}
+//							catch (Throwable ex)
+//							{
+//								//NOOP
+//							}
+//						}
+//					}
+//				}
+//			}
+//			getTextView_PatternData().setDocument(doc);
+//			getTextView_PatternData().setCaretPosition(0);
+//			getTextView_PatternData().moveCaretPosition(0);
+//		}
+//	}
 	private void fillWithArrangementIndex(final int index)
 	{
 		if (arrangement!=null)
 		{
-			currentIndex = index;
+			buttonArrangement[currentIndex = index].setSelected(true);
 			int patternIndex = arrangement[index];
 			Pattern pattern = patterns[patternIndex];
 			if (pattern!=null)
 			{
-//				final StringBuilder fullText = new StringBuilder("<HTML><HEAD><meta charset=\"utf-8\"><style>table, th, td { border: 1px solid; } #coll { border-collapse: collapse; }</style></HEAD><BODY><TABLE ID=\"TABLE\" CELLPADDING=\"0\" CELLSPACING=\"0\" ");
-//				fullText.append("style=\"")
-//				.append("font-family:").append(Helpers.getTextAreaFont().getFamily()).append("; ")
-//				.append("font-size:").append(Helpers.getTextAreaFont().getSize()).append(';')
-//				.append("\">");
-//				fullText.append(pattern.toHTMLString());
-//				fullText.append("</TABLE></FONT></BODY></HTML>");
-//				getTextView_PatternData().setText(fullText.toString());
 				getTextView_PatternData().setText(pattern.toString());
-				getTextView_PatternData().select(0,0);
+				getTextView_PatternData().setCaretPosition(0);
+				getTextView_PatternData().moveCaretPosition(0);
 			}
 		}
 	}
@@ -310,7 +601,7 @@ public class ModPatternDialog extends JDialog
 			this.patterns = patterns;
 		}
 		fillButtonsForArrangement();
-		if (buttonArrangement!=null && buttonArrangement.length>0 && buttonArrangement[0]!=null) 
-			buttonArrangement[0].doClick();
+		if (buttonArrangement!=null && buttonArrangement.length>0 && buttonArrangement[0]!=null)
+			fillWithArrangementIndex(0);
 	}
 }

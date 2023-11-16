@@ -22,7 +22,6 @@
 package de.quippy.javamod.main;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 
@@ -163,21 +162,11 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 			else
 			{
 				String fileName = args[i];
-				try
+				modFileName = Helpers.createURLfromString(fileName);
+				if (modFileName == null)
 				{
-					modFileName = new URL(fileName);
-				}
-				catch (MalformedURLException ex) // This is evil, but I don't want to test on local files myself...
-				{
-					try
-					{
-						modFileName = (new File(fileName)).toURI().toURL();
-					}
-					catch (MalformedURLException exe) // This is even more evil...
-					{
-						Log.error("This is not parsable: " + fileName, ex);
-						System.exit(-1);
-					}
+					Log.error("This is not parsable: " + fileName);
+					System.exit(-1);
 				}
 			}
 		}
@@ -324,6 +313,10 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 			Log.error("Error occured:", ex);
 			showHelp();
 			System.exit(-1);
+		}
+		finally
+		{
+			MultimediaContainerManager.cleanUpAllContainers();
 		}
 	}
 }

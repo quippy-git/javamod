@@ -53,6 +53,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	protected WaveFile waveExportFile;
 	protected boolean playDuringExport;
 	protected boolean keepSilent;
+	protected int sourceLineBufferSize;
 	
 	public SoundOutputStreamImpl()
 	{
@@ -74,6 +75,12 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		this.exportFile = exportFile;
 		this.playDuringExport = playDuringExport;
 		this.keepSilent = keepSilent;
+		this.sourceLineBufferSize = -1;
+	}
+	public SoundOutputStreamImpl(final AudioFormat audioFormat, final AudioProcessor audioProcessor, final File exportFile, final boolean playDuringExport, final boolean keepSilent, final int sourceLineBufferSize)
+	{
+		this(audioFormat, audioProcessor, exportFile, playDuringExport, keepSilent);
+		this.sourceLineBufferSize = sourceLineBufferSize; 
 	}
 	/**
 	 * @since 30.12.2007
@@ -91,7 +98,11 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 				{
 					//sourceLineInfo.getFormats();
 					sourceLine = (SourceDataLine) AudioSystem.getLine(sourceLineInfo);
-					sourceLine.open();
+					if (sourceLineBufferSize>0)
+						sourceLine.open(audioFormat, sourceLineBufferSize);
+					else
+						sourceLine.open(audioFormat);
+					sourceLineBufferSize = sourceLine.getBufferSize();
 					sourceLine.start();
 					setVolume(currentVolume);
 					setBalance(currentBalance);
@@ -126,6 +137,9 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			}
 		}
 	}
+	/**
+	 * @since 30.12.2007
+	 */
 	protected synchronized void openExportFile()
 	{
 		if (exportFile!=null)
@@ -270,6 +284,18 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			// on Linux a small amount can be left over - but waiting is not reliable
 			//try { Thread.sleep(150L); } catch (InterruptedException ex) { /*NOOP*/ }
 		}
+	}
+	/**
+	 * @since 11.11.2023
+	 * @return the buffer size in bytes of the audio source line
+	 * or -1 if no sourceline is present
+	 */
+	public int getLineBufferSize()
+	{
+		if (sourceLine!=null) 
+			return sourceLine.getBufferSize();
+		else
+			return -1;
 	}
 	/**
 	 * @since 27.12.2011
@@ -420,5 +446,13 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		close();
 		audioFormat = newAudioFormat;
 		if (reOpen) open();
+	}
+	/**
+	 * @see de.quippy.javamod.io.SoundOutputStream#changeAudioFormatTo(javax.sound.sampled.AudioFormat, int)
+	 */
+	public synchronized void changeAudioFormatTo(final AudioFormat newAudioFormat, final int newSourceLineBufferSize)
+	{
+		sourceLineBufferSize = newSourceLineBufferSize;
+		changeAudioFormatTo(newAudioFormat);
 	}
 }

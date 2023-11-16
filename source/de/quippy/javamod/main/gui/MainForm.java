@@ -25,6 +25,7 @@ import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
+import java.awt.EventQueue;
 import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.MenuItem;
@@ -421,7 +422,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			for (int i=0; i<PROPERTY_LASTLOADED_MAXENTRIES; i++)
 			{
 				String url = props.getProperty(PROPERTY_LASTLOADED+'.'+i, null);
-				if (url!=null) lastLoaded.add(new URL(url)); else lastLoaded.add(null);
+				if (url!=null) lastLoaded.add(Helpers.createURLfromString(url)); else lastLoaded.add(null);
 			}
 			setDSPEnabled(Boolean.parseBoolean(props.getProperty(PROPERTY_EFFECTS_PASSTHROUGH, "FALSE")));
 			setUseGaplessAudio(Boolean.parseBoolean(props.getProperty(PROPERTY_EFFECTS_USEGAPLESS, "TRUE")));
@@ -1069,7 +1070,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			{
 				String displayName = null;
 				// convert to a local filename if possible (that looks better!)
-				if (element.getProtocol().equalsIgnoreCase("file"))
+				if (Helpers.isFile(element))
 				{
 					try
 					{
@@ -1093,7 +1094,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 					{
 						try
 						{
-							URL url = new URL(((javax.swing.JMenuItem)e.getSource()).getToolTipText());
+							URL url = Helpers.createURLfromString(((javax.swing.JMenuItem)e.getSource()).getToolTipText());
 							loadMultimediaOrPlayListFile(url);
 						}
 						catch (Exception ex)
@@ -1492,7 +1493,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			final java.net.URL iconURL = MainForm.class.getResource(DEFAULTTRAYICONPATH);
 			if (iconURL!=null)
 			{
-				Image trayIconImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
+				final Image trayIconImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
 				Dimension trayIconSize = SystemTray.getSystemTray().getTrayIconSize();
 				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				javaModTrayIcon = new TrayIcon(trayIconImage.getScaledInstance(-1, trayIconSize.height, Image.SCALE_SMOOTH));
@@ -1559,14 +1560,19 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			final java.net.URL iconURL = MainForm.class.getResource(path);
 			if (iconURL!=null)
 			{
-				Image tempImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
-				// Create some typical dimensions of our Icon for Java to use.
+				final Image tempImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
 				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				windowIcons = new ArrayList<Image>();
+				// Create some typical dimensions of our Icon for Java to use.
 				windowIcons.add(tempImage.getScaledInstance(-1,  16, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1,  20, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  32, Image.SCALE_SMOOTH));
+				windowIcons.add(tempImage.getScaledInstance(-1,  40, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  64, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1, 128, Image.SCALE_SMOOTH));
+				// create all sizes from 16 - 128
+//				for (int size=16; size<=128; size+=2)
+//					windowIcons.add(tempImage.getScaledInstance(-1,  size, Image.SCALE_SMOOTH));
 			}
 		}
 		return windowIcons;
@@ -2308,6 +2314,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		if (audioProcessor!=null) audioProcessor.removeListener(this);
 		
 		MultimediaContainerManager.removeMultimediaContainerEventListener(this);
+		MultimediaContainerManager.cleanUpAllContainers();
 
 		useSystemTray = false; setSystemTray();
 
@@ -2517,7 +2524,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	 */
 	private class Updater extends Thread
 	{
-		private boolean finished;
+		private volatile boolean finished;
 		private Mixer mixer;
 		private long fromMillisecondPosition;
 		private ProgressDialog progress;
@@ -2974,7 +2981,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	 */
 	private synchronized void showMessage(final String msg)
 	{
-		SwingUtilities.invokeLater(new Runnable()
+		EventQueue.invokeLater(new Runnable()
 		{
 			public void run()
 			{

@@ -21,6 +21,7 @@
  */
 package de.quippy.javamod.main;
 
+import java.awt.EventQueue;
 import java.io.File;
 
 import de.quippy.javamod.main.gui.MainForm;
@@ -66,7 +67,7 @@ public class JavaMod extends JavaModMainBase
 	 */
 	public static void main(final String[] args)
 	{
-		java.awt.EventQueue.invokeLater(new Runnable()
+		EventQueue.invokeLater(new Runnable()
 		{
 			public void run()
 			{

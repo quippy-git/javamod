@@ -39,7 +39,7 @@ public class EnvelopeImagePanel extends ImagePanel
     private static final Color ENVELOPE_COLOR = Color.red;
     private static final Color BACKGROUND_COLOR = Color.black;
     private static final Color RECT_COLOR = Color.white;
-    private static final Color LOOP_COLOR = Color.blue;
+    private static final Color LOOP_COLOR = Color.yellow;
     private static final Color SUSTAINLOOP_COLOR = Color.green;
     private static final int MAX_WIDTH = 512;
     private static final int SMALLESTGRID = 4;

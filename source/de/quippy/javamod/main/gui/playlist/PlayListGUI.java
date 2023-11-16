@@ -21,7 +21,6 @@
  */
 package de.quippy.javamod.main.gui.playlist;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -32,8 +31,6 @@ import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -46,7 +43,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import javax.swing.JCheckBox;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -84,11 +81,26 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	/** lines to show more when scrolling */
 	private static final int PLUS_LINES_VISABLE = 2;
 
-    private JDialog parentFrame = null;
+	public static final String BUTTONSAVE = "/de/quippy/javamod/main/gui/ressources/save.gif";
+	public static final String BUTTONSHUFFLE = "/de/quippy/javamod/main/gui/ressources/shuffle.gif";
+	public static final String BUTTONREPEAT = "/de/quippy/javamod/main/gui/ressources/repeat.gif";
+	public static final String BUTTONREPEAT_ACTIVE = "/de/quippy/javamod/main/gui/ressources/repeat_active.gif";
+	public static final String BUTTONREPEAT_NORMAL = "/de/quippy/javamod/main/gui/ressources/repeat_normal.gif";
+
+	private JDialog parentFrame = null;
 	private PlayList playList;
 	private PlayListEntry lastClickedEntry; // This entry is set if the mouse is pressed in an selected Entry
     
-	private JCheckBox repeatCheckBox = null;
+	private javax.swing.ImageIcon buttonSave = null;
+	private javax.swing.ImageIcon buttonShuffle = null;
+	private javax.swing.ImageIcon buttonRepeat = null;
+	private javax.swing.ImageIcon buttonRepeat_Active = null;
+	private javax.swing.ImageIcon buttonRepeat_normal = null;
+
+	private javax.swing.JButton button_Save = null;
+	private javax.swing.JButton button_Shuffle = null;
+	private javax.swing.JButton button_Repeat = null;
+
 	private JScrollPane scrollPane = null;
     private JTextPane textArea = null;
     private JPopupMenu playListPopUp = null;
@@ -96,8 +108,6 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
  	private JMenuItem popUpEntryCropFromList = null;
  	private JMenuItem popUpEntryRefreshEntry = null;
  	private JMenuItem popUpEntryEditEntry = null;
- 	private JMenuItem popUpEntrySaveList = null;
- 	private JMenuItem popUpEntryShuffleList = null;
  	
 	private EditPlaylistEntry editPlayListEntryDialog = null;
   	
@@ -216,58 +226,120 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 		this.parentFrame = parentFrame;
 		initialize();
 	}
-	private static String getHTMLColorString(Color color)
-	{
-		String htmlColor = Integer.toHexString(color.getRGB());
-		if (htmlColor.length()>6) htmlColor = htmlColor.substring(htmlColor.length() - 6);
-		return htmlColor;
-	}
 	private void initialize()
 	{
 		setName("PlayList");
 		setLayout(new java.awt.GridBagLayout());
 		add(getScrollPane()		, Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
-		add(getRepeatCheckBox()	, Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.EAST, 0.0, 0.0));
+		add(getButton_Save()	, Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		add(getButton_Shuffle()	, Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.EAST, 1.0, 0.0));
+		add(getButton_Repeat()	, Helpers.getGridBagConstraint(2, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.EAST, 0.0, 0.0));
 		
 		dropTargetList = new ArrayList<DropTarget>();
 	    PlaylistDropListener myListener = new PlaylistDropListener(this);
 	    Helpers.registerDropListener(dropTargetList, this, myListener);
 		
-		unmarkColorBackground = getHTMLColorString(getPlaylistTextArea().getBackground());
-		unmarkColorForeground = getHTMLColorString(getPlaylistTextArea().getForeground());
-		markColorBackground = getHTMLColorString(getPlaylistTextArea().getSelectionColor());
-		markColorForeground = getHTMLColorString(getPlaylistTextArea().getSelectedTextColor());
+		unmarkColorBackground = Helpers.getHTMLColorString(getPlaylistTextArea().getBackground());
+		unmarkColorForeground = Helpers.getHTMLColorString(getPlaylistTextArea().getForeground());
+		markColorBackground = Helpers.getHTMLColorString(getPlaylistTextArea().getSelectionColor());
+		markColorForeground = Helpers.getHTMLColorString(getPlaylistTextArea().getSelectedTextColor());
 		playlistUpdateThread = new PlayListUpdateThread(this);
 		playlistUpdateThread.start();
+	}
+	/**
+	 * @since 07.11.2023
+	 * @return
+	 */
+	private JButton getButton_Save()
+	{
+		if (button_Save == null)
+		{
+			buttonSave = new javax.swing.ImageIcon(getClass().getResource(BUTTONSAVE));
+			
+			button_Save = new JButton();
+			button_Save.setName("button_Save");
+			button_Save.setText(Helpers.EMPTY_STING);
+			button_Save.setToolTipText("<ctrl>-s: save playlist");
+			button_Save.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+			button_Save.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Save.setIcon(buttonSave);
+			button_Save.setDisabledIcon(buttonSave);
+			button_Save.setPressedIcon(buttonSave);
+			button_Save.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Save.setFont(Helpers.getDialogFont());
+			button_Save.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					doSavePlayList();
+				}
+			});
+		}
+		return button_Save;
 	}
 	/**
 	 * @return
 	 * @since 22.11.2011
 	 */
-	private JCheckBox getRepeatCheckBox()
+	private JButton getButton_Repeat()
 	{
-		if (repeatCheckBox == null)
+		if (button_Repeat == null)
 		{
-			repeatCheckBox = new JCheckBox();
-			repeatCheckBox.setName("repeatCombobox");
-			repeatCheckBox.setText("repeat playlist");
-			repeatCheckBox.setFont(Helpers.getDialogFont());
-			repeatCheckBox.addItemListener(new ItemListener()
+			buttonRepeat		= new javax.swing.ImageIcon(getClass().getResource(BUTTONREPEAT));
+			buttonRepeat_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONREPEAT_ACTIVE));
+			buttonRepeat_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONREPEAT_NORMAL));
+			
+			button_Repeat = new JButton();
+			button_Repeat.setName("button_Repeat");
+			button_Repeat.setText(Helpers.EMPTY_STING);
+			button_Repeat.setToolTipText("<ctrl>-l repeat playlist");
+			button_Repeat.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+			button_Repeat.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Repeat.setIcon(buttonRepeat);
+			button_Repeat.setDisabledIcon(buttonRepeat);
+			button_Repeat.setPressedIcon(buttonRepeat_normal);
+			button_Repeat.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Repeat.setFont(Helpers.getDialogFont());
+			button_Repeat.addActionListener(new ActionListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				public void actionPerformed(ActionEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
-					{
-						if (playList!=null)
-							playList.setRepeat(repeatCheckBox.isSelected()); 
-						else 
-							repeatCheckBox.setSelected(false);
-						firePlaylistChanged();
-					}
+					doToggleRepeat();
 				}
 			});
 		}
-		return repeatCheckBox;
+		return button_Repeat;
+	}
+	/**
+	 * @return
+	 * @since 22.11.2011
+	 */
+	private JButton getButton_Shuffle()
+	{
+		if (button_Shuffle == null)
+		{
+			buttonShuffle = new javax.swing.ImageIcon(getClass().getResource(BUTTONSHUFFLE));
+			
+			button_Shuffle = new JButton();
+			button_Shuffle.setName("button_Shuffle");
+			button_Shuffle.setText(Helpers.EMPTY_STING);
+			button_Shuffle.setToolTipText("<ctrl>-r: shuffle playlist");
+			button_Shuffle.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+			button_Shuffle.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Shuffle.setIcon(buttonShuffle);
+			button_Shuffle.setDisabledIcon(buttonShuffle);
+			button_Shuffle.setPressedIcon(buttonShuffle);
+			button_Shuffle.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Shuffle.setFont(Helpers.getDialogFont());
+			button_Shuffle.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					doShufflePlayList();
+				}
+			});
+		}
+		return button_Shuffle;
 	}
 	private javax.swing.JScrollPane getScrollPane()
 	{
@@ -303,6 +375,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 							case KeyEvent.VK_S: doSavePlayList(); e.consume(); break;
 							case KeyEvent.VK_E: doEditSelectedEntry(); e.consume(); break;
 							case KeyEvent.VK_U: doUpdateSelectedEntryFromList(); e.consume(); break;
+							case KeyEvent.VK_L: doToggleRepeat(); e.consume(); break;
 							case KeyEvent.VK_R: doShufflePlayList(); e.consume(); break;
 							case KeyEvent.VK_A: doSelectAll(); e.consume(); break;
 							case KeyEvent.VK_DELETE: doCropSelectedEntryFromList(); e.consume(); break;
@@ -460,9 +533,6 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	        playListPopUp.add(new javax.swing.JSeparator());
 	        playListPopUp.add(getPopUpEntryRefreshEntry());
 	        playListPopUp.add(getPopUpEntryEditEntry());
-	        playListPopUp.add(getPopUpEntryShuffleList());
-	        playListPopUp.add(new javax.swing.JSeparator());
-	        playListPopUp.add(getPopUpEntrySaveList());
     	}
     	boolean noEmptyList = (playList!=null && playList.size()>0);
     	PlayListEntry [] selectedEntries = (noEmptyList)?playList.getSelectedEntries():null;
@@ -470,8 +540,6 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
    		getPopUpEntryDeleteFromList().setEnabled(elementSpecificEntriesEnabled);
    		getPopUpEntryRefreshEntry().setEnabled(elementSpecificEntriesEnabled);
    		getPopUpEntryEditEntry().setEnabled(elementSpecificEntriesEnabled && selectedEntries!=null && selectedEntries.length==1);
-    	getPopUpEntrySaveList().setEnabled(noEmptyList);
-    	getPopUpEntryShuffleList().setEnabled(noEmptyList);
         return playListPopUp;
     }
     private JMenuItem getPopUpEntryDeleteFromList()
@@ -545,42 +613,6 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 				});
         }
         return popUpEntryEditEntry;
-    }
-    private JMenuItem getPopUpEntrySaveList()
-    {
-        if (popUpEntrySaveList == null)
-        {
-        	popUpEntrySaveList = new javax.swing.JMenuItem();
-        	popUpEntrySaveList.setName("JPopUpMenu_SaveList");
-        	popUpEntrySaveList.setText("<ctrl-s> save playlist to");
-        	popUpEntrySaveList.addActionListener(
-                new ActionListener()
-				{
-					public void actionPerformed(ActionEvent e)
-					{
-						doSavePlayList();
-					}
-				});
-        }
-        return popUpEntrySaveList;
-    }
-    private JMenuItem getPopUpEntryShuffleList()
-    {
-        if (popUpEntryShuffleList == null)
-        {
-        	popUpEntryShuffleList = new javax.swing.JMenuItem();
-        	popUpEntryShuffleList.setName("JPopUpMenu_ShuffleList");
-        	popUpEntryShuffleList.setText("<ctrl-r> shuffle list");
-        	popUpEntryShuffleList.addActionListener(
-                new ActionListener()
-				{
-					public void actionPerformed(ActionEvent e)
-					{
-						doShufflePlayList();
-					}
-				});
-        }
-        return popUpEntryShuffleList;
     }
 	private EditPlaylistEntry getEditDialog()
 	{
@@ -747,6 +779,21 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			}
 			while (true);
 		}
+	}
+	/**
+	 * @since 07.11.2023
+	 */
+	private void doToggleRepeat()
+	{
+		if (playList!=null)
+		{
+			playList.setRepeat(!playList.isRepeat());
+			getButton_Repeat().setIcon(playList.isRepeat()?buttonRepeat_Active:buttonRepeat);
+		}
+		else
+			getButton_Repeat().setIcon(buttonRepeat);
+
+		firePlaylistChanged();
 	}
 	/**
 	 * @since 04.09.2011
@@ -1148,8 +1195,8 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	private String getHTMLString(PlayListEntry entry, int index, String songname, String duration)
 	{
 		StringBuilder html = new StringBuilder("<TR ID=\"").append(getTableRowID(index)).append("\" style=\"")
-			.append("background:#").append((entry.isSelected())?markColorBackground:unmarkColorBackground).append("; ")
-			.append("color:#").append((entry.isSelected())?markColorForeground:unmarkColorForeground).append("; ")
+			.append("background:#").append(entry.isSelected()?markColorBackground:unmarkColorBackground).append("; ")
+			.append("color:#").append(entry.isSelected()?markColorForeground:unmarkColorForeground).append("; ")
 			.append("font-family:").append(Helpers.getTextAreaFont().getFamily()).append("; ")
 			.append("font-size:").append(Helpers.getTextAreaFont().getSize()).append(';')
 			.append("font-weight:").append(entry.isActive()?"bold":"normal").append(';')
@@ -1169,10 +1216,10 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 				PlayListEntry entry = iter.next();
 				fullText.append(getHTMLString(entry, entry.getIndexInPlaylist(), getFormattedSongName(entry, true), entry.getQuickDuration()));
 			}
-			getRepeatCheckBox().setSelected(playList.isRepeat());
+			getButton_Repeat().setIcon(playList.isRepeat()?buttonRepeat_Active:buttonRepeat);
 		}
 		else
-			getRepeatCheckBox().setSelected(false);
+			getButton_Repeat().setIcon(buttonRepeat);
 
 		fullText.append("</TABLE></FONT></BODY></HTML>");
 		EventQueue.invokeLater(new Runnable()
@@ -1216,7 +1263,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 		PlayListEntry entry = playList.getEntry(index);
         final String text = getFormattedSongName(entry, false);
         final String duration = entry.getDurationString(); 
-		SwingUtilities.invokeLater(new Runnable()
+		EventQueue.invokeLater(new Runnable()
 		{
 			@Override
 			public void run()
@@ -1287,7 +1334,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	public void activeElementChanged(final PlayListEntry oldActiveElement, final PlayListEntry newActiveElement)
 	{
-		SwingUtilities.invokeLater(new Runnable()
+		EventQueue.invokeLater(new Runnable()
 		{
 			@Override
 			public void run()
@@ -1316,7 +1363,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	public void selectedElementChanged(final PlayListEntry oldSelectedElement, final PlayListEntry newSelectedElement)
 	{
-		SwingUtilities.invokeLater(new Runnable()
+		EventQueue.invokeLater(new Runnable()
 		{
 			@Override
 			public void run()

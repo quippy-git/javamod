@@ -87,7 +87,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.5";
+	public static final String VERSION = "V3.6";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -136,7 +136,7 @@ public class Helpers
 			catch (Throwable ex2)
 			{
 				Log.error("Could not set home dir", ex2);
-				HOMEDIR = "";
+				HOMEDIR = EMPTY_STING;
 			}
 		}
 	}
@@ -328,6 +328,12 @@ public class Helpers
 	}
 
 	//*************** UI *************
+	public static String getHTMLColorString(Color color)
+	{
+		String htmlColor = Integer.toHexString(color.getRGB());
+		if (htmlColor.length()>6) htmlColor = htmlColor.substring(htmlColor.length() - 6);
+		return htmlColor;
+	}
 	private static java.awt.Insets DEFAULT_INSETS = new java.awt.Insets(4, 4, 4, 4);
 	/**
 	 * @since 22.06.2006
@@ -614,18 +620,10 @@ public class Helpers
 		try
 		{
 			if (urlLine == null || urlLine.length()==0) return null;
-			URL url = new URL(urlLine);
-			try
-			{
-				URI uri = new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), url.getPort(), url.getPath(), url.getQuery(), url.getRef());
-				return uri.toURL();
-			}
-			catch (URISyntaxException e)
-			{
-				return url;
-			}
+			URI uri = new URI(urlLine);
+			return uri.toURL();
 		}
-		catch (MalformedURLException ex)
+		catch (Exception ex)
 		{
 			return createURLfromFile(new File(urlLine));
 		}
@@ -633,17 +631,17 @@ public class Helpers
 	/**
 	 * @since 22.07.2015
 	 * @param url
-	 * @return
+	 * @return a decoded version of the URL - cannot be reversed to an URI 
 	 */
 	public static String createStringFomURL(final URL url)
 	{
-		if (url==null) return "";
+		if (url==null) return EMPTY_STING;
 		return createStringFromURLString(url.toExternalForm());
 	}
 	/**
 	 * @since 22.07.2015
 	 * @param url
-	 * @return
+	 * @return a decoded version of the URL type string
 	 */
 	public static String createStringFromURLString(final String url)
 	{
@@ -706,7 +704,7 @@ public class Helpers
 		if (dot>0)
 			return fileName.substring(0, dot).toLowerCase();
 		else
-			return "";
+			return Helpers.EMPTY_STING;
 	}
 	/**
 	 * @since 22.07.2015
@@ -812,7 +810,7 @@ public class Helpers
 	{
 		if (url==null) return false;
 		
-		if (url.getProtocol().equalsIgnoreCase("file"))
+		if (isFile(url))
 		{
 			try
 			{
@@ -893,23 +891,25 @@ public class Helpers
 	{
 		String fileName = inputFileName;
 		final URL fileURL = createURLfromString(inputFileName);
-		if (!fileURL.getProtocol().equalsIgnoreCase("file")) return fileURL;
+		if (!isFile(fileURL)) return fileURL;
 		try
 		{
 			if (Helpers.urlExists(fileName))
 				return fileURL;
 			else
 			{
+				// If fileName is from a Windows/DOS System, replace separator
 				fileName = fileName.replace('\\', '/');
 
-				// Create a URL object to the file
-				String path = Helpers.createStringFomURL(baseURL);
+				// Get the path portion of the URL - and decode URL type entries (like %20 for spaces)
+				String path = Helpers.createStringFromURLString(baseURL.getPath());
 				
-				// get rid of playlist file name
+				// now get rid of playlist file name
 				int lastSlash = path.lastIndexOf('/');
 				StringBuilder relPath = new StringBuilder(path.substring(0, lastSlash + 1));
-				
+				// and remove a possible starting slash
 				if (fileName.charAt(0) == '/') fileName = fileName.substring(1);
+				
 				int iterations = 0;
 				URL fullURL = Helpers.createURLfromString(((new StringBuilder(relPath)).append(fileName)).toString());
 				while (fullURL!=null && !urlExists(fullURL) && iterations<256)
@@ -939,7 +939,7 @@ public class Helpers
 		}
 		catch (Throwable ex)
 		{
-			Log.error("createAbsolutePathForFile", ex);
+			Log.error("[createAbsolutePathForFile]", ex);
 		}
 		Log.info("Illegal filename specification: " + inputFileName + " in playlist " + baseURL);
 		return null;
@@ -952,7 +952,7 @@ public class Helpers
 	 * @param action a String for the "open File"-Button
 	 * @param filter a FileChooserFilter
 	 * @param acceptAllFiles show "All Files" or not
-	 * @param type 0=load-Mod 1=save-mode
+	 * @param type 0=load-mode 1=save-mode
 	 * @param multiFileSelection true: multiple Files can be selected
 	 * @return
 	 * @since 23.03.2011
@@ -1294,7 +1294,7 @@ public class Helpers
 	{
 		try
 		{
-			URL javamod_url = new URL(JAVAMOD_URL);
+			URL javamod_url = createURLfromString(JAVAMOD_URL);
 			return copyFromURL(javamod_url, destination, bar);
 		}
 		catch (Throwable ex)

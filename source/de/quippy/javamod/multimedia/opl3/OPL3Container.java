@@ -236,5 +236,11 @@ public class OPL3Container extends MultimediaContainer
 		currentMixer = new OPL3Mixer(getOPLVersion(), getSampleRate(), opl3Sequence, doVirtualStereoMix);
 		return currentMixer;
 	}
-
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }

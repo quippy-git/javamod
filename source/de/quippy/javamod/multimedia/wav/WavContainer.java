@@ -207,4 +207,11 @@ public class WavContainer extends MultimediaContainer
 		currentMixer = new WavMixer(getFileURL());
 		return currentMixer;
 	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }

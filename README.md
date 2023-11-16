@@ -1,6 +1,25 @@
-Code Compliance Level: JDK 17
-Build with openJDK 17.0.2
- 
+# JavaMod V3.6
+JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
+Impulse Tracker, Scream Tracker and other mod files plus
+SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
+See the supported file types for a complete list.
+
+This is the original JavaMod project from Daniel "Quippy" Becker.
+
+Download the JAR or the source code and compile for yourself. A double click
+on the jar-file should start it. If not, to manually start the player in GUI
+mode open a command line (CMD or Shell) and enter:
+   java -jar ./javamod.jar
+To start the command line version enter:
+   java -cp ./javamod.jar de.quippy.javamod.main.CommandLine MODFILE
+   Without any parameters you will receive a help screen. 
+
+## Download of compiled version and source code
+* https://javamod.de/javamod.php
+* https://quippy.de/mod.php
+* https://sourceforge.net/projects/javamod/
+* https://github.com/quippy-git/javamod
+
 ## Supported file types:
 * Mods (FAR, NST, MOD, MTM, STK, WOW, XM, STM, S3M, IT, PowerPacker)
 * SID
@@ -13,8 +32,12 @@ Build with openJDK 17.0.2
 * OPL2/3 (ROL, LAA, CMF, DRO, SCI)
 * Playlists PLS, M3U, M3U8, ZIP, CUE
 
+## Technical info:
+Code Compliance Level: JDK 17
+Build with openJDK 17.0.2
+ 
 ## Third-party libraries
-JavaMod incorporates modified versions of the following libraries.
+JavaMod incorporates modified versions of the following libraries:
 
 * jflac (http://jflac.sourceforge.net/)
 * jlayer (https://github.com/wkpark/JLayer (was http://www.javazoom.net/javalayer/javalayer.html))
@@ -22,7 +45,7 @@ JavaMod incorporates modified versions of the following libraries.
 * jorbis (http://www.jcraft.com/jorbis/)
 * sidplay2 (http://sidplay2.sourceforge.net/)
 * OPL3 (https://opl3.cozendey.com/)
-* FMOPL (https://github.com/mamedev/mame - was removed 03/2021)
+* FMOPL (https://github.com/mamedev/mame - was removed from mame 03/2021)
 
 ## Known issues:
 * reading midi devices in MidiContainer can take a long time on Linux
@@ -39,16 +62,37 @@ JavaMod incorporates modified versions of the following libraries.
 ## Planned:
 * WavPack and MusePack support
 * MO3 support
-* Midi, AdLib with Mods
+* Midi and AdLib/OPL with Mods
 * read 7z archives
-* maybe: follow song with mod files (pattern display)
 
-## Download of compiled version and source code
-* https://javamod.de/javamod.php
-* https://quippy.de/mod.php
-* https://sourceforge.net/projects/javamod/
-* https://github.com/quippy-git/javamod
-
+## New in Version 3.6
+* NEW: Shuffle play list moved from context menu to a separate button, so that
+       the function is found.
+* NEW: Save play list moved from context menu to a separate button, so that
+       the function is found.
+* NEW: Repeat play list is now a button with small icon, not a JCheckBox
+* NEW: Upgrade to Java 20 compatibility (new URL(..) is deprecated)
+* NEW: Follow a tracker song in pattern view. I also implemented a colored
+       version. Did work and looked good, but is way too slow!
+* FIX: The SourceLine now has the same amount of bytes like the rendering
+       buffer, which is set with mod play back config. 
+       Previously the SourceLine had a default amount of bytes that did not fit
+       the rendering buffer. Made the mixer block and wait.
+       However, you now might need to increase your milliseconds set!
+* FIX: Envelope::sanitize also needs to limit the nPoints and endPoint values to
+       maximum possible index of the arrays of positions and values. Plus moved
+       fix of XM positions MSB set into sanitize function.
+* FIX: fixing the FIX of 3.4 (SongName) - getSongInfosFor(URL) should NEVER
+       alter the container singleton. Changed that in 3.4 for MIDIs using
+       "getSongName". Result: after adding a piece to the play list, this would
+       not play when double clicked.
+* FIX: Samples are now displayed without gap to the left (only visible with
+       small samples), color of loop was adjusted, is not swallowed by border
+* FIX: BasicModMixer::fitIntoLoops ping pong loops were calculated a bit off as
+       XMs need that differently to ITs...
+       (AGAiN - FairStars MP3 Recorderkg.XM vs. TIMEAGO.IT)
+* FIX: IT Compatibility: Ensure that there is no pan swing, panbrello, panning
+       envelopes, etc. applied on surround channels.
 
 ## New in Version 3.5
 * FIX: PortaToNote: if an instrument is set, that was ignored, as FT2.09 does it.
@@ -56,7 +100,7 @@ JavaMod incorporates modified versions of the following libraries.
        does not change.
 * FIX: Powerpacked MODs were not correctly read at all circumstances
 * FIX: CommandLine: missing break statement. Setting volume fell through to
-       default, which through an exception
+       default, which throws an exception
 * FIX: CommandLine stayed in an endless loop even after piece finished
 * FIX: CommandLine did not end in case of a RuntimeException
 * FIX: CommandLine: supports 32 Bit now, as GUI does
@@ -75,7 +119,7 @@ JavaMod incorporates modified versions of the following libraries.
        not? They are mapped to ProTracker / XM Modules
 * FIX: added NULL-Pointer checks and clearing sample/instrument/pattern-dialogs,
        because Farandole in S3M leaves patterns and samples empty
-* FIX: All multimediafiles relying on MultimediaContainer::getSongNameFromURL
+* FIX: All multimedia files relying on MultimediaContainer::getSongNameFromURL
        need the URL updated in the BaseContainer - is now done.
        Flaw was probably only visible with MIDIs
 * FIX: SIDMixer must not implemented setMillisecondposition. Wav-Export of File
@@ -348,7 +392,7 @@ JavaMod incorporates modified versions of the following libraries.
 * Saving radio / Internet stream playlists works now
 * "All Playable files" is on top of selection now
 * TextAreaFont and DialogFont are not set as statics any more to prevent errors
-  when UI is not used and needed in server like environments
+  when UI is not used and needed in server like environments (headless)
 * Optimized load of URLs from playlists - no "re-location" for http-files - these
   are always absolute
 * introducing HttpResource for web-Radio - this supports also 302, moved
@@ -384,7 +428,7 @@ JavaMod incorporates modified versions of the following libraries.
   --> Eclipse uses its own compiler and will not create that error
   --> JavaC and NetBeans nevertheless will
   --> arrays are now loaded as a resource from files
-* SampleOffset now playes only with a note given
+* SampleOffset now plays only with a note given
 
 ## New in Version 2.0
 * Needs Java 6 now!!!

@@ -27,7 +27,7 @@ package de.quippy.javamod.multimedia.mod.loader.pattern;
  */
 public class PatternRow
 {
-	private PatternElement [] patternElement;
+	private PatternElement [] patternElements;
 	private boolean rowPlayed;
 	
 	/**
@@ -36,7 +36,7 @@ public class PatternRow
 	public PatternRow(int channels)
 	{
 		super();
-		patternElement = new PatternElement[channels];
+		patternElements = new PatternElement[channels];
 		resetRowPlayed();
 	}
 	/**
@@ -47,17 +47,21 @@ public class PatternRow
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<patternElement.length; i++)
-			sb.append(patternElement[i].toString()).append(" | ");
+		for (int channel=0; channel<patternElements.length; channel++)
+			sb.append(patternElements[channel].toString()).append(" |");
 		//sb.append(Boolean.toString(rowPlayed)).append(" | ");
 		return sb.toString();
 	}
-	public String toHTMLString()
+	/**
+	 * @since 11.11.2023
+	 * @return the amount of characters for representing this pattern row
+	 */
+	public int getPatternRowCharacterLength()
 	{
-		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<patternElement.length; i++)
-			sb.append("<TD>").append(patternElement[i].toString()).append("</TD>");
-		return sb.toString();
+		if (patternElements!=null && patternElements.length>0) 
+			return patternElements.length * 16;
+		else
+			return 0;
 	}
 	/**
 	 * @since 23.08.2008
@@ -82,31 +86,31 @@ public class PatternRow
 		return rowPlayed;
 	}
 	/**
-	 * @return Returns the patternElement.
+	 * @return Returns the patternElements.
 	 */
-	public PatternElement[] getPatternElement()
+	public PatternElement[] getPatternElements()
 	{
-		return patternElement;
+		return patternElements;
 	}
 	/**
-	 * @return Returns the patternElement.
+	 * @return Returns the patternElements.
 	 */
 	public PatternElement getPatternElement(int channel)
 	{
-		return patternElement[channel];
+		return patternElements[channel];
 	}
 	/**
-	 * @param patternElement The patternElement to set.
+	 * @param patternElements The patternElements to set.
 	 */
 	public void setPatternElement(PatternElement[] patternElement)
 	{
-		this.patternElement = patternElement;
+		this.patternElements = patternElement;
 	}
 	/**
-	 * @param patternElement The patternElement to set.
+	 * @param patternElements The patternElements to set.
 	 */
 	public void setPatternElement(int channel, PatternElement patternElement)
 	{
-		this.patternElement[channel] = patternElement;
+		this.patternElements[channel] = patternElement;
 	}
 }

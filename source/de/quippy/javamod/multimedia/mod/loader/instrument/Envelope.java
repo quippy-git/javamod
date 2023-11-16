@@ -63,7 +63,7 @@ public class Envelope
 	{
 		// we start at "-1" so first add one...
 		int pos = position + 1;
-		// difference between xm and it is the way of comparison
+		// difference between XM and IT is the way of comparison
 		// >= (==) a point or > a point...
 		if (xm_style) 
 		{
@@ -124,7 +124,7 @@ public class Envelope
 				y1 = value[index - 1]<<SHIFT; 
 				x1 = positions[index - 1];
 			}
-			// else { x1 = 0; y1 = 0; }
+//			else { x1 = 0; y1 = 0; }
 
 			if(x2>x1 && position>x1)
 			{
@@ -168,7 +168,8 @@ public class Envelope
 		xm_style = false;
 	}
 	/**
-	 * Let's do some range checks. Values are limited to not exceed maxValue.
+	 * Let's do some range checks. Values are limited to not exceed maxValue,
+	 * plus array sizes are considered and MSB bug (XM)
 	 * Needs to be called by the loaders, when envelope set is finished
 	 * @since 22.01.2022
 	 * @param maxValue the maximum value
@@ -177,17 +178,33 @@ public class Envelope
 	{
 		if (positions!=null && positions.length>0)
 		{
+			// limit endPoint to the smallest possible array index
+			// and consider arrays of different length
+			nPoints = (nPoints>positions.length)?positions.length:(nPoints>value.length)?value.length:nPoints;
+			endPoint = nPoints - 1;
+
+			// sanitize the values and positions
 			positions[0]=0;
 			value[0] = Helpers.limitMax(value[0], maxValue);
 			for (int pos=1; pos<=endPoint; pos++)
 			{
+				// libmikmod code says: "Some broken XM editing program will only save the low byte of the position
+				// value. Try to compensate by adding the missing high byte."
+				// So, if position is smaller than prior position and no MSB is set:
+				if (positions[pos]<positions[pos-1] && (positions[pos]&0xFF00)==0)
+				{
+					positions[pos]|=(positions[pos-1]&0xFF00); // add possible high byte of prior position
+					if (positions[pos]<positions[pos-1]) positions[pos]|=0x0100; // still smaller? Force MSB set (OMPT does "+=" - which seems wrong)
+				}
 				positions[pos] = Math.max(positions[pos], positions[pos - 1]);
 				value[pos] = Helpers.limitMax(value[pos], maxValue);
 			}
-			loopEndPoint = Helpers.limitMax(loopEndPoint, endPoint);
-			loopStartPoint = Helpers.limitMax(loopStartPoint, loopEndPoint);
-			sustainEndPoint = Helpers.limitMax(sustainEndPoint, endPoint);
-			sustainStartPoint = Helpers.limitMax(sustainStartPoint, sustainEndPoint);
+
+			// limit loop and sustain loop positions to the maximum
+			loopStartPoint = Helpers.limitMax(loopStartPoint, endPoint);
+			loopEndPoint = Helpers.limitMax(loopEndPoint, loopStartPoint);
+			sustainStartPoint = Helpers.limitMax(sustainStartPoint, endPoint);
+			sustainEndPoint = Helpers.limitMax(sustainEndPoint, sustainStartPoint);
 		}
 		else
 		{
@@ -223,16 +240,6 @@ public class Envelope
 	public void setPositions(final int[] positions)
 	{
 		this.positions = positions;
-		// libmikmod code says: "Some broken XM editing program will only save the low byte of the position
-		// value. Try to compensate by adding the missing high byte."
-		for (int i=1; i<positions.length; i++)
-		{
-			if (positions[i]<positions[i-1] && (positions[i]&0xFF00)==0)
-			{
-				positions[i]|=(positions[i-1]&0xFF00); // add possible high byte of prior position
-				if (positions[i] < positions[i-1]) positions[i] |=0x0100; // still smaller? Force MSB set
-			}
-		}
 	}
 	/**
 	 * @param value The value to set.

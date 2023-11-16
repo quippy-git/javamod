@@ -28,6 +28,7 @@ package de.quippy.javamod.multimedia.mod.midi;
 import java.io.IOException;
 
 import de.quippy.javamod.io.ModfileInputStream;
+import de.quippy.javamod.system.Helpers;
 
 /**
  * @author Daniel Becker
@@ -45,7 +46,6 @@ public class MidiMacros
 	public static final int MIDIOUT_BANKSEL	= 7;
 	public static final int MIDIOUT_PROGRAM	= 8;
 	
-	private static final String EMPTY_STRING = "";
 	private static final int ANZ_GLB = 9;
 	private static final int ANZ_SFX = 16;
 	private static final int ANZ_ZXX = 128;
@@ -84,15 +84,15 @@ public class MidiMacros
 	 */
 	public void clearZxxMacros()
 	{
-		for (int i=0; i<ANZ_SFX; i++) midiSFXExt[i]=EMPTY_STRING;
-		for (int i=0; i<ANZ_ZXX; i++) midiZXXExt[i]=EMPTY_STRING;
+		for (int i=0; i<ANZ_SFX; i++) midiSFXExt[i]=Helpers.EMPTY_STING;
+		for (int i=0; i<ANZ_ZXX; i++) midiZXXExt[i]=Helpers.EMPTY_STING;
 	}
 	/**
 	 * @since 15.06.2020
 	 */
 	public void clearAllMacros()
 	{
-		for (int i=0; i<ANZ_GLB; i++) midiGlobal[i]=EMPTY_STRING;
+		for (int i=0; i<ANZ_GLB; i++) midiGlobal[i]=Helpers.EMPTY_STING;
 		clearZxxMacros();
 	}
 	/**
@@ -106,7 +106,7 @@ public class MidiMacros
 	{
 	    switch(macroType)
 	    {
-		    case SFxUnused:		return EMPTY_STRING;
+		    case SFxUnused:		return Helpers.EMPTY_STING;
 		    case SFxCutoff:		return "F0F000z";
 		    case SFxReso:		return "F0F001z";
 		    case SFxFltMode:	return "F0F002z";
@@ -118,7 +118,7 @@ public class MidiMacros
 		    case SFxPitch:		return "Ec00z";
 		    case SFxProgChange:	return "Ccz";
 		    case SFxCustom:
-		    default:			return EMPTY_STRING;
+		    default:			return Helpers.EMPTY_STING;
 	    }
 	}
 	/**
@@ -136,14 +136,14 @@ public class MidiMacros
 			switch (macroType)
 			{
 				case ZxxUnused:
-					formatString = EMPTY_STRING;
+					formatString = Helpers.EMPTY_STING;
 					break;
 				case ZxxReso4Bit:
 					param = i * 8;
 					if (i < 16)
 						formatString = "F0F001%02X";
 					else
-						formatString = EMPTY_STRING;
+						formatString = Helpers.EMPTY_STING;
 					break;
 				case ZxxReso7Bit:
 					formatString = "F0F001%02X";
@@ -161,7 +161,7 @@ public class MidiMacros
 					else if (i < 32)
 						formatString = "F0F002%02X";
 					else
-						formatString = EMPTY_STRING;
+						formatString = Helpers.EMPTY_STING;
 					break;
 				case ZxxChannelAT:
 					formatString = "Dc%02X";
@@ -178,7 +178,7 @@ public class MidiMacros
 
 				case ZxxCustom:
 				default:
-					formatString = EMPTY_STRING;
+					formatString = Helpers.EMPTY_STING;
 					continue;
 			}
 
@@ -303,7 +303,7 @@ public class MidiMacros
 	 */
 	public String getMidiGlobal(final int index)
 	{
-		if (index<0 || index>=ANZ_GLB) return EMPTY_STRING;
+		if (index<0 || index>=ANZ_GLB) return Helpers.EMPTY_STING;
 		return midiGlobal[index];
 	}
 	/**
@@ -313,7 +313,7 @@ public class MidiMacros
 	 */
 	public String getMidiSFXExt(final int index)
 	{
-		if (index<0 || index>=ANZ_SFX) return EMPTY_STRING;
+		if (index<0 || index>=ANZ_SFX) return Helpers.EMPTY_STING;
 		return midiSFXExt[index];
 	}
 	/**
@@ -323,7 +323,7 @@ public class MidiMacros
 	 */
 	public String getMidiZXXExt(final int index)
 	{
-		if (index<0 || index>=ANZ_ZXX) return EMPTY_STRING;
+		if (index<0 || index>=ANZ_ZXX) return Helpers.EMPTY_STING;
 		return midiZXXExt[index];
 	}
 }

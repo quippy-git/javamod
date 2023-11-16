@@ -44,6 +44,7 @@ public interface SoundOutputStream
 	public void stopLine(final boolean flushOrDrain);
 	public void flushLine();
 	public void drainLine();
+	public int getLineBufferSize();
 	public void writeSampleData(final byte[] samples, final int start, final int length);
 	public void setInternalFramePosition(final long newPosition);
 	public long getFramePosition();
@@ -55,6 +56,7 @@ public interface SoundOutputStream
 	public void setPlayDuringExport(final boolean playDuringExport);
 	public void setKeepSilent(final boolean keepSilent);
 	public void changeAudioFormatTo(final AudioFormat newFormat);
+	public void changeAudioFormatTo(final AudioFormat newFormat, final int newSourceLineBufferSize);
 	public AudioFormat getAudioFormat();
 	public boolean matches(final SoundOutputStream otherStream);
 }

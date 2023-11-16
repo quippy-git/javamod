@@ -147,6 +147,7 @@ public class MidiContainer extends MultimediaContainer
 	@Override
 	public Object[] getSongInfosFor(URL url)
 	{
+		String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
 		try
 		{
@@ -156,7 +157,7 @@ public class MidiContainer extends MultimediaContainer
 		catch (Throwable ex)
 		{
 		}
-		return new Object[] { getSongName(), duration };
+		return new Object[] { songName, duration };
 	}
 	/**
 	 * @return
@@ -357,5 +358,12 @@ public class MidiContainer extends MultimediaContainer
 	public MidiMixer getCurrentMixer()
 	{
 		return currentMixer;
+	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
 	}
 }

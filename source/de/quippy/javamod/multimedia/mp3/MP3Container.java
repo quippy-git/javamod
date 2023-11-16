@@ -35,6 +35,7 @@ import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.mp3.id3.MP3FileID3Controller;
 import de.quippy.javamod.multimedia.mp3.streaming.TagParseEvent;
 import de.quippy.javamod.multimedia.mp3.streaming.TagParseListener;
+import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 import de.quippy.mp3.decoder.Bitstream;
 import de.quippy.mp3.decoder.BitstreamException;
@@ -82,7 +83,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	public MultimediaContainer getInstance(URL mp3FileUrl)
 	{
 		MultimediaContainer result = super.getInstance(mp3FileUrl);
-		isStreaming = !mp3FileUrl.getProtocol().equalsIgnoreCase("file"); 
+		isStreaming = !Helpers.isFile(mp3FileUrl); 
 		if (!isStreaming)
 		{
 			Header h = getHeaderFrom(mp3FileUrl);
@@ -111,7 +112,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		Bitstream bitStream = null;
 		try
 		{
-			if (url.getProtocol().equalsIgnoreCase("file"))
+			if (Helpers.isFile(url))
 			{
 				inputStream = new RandomAccessInputStreamImpl(url);
 				bitStream = new Bitstream(inputStream);
@@ -142,7 +143,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		Bitstream bitStream = null;
 		try
 		{
-			if (url.getProtocol().equalsIgnoreCase("file"))
+			if (Helpers.isFile(url))
 			{
 				inputStream = new RandomAccessInputStreamImpl(url);
 				bitStream = new Bitstream(inputStream);
@@ -262,5 +263,12 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 			if (currentSongName!=null && currentSongName.length()!=0)
 				fireMultimediaContainerEvent(new MultimediaContainerEvent(this, MultimediaContainerEvent.SONG_NAME_CHANGED, currentSongName));
 		}
+	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
 	}
 }

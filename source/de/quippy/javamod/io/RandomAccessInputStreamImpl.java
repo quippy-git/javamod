@@ -98,7 +98,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	public RandomAccessInputStreamImpl(URL fromUrl) throws IOException, FileNotFoundException
 	{
 		super();
-		if (fromUrl.getProtocol().equalsIgnoreCase("file"))
+		if (Helpers.isFile(fromUrl))
 		{
 			try
 			{

@@ -22,7 +22,6 @@
 package de.quippy.javamod.main.playlist;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
@@ -54,16 +53,16 @@ public class PlayListEntry
 	/**
 	 * Constructor for PlayListEntry
 	 */
-	public PlayListEntry(File file, PlayList savedInPlaylist) throws MalformedURLException
+	public PlayListEntry(File file, PlayList savedInPlaylist)
 	{
-		this(file.toURI().toURL(), savedInPlaylist);
+		this(Helpers.createURLfromFile(file), savedInPlaylist);
 	}
 	/**
 	 * Constructor for PlayListEntry
 	 */
-	public PlayListEntry(String fileName, PlayList savedInPlaylist) throws MalformedURLException
+	public PlayListEntry(String fileName, PlayList savedInPlaylist)
 	{
-		this(new URL(fileName), savedInPlaylist);
+		this(Helpers.createURLfromString(fileName), savedInPlaylist);
 	}
 	/**
 	 * @return the file

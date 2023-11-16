@@ -232,4 +232,11 @@ public class APEContainer extends MultimediaContainer
 	{
 		return "APE-File";
 	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }

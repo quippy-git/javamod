@@ -20,7 +20,7 @@
 package de.quippy.jmac.decoder;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 import de.quippy.jmac.info.APEFileInfo;
@@ -192,9 +192,9 @@ public abstract class IAPEDecompress {
                 if (APELink.GetIsLinkFile()) {
                     URL url = null;
                     try {
-                        url = new URL(APELink.GetImageFilename());
+                        url = (new URI(APELink.GetImageFilename())).toURL();
                         pAPEInfo = new APEInfo(url);
-                    } catch (MalformedURLException e) {
+                    } catch (Exception e) {
                         pAPEInfo = new APEInfo(new java.io.File(APELink.GetImageFilename()));
                     }
                     nStartBlock = APELink.GetStartBlock();

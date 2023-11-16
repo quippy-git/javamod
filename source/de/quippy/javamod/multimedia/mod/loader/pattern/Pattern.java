@@ -29,19 +29,19 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
  */
 public class Pattern
 {
-	private PatternRow [] patternRow;
+	private PatternRow [] patternRows;
 	/**
 	 * Constructor for Pattern
 	 */
 	public Pattern(int rows)
 	{
 		super();
-		patternRow = new PatternRow[rows];
+		patternRows = new PatternRow[rows];
 	}
 	public Pattern(int rows, int channels)
 	{
 		this(rows);
-		for (int i=0; i<rows; i++) patternRow[i]= new PatternRow(channels);
+		for (int i=0; i<rows; i++) patternRows[i]= new PatternRow(channels);
 	}
 	/**
 	 * @return
@@ -51,25 +51,13 @@ public class Pattern
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();
-		for (int i=0; i<patternRow.length; i++)
-			sb.append(ModConstants.getAsHex(i, 2)).append(" | ").append(patternRow[i].toString()).append('\n');
+		for (int row=0; row<patternRows.length; row++)
+			sb.append(ModConstants.getAsHex(row, 2)).append(" |").append(patternRows[row].toString()).append('\n');
 		return sb.toString();
 	}
-	public String toHTMLString()
+	public int getPatternRowCharacterLength()
 	{
-		StringBuilder sb = new StringBuilder();
-		if (patternRow!=null && patternRow.length!=0)
-		{
-			sb.append("<thead><tr><th>&nbsp;</th>");
-			int anzColumns = patternRow[0].getPatternElement().length;
-			for (int i=0; i<anzColumns; i++)
-				sb.append("<th>").append(ModConstants.getAsHex(i+1, 2)).append("</th>");
-			sb.append("</tr></thead><tbody>");
-			for (int i=0; i<patternRow.length; i++)
-				sb.append("<TR><TD>").append(ModConstants.getAsHex(i, 2)).append("</TD>").append(patternRow[i].toHTMLString()).append("</TR>");
-			sb.append("</tbody>");
-		}
-		return sb.toString();
+		if (patternRows!=null && patternRows.length>0) return 4 + patternRows[0].getPatternRowCharacterLength(); else return 4;
 	}
 	/**
 	 * @since 23.08.2008
@@ -77,59 +65,59 @@ public class Pattern
 	 */
 	public int getRowCount()
 	{
-		return patternRow.length;
+		return patternRows.length;
 	}
 	/**
 	 * @since 23.08.2008
 	 */
 	public void resetRowsPlayed()
 	{
-		for (int i=0; i<patternRow.length; i++)
+		for (int i=0; i<patternRows.length; i++)
 		{
-			PatternRow row = patternRow[i];
+			PatternRow row = patternRows[i];
 			if (row!=null) row.resetRowPlayed();
 		}
 	}
 	/**
-	 * @return Returns the patternRow.
+	 * @return Returns the patternRows.
 	 */
-	public PatternRow[] getPatternRow()
+	public PatternRow[] getPatternRows()
 	{
-		return patternRow;
+		return patternRows;
 	}
 	/**
-	 * @return Returns the patternRow.
+	 * @return Returns the patternRows.
 	 */
 	public PatternRow getPatternRow(int row)
 	{
-		return patternRow[row];
+		return patternRows[row];
 	}
 	/**
 	 * @return Returns the patternElement.
 	 */
 	public PatternElement getPatternElement(int row, int channel)
 	{
-		return patternRow[row].getPatternElement(channel);
+		return patternRows[row].getPatternElement(channel);
 	}
 	/**
-	 * @param patternRow The patternRow to set.
+	 * @param patternRows The patternRows to set.
 	 */
 	public void setPatternRow(PatternRow[] patternRow)
 	{
-		this.patternRow = patternRow;
+		this.patternRows = patternRow;
 	}
 	/**
-	 * @param patternRow The patternRow to set.
+	 * @param patternRows The patternRows to set.
 	 */
 	public void setPatternRow(int row, PatternRow patternRow)
 	{
-		this.patternRow[row] = patternRow;
+		this.patternRows[row] = patternRow;
 	}
 	/**
 	 * @param patternElement The patternElement to set.
 	 */
 	public void setPatternElement(int row, int channel, PatternElement patternElement)
 	{
-		this.patternRow[row].setPatternElement(channel, patternElement);
+		this.patternRows[row].setPatternElement(channel, patternElement);
 	}
 }

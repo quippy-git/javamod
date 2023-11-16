@@ -30,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import de.quippy.javamod.mixer.Mixer;
+import de.quippy.javamod.system.Helpers;
 
 /**
  * @author: Daniel Becker
@@ -83,7 +84,7 @@ public abstract class MultimediaContainer
 	}
 	public String getPrintableFileUrl(URL urlName)
 	{
-		if (urlName==null) return "";
+		if (urlName==null) return Helpers.EMPTY_STING;
 		try
 		{
 			java.io.File f = new java.io.File(urlName.toURI());
@@ -178,6 +179,11 @@ public abstract class MultimediaContainer
 	 * @param props
 	 */
 	public abstract void configurationSave(Properties props);
+	/**
+	 * Clean up
+	 * @since 11.11.2023
+	 */
+	public abstract void cleanUp();
 	/**
 	 * Get the ModMixer of this container
 	 * @since: 12.10.2007

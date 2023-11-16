@@ -414,7 +414,7 @@ public class MidiMixer extends BasicMixer
 					if (byteCount>0)
 					{
 						writeSampleDataToLine(output, 0, byteCount);
-						setInternatFramePosition(framePosition);
+						setInternalFramePosition(framePosition);
 						framePosition += (byteCount / frameCalc);
 					}
 				}

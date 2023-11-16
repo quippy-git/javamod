@@ -236,7 +236,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 		}
 		return modInfo_openInstrumentDialog;
 	}
-	private ModPatternDialog getModPatternDialog()
+	protected ModPatternDialog getModPatternDialog()
 	{
 		if (modPatternDialog==null)
 		{
@@ -245,7 +245,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 		}
 		return modPatternDialog;
 	}
-	private ModSampleDialog getModSampleDialog()
+	protected ModSampleDialog getModSampleDialog()
 	{
 		if (modSampleDialog==null)
 		{
@@ -254,7 +254,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 		}
 		return modSampleDialog;
 	}
-	private ModInstrumentDialog getModInstrumentDialog()
+	protected ModInstrumentDialog getModInstrumentDialog()
 	{
 		if (modInstrumentDialog==null)
 		{

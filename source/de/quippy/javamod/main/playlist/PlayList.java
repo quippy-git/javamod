@@ -612,7 +612,7 @@ public class PlayList
 					if (ps!=null)
 					{
 						String fileString = Helpers.createLocalFileStringFromURL(fileURL, true);
-						if (fileURL.getProtocol().toLowerCase().equals("file")) // try to make relative to playlist path if its a file location
+						if (Helpers.isFile(fileURL)) // try to make relative to playlist path if its a file location
 							fileString = Helpers.createRelativePathForFile(pathPrefix, fileString);
 						final String duration = Long.toString(Helpers.getMillisecondsFromTimeString(entry.getDurationString()) / 1000L);
 						if (writePLSFile)

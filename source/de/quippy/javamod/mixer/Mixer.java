@@ -41,6 +41,7 @@ public abstract class Mixer
 	private File exportFile;
 	private boolean playDuringExport;
 	private boolean keepSilent;
+	private int sourceLineBufferSize;
 	
 	private float currentVolume;
 	private float currentBalance;
@@ -59,11 +60,12 @@ public abstract class Mixer
 		this.keepSilent = false;
 		this.currentVolume = 1.0f;
 		this.currentBalance = 0.0f;
+		this.sourceLineBufferSize = -1;
 	}
 	/**
 	 * @param audioFormat the audioFormat to set
 	 */
-	protected void setAudioFormat(AudioFormat audioFormat)
+	protected void setAudioFormat(final AudioFormat audioFormat)
 	{
 		this.audioFormat = audioFormat;
 	}
@@ -77,7 +79,7 @@ public abstract class Mixer
 	/**
 	 * @param audioProcessor the audioProcessor to set
 	 */
-	public void setAudioProcessor(AudioProcessor audioProcessor)
+	public void setAudioProcessor(final AudioProcessor audioProcessor)
 	{
 		this.audioProcessor = audioProcessor;
 	}
@@ -88,7 +90,7 @@ public abstract class Mixer
 	 * @since 01.11.2008
 	 * @param newVolume
 	 */
-	public void setVolume(float newVolume)
+	public void setVolume(final float newVolume)
 	{
 		currentVolume = newVolume;
 		if (outputStream!=null) outputStream.setVolume(newVolume);
@@ -100,7 +102,7 @@ public abstract class Mixer
 	 * @since 01.11.2008
 	 * @param newVolume
 	 */
-	public void setBalance(float newBalance)
+	public void setBalance(final float newBalance)
 	{
 		currentBalance = newBalance;
 		if (outputStream!=null) outputStream.setBalance(newBalance);
@@ -110,37 +112,44 @@ public abstract class Mixer
 	 * @param outputStream the outputStream to set
 	 * @since 25.02.2011
 	 */
-	public void setSoundOutputStream(SoundOutputStream newOutputStream)
+	public void setSoundOutputStream(final SoundOutputStream newOutputStream)
 	{
 		outputStream = newOutputStream;
 	}
 	/**
 	 * @param exportFile the exportFile to set
 	 */
-	public void setExportFile(File exportFile)
+	public void setExportFile(final File exportFile)
 	{
 		this.exportFile = exportFile;
 	}
 	/**
 	 * @param exportFile the exportFile to set
 	 */
-	public void setExportFile(String exportFileName)
+	public void setExportFile(final String exportFileName)
 	{
 		if (exportFileName!=null) this.exportFile = new File(exportFileName);
 	}
 	/**
 	 * @param playDuringExport the playDuringExport to set
 	 */
-	public void setPlayDuringExport(boolean playDuringExport)
+	public void setPlayDuringExport(final boolean playDuringExport)
 	{
 		this.playDuringExport = playDuringExport;
 	}
 	/**
 	 * @param keepSilent the keepSilent to set
 	 */
-	public void setKeepSilent(boolean keepSilent)
+	public void setKeepSilent(final boolean keepSilent)
 	{
 		this.keepSilent = keepSilent;
+	}
+	/**
+	 * @param bufferSize the bufferSize to set
+	 */
+	public void setSourceLineBufferSize(final int sourceLineBufferSize)
+	{
+		this.sourceLineBufferSize = sourceLineBufferSize;
 	}
 	/**
 	 * @since 14.10.2007
@@ -156,7 +165,7 @@ public abstract class Mixer
 	 * @since 27.11.2010
 	 * @param newPosition
 	 */
-	protected void setInternatFramePosition(long newPosition)
+	protected void setInternalFramePosition(long newPosition)
 	{
 		if (outputStream!=null) outputStream.setInternalFramePosition(newPosition);
 	}
@@ -168,11 +177,11 @@ public abstract class Mixer
 		closeAudioDevice();
 		if (outputStream == null)
 		{
-			outputStream = new SoundOutputStreamImpl(this.audioFormat, this.audioProcessor, this.exportFile, this.playDuringExport, this.keepSilent);
+			outputStream = new SoundOutputStreamImpl(this.audioFormat, this.audioProcessor, this.exportFile, this.playDuringExport, this.keepSilent, this.sourceLineBufferSize);
 		}
 		else
 		{
-			outputStream.changeAudioFormatTo(this.audioFormat);
+			outputStream.changeAudioFormatTo(this.audioFormat, this.sourceLineBufferSize);
 			outputStream.setAudioProcessor(this.audioProcessor);
 			outputStream.setExportFile(this.exportFile);
 			outputStream.setPlayDuringExport(playDuringExport);

@@ -112,8 +112,6 @@ public class MP3InfoPanel extends JPanel
 	private JLabel v2_L_BPM = null;
 	private JTextField v2_BPM = null;
 	
-	private static final String EMPTY_STRING = "";
-	
 	/**
 	 * Constructor for MP3InfoPanel
 	 */
@@ -950,19 +948,19 @@ public class MP3InfoPanel extends JPanel
 		else
 		{
 			getV1_Track().setEnabled(false);
-			getV1_Track().setText(EMPTY_STRING);
+			getV1_Track().setText(Helpers.EMPTY_STING);
 			getV1_Title().setEnabled(false);
-			getV1_Title().setText(EMPTY_STRING);
+			getV1_Title().setText(Helpers.EMPTY_STING);
 			getV1_Artist().setEnabled(false);
-			getV1_Artist().setText(EMPTY_STRING);
+			getV1_Artist().setText(Helpers.EMPTY_STING);
 			getV1_Album().setEnabled(false);
-			getV1_Album().setText(EMPTY_STRING);
+			getV1_Album().setText(Helpers.EMPTY_STING);
 			getV1_Year().setEnabled(false);
-			getV1_Year().setText(EMPTY_STRING);
+			getV1_Year().setText(Helpers.EMPTY_STING);
 			getV1_Genre().setEnabled(false);
-			getV1_Genre().setSelectedItem(EMPTY_STRING);
+			getV1_Genre().setSelectedItem(Helpers.EMPTY_STING);
 			getV1_Comment().setEnabled(false);
-			getV1_Comment().setText(EMPTY_STRING);
+			getV1_Comment().setText(Helpers.EMPTY_STING);
 		}
 
 		if (currentID.id3v2Exists())
@@ -1004,37 +1002,37 @@ public class MP3InfoPanel extends JPanel
 		else
 		{
 			getV2_Track().setEnabled(false);
-			getV2_Track().setText(EMPTY_STRING);
+			getV2_Track().setText(Helpers.EMPTY_STING);
 			getV2_Disc().setEnabled(false);
-			getV2_Disc().setText(EMPTY_STRING);
+			getV2_Disc().setText(Helpers.EMPTY_STING);
 			getV2_Title().setEnabled(false);
-			getV2_Title().setText(EMPTY_STRING);
+			getV2_Title().setText(Helpers.EMPTY_STING);
 			getV2_Artist().setEnabled(false);
-			getV2_Artist().setText(EMPTY_STRING);
+			getV2_Artist().setText(Helpers.EMPTY_STING);
 			getV2_Album().setEnabled(false);
-			getV2_Album().setText(EMPTY_STRING);
+			getV2_Album().setText(Helpers.EMPTY_STING);
 			getV2_Year().setEnabled(false);
-			getV2_Year().setText(EMPTY_STRING);
+			getV2_Year().setText(Helpers.EMPTY_STING);
 			getV2_Genre().setEnabled(false);
-			getV2_Genre().setSelectedItem(EMPTY_STRING);
+			getV2_Genre().setSelectedItem(Helpers.EMPTY_STING);
 			getV2_Comment().setEnabled(false);
-			getV2_Comment().setText(EMPTY_STRING);
+			getV2_Comment().setText(Helpers.EMPTY_STING);
 			getV2_AlbumArtist().setEnabled(false);
-			getV2_AlbumArtist().setText(EMPTY_STRING);
+			getV2_AlbumArtist().setText(Helpers.EMPTY_STING);
 			getV2_Composer().setEnabled(false);
-			getV2_Composer().setText(EMPTY_STRING);
+			getV2_Composer().setText(Helpers.EMPTY_STING);
 			getV2_Publisher().setEnabled(false);
-			getV2_Publisher().setText(EMPTY_STRING);
+			getV2_Publisher().setText(Helpers.EMPTY_STING);
 			getV2_OrigArtist().setEnabled(false);
-			getV2_OrigArtist().setText(EMPTY_STRING);
+			getV2_OrigArtist().setText(Helpers.EMPTY_STING);
 			getV2_Copyright().setEnabled(false);
-			getV2_Copyright().setText(EMPTY_STRING);
+			getV2_Copyright().setText(Helpers.EMPTY_STING);
 			getV2_URL().setEnabled(false);
-			getV2_URL().setText(EMPTY_STRING);
+			getV2_URL().setText(Helpers.EMPTY_STING);
 			getV2_Encoded().setEnabled(false);
-			getV2_Encoded().setText(EMPTY_STRING);
+			getV2_Encoded().setText(Helpers.EMPTY_STING);
 			getV2_BPM().setEnabled(false);
-			getV2_BPM().setText(EMPTY_STRING);
+			getV2_BPM().setText(Helpers.EMPTY_STING);
 		}
 		getTabbedPane().setSelectedIndex(currentID.id3v2Exists()?1:0);
 	}

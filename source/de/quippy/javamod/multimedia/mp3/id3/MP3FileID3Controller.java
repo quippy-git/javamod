@@ -31,6 +31,7 @@ import de.quippy.javamod.io.RandomAccessInputStream;
 import de.quippy.javamod.io.RandomAccessInputStreamImpl;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.mp3.id3.exceptions.ID3v2FormatException;
+import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 
 /**
@@ -861,7 +862,7 @@ public class MP3FileID3Controller
 	 */
 	public String getFileName()
 	{
-		if (mp3File==null) return "";
+		if (mp3File==null) return Helpers.EMPTY_STING;
 		try
 		{
 			return mp3File.getCanonicalPath();

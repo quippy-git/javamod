@@ -304,4 +304,11 @@ public class SIDContainer extends MultimediaContainer
 	{
 		return "SID-File";
 	}
+	/**
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()
+	 */
+	@Override
+	public void cleanUp()
+	{
+	}
 }
