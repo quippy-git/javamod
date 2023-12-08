@@ -19,6 +19,8 @@
 
 package de.quippy.jmac.decoder;
 
+import java.io.IOException;
+
 import de.quippy.jmac.info.APEHeader;
 import de.quippy.jmac.info.SpecialFrame;
 import de.quippy.jmac.info.WaveFormat;
@@ -26,8 +28,6 @@ import de.quippy.jmac.tools.ByteBuffer;
 import de.quippy.jmac.tools.Crc32;
 import de.quippy.jmac.tools.JMACException;
 import de.quippy.jmac.tools.Prepare;
-
-import java.io.IOException;
 
 /**
  * Author: Dmitry Vaguine

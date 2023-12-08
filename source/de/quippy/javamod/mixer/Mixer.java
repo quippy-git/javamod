@@ -38,14 +38,15 @@ public abstract class Mixer
 	private SoundOutputStream outputStream;
 	private AudioProcessor audioProcessor;
 	private AudioFormat audioFormat;
-	private File exportFile;
-	private boolean playDuringExport;
 	private boolean keepSilent;
 	private int sourceLineBufferSize;
 	
 	private float currentVolume;
 	private float currentBalance;
 	
+	protected boolean playDuringExport;
+	protected File exportFile;
+
 	/**
 	 * Constructor for Mixer
 	 */

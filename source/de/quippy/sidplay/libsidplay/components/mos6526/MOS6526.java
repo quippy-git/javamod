@@ -18,10 +18,11 @@ package de.quippy.sidplay.libsidplay.components.mos6526;
 import static de.quippy.sidplay.libsidplay.Config.S_A_WHITE_EMAIL;
 import static de.quippy.sidplay.libsidplay.common.SIDEndian.endian_16hi8;
 import static de.quippy.sidplay.libsidplay.common.SIDEndian.endian_16lo8;
+
 import de.quippy.sidplay.libsidplay.common.Event;
+import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
 import de.quippy.sidplay.libsidplay.common.IComponent;
 import de.quippy.sidplay.libsidplay.common.IEventContext;
-import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
 
 public abstract class MOS6526 implements IComponent {
 

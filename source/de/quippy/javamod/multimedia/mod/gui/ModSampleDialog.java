@@ -34,12 +34,14 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerListModel;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import de.quippy.javamod.main.gui.tools.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.ModInfoPanel;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.system.Helpers;
 
@@ -101,13 +103,18 @@ public class ModSampleDialog extends JDialog
 	private JTextField autoVibRateValue = null;
 
 	private Sample [] samples;
+	private ArrayList<String> spinnerModelData = null; 
+
+	@SuppressWarnings("unused")
+	private ModInfoPanel myModInfoPanel;
 
 	/**
 	 * Constructor for ModPatternDialog
 	 */
-	public ModSampleDialog()
+	public ModSampleDialog(ModInfoPanel infoPanel)
 	{
 		super();
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	/**
@@ -115,9 +122,10 @@ public class ModSampleDialog extends JDialog
 	 * @param owner
 	 * @param modal
 	 */
-	public ModSampleDialog(JFrame owner, boolean modal)
+	public ModSampleDialog(ModInfoPanel infoPanel, JFrame owner, boolean modal)
 	{
 		super(owner, modal);
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	/**
@@ -125,9 +133,10 @@ public class ModSampleDialog extends JDialog
 	 * @param owner
 	 * @param modal
 	 */
-	public ModSampleDialog(JDialog owner, boolean modal)
+	public ModSampleDialog(ModInfoPanel infoPanel, JDialog owner, boolean modal)
 	{
 		super(owner, modal);
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	private void initialize()
@@ -158,6 +167,8 @@ public class ModSampleDialog extends JDialog
 		setPreferredSize(getSize());
         pack();
 		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
+		
+		fillWithSample(null);
 	}
 	public void doClose()
 	{
@@ -174,6 +185,10 @@ public class ModSampleDialog extends JDialog
 			labelSelectSample.setFont(Helpers.getDialogFont());
 		}
 		return labelSelectSample;
+	}
+	private int getCurrentSampleIndex()
+	{
+		return Integer.parseInt((String)getSelectSample().getModel().getValue(), 16) - 1; 
 	}
 	private JSpinner getSelectSample()
 	{
@@ -197,8 +212,7 @@ public class ModSampleDialog extends JDialog
 				{
 					if (samples!=null)
 					{
-						Integer sampleIndex = (Integer)getSelectSample().getModel().getValue();
-						fillWithSample(samples[sampleIndex.intValue()-1]);
+						fillWithSample(samples[getCurrentSampleIndex()]);
 					}
 				}
 			});
@@ -825,6 +839,10 @@ public class ModSampleDialog extends JDialog
 	}
 	private void clearSample()
 	{
+		spinnerModelData = new ArrayList<String>(1);
+		spinnerModelData.add(ModConstants.getAsHex(0, 2));
+		getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
+
 		getSampleType().setText(Helpers.EMPTY_STING);
 		getSampleName().setText(Helpers.EMPTY_STING);
 		getDosFileName().setText(Helpers.EMPTY_STING);
@@ -857,6 +875,10 @@ public class ModSampleDialog extends JDialog
 		}
 		else
 		{
+			spinnerModelData = new ArrayList<String>(samples.length);
+			for (int i=0; i<samples.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
+			getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
+
 			getSampleType().setText(sample.getSampleTypeString());
 			getSampleName().setText(sample.name);
 			getDosFileName().setText(sample.dosFileName);
@@ -880,18 +902,23 @@ public class ModSampleDialog extends JDialog
 			getImageBufferPanel().setSample(sample);
 			getImageBufferPanel().drawMe();
 		}
+		// after setting the new model, make the editor of the spinner un-editable
+		((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
+	}
+	public void showSample(final int sampleIndex)
+	{
+		if (samples!=null)
+		{
+			getSelectSample().setValue(spinnerModelData.get(sampleIndex));
+			fillWithSample(samples[sampleIndex]);
+		}
 	}
 	public void fillWithSamples(final Sample [] samples)
 	{
 		this.samples = samples;
 		if (samples!=null)
-		{
-			ArrayList<Integer> list = new ArrayList<Integer>(samples.length);
-			for (int i=0; i<samples.length; i++) list.add(Integer.valueOf(i+1));
-			getSelectSample().setModel(new SpinnerListModel(list));
 			fillWithSample(samples[0]);
-		}
 		else
-			clearSample();
+			fillWithSample(null);
 	}
 }

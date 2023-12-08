@@ -457,7 +457,8 @@ public class ModMixer extends BasicMixer
 			openAudioDevice();
 			if (!isInitialized()) return;
 			
-			modMixer.setFireUpdates(true);
+			// If we do export to wave and do not want to play during that, do not fire any updates
+			if (exportFile==null || playDuringExport) modMixer.setFireUpdates(true);
 			
 			int count;
 			do

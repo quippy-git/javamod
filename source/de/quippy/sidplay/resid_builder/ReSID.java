@@ -21,14 +21,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.quippy.sidplay.libsidplay.common.C64Env;
+import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
 import de.quippy.sidplay.libsidplay.common.IEventContext;
+import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_model_t;
 import de.quippy.sidplay.libsidplay.common.SIDBuilder;
 import de.quippy.sidplay.libsidplay.common.SIDEmu;
-import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
-import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_model_t;
-import de.quippy.sidplay.resid_builder.resid.SID;
 import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
 import de.quippy.sidplay.resid_builder.resid.ISIDDefs.sampling_method;
+import de.quippy.sidplay.resid_builder.resid.SID;
 
 
 public class ReSID extends SIDEmu {

@@ -26,7 +26,7 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
 
 class Floor1 extends FuncFloor{
   static final int floor1_rangedb=140;

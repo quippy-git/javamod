@@ -25,6 +25,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.GridBagLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.JDialog;
@@ -33,16 +35,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerListModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.Caret;
 
 import de.quippy.javamod.main.gui.tools.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.ModInfoPanel;
 import de.quippy.javamod.multimedia.mod.gui.EnvelopePanel.EnvelopeType;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.system.Helpers;
@@ -55,6 +61,8 @@ public class ModInstrumentDialog extends JDialog
 {
 	private static final long serialVersionUID = -5890906666611603247L;
 	
+	private static final int SAMPLE_MAP_LINE_LENGTH = 15;
+
 	private JLabel labelSelectInstrument = null;
 	private JSpinner selectInstrument = null;
 	
@@ -112,14 +120,17 @@ public class ModInstrumentDialog extends JDialog
 	private EnvelopePanel pitchEnvelopePanel = null;
 	
 	private Instrument [] instruments = null;
+	private ArrayList<String> spinnerModelData = null;
 	
+	private ModInfoPanel myModInfoPanel;
 
 	/**
 	 * Constructor for ModPatternDialog
 	 */
-	public ModInstrumentDialog()
+	public ModInstrumentDialog(ModInfoPanel infoPanel)
 	{
 		super();
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	/**
@@ -127,9 +138,10 @@ public class ModInstrumentDialog extends JDialog
 	 * @param owner
 	 * @param modal
 	 */
-	public ModInstrumentDialog(JFrame owner, boolean modal)
+	public ModInstrumentDialog(ModInfoPanel infoPanel, JFrame owner, boolean modal)
 	{
 		super(owner, modal);
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	/**
@@ -137,9 +149,10 @@ public class ModInstrumentDialog extends JDialog
 	 * @param owner
 	 * @param modal
 	 */
-	public ModInstrumentDialog(JDialog owner, boolean modal)
+	public ModInstrumentDialog(ModInfoPanel infoPanel, JDialog owner, boolean modal)
 	{
 		super(owner, modal);
+		myModInfoPanel = infoPanel;
 		initialize();
 	}
 	private void initialize()
@@ -174,6 +187,8 @@ public class ModInstrumentDialog extends JDialog
 		setPreferredSize(getSize());
         pack();
 		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
+		
+		fillWithInstrument(null);
 	}
 	public void doClose()
 	{
@@ -190,6 +205,10 @@ public class ModInstrumentDialog extends JDialog
 			labelSelectInstrument.setFont(Helpers.getDialogFont());
 		}
 		return labelSelectInstrument;
+	}
+	private int getCurrentInstrument()
+	{
+		return Integer.parseInt((String)getSelectInstrument().getModel().getValue(), 16) - 1;
 	}
 	private JSpinner getSelectInstrument()
 	{
@@ -213,8 +232,7 @@ public class ModInstrumentDialog extends JDialog
 				{
 					if (instruments!=null)
 					{
-						Integer sampleIndex = (Integer)getSelectInstrument().getModel().getValue();
-						fillWithInstrument(instruments[sampleIndex.intValue()-1]);
+						fillWithInstrument(instruments[getCurrentInstrument()]);
 					}
 				}
 			});
@@ -784,7 +802,47 @@ public class ModInstrumentDialog extends JDialog
 		if (sampleMap==null)
 		{
 			sampleMap = new JTextArea();
+			sampleMap.setName("SampleMap");
+			sampleMap.setEditable(false); // no editing
 			sampleMap.setFont(Helpers.getTextAreaFont());
+			final Caret caret = sampleMap.getCaret();
+			caret.setVisible(false); // no cursor
+			caret.setSelectionVisible(true); // but selection is visible
+			// As in some cases, when the textbox gains focus, the cursor appears nevertheless, we just make it invisible...
+			sampleMap.setCaretColor(sampleMap.getBackground());
+			sampleMap.addMouseListener(new MouseAdapter()
+			{
+				public void mouseClicked(MouseEvent e)
+				{
+					if (e.isConsumed() || instruments == null) return;
+					
+					final int modelPos = getSampleMap().viewToModel2D(e.getPoint());
+					final int row = modelPos / SAMPLE_MAP_LINE_LENGTH; // 15 characters per line incl. LF
+
+					// show a marker at what we selected.
+					final int startPoint = row * SAMPLE_MAP_LINE_LENGTH;
+					final int endPoint = startPoint + SAMPLE_MAP_LINE_LENGTH;
+					try
+					{
+						getSampleMap().setCaretPosition(startPoint);
+						getSampleMap().moveCaretPosition(endPoint);
+						
+						if (SwingUtilities.isLeftMouseButton(e))
+						{
+							if (e.getClickCount()>1)
+							{
+								// now get the sample and force sample dialog to open and show that:
+								final int sampleIndex = getSampleIndex(getCurrentInstrument(), row);
+								if (sampleIndex!=-1) myModInfoPanel.showSample(sampleIndex);
+							}
+						}
+					}
+					catch (IllegalArgumentException ex)
+					{
+						// Ignore it...
+					}
+				}
+			});
 		}
 		return sampleMap;
 	}
@@ -889,13 +947,30 @@ public class ModInstrumentDialog extends JDialog
 			else
 			{
 				sb.append(ModConstants.getNoteNameForIndex(noteIndex[i]+1)).append(" | ");
-				sb.append(sampleIndex[i]).append('\n');
+				sb.append(ModConstants.getAsHex(sampleIndex[i], 2)).append('\n');
 			}
 		}
 		return sb.toString();
 	}
+	private int getSampleIndex(final int instrumentIndex, final int row)
+	{
+		if (instruments!=null)
+		{
+			Instrument instrument = instruments[instrumentIndex];
+			if (instrument!=null)
+			{
+				final int noteIndex = instrument.getNoteIndex(row);
+				if ((noteIndex&0x80)==0) return instrument.getSampleIndex(row);
+			}
+		}
+		return -1;
+	}
 	private void clearInstrument()
 	{
+		spinnerModelData = new ArrayList<String>(1);
+		spinnerModelData.add(ModConstants.getAsHex(0, 2));
+		getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
+
 		getInstrumentName().setText(Helpers.EMPTY_STING);
 		getFileName().setText(Helpers.EMPTY_STING);
 		
@@ -928,39 +1003,43 @@ public class ModInstrumentDialog extends JDialog
 		getPanningEnvelopePanel().setEnvelope(null, EnvelopeType.panning);
 		getPitchEnvelopePanel().setEnvelope(null, EnvelopeType.pitch);
 	}
-	private void fillWithInstrument(Instrument instrument)
+	private void fillWithInstrument(Instrument newInstrument)
 	{
-		if (instrument==null)
+		if (newInstrument==null)
 		{
 			clearInstrument();
 		}
 		else
 		{
-			getInstrumentName().setText(instrument.name);
-			getFileName().setText(instrument.dosFileName);
+			spinnerModelData = new ArrayList<String>(instruments.length);
+			for (int i=0; i<instruments.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
+			getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
+
+			getInstrumentName().setText(newInstrument.name);
+			getFileName().setText(newInstrument.dosFileName);
 			
-			getGlobalVolume().setText(Integer.toString(instrument.globalVolume));
-			getFadeOutVolume().setText(Integer.toString(instrument.volumeFadeOut));
-			getSetPan().setFixedState(instrument.defaultPan!=-1);
-			getSetPanValue().setText(Integer.toString(instrument.defaultPan));
+			getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
+			getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
+			getSetPan().setFixedState(newInstrument.defaultPan!=-1);
+			getSetPanValue().setText(Integer.toString(newInstrument.defaultPan));
 			
-			getPitchPanSep().setText(Integer.toString(instrument.pitchPanSeparation));
-			getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(instrument.pitchPanCenter + 1));
+			getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
+			getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
 	
-			if (instrument.initialFilterResonance!=-1)
+			if (newInstrument.initialFilterResonance!=-1)
 			{
-				getSetResonance().setFixedState((instrument.initialFilterResonance&0x80)!=0);
-				getResonanceValue().setText(Integer.toString(instrument.initialFilterResonance&0x7F));
+				getSetResonance().setFixedState((newInstrument.initialFilterResonance&0x80)!=0);
+				getResonanceValue().setText(Integer.toString(newInstrument.initialFilterResonance&0x7F));
 			}
 			else
 			{
 				getSetResonance().setFixedState(false);
 				getResonanceValue().setText("-1");
 			}
-			if (instrument.initialFilterCutoff!=-1)
+			if (newInstrument.initialFilterCutoff!=-1)
 			{
-				getSetCutOff().setFixedState((instrument.initialFilterCutoff&0x80)!=0);
-				getCutOffValue().setText(Integer.toString(instrument.initialFilterCutoff&0x7F));
+				getSetCutOff().setFixedState((newInstrument.initialFilterCutoff&0x80)!=0);
+				getCutOffValue().setText(Integer.toString(newInstrument.initialFilterCutoff&0x7F));
 			}
 			else
 			{
@@ -968,34 +1047,32 @@ public class ModInstrumentDialog extends JDialog
 				getCutOffValue().setText("-1");
 			}
 			
-			getVolumeVariation().setText(Integer.toString(instrument.randomVolumeVariation));
-			getPanningVariation().setText(Integer.toString(instrument.randomPanningVariation));
-			getResonanceVariation().setText(Integer.toString(instrument.randomResonanceVariation));
-			getCutOffVariation().setText(Integer.toString(instrument.randomCutOffVariation));
+			getVolumeVariation().setText(Integer.toString(newInstrument.randomVolumeVariation));
+			getPanningVariation().setText(Integer.toString(newInstrument.randomPanningVariation));
+			getResonanceVariation().setText(Integer.toString(newInstrument.randomResonanceVariation));
+			getCutOffVariation().setText(Integer.toString(newInstrument.randomCutOffVariation));
 			
-			getActionNNA().setText(getNNAActionString(instrument.NNA));
-			getCheckDNA().setText(getDNACheckString(instrument.dublicateNoteCheck));
-			getActionDNA().setText(getDNAActionString(instrument.dublicateNoteAction));
+			getActionNNA().setText(getNNAActionString(newInstrument.NNA));
+			getCheckDNA().setText(getDNACheckString(newInstrument.dublicateNoteCheck));
+			getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
 			
-			getSampleMap().setText(getSampleMapString(instrument.noteIndex, instrument.sampleIndex));
+			getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
 			getSampleMap().select(0,0);
 			
-			getVolumeEnvelopePanel().setEnvelope(instrument.volumeEnvelope, EnvelopeType.volume);
-			getPanningEnvelopePanel().setEnvelope(instrument.panningEnvelope, EnvelopeType.panning);
-			getPitchEnvelopePanel().setEnvelope(instrument.pitchEnvelope, EnvelopeType.pitch);
+			getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope, EnvelopeType.volume);
+			getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope, EnvelopeType.panning);
+			getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope, EnvelopeType.pitch);
 		}
+
+		// after setting the new model, make the editor of the spinner un-editable
+		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
 	}
 	public void fillWithInstrumentArray(final Instrument [] instruments)
 	{
 		this.instruments = instruments;
 		if (instruments!=null)
-		{
-			ArrayList<Integer> list = new ArrayList<Integer>(instruments.length);
-			for (int i=0; i<instruments.length; i++) list.add(Integer.valueOf(i+1));
-			getSelectInstrument().setModel(new SpinnerListModel(list));
 			fillWithInstrument(instruments[0]);
-		}
 		else
-			clearInstrument();
+			fillWithInstrument(null);
 	}
 }

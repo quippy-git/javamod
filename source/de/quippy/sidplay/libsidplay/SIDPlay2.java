@@ -16,6 +16,7 @@
 package de.quippy.sidplay.libsidplay;
 
 import static de.quippy.sidplay.libsidplay.Player.SID2_TIME_BASE;
+
 import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_config_t;
 import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_info_t;
 import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_player_t;

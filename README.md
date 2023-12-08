@@ -1,4 +1,4 @@
-# JavaMod V3.6
+# JavaMod V3.7
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -12,7 +12,10 @@ mode open a command line (CMD or Shell) and enter:
    java -jar ./javamod.jar
 To start the command line version enter:
    java -cp ./javamod.jar de.quippy.javamod.main.CommandLine MODFILE
-   Without any parameters you will receive a help screen. 
+   Without any parameters you will receive a help screen.
+
+On Linux consider starting with OpenGL render pipeline activated:
+   java -Dsun.java2d.opengl=true -jar ./javamod.jar
 
 ## Download of compiled version and source code
 * https://javamod.de/javamod.php
@@ -52,8 +55,6 @@ JavaMod incorporates modified versions of the following libraries:
   as here we can have a whole bunch of devices. Asynchronous loading
   is not an option. Lazy loading does not help as the available MidiDevices 
   must be present when creating the config drop down list for selection.
-* Clean up effects - some are for IT only, some for XM only (copy&paste...)
-  (Mostly done, still needs QS)
 * On Linux 
   * gapless audio streams do not work if SourceLine Buffers drain out
   * JDialogs, when set visible, will not come to front
@@ -64,6 +65,66 @@ JavaMod incorporates modified versions of the following libraries:
 * MO3 support
 * Midi and AdLib/OPL with Mods
 * read 7z archives
+
+## New in Version 3.7
+* NEW  XMAS SPECIAL:
+       Enjoy some light bulbs on your desktop. You can enable it in the view
+       menu. Select the screen, you want to decorate and select the effects and
+       speed per screen.
+       Remark: it depends on the desktop render engine how transparent windows
+       are rendered and if a "click through" works. On Windows this works really
+       flawlessly, but on KDE it is either flickery or with opengl it inherits
+       the dim color of a window decoration under it.
+* NEW: Follow song in pattern dialog is now fun to watch:
+       - The arrangement is now scrolling to the activated pattern.
+       - In the pattern dialog horizontal scrolling by user is not reset by
+         caret anymore.
+       - no editing the caret (mark text) via mouse by user
+       - Rows and channels are fixed for scrolling - and added some color (yes,
+         a bit more gray)
+       - channel markers are buttons for muting and have a context menu to
+         select solo, mute and un-mute per channel
+       - resetting to normal mute will regard muted channels with ITs (if the
+         author wanted them to be muted)
+       - Added sample / panning representation in channel buttons based on
+         samples / volumes and panning in channel
+       - Coding of colored version was deleted... It is too slow anyways.
+       - Follow song can be switched off - however, this will only stop
+         automatic scrolling and pattern display. If the currently watched
+         pattern is played, the caret will fly by (though being of lightest
+         gray)
+       - display of current volume column effect and effect column effect
+       - No FollowSong while exporting - except for when doing play back while
+         exporting
+       - upper left corner shows pattern number
+* NEW: Pattern/Sample/Instrument dialogs will disappear when a file other than
+       a mod (e.g. mp3) is played - and reappear when a mod is played again
+* NEW: To make pattern sample/instrument data (hex values) fit to sample and
+       instrument dialog index, changed display there to hex as well
+* NEW: In the instrument dialog you can now hop over to the sample mapped. Just
+       click in the mapping rows on the sample of choice.
+* FIX: Look&Feel menu will now show active Look&Feel set
+* FIX: for the FIX of the FIX...
+       With PortaToNote we did things a bit too easy regarding an instrument
+       set. (BTW: The behavior of FT2, IT2.14, Schism and ModPlug is totally
+       different here, which values for volume and panning reset to use.)
+       Three things are now done:
+       - if the current instrument is a long player (i.e. has loops), we will
+         continue using that. If no instrument is playing, we will use the new
+         given instrument and switch to it 
+       - but also safe the instrument set. Following notes (without instrument)
+         will use exactly that new one.
+       - reset panning and volume to the instrument chosen from above
+       Check with Airborn.xm and Anthem.mod
+* FIX: PatternBreak at end of Song: do a loop and start at given row, do a
+       fade-out if wished. Do not do so, if infinite loops are to be ignored.
+       (fixed spelling in GUI btw...) 
+* FIX: XMs: if we have a note cut, we have to store the zero volume, so a new
+       note without an instrument set will not be audible.
+* FIX: Empty patterns with XMs and ITs are now recognized. Default empty pattern
+       is set for display (64 default rows with ITs)
+* FIX: After loading Impulse Tracker mods reduce Patterns to real amount of
+       channels (we reserved 64 channels in advance for filling)
 
 ## New in Version 3.6
 * NEW: Shuffle play list moved from context menu to a separate button, so that
@@ -86,14 +147,15 @@ JavaMod incorporates modified versions of the following libraries:
        alter the container singleton. Changed that in 3.4 for MIDIs using
        "getSongName". Result: after adding a piece to the play list, this would
        not play when double clicked.
-* FIX: Samples are now displayed without gap to the left (only visible with
+* FIX: Samples are now displayed without gap to the right (only visible with
        small samples), color of loop was adjusted, is not swallowed by border
 * FIX: BasicModMixer::fitIntoLoops ping pong loops were calculated a bit off as
        XMs need that differently to ITs...
        (AGAiN - FairStars MP3 Recorderkg.XM vs. TIMEAGO.IT)
 * FIX: IT Compatibility: Ensure that there is no pan swing, panbrello, panning
        envelopes, etc. applied on surround channels.
-* FIX: Looping a song needs complete reset on all and everything
+* FIX: If looping is selected and forced on a song, we need to do a complete 
+       reset on all and everything.
 
 ## New in Version 3.5
 * FIX: PortaToNote: if an instrument is set, that was ignored, as FT2.09 does it.

@@ -19,13 +19,22 @@
 
 package de.quippy.jmac.decoder;
 
-import de.quippy.jmac.info.*;
+import java.io.IOException;
+
+import de.quippy.jmac.info.APEFileInfo;
+import de.quippy.jmac.info.APEInfo;
+import de.quippy.jmac.info.APETag;
+import de.quippy.jmac.info.SpecialFrame;
+import de.quippy.jmac.info.WaveFormat;
+import de.quippy.jmac.info.WaveHeader;
 import de.quippy.jmac.prediction.IPredictorDecompress;
 import de.quippy.jmac.prediction.PredictorDecompress3950toCurrent;
 import de.quippy.jmac.prediction.PredictorDecompressNormal3930to3950;
-import de.quippy.jmac.tools.*;
-
-import java.io.IOException;
+import de.quippy.jmac.tools.CircleBuffer;
+import de.quippy.jmac.tools.Crc32;
+import de.quippy.jmac.tools.File;
+import de.quippy.jmac.tools.JMACException;
+import de.quippy.jmac.tools.Prepare;
 
 /**
  * Author: Dmitry Vaguine

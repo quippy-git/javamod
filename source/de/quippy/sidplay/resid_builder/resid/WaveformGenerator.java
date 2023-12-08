@@ -22,6 +22,7 @@
 package de.quippy.sidplay.resid_builder.resid;
 
 import static de.quippy.sidplay.resid_builder.resid.SID.ANTTI_LANKILA_PATCH;
+
 import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
 
 /**

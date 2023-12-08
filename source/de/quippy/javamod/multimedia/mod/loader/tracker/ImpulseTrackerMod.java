@@ -649,12 +649,20 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		PatternContainer patternContainer = new PatternContainer(getNPattern());
 		setPatternContainer(patternContainer);
 		int maxChannels = 0;
+		
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
-			inputStream.seek(patternParaPointer[pattNum]);
+			final long seek = patternParaPointer[pattNum];
+			if (seek<=0) // Empty pattern - create one with default 64 rows
+			{
+				patternContainer.setPattern(pattNum, new Pattern(64));
+				continue;
+			} 
+			inputStream.seek(seek);
 			
 			int patternDataLength = inputStream.readIntelUnsignedWord();
 			int rows = inputStream.readIntelUnsignedWord();
+			if (rows < 4 || rows > 0x400) continue;
 			
 			inputStream.skip(4); // RESERVED
 			
@@ -781,6 +789,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		}
 		if (maxChannels<4) maxChannels=4;
 		setNChannels(maxChannels+1);
+		patternContainer.setToChannels(getNChannels());
 		
 		// Correct the songlength for playing, skip markerpattern... (do not want to skip them during playing!)
 		int realLen = 0;

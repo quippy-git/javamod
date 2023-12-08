@@ -19,15 +19,15 @@
 
 package de.quippy.jmac.info;
 
-import de.quippy.jmac.tools.File;
-import de.quippy.jmac.tools.InputStreamFile;
-import de.quippy.jmac.tools.JMACException;
-import de.quippy.jmac.tools.RandomAccessFile;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import de.quippy.jmac.tools.File;
+import de.quippy.jmac.tools.InputStreamFile;
+import de.quippy.jmac.tools.JMACException;
+import de.quippy.jmac.tools.RandomAccessFile;
 
 /**
  * Author: Dmitry Vaguine

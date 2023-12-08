@@ -18,6 +18,7 @@
 package de.quippy.sidplay.libsidplay.components.sidtune;
 
 import static de.quippy.sidplay.libsidplay.components.sidtune.SidTune.LoadStatus.LOAD_NOT_MINE;
+
 import de.quippy.sidplay.libsidplay.components.sidtune.SidTune.LoadStatus;
 
 public class InfoFile {

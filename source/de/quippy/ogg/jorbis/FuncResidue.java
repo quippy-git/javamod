@@ -26,7 +26,7 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
 
 abstract class FuncResidue{
   public static FuncResidue[] residue_P= {new Residue0(), new Residue1(),

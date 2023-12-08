@@ -19,11 +19,11 @@
 
 package de.quippy.jmac.decoder;
 
+import java.io.IOException;
+
 import de.quippy.jmac.tools.ByteArrayReader;
 import de.quippy.jmac.tools.File;
 import de.quippy.jmac.tools.JMACException;
-
-import java.io.IOException;
 
 /**
  * Author: Dmitry Vaguine

@@ -30,6 +30,9 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 public class Pattern
 {
 	private PatternRow [] patternRows;
+	public static int LINEINDEX_LENGTH = 4;
+	public static int ROW_LENGTH = 16;
+	
 	/**
 	 * Constructor for Pattern
 	 */
@@ -41,7 +44,7 @@ public class Pattern
 	public Pattern(int rows, int channels)
 	{
 		this(rows);
-		for (int i=0; i<rows; i++) patternRows[i]= new PatternRow(channels);
+		for (int i=0; i<rows; i++) patternRows[i] = new PatternRow(channels);
 	}
 	/**
 	 * @return
@@ -50,14 +53,44 @@ public class Pattern
 	@Override
 	public String toString()
 	{
+		return toPatternDataString(true);
+	}
+	/**
+	 * Same as toString, but no row indexes
+	 * @since 27.11.2023
+	 * @return
+	 */
+	public String toPatternDataString(final boolean withRowMarker)
+	{
 		StringBuilder sb = new StringBuilder();
 		for (int row=0; row<patternRows.length; row++)
-			sb.append(ModConstants.getAsHex(row, 2)).append(" |").append(patternRows[row].toString()).append('\n');
+		{
+			if (withRowMarker) sb.append(ModConstants.getAsHex(row, 2)).append(" |");
+			if (patternRows[row]!=null) sb.append(patternRows[row].toString());
+			sb.append('\n');
+		}
 		return sb.toString();
 	}
-	public int getPatternRowCharacterLength()
+	/**
+	 * @since 11.11.2023
+	 * @return
+	 */
+	public int getPatternRowCharacterLength(final boolean withRowIndex)
 	{
-		if (patternRows!=null && patternRows.length>0) return 4 + patternRows[0].getPatternRowCharacterLength(); else return 4;
+		final int length = getChannels()*ROW_LENGTH;
+		return (withRowIndex)?LINEINDEX_LENGTH + length:length;
+	}
+	/**
+	 * Set this Pattern to have nChannels channels afterwards
+	 * @since 24.11.2023
+	 * @param nChannels
+	 */
+	public void setToChannels(final int patternIndex, final int nChannels)
+	{
+		for (int row=0; row<patternRows.length; row++)
+		{
+			if (patternRows[row]!=null) patternRows[row].setToChannels(patternIndex, row, nChannels); 
+		}
 	}
 	/**
 	 * @since 23.08.2008
@@ -66,6 +99,15 @@ public class Pattern
 	public int getRowCount()
 	{
 		return patternRows.length;
+	}
+	/**
+	 * Retrieves the amount of channels this pattern represents
+	 * @since 27.11.2023
+	 * @return
+	 */
+	public int getChannels()
+	{
+		return (patternRows!=null && patternRows.length>0 && patternRows[0]!=null)?patternRows[0].getChannels():0;
 	}
 	/**
 	 * @since 23.08.2008

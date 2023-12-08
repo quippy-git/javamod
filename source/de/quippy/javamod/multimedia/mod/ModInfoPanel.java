@@ -66,6 +66,10 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 
 	private JDialog parent = null;
 	
+	private int oldModPatternDialogVisibility = -1;
+	private int oldModSampleDialogVisibility = -1;
+	private int oldModInstrumentDialogVisibility = -1;
+
 	/**
 	 * Constructor for ModInfoPanel
 	 */
@@ -119,12 +123,70 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 	public void updateUI()
 	{
 		super.updateUI();
-		// do not use "getModPatterDialog" here. When this is called, this
-		// panel does not have a parent container.
+		// do not use the getter Methods here. When this is initially called,
+		// this panel does not have a parent container yet.
 		if (modPatternDialog!=null) SwingUtilities.updateComponentTreeUI(modPatternDialog);
 		if (modSampleDialog!=null) SwingUtilities.updateComponentTreeUI(modSampleDialog);
 		if (modInstrumentDialog!=null) SwingUtilities.updateComponentTreeUI(modInstrumentDialog);
 	}
+	/**
+	 * We want to close our possible open children dialogs
+	 * when this panel gets removed from the ModInfoPane.
+	 * We remember the visibility status for reset.
+	 * @see de.quippy.javamod.multimedia.mod.ModInfoPanel#addNotify
+	 * @see javax.swing.JComponent#removeNotify()
+	 */
+	@Override
+	public void removeNotify()
+	{
+		super.removeNotify();
+		if (modPatternDialog != null)
+		{
+			oldModPatternDialogVisibility = (modPatternDialog.isVisible()) ? 1 : 0;
+			modPatternDialog.setVisible(false);
+		}
+		if (modSampleDialog != null)
+		{
+			oldModSampleDialogVisibility = (modSampleDialog.isVisible()) ? 1 : 0;
+			modSampleDialog.setVisible(false);
+		}
+		if (modInstrumentDialog != null)
+		{
+			oldModInstrumentDialogVisibility = (modInstrumentDialog.isVisible()) ? 1 : 0;
+			modInstrumentDialog.setVisible(false);
+		}
+	}
+	/**
+	 * After being added to the ModInfoPane, recreate the last status of
+	 * visibility of potential open dialogs again.
+	 * But check also, if an old value was set. If the old value == -1 the status is not set.
+	 * Other is like C: 0==false, !0==true
+	 * After using the value, invalidate the setting.
+	 * @see javax.swing.JComponent#addNotify()
+	 */
+	@Override
+	public void addNotify()
+	{
+		super.addNotify();
+		if (modPatternDialog != null && oldModPatternDialogVisibility != -1)
+		{
+			modPatternDialog.setVisible(oldModPatternDialogVisibility != 0);
+			oldModPatternDialogVisibility = -1;
+		}
+		if (modSampleDialog != null && oldModSampleDialogVisibility != -1)
+		{
+			modSampleDialog.setVisible(oldModSampleDialogVisibility != 0);
+			oldModSampleDialogVisibility = -1;
+		}
+		if (modInstrumentDialog != null && oldModInstrumentDialogVisibility != -1)
+		{
+			modInstrumentDialog.setVisible(oldModInstrumentDialogVisibility != 0);
+			oldModInstrumentDialogVisibility = -1;
+		}
+	}
+	/**
+	 * @since 13.10.2007
+	 */
 	private void initialize()
 	{
 		this.setName("ModInfoPane");
@@ -240,7 +302,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 	{
 		if (modPatternDialog==null)
 		{
-			modPatternDialog = new ModPatternDialog(parent, false);
+			modPatternDialog = new ModPatternDialog(this, parent, false);
 			modPatternDialog.setLocation(Helpers.getFrameCenteredLocation(modPatternDialog, parent));
 		}
 		return modPatternDialog;
@@ -249,7 +311,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 	{
 		if (modSampleDialog==null)
 		{
-			modSampleDialog = new ModSampleDialog(parent, false);
+			modSampleDialog = new ModSampleDialog(this, parent, false);
 			modSampleDialog.setLocation(Helpers.getFrameCenteredLocation(modSampleDialog, parent));
 		}
 		return modSampleDialog;
@@ -258,7 +320,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 	{
 		if (modInstrumentDialog==null)
 		{
-			modInstrumentDialog = new ModInstrumentDialog(parent, false);
+			modInstrumentDialog = new ModInstrumentDialog(this, parent, false);
 			modInstrumentDialog.setLocation(Helpers.getFrameCenteredLocation(modInstrumentDialog, parent));
 		}
 		return modInstrumentDialog;
@@ -328,6 +390,11 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 		}
 		return modInfo_Trackername;
 	}
+	public void showSample(final int sampleIndex)
+	{
+		getModSampleDialog().showSample(sampleIndex);
+		getModSampleDialog().setVisible(true);
+	}
 	public void fillInfoPanelWith(final Module currentMod)
 	{
 		if (currentMod==null)
@@ -360,7 +427,7 @@ public class ModInfoPanel extends JPanel implements HasParentDialog
 	    	// get destroyed (and will never be visible anyways...)
 	    	if (parent!=null)
 	    	{
-	    		if (currentMod.getPatternContainer()!=null) getModPatternDialog().fillWithPatternArray(currentMod.getSongLength(), currentMod.getArrangement(), currentMod.getPatternContainer().getPattern());
+	    		if (currentMod.getPatternContainer()!=null) getModPatternDialog().fillWithPatternArray(currentMod.getSongLength(), currentMod.getArrangement(), currentMod.getPatternContainer());
 		    	if (currentMod.getInstrumentContainer()!=null)
 		    	{
 		    		getModSampleDialog().fillWithSamples(currentMod.getInstrumentContainer().getSamples());

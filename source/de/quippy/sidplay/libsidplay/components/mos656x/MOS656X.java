@@ -17,6 +17,7 @@ package de.quippy.sidplay.libsidplay.components.mos656x;
 
 import static de.quippy.sidplay.libsidplay.Config.S_A_WHITE_EMAIL;
 import static de.quippy.sidplay.libsidplay.common.SIDEndian.endian_16lo8;
+
 import de.quippy.sidplay.libsidplay.common.Event;
 import de.quippy.sidplay.libsidplay.common.IComponent;
 import de.quippy.sidplay.libsidplay.common.IEventContext;

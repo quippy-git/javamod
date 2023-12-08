@@ -26,7 +26,7 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
 
 abstract class FuncMapping{
   public static FuncMapping[] mapping_P= {new Mapping0()};

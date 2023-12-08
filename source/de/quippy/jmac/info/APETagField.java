@@ -19,10 +19,10 @@
 
 package de.quippy.jmac.info;
 
+import java.io.UnsupportedEncodingException;
+
 import de.quippy.jmac.tools.ByteArrayWriter;
 import de.quippy.jmac.tools.JMACException;
-
-import java.io.UnsupportedEncodingException;
 
 /**
  * Author: Dmitry Vaguine

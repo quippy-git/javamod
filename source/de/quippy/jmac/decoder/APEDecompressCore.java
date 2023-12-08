@@ -19,12 +19,12 @@
 
 package de.quippy.jmac.decoder;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 import de.quippy.jmac.info.CompressionLevel;
 import de.quippy.jmac.info.SpecialFrame;
 import de.quippy.jmac.tools.JMACException;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Author: Dmitry Vaguine

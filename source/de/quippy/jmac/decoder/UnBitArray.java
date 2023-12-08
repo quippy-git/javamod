@@ -19,9 +19,9 @@
 
 package de.quippy.jmac.decoder;
 
-import de.quippy.jmac.tools.File;
-
 import java.io.IOException;
+
+import de.quippy.jmac.tools.File;
 
 /**
  * Author: Dmitry Vaguine

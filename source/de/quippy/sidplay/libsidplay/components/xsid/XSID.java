@@ -22,9 +22,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import de.quippy.sidplay.libsidplay.common.Event;
+import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
 import de.quippy.sidplay.libsidplay.common.IEventContext;
 import de.quippy.sidplay.libsidplay.common.SIDEmu;
-import de.quippy.sidplay.libsidplay.common.Event.event_phase_t;
 
 
 /**

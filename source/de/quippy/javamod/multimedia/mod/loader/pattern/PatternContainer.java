@@ -55,8 +55,28 @@ public class PatternContainer
 	{
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<pattern.length; i++)
-			sb.append(i).append(". Pattern:\n").append(pattern[i].toString()).append('\n');
+		{
+			sb.append(i).append(". Pattern:\n");
+			if (pattern[i]!=null) sb.append(pattern[i].toString());
+			sb.append('\n');
+		}
 		return sb.toString();
+	}
+	/**
+	 * Set this PatternContainer to have Patterns with nChannels channels afterwards
+	 * @since 24.11.2023
+	 * @param nChannels
+	 */
+	public void setToChannels(final int nChannels)
+	{
+		for (int i=0; i<pattern.length; i++)
+		{
+			if (pattern[i]!=null) pattern[i].setToChannels(i, nChannels);
+		}
+	}
+	public int getChannels()
+	{
+		return (pattern!=null && pattern.length>0 && pattern[0]!=null)?pattern[0].getChannels():0; 
 	}
 	/**
 	 * @since 23.08.2008
@@ -64,7 +84,7 @@ public class PatternContainer
 	public void resetRowsPlayed()
 	{
 		for (int i=0; i<pattern.length; i++)
-			pattern[i].resetRowsPlayed();
+			if (pattern[i]!=null) pattern[i].resetRowsPlayed();
 	}
 	/**
 	 * @return Returns the pattern.
@@ -85,48 +105,48 @@ public class PatternContainer
 	 */
 	public PatternRow getPatternRow(int patternIndex, int row)
 	{
-		return pattern[patternIndex].getPatternRow(row);
+		return (pattern[patternIndex]!=null)?pattern[patternIndex].getPatternRow(row):null;
 	}
 	/**
 	 * @return Returns the pattern.
 	 */
 	public PatternElement getPatternElement(int patternIndex, int row, int channel)
 	{
-		return pattern[patternIndex].getPatternElement(row, channel);
+		return (pattern[patternIndex]!=null)?pattern[patternIndex].getPatternElement(row, channel):null;
 	}
 	/**
 	 * @param pattern The pattern to set.
 	 */
-	public void setPattern(Pattern[] pattern)
+	public void setPatterns(Pattern[] newPatterns)
 	{
-		this.pattern = pattern;
+		pattern = newPatterns;
 	}
 	/**
 	 * @param pattern The pattern to set.
 	 */
-	public void setPattern(int patternIndex, Pattern pattern)
+	public void setPattern(int patternIndex, Pattern newPattern)
 	{
-		this.pattern[patternIndex] = pattern;
+		pattern[patternIndex] = newPattern;
 	}
 	/**
 	 * @param pattern The pattern to set.
 	 */
 	public void setPatternRow(int patternIndex, int row, PatternRow patternRow)
 	{
-		this.pattern[patternIndex].setPatternRow(row, patternRow);
+		pattern[patternIndex].setPatternRow(row, patternRow);
 	}
 	/**
 	 * @param pattern The pattern to set.
 	 */
 	public void setPatternElement(int patternIndex, int row, int channel, PatternElement patternElement)
 	{
-		this.pattern[patternIndex].setPatternElement(row, channel, patternElement);
+		pattern[patternIndex].setPatternElement(row, channel, patternElement);
 	}
 	/**
 	 * @param pattern The pattern to set.
 	 */
 	public void setPatternElement(PatternElement patternElement)
 	{
-		this.pattern[patternElement.getPatternIndex()].setPatternElement(patternElement.getRow(), patternElement.getChannel(), patternElement);
+		pattern[patternElement.getPatternIndex()].setPatternElement(patternElement.getRow(), patternElement.getChannel(), patternElement);
 	}
 }

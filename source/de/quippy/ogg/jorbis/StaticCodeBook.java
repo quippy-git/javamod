@@ -26,7 +26,7 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
 
 class StaticCodeBook{
   int dim; // codebook dimensions (elements per vector)

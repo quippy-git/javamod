@@ -19,11 +19,11 @@
 
 package de.quippy.jmac.info;
 
+import java.io.IOException;
+
 import de.quippy.jmac.tools.File;
 import de.quippy.jmac.tools.JMACException;
 import de.quippy.jmac.tools.RandomAccessFile;
-
-import java.io.IOException;
 
 /**
  * Author: Dmitry Vaguine

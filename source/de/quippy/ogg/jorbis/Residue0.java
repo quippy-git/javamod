@@ -26,7 +26,7 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
 
 class Residue0 extends FuncResidue{
   void pack(Object vr, Buffer opb){

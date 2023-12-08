@@ -26,7 +26,8 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
+import de.quippy.ogg.jogg.Packet;
 
 public class Block{
   ///necessary stream state for linking to the framing abstraction

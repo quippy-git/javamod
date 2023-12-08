@@ -48,20 +48,37 @@ public class PatternRow
 	{
 		StringBuilder sb = new StringBuilder();
 		for (int channel=0; channel<patternElements.length; channel++)
-			sb.append(patternElements[channel].toString()).append(" |");
+		{
+			if (patternElements[channel]!=null) sb.append(patternElements[channel].toString());
+			sb.append(" |");
+		}
 		//sb.append(Boolean.toString(rowPlayed)).append(" | ");
 		return sb.toString();
 	}
 	/**
-	 * @since 11.11.2023
-	 * @return the amount of characters for representing this pattern row
+	 * Set this row to have nChannels channels
+	 * @since 24.11.2023
+	 * @param nChannels
 	 */
-	public int getPatternRowCharacterLength()
+	public void setToChannels(final int patternIndex, final int row, final int nChannels)
 	{
-		if (patternElements!=null && patternElements.length>0) 
-			return patternElements.length * 16;
-		else
-			return 0;
+		final PatternElement[] newPatternElements = new PatternElement[nChannels];
+		for (int channel=0; channel<nChannels; channel++)
+		{
+			if (channel < patternElements.length) 
+				newPatternElements[channel] = patternElements[channel];
+			else
+				newPatternElements[channel] = new PatternElement(patternIndex, row, channel);
+		}
+		patternElements = newPatternElements;
+	}
+	/**
+	 * @since 27.11.2023
+	 * @return
+	 */
+	public int getChannels()
+	{
+		return (patternElements!=null)?patternElements.length:0;
 	}
 	/**
 	 * @since 23.08.2008

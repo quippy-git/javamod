@@ -454,7 +454,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 					if (e.isConsumed() || playList==null) return;
 
 					lastClickedEntry = null;
-					int index = getSelectedIndexFromPoint(e.getPoint(), false);
+					final int index = getSelectedIndexFromPoint(e.getPoint(), false);
 					if (index!=-1)
 					{
 						PlayListEntry entry = playList.getEntry(index);
@@ -498,7 +498,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 				{
 					if (e.isConsumed() || playList==null) return;
 					
-					int index = getSelectedIndexFromPoint(e.getPoint(), false);
+					final int index = getSelectedIndexFromPoint(e.getPoint(), false);
 					if (index!=-1)
 					{
 						if (SwingUtilities.isLeftMouseButton(e))
@@ -534,9 +534,9 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	        playListPopUp.add(getPopUpEntryRefreshEntry());
 	        playListPopUp.add(getPopUpEntryEditEntry());
     	}
-    	boolean noEmptyList = (playList!=null && playList.size()>0);
+    	final boolean noEmptyList = (playList!=null && playList.size()>0);
     	PlayListEntry [] selectedEntries = (noEmptyList)?playList.getSelectedEntries():null;
-    	boolean elementSpecificEntriesEnabled = (noEmptyList && selectedEntries!=null);
+    	final boolean elementSpecificEntriesEnabled = (noEmptyList && selectedEntries!=null);
    		getPopUpEntryDeleteFromList().setEnabled(elementSpecificEntriesEnabled);
    		getPopUpEntryRefreshEntry().setEnabled(elementSpecificEntriesEnabled);
    		getPopUpEntryEditEntry().setEnabled(elementSpecificEntriesEnabled && selectedEntries!=null && selectedEntries.length==1);

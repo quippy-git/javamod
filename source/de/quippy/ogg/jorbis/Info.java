@@ -26,7 +26,8 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
+import de.quippy.ogg.jogg.Packet;
 
 public class Info{
   private static final int OV_EBADPACKET=-136;

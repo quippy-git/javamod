@@ -21,7 +21,7 @@
  */
 package de.quippy.javamod.main.gui.components;
 
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 
 import de.quippy.javamod.system.Log;
 
@@ -29,30 +29,30 @@ import de.quippy.javamod.system.Log;
  * @author Daniel Becker
  * @since 09.09.2009
  */
-public abstract class ThreadUpdatePanel extends JPanel
+public abstract class ThreadUpdatePanel extends JComponent
 {
 	private static final long serialVersionUID = 499420014207584726L;
 
-	private int desiredFPS;
-	
+	protected int desiredFPS;
+
 	private volatile boolean threadRunning;
 	private volatile int pause; // 0:nothing, 1:request, 2:in Pause
 	private final MeterUpdateThread uiUpdateThread;
 
 	private static final class MeterUpdateThread extends Thread
 	{
-		private long nanoWait;
+		private long nanoFPS;
 		private final ThreadUpdatePanel me;
 		
 		public MeterUpdateThread(ThreadUpdatePanel me, final long desiredFPS)
 		{
 			super();
 			this.me = me;
-			nanoWait = 1000000000L / desiredFPS;
+			nanoFPS = 1000000000L / desiredFPS;
 			
 			setName("ThreadUpdatePanel::" + me.getClass().getName());
 			setDaemon(true);
-			setPriority(Thread.MAX_PRIORITY);
+			//setPriority(Thread.MAX_PRIORITY);
 		}
 		/**
 		 * Will do the Update of this... 
@@ -61,9 +61,17 @@ public abstract class ThreadUpdatePanel extends JPanel
 		@Override
 		public void run()
 		{
+			long additionalWait = 0;
 			while (me.threadRunning)
 			{
 				final long now = System.nanoTime();
+				
+				long stillToWait = nanoFPS - additionalWait;
+				if (stillToWait<=0)
+					stillToWait = 0L;
+				else
+					try { Thread.sleep(stillToWait/1000000L); } catch (InterruptedException ex) { /*noop*/ }
+				
 				try
 				{
 					me.doThreadUpdate();
@@ -72,20 +80,14 @@ public abstract class ThreadUpdatePanel extends JPanel
 				{
 					Log.error(this.getName(), ex);
 				}
+				
 				if (me.pause==1)
 				{
 					me.pause=2;
-					while (me.pause==2) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
+					while (me.pause==2) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
 				}
-				final long stillToWait = (nanoWait + now - System.nanoTime())/1000000L;
-				if (stillToWait>0)
-				{
-					try { Thread.sleep(stillToWait); } catch (InterruptedException ex) { /*noop*/ }
-				}
-				else
-				{
-					try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
-				}
+				
+				additionalWait = System.nanoTime() - now - stillToWait;
 			}
 		}
 	}
@@ -96,6 +98,7 @@ public abstract class ThreadUpdatePanel extends JPanel
 	public ThreadUpdatePanel(int desiredFPS)
 	{
 		super();
+		setDoubleBuffered(true);
 		this.desiredFPS = desiredFPS;
 		uiUpdateThread = new MeterUpdateThread(this, desiredFPS);
 	}
@@ -103,17 +106,21 @@ public abstract class ThreadUpdatePanel extends JPanel
 	 * Will start the Thread
 	 * @since 01.01.2008
 	 */
-	protected void startThread()
+	public void startThread()
 	{
-		threadRunning = true;
-		uiUpdateThread.start();
+		if (!threadRunning)
+		{
+			threadRunning = true;
+			uiUpdateThread.start();
+		}
 	}
 	public void pauseThread()
 	{
-		if (pause==0)
+		if (threadRunning && pause==0) // not paused and running
 		{
-			pause = 1;
-			while (pause==1) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP */ }
+			pause = 1; // move into status isPaused
+			// wait for pause to reach status 2 (isPaused)
+			while (pause==1) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP */ }
 		}
 	}
 	public void unPauseThread()
@@ -124,9 +131,13 @@ public abstract class ThreadUpdatePanel extends JPanel
 	 * Will stop this Thread
 	 * @since 01.01.2008
 	 */
-	protected void stopThread()
+	public void stopThread()
 	{
-		threadRunning = false;
+		if (threadRunning)
+		{
+			threadRunning = false;
+			unPauseThread();
+		}
 	}
 	/**
 	 * @since 11.09.2009
@@ -137,7 +148,7 @@ public abstract class ThreadUpdatePanel extends JPanel
 		return desiredFPS;
 	}
 	/**
-	 * Implement the regulary updates to be done
+	 * Implement the regular updates to be done
 	 * (i.e. Peak Meter fall downs etc.)
 	 * @since 01.01.2008
 	 */

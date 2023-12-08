@@ -18,9 +18,9 @@ package de.quippy.sidplay.resid_builder;
 import java.util.ArrayList;
 
 import de.quippy.sidplay.libsidplay.common.C64Env;
+import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_model_t;
 import de.quippy.sidplay.libsidplay.common.SIDBuilder;
 import de.quippy.sidplay.libsidplay.common.SIDEmu;
-import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_model_t;
 
 
 /*******************************************************************************

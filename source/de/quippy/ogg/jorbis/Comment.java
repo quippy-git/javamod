@@ -26,7 +26,8 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
+import de.quippy.ogg.jogg.Buffer;
+import de.quippy.ogg.jogg.Packet;
 
 // the comments are not part of vorbis_info so that vorbis_info can be
 // static storage

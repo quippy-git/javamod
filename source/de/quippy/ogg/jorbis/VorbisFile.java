@@ -27,10 +27,13 @@
 
 package de.quippy.ogg.jorbis;
 
-import de.quippy.ogg.jogg.*;
-
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
+
+import de.quippy.ogg.jogg.Packet;
+import de.quippy.ogg.jogg.Page;
+import de.quippy.ogg.jogg.StreamState;
+import de.quippy.ogg.jogg.SyncState;
 
 public class VorbisFile{
   static final int CHUNKSIZE=8500;

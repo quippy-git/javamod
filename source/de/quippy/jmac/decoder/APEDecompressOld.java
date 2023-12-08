@@ -19,13 +19,17 @@
 
 package de.quippy.jmac.decoder;
 
-import de.quippy.jmac.info.*;
+import java.io.IOException;
+import java.util.Arrays;
+
+import de.quippy.jmac.info.APEFileInfo;
+import de.quippy.jmac.info.APEInfo;
+import de.quippy.jmac.info.APETag;
+import de.quippy.jmac.info.WaveFormat;
+import de.quippy.jmac.info.WaveHeader;
 import de.quippy.jmac.tools.ByteBuffer;
 import de.quippy.jmac.tools.File;
 import de.quippy.jmac.tools.JMACException;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * Author: Dmitry Vaguine

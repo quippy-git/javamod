@@ -22,15 +22,21 @@
 package de.quippy.javamod.main.gui;
 
 import java.awt.AWTException;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.EventQueue;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.MenuItem;
+import java.awt.Point;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
+import java.awt.Toolkit;
 import java.awt.TrayIcon;
 import java.awt.Window;
 import java.awt.dnd.DropTarget;
@@ -41,6 +47,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.File;
@@ -52,13 +59,24 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
@@ -105,7 +123,7 @@ import de.quippy.javamod.system.LogMessageCallBack;
  * @author Daniel Becker
  * @since 22.06.2006
  */
-public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack, PlayThreadEventListener, MultimediaContainerEventListener, PlaylistGUIChangeListener, PlaylistDropListenerCallBack
+public class MainForm extends JFrame implements DspProcessorCallBack, PlayThreadEventListener, MultimediaContainerEventListener, PlaylistGUIChangeListener, PlaylistDropListenerCallBack
 {
 	private static final long serialVersionUID = -2737074464335059959L;
 
@@ -152,6 +170,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	private static final String PROPERTY_PROPERTIESDIALOG_VISABLE = "javamod.dialog.open.properties";
 	private static final String PROPERTY_PLAYLIST_VISABLE = "javamod.dialog.open.playlist";
 	private static final String PROPERTY_EFFECT_VISABLE = "javamod.dialog.open.equalizer";
+	private static final String PROPERTY_XMASCONFIGDIALOG_POS = "javamod.dialog.position.xmasconfig";
+	private static final String PROPERTY_XMASCONFIGDIALOG_SIZE = "javamod.dialog.size.xmasconfig";
+	private static final String PROPERTY_XMASCONFIG_VISABLE = "javamod.dialog.open.xmasconfig";
 
 	private static final String PROPERTY_EFFECTS_PASSTHROUGH = "javamod.player.effects.passthrough";
 	private static final String PROPERTY_EFFECTS_USEGAPLESS = "javamod.player.effects.usegapless";
@@ -172,64 +193,70 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	private static FileFilter fileFilterExport[];
 	private static FileFilter fileFilterLoad[];
 	
-	private javax.swing.ImageIcon buttonPlay_Active = null;
-	private javax.swing.ImageIcon buttonPlay_Inactive = null;
-	private javax.swing.ImageIcon buttonPlay_normal = null;
-	private javax.swing.ImageIcon buttonPause_Active = null;
-	private javax.swing.ImageIcon buttonPause_Inactive = null;
-	private javax.swing.ImageIcon buttonPause_normal = null;
-	private javax.swing.ImageIcon buttonStop_Active = null;
-	private javax.swing.ImageIcon buttonStop_Inactive = null;
-	private javax.swing.ImageIcon buttonStop_normal = null;
-	private javax.swing.ImageIcon buttonPrev_Active = null;
-	private javax.swing.ImageIcon buttonPrev_Inactive = null;
-	private javax.swing.ImageIcon buttonPrev_normal = null;
-	private javax.swing.ImageIcon buttonNext_Active = null;
-	private javax.swing.ImageIcon buttonNext_Inactive = null;
-	private javax.swing.ImageIcon buttonNext_normal = null;
+	private ImageIcon buttonPlay_Active = null;
+	private ImageIcon buttonPlay_Inactive = null;
+	private ImageIcon buttonPlay_normal = null;
+	private ImageIcon buttonPause_Active = null;
+	private ImageIcon buttonPause_Inactive = null;
+	private ImageIcon buttonPause_normal = null;
+	private ImageIcon buttonStop_Active = null;
+	private ImageIcon buttonStop_Inactive = null;
+	private ImageIcon buttonStop_normal = null;
+	private ImageIcon buttonPrev_Active = null;
+	private ImageIcon buttonPrev_Inactive = null;
+	private ImageIcon buttonPrev_normal = null;
+	private ImageIcon buttonNext_Active = null;
+	private ImageIcon buttonNext_Inactive = null;
+	private ImageIcon buttonNext_normal = null;
 	
-	private javax.swing.JButton button_Play = null;
-	private javax.swing.JButton button_Pause = null;
-	private javax.swing.JButton button_Stop = null;
-	private javax.swing.JButton button_Prev = null;
-	private javax.swing.JButton button_Next = null;
+	private JButton button_Play = null;
+	private JButton button_Pause = null;
+	private JButton button_Stop = null;
+	private JButton button_Prev = null;
+	private JButton button_Next = null;
 	
 	private RoundSlider volumeSlider = null;
-	private javax.swing.JLabel volumeLabel = null;
+	private JLabel volumeLabel = null;
 	private RoundSlider balanceSlider = null;
-	private javax.swing.JLabel balanceLabel = null;
+	private JLabel balanceLabel = null;
 	
-	private javax.swing.JPanel baseContentPane = null;
-	private javax.swing.JPanel mainContentPane = null;
-	private javax.swing.JPanel musicDataPane = null;
-	private javax.swing.JPanel playerControlPane = null;
-	private javax.swing.JPanel playerDataPane = null;
+	private JPanel baseContentPane = null;
+	private JPanel mainContentPane = null;
+	private JPanel musicDataPane = null;
+	private JPanel playerControlPane = null;
+	private JPanel playerDataPane = null;
 	
 	private ArrayList<Image> windowIcons = null;
-	private javax.swing.JDialog modInfoDialog = null;
-	private javax.swing.JDialog playerSetUpDialog = null;
-	private javax.swing.JDialog playlistDialog = null;
-	private javax.swing.JDialog equalizerDialog = null;
+	private JDialog modInfoDialog = null;
+	private JDialog playerSetUpDialog = null;
+	private JDialog playlistDialog = null;
+	private JDialog equalizerDialog = null;
+	private JDialog xmasConfigDialog = null;
 	private PlayerConfigPanel playerConfigPanel = null; 
-	private javax.swing.JPanel modInfoPane = null;
-	private javax.swing.JPanel playerSetUpPane = null;
-	private javax.swing.JPanel playlistPane = null;
-	private javax.swing.JPanel effectPane = null;
+	private JPanel modInfoPane = null;
+	private JPanel playerSetUpPane = null;
+	private JPanel playlistPane = null;
+	private JPanel effectPane = null;
+	private XmasConfigPanel xmasConfigPanel = null;
 	
-	private java.awt.Point mainDialogLocation = null;
-	private java.awt.Dimension mainDialogSize = null;
-	private java.awt.Point modInfoDialogLocation = null;
-	private java.awt.Dimension modInfoDialogSize = null;
+	private Point mainDialogLocation = null;
+	private Dimension mainDialogSize = null;
+	private Point modInfoDialogLocation = null;
+	private Dimension modInfoDialogSize = null;
 	private boolean modInfoDialogVisable = false;
-	private java.awt.Point playerSetUpDialogLocation = null;
-	private java.awt.Dimension playerSetUpDialogSize = null;
+	private Point playerSetUpDialogLocation = null;
+	private Dimension playerSetUpDialogSize = null;
 	private boolean playerSetUpDialogVisable = false;
-	private java.awt.Point playlistDialogLocation = null;
-	private java.awt.Dimension playlistDialogSize = null;
+	private Point playlistDialogLocation = null;
+	private Dimension playlistDialogSize = null;
 	private boolean playlistDialogVisable = false;
-	private java.awt.Point effectsDialogLocation = null;
-	private java.awt.Dimension effectsDialogSize = null;
+	private Point effectsDialogLocation = null;
+	private Dimension effectsDialogSize = null;
 	private boolean effectDialogVisable = false;
+	private Point xmasConfigDialogLocation = null;
+	private Dimension xmasConfigDialogSize = null;
+	private boolean xmasConfigDialogVisable = false;
+
 
 	private SimpleProgressDialog downloadDialog = null;
 	private DoubleProgressDialog exportDialog = null;
@@ -242,31 +269,32 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	
 	private SeekBarPanel seekBarPanel = null;
 
-	private javax.swing.JTextField messages = null;
+	private JTextField messages = null;
 
-	private javax.swing.JMenuBar baseMenuBar = null;
-	private javax.swing.JMenu menu_File = null;
-	private javax.swing.JMenu menu_View = null;
-	private javax.swing.JMenu menu_LookAndFeel = null;
-	private javax.swing.JMenu menu_Help = null;
-	private javax.swing.JMenu menu_File_RecentFiles = null;
-	private javax.swing.JMenuItem menu_File_openMod = null;
-	private javax.swing.JMenuItem menu_File_openURL = null;
-	private javax.swing.JMenuItem menu_File_exportWave = null;
-	private javax.swing.JMenuItem menu_File_exportFromPlayList = null;
-	private javax.swing.JMenuItem menu_File_copyFilesInPlayListOrder = null;
-	private javax.swing.JMenuItem menu_File_Close = null;
-	private javax.swing.JMenuItem menu_View_ArrangeWindows = null;
-	private javax.swing.JMenuItem menu_View_Info = null;
-	private javax.swing.JMenuItem menu_View_Setup = null;
-	private javax.swing.JMenuItem menu_View_Playlist = null;
-	private javax.swing.JMenuItem menu_View_GraphicEQ = null;
-	private javax.swing.JCheckBoxMenuItem menu_View_UseSystemTray = null;
-	private javax.swing.JMenuItem menu_Help_CheckUpdate = null;
-	private javax.swing.JMenuItem menu_Help_ShowSoundHardware = null;
-	private javax.swing.JMenuItem menu_Help_ShowVersionHistory = null;
-	private javax.swing.JMenuItem menu_Help_About = null;
-	private javax.swing.JCheckBoxMenuItem [] menu_LookAndFeel_Items = null;
+	private JMenuBar baseMenuBar = null;
+	private JMenu menu_File = null;
+	private JMenu menu_View = null;
+	private JMenu menu_LookAndFeel = null;
+	private JMenu menu_Help = null;
+	private JMenu menu_File_RecentFiles = null;
+	private JMenuItem menu_File_openMod = null;
+	private JMenuItem menu_File_openURL = null;
+	private JMenuItem menu_File_exportWave = null;
+	private JMenuItem menu_File_exportFromPlayList = null;
+	private JMenuItem menu_File_copyFilesInPlayListOrder = null;
+	private JMenuItem menu_File_Close = null;
+	private JMenuItem menu_View_ArrangeWindows = null;
+	private JMenuItem menu_View_Info = null;
+	private JMenuItem menu_View_Setup = null;
+	private JMenuItem menu_View_Playlist = null;
+	private JMenuItem menu_View_GraphicEQ = null;
+	private JMenuItem menu_View_XMAS_mode_config = null;
+	private JCheckBoxMenuItem menu_View_UseSystemTray = null;
+	private JMenuItem menu_Help_CheckUpdate = null;
+	private JMenuItem menu_Help_ShowSoundHardware = null;
+	private JMenuItem menu_Help_ShowVersionHistory = null;
+	private JMenuItem menu_Help_About = null;
+	private JCheckBoxMenuItem [] menu_LookAndFeel_Items = null;
 	
 	private MenuItem aboutItem = null;
 	private MenuItem playItem = null;
@@ -311,7 +339,6 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	private boolean inExportMode;
 	
 	private boolean useGaplessAudio;
-
 	
 	private final class LookAndFeelChanger implements ActionListener
 	{
@@ -414,9 +441,12 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 
 	        searchPath = props.getProperty(PROPERTY_SEARCHPATH, Helpers.HOMEDIR);
 			exportPath = props.getProperty(PROPERTY_EXPORTPATH, Helpers.HOMEDIR);
-			uiClassName = props.getProperty(PROPERTY_LOOKANDFEEL, javax.swing.UIManager.getSystemLookAndFeelClassName());
 			useSystemTray = Boolean.parseBoolean(props.getProperty(PROPERTY_SYSTEMTRAY, "FALSE"));
-			currentVolume = Float.parseFloat(props.getProperty(PROPERTY_VOLUME_VALUE, "1.0"));
+
+			uiClassName = props.getProperty(PROPERTY_LOOKANDFEEL, UIManager.getSystemLookAndFeelClassName());
+		    setLookAndFeel(uiClassName); // set the Look&Feel to be used, so when creating the menu we select the current Look&Feel set
+
+		    currentVolume = Float.parseFloat(props.getProperty(PROPERTY_VOLUME_VALUE, "1.0"));
 			currentBalance = Float.parseFloat(props.getProperty(PROPERTY_BALANCE_VALUE, "0.0"));
 			lastLoaded = new ArrayList<URL>(PROPERTY_LASTLOADED_MAXENTRIES);
 			for (int i=0; i<PROPERTY_LASTLOADED_MAXENTRIES; i++)
@@ -440,6 +470,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			effectsDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_EFFECTDIALOG_POS, "-1x-1"));
 			effectsDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_EFFECTDIALOG_SIZE, "560x470"));
 			effectDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_EFFECT_VISABLE, "false"));
+			xmasConfigDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_XMASCONFIGDIALOG_POS, "-1x-1"));
+			xmasConfigDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_XMASCONFIGDIALOG_SIZE, "415x215"));
+			xmasConfigDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_XMASCONFIG_VISABLE, "false"));
 			int saMeterLeftDrawType = Integer.parseInt(props.getProperty(PROPERTY_SAMETER_LEFT_DRAWTYPE, "0"));
 			int saMeterRightDrawType = Integer.parseInt(props.getProperty(PROPERTY_SAMETER_RIGHT_DRAWTYPE, "0"));
 			getSALMeterPanel().setDrawWhatTo(saMeterLeftDrawType);
@@ -472,6 +505,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			}
 
 			MultimediaContainerManager.configureContainer(props);
+			getXmasConfigPanel().readProperties(props);
 	    }
 	    catch (Throwable ex)
 	    {
@@ -489,6 +523,8 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	    	java.util.Properties props = new java.util.Properties();
 			
 	    	MultimediaContainerManager.getContainerConfigs(props);
+	    	getXmasConfigPanel().writeProperties(props);
+	    	
 			props.setProperty(PROPERTY_SEARCHPATH, searchPath);
 			props.setProperty(PROPERTY_EXPORTPATH, exportPath);
 			props.setProperty(PROPERTY_LOOKANDFEEL, uiClassName);
@@ -517,6 +553,9 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			props.setProperty(PROPERTY_EFFECTDIALOG_POS, Helpers.getStringFromPoint(getEffectDialog().getLocation()));
 			props.setProperty(PROPERTY_EFFECTDIALOG_SIZE, Helpers.getStringFromDimension(getEffectDialog().getSize()));
 			props.setProperty(PROPERTY_EFFECT_VISABLE, Boolean.toString(getEffectDialog().isVisible()));
+			props.setProperty(PROPERTY_XMASCONFIGDIALOG_POS, Helpers.getStringFromPoint(getXmasConfigDialog().getLocation()));
+			props.setProperty(PROPERTY_XMASCONFIGDIALOG_SIZE, Helpers.getStringFromDimension(getXmasConfigDialog().getSize()));
+			props.setProperty(PROPERTY_XMASCONFIG_VISABLE, Boolean.toString(getXmasConfigDialog().isVisible()));
 			props.setProperty(PROPERTY_SAMETER_LEFT_DRAWTYPE, Integer.toString(getSALMeterPanel().getDrawWhat()));
 			props.setProperty(PROPERTY_SAMETER_RIGHT_DRAWTYPE, Integer.toString(getSARMeterPanel().getDrawWhat()));
 
@@ -561,20 +600,20 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			Log.error("MainForm]", ex);
 	    }
 	}
-	private javax.swing.UIManager.LookAndFeelInfo [] getInstalledLookAndFeels()
+	private UIManager.LookAndFeelInfo [] getInstalledLookAndFeels()
 	{
 //		java.util.ArrayList<UIManager.LookAndFeelInfo> allLAFs = new java.util.ArrayList<UIManager.LookAndFeelInfo>();
 //		allLAFs.add(new UIManager.LookAndFeelInfo("Kunststoff", "com.incors.plaf.kunststoff.KunststoffLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("Oyoaha", "com.oyoaha.swing.plaf.oyoaha.OyoahaLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("MacOS", "it.unitn.ing.swing.plaf.macos.MacOSLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("GTK", "org.gtk.java.swing.plaf.gtk.GtkLookAndFeel"));
-//		javax.swing.UIManager.LookAndFeelInfo [] installedLAFs = javax.swing.UIManager.getInstalledLookAndFeels();
+//		UIManager.LookAndFeelInfo [] installedLAFs = UIManager.getInstalledLookAndFeels();
 //		for (int i=0; i<installedLAFs.length; i++)
 //		{
 //			allLAFs.add(installedLAFs[i]);
 //		}
-//		return allLAFs.toArray(new javax.swing.UIManager.LookAndFeelInfo[allLAFs.size()]);
-		return javax.swing.UIManager.getInstalledLookAndFeels();
+//		return allLAFs.toArray(new UIManager.LookAndFeelInfo[allLAFs.size()]);
+		return UIManager.getInstalledLookAndFeels();
 	}
 	/**
 	 * Create the file filters so that we do have them for
@@ -659,17 +698,17 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 
     	setIconImages(getWindowIconImages(DEFAULTWINDOWICONPATH));
 		
-	    setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-	    addWindowListener(new java.awt.event.WindowAdapter()
+	    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+	    addWindowListener(new WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(WindowEvent e)
 			{
 				doClose();
 			}
 			/**
 			 * @param e
-			 * @see java.awt.event.WindowAdapter#windowIconified(java.awt.event.WindowEvent)
+			 * @see WindowAdapter#windowIconified(WindowEvent)
 			 * @since 07.02.2012
 			 */
 			@Override
@@ -679,7 +718,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			}
 			/**
 			 * @param e
-			 * @see java.awt.event.WindowAdapter#windowDeiconified(java.awt.event.WindowEvent)
+			 * @see WindowAdapter#windowDeiconified(WindowEvent)
 			 * @since 07.02.2012
 			 */
 			@Override
@@ -699,16 +738,16 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	    addMouseWheelListener(new MouseWheelVolumeControl());
 	    pack();
 
-		createAllWindows();
+		createAllWindows(); // create all windows
+		updateLookAndFeel(uiClassName); // and change to L&F
 		
-		updateLookAndFeel(uiClassName);
-
 		if (mainDialogLocation == null || (mainDialogLocation.getX()==-1 || mainDialogLocation.getY()==-1))
 			mainDialogLocation = Helpers.getFrameCenteredLocation(this, null); 
 	    setLocation(mainDialogLocation);
 	    getModInfoDialog().setVisible(modInfoDialogVisable);
 		getPlaylistDialog().setVisible(playlistDialogVisable);
 		getEffectDialog().setVisible(effectDialogVisable);
+		getXmasConfigDialog().setVisible(xmasConfigDialogVisable);
 		getPlayerSetUpDialog().setVisible(playerSetUpDialogVisable);
 
 		dropTargetList = new ArrayList<DropTarget>();
@@ -732,12 +771,13 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		windows.add(getSimpleTextViewerDialog());
 		windows.add(getPlaylistDialog());
 		windows.add(getEffectDialog());
+		windows.add(getXmasConfigDialog());
 	}
 	/**
 	 * @param dtde
 	 * @param dropResult
 	 * @param addToLastLoaded
-	 * @see de.quippy.javamod.main.gui.tools.PlaylistDropListenerCallBack#playlistRecieved(java.awt.dnd.DropTargetDropEvent, de.quippy.javamod.main.playlist.PlayList, java.net.URL)
+	 * @see de.quippy.javamod.main.gui.tools.PlaylistDropListenerCallBack#playlistRecieved(dnd.DropTargetDropEvent, de.quippy.javamod.main.playlist.PlayList, java.net.URL)
 	 * @since 08.03.2011
 	 */
 	public void playlistRecieved(DropTargetDropEvent dtde, PlayList dropResult, URL addToLastLoaded)
@@ -779,15 +819,15 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		try
 		{
-	        javax.swing.UIManager.setLookAndFeel(lookAndFeelClassName);
+	        UIManager.setLookAndFeel(lookAndFeelClassName);
 		}
 		catch (Throwable e)
 		{
 			showMessage("The selected Look&Feel is not supported or not reachable through the classpath. Switching to system default...");
 	        try
 	        {
-	        	lookAndFeelClassName = javax.swing.UIManager.getSystemLookAndFeelClassName();
-	            javax.swing.UIManager.setLookAndFeel(lookAndFeelClassName);
+	        	lookAndFeelClassName = UIManager.getSystemLookAndFeelClassName();
+	            UIManager.setLookAndFeel(lookAndFeelClassName);
 	        }
 	        catch (Throwable e1)
 	        {
@@ -811,15 +851,27 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			SwingUtilities.updateComponentTreeUI(window); window.pack();
 	    }
 	}
+	private JPanel oInfoPanel = null;
+	/**
+	 * Change the info panel in the ModInfoPane to the new panel according
+	 * to loading of a file.
+	 * However, if we will set the same info panel again, do not change it.
+	 * @since 22.06.2006
+	 */
 	private void changeInfoPane()
 	{
-		getModInfoPane().removeAll();
 		final JPanel infoPanel = getCurrentContainer().getInfoPanel();
-		if (infoPanel instanceof HasParentDialog)
-			((HasParentDialog)infoPanel).setParentDialog(getModInfoDialog());
-		getModInfoPane().add(infoPanel, java.awt.BorderLayout.CENTER);
-		getModInfoDialog().pack();
-		getModInfoDialog().repaint();
+		if (oInfoPanel!=infoPanel)
+		{
+			oInfoPanel = infoPanel;
+			if (infoPanel instanceof HasParentDialog)
+				((HasParentDialog)infoPanel).setParentDialog(getModInfoDialog());
+	
+			getModInfoPane().removeAll();
+			getModInfoPane().add(infoPanel, BorderLayout.CENTER);
+			getModInfoDialog().pack();
+			getModInfoDialog().repaint();
+		}
 	}
 	private void changeConfigPane()
 	{
@@ -849,11 +901,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		if (audioProcessor!=null) audioProcessor.setDspEnabled(dspEnabled);
 	}
 	/* Element Getter Methods ---------------------------------------------- */
-	public javax.swing.JMenuBar getBaseMenuBar()
+	public JMenuBar getBaseMenuBar()
 	{
 		if (baseMenuBar == null)
 		{
-			baseMenuBar = new javax.swing.JMenuBar();
+			baseMenuBar = new JMenuBar();
 			baseMenuBar.setName("baseMenuBar");
 			baseMenuBar.add(getMenu_File());
 			baseMenuBar.add(getMenu_View());
@@ -862,69 +914,71 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return baseMenuBar;
 	}
-	public javax.swing.JMenu getMenu_File()
+	public JMenu getMenu_File()
 	{
 		if (menu_File == null)
 		{
-			menu_File = new javax.swing.JMenu();
+			menu_File = new JMenu();
 			menu_File.setName("menu_File");
 			menu_File.setMnemonic('f');
 			menu_File.setText("File");
 			menu_File.setFont(Helpers.getDialogFont());
 			menu_File.add(getMenu_File_openMod());
 			menu_File.add(getMenu_File_openURL());
-			menu_File.add(new javax.swing.JSeparator());
+			menu_File.add(new JSeparator());
 			menu_File.add(getMenu_File_exportWave());
 			menu_File.add(getMenu_File_exportFilesFromPlaylist());
 			menu_File.add(getMenu_File_exportFilesInPlaylistOrder());
-			menu_File.add(new javax.swing.JSeparator());
+			menu_File.add(new JSeparator());
 			menu_File.add(getMenu_File_RecentFiles());
-			menu_File.add(new javax.swing.JSeparator());
+			menu_File.add(new JSeparator());
 			menu_File.add(getMenu_File_Close());
 		}
 		return menu_File;
 	}
-	public javax.swing.JMenu getMenu_View()
+	public JMenu getMenu_View()
 	{
 		if (menu_View == null)
 		{
-			menu_View = new javax.swing.JMenu();
+			menu_View = new JMenu();
 			menu_View.setName("menu_View");
 			menu_View.setMnemonic('v');
 			menu_View.setText("View");
 			menu_View.setFont(Helpers.getDialogFont());
 			menu_View.add(getMenu_View_ArrangeWindows());
-			menu_View.add(new javax.swing.JSeparator());
+			menu_View.add(new JSeparator());
 			menu_View.add(getMenu_View_Info());
 			menu_View.add(getMenu_View_Setup());
 			menu_View.add(getMenu_View_Playlist());
 			menu_View.add(getMenu_View_GraphicEQ());
-			menu_View.add(new javax.swing.JSeparator());
+			menu_View.add(new JSeparator());
+			menu_View.add(getMenu_View_XMAS_mode_config());
+			menu_View.add(new JSeparator());
 			menu_View.add(getMenu_View_UseSystemTray());
 		}
 		return menu_View;
 	}
-	public javax.swing.JMenu getMenu_LookAndFeel()
+	public JMenu getMenu_LookAndFeel()
 	{
 		if (menu_LookAndFeel == null)
 		{
-			menu_LookAndFeel = new javax.swing.JMenu();
+			menu_LookAndFeel = new JMenu();
 			menu_LookAndFeel.setName("menu_LookAndFeel");
 			menu_LookAndFeel.setMnemonic('l');
 			menu_LookAndFeel.setText("Look&Feel");
 			menu_LookAndFeel.setFont(Helpers.getDialogFont());
 			
-			String currentUIClassName = javax.swing.UIManager.getLookAndFeel().getClass().getName();
-			javax.swing.UIManager.LookAndFeelInfo [] lookAndFeels = getInstalledLookAndFeels();
-			menu_LookAndFeel_Items = new javax.swing.JCheckBoxMenuItem[lookAndFeels.length];
+			final String currentUIClassName = UIManager.getLookAndFeel().getClass().getName();
+			UIManager.LookAndFeelInfo [] lookAndFeels = getInstalledLookAndFeels();
+			menu_LookAndFeel_Items = new JCheckBoxMenuItem[lookAndFeels.length];
 			for (int i=0; i<lookAndFeels.length; i++)
 			{
-				menu_LookAndFeel_Items[i] = new javax.swing.JCheckBoxMenuItem();
+				menu_LookAndFeel_Items[i] = new JCheckBoxMenuItem();
 				menu_LookAndFeel_Items[i].setName("newMenuItem_"+i);
 				menu_LookAndFeel_Items[i].setText(lookAndFeels[i].getName());
 				menu_LookAndFeel_Items[i].setFont(Helpers.getDialogFont());
 				menu_LookAndFeel_Items[i].setToolTipText("Change to " + lookAndFeels[i].getName() + " look and feel");
-				String uiClassName = lookAndFeels[i].getClassName();
+				final String uiClassName = lookAndFeels[i].getClassName();
 				if (uiClassName.equals(currentUIClassName)) menu_LookAndFeel_Items[i].setSelected(true);
 				menu_LookAndFeel_Items[i].addActionListener(new LookAndFeelChanger(menu_LookAndFeel_Items[i], uiClassName));
 				menu_LookAndFeel.add(menu_LookAndFeel_Items[i]);
@@ -933,11 +987,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_LookAndFeel;
 	}
-	private javax.swing.JMenu getMenu_Help()
+	private JMenu getMenu_Help()
 	{
 		if (menu_Help == null)
 		{
-			menu_Help = new javax.swing.JMenu();
+			menu_Help = new JMenu();
 			menu_Help.setName("menu_Help");
 			menu_Help.setMnemonic('h');
 			menu_Help.setText("Help");
@@ -945,16 +999,16 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			menu_Help.add(getMenu_Help_CheckUpdate());
 			menu_Help.add(getMenu_Help_ShowSoundHardware());
 			menu_Help.add(getMenu_Help_ShowVersionHistory());
-			menu_Help.add(new javax.swing.JSeparator());
+			menu_Help.add(new JSeparator());
 			menu_Help.add(getMenu_Help_About());
 		}
 		return menu_Help;
 	}
-	private javax.swing.JMenuItem getMenu_File_openMod()
+	private JMenuItem getMenu_File_openMod()
 	{
 		if (menu_File_openMod == null)
 		{
-			menu_File_openMod = new javax.swing.JMenuItem();
+			menu_File_openMod = new JMenuItem();
 			menu_File_openMod.setName("menu_File_openMod");
 			menu_File_openMod.setMnemonic('o');
 			menu_File_openMod.setText("Open Sound File...");
@@ -969,11 +1023,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_openMod;
 	}
-	private javax.swing.JMenuItem getMenu_File_openURL()
+	private JMenuItem getMenu_File_openURL()
 	{
 		if (menu_File_openURL == null)
 		{
-			menu_File_openURL = new javax.swing.JMenuItem();
+			menu_File_openURL = new JMenuItem();
 			menu_File_openURL.setName("menu_File_openURL");
 			menu_File_openURL.setMnemonic('u');
 			menu_File_openURL.setText("Open an URL...");
@@ -988,11 +1042,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_openURL;
 	}
-	private javax.swing.JMenuItem getMenu_File_exportWave()
+	private JMenuItem getMenu_File_exportWave()
 	{
 		if (menu_File_exportWave == null)
 		{
-			menu_File_exportWave = new javax.swing.JMenuItem();
+			menu_File_exportWave = new JMenuItem();
 			menu_File_exportWave.setName("menu_File_exportWave");
 			menu_File_exportWave.setMnemonic('x');
 			menu_File_exportWave.setText("Export to wave while playing...");
@@ -1007,11 +1061,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_exportWave;
 	}
-	private javax.swing.JMenuItem getMenu_File_exportFilesFromPlaylist()
+	private JMenuItem getMenu_File_exportFilesFromPlaylist()
 	{
 		if (menu_File_exportFromPlayList == null)
 		{
-			menu_File_exportFromPlayList = new javax.swing.JMenuItem();
+			menu_File_exportFromPlayList = new JMenuItem();
 			menu_File_exportFromPlayList.setName("menu_File_exportFromPlayList");
 			menu_File_exportFromPlayList.setMnemonic('e');
 			menu_File_exportFromPlayList.setText("Export selected to wave...");
@@ -1026,11 +1080,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_exportFromPlayList;
 	}
-	private javax.swing.JMenuItem getMenu_File_exportFilesInPlaylistOrder()
+	private JMenuItem getMenu_File_exportFilesInPlaylistOrder()
 	{
 		if (menu_File_copyFilesInPlayListOrder == null)
 		{
-			menu_File_copyFilesInPlayListOrder = new javax.swing.JMenuItem();
+			menu_File_copyFilesInPlayListOrder = new JMenuItem();
 			menu_File_copyFilesInPlayListOrder.setName("menu_File_copyFilesInPlayListOrder");
 			menu_File_copyFilesInPlayListOrder.setMnemonic('c');
 			menu_File_copyFilesInPlayListOrder.setText("Copy selected files in playlist order...");
@@ -1045,11 +1099,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_copyFilesInPlayListOrder;
 	}
-	private javax.swing.JMenu getMenu_File_RecentFiles()
+	private JMenu getMenu_File_RecentFiles()
 	{
 		if (menu_File_RecentFiles == null)
 		{
-			menu_File_RecentFiles = new javax.swing.JMenu();
+			menu_File_RecentFiles = new JMenu();
 			menu_File_RecentFiles.setName("menu_File_RecentFiles");
 			menu_File_RecentFiles.setMnemonic('r');
 			menu_File_RecentFiles.setText("Recent files");
@@ -1061,7 +1115,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	}
 	private void createRecentFileMenuItems()
 	{
-		javax.swing.JMenu recent = getMenu_File_RecentFiles();
+		JMenu recent = getMenu_File_RecentFiles();
 		recent.removeAll();
 		for (int i=0, index=1; i<PROPERTY_LASTLOADED_MAXENTRIES; i++)
 		{
@@ -1083,7 +1137,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 				}
 				
 				if (displayName==null) displayName = lastLoaded.get(i).toString();
-				javax.swing.JMenuItem lastLoadURL = new javax.swing.JMenuItem();
+				JMenuItem lastLoadURL = new JMenuItem();
 				lastLoadURL.setName("menu_File_RecentFiles_File"+i);
 				lastLoadURL.setText(((index<10)?"  ":Helpers.EMPTY_STING) + (index++) + " " + displayName);
 				lastLoadURL.setFont(Helpers.getDialogFont());
@@ -1094,7 +1148,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 					{
 						try
 						{
-							URL url = Helpers.createURLfromString(((javax.swing.JMenuItem)e.getSource()).getToolTipText());
+							URL url = Helpers.createURLfromString(((JMenuItem)e.getSource()).getToolTipText());
 							loadMultimediaOrPlayListFile(url);
 						}
 						catch (Exception ex)
@@ -1107,11 +1161,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			}
 		}
 	}
-	private javax.swing.JMenuItem getMenu_File_Close()
+	private JMenuItem getMenu_File_Close()
 	{
 		if (menu_File_Close == null)
 		{
-			menu_File_Close = new javax.swing.JMenuItem();
+			menu_File_Close = new JMenuItem();
 			menu_File_Close.setName("menu_File_Close");
 			menu_File_Close.setMnemonic('c');
 			menu_File_Close.setText("Close");
@@ -1126,11 +1180,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_File_Close;
 	}
-	private javax.swing.JMenuItem getMenu_View_ArrangeWindows()
+	private JMenuItem getMenu_View_ArrangeWindows()
 	{
 		if (menu_View_ArrangeWindows == null)
 		{
-			menu_View_ArrangeWindows = new javax.swing.JMenuItem();
+			menu_View_ArrangeWindows = new JMenuItem();
 			menu_View_ArrangeWindows.setName("menu_View_ArrangeWindows");
 			menu_View_ArrangeWindows.setMnemonic('a');
 			menu_View_ArrangeWindows.setText("Arrange Windows");
@@ -1145,11 +1199,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_ArrangeWindows;
 	}
-	private javax.swing.JMenuItem getMenu_View_Info()
+	private JMenuItem getMenu_View_Info()
 	{
 		if (menu_View_Info == null)
 		{
-			menu_View_Info = new javax.swing.JMenuItem();
+			menu_View_Info = new JMenuItem();
 			menu_View_Info.setName("menu_View_Info");
 			menu_View_Info.setMnemonic('p');
 			menu_View_Info.setText("Properties...");
@@ -1164,11 +1218,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_Info;
 	}
-	private javax.swing.JMenuItem getMenu_View_Setup()
+	private JMenuItem getMenu_View_Setup()
 	{
 		if (menu_View_Setup == null)
 		{
-			menu_View_Setup = new javax.swing.JMenuItem();
+			menu_View_Setup = new JMenuItem();
 			menu_View_Setup.setName("menu_View_Setup");
 			menu_View_Setup.setMnemonic('s');
 			menu_View_Setup.setText("Setup...");
@@ -1183,11 +1237,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_Setup;
 	}
-	private javax.swing.JMenuItem getMenu_View_Playlist()
+	private JMenuItem getMenu_View_Playlist()
 	{
 		if (menu_View_Playlist == null)
 		{
-			menu_View_Playlist = new javax.swing.JMenuItem();
+			menu_View_Playlist = new JMenuItem();
 			menu_View_Playlist.setName("menu_View_Playlist");
 			menu_View_Playlist.setMnemonic('p');
 			menu_View_Playlist.setText("Playlist...");
@@ -1202,11 +1256,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_Playlist;
 	}
-	private javax.swing.JMenuItem getMenu_View_GraphicEQ()
+	private JMenuItem getMenu_View_GraphicEQ()
 	{
 		if (menu_View_GraphicEQ == null)
 		{
-			menu_View_GraphicEQ = new javax.swing.JMenuItem();
+			menu_View_GraphicEQ = new JMenuItem();
 			menu_View_GraphicEQ.setName("menu_View_GraphicEQ");
 			menu_View_GraphicEQ.setMnemonic('e');
 			menu_View_GraphicEQ.setText("Effect...");
@@ -1221,11 +1275,30 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_GraphicEQ;
 	}
-	private javax.swing.JCheckBoxMenuItem getMenu_View_UseSystemTray()
+	private JMenuItem getMenu_View_XMAS_mode_config()
+	{
+		if (menu_View_XMAS_mode_config == null)
+		{
+			menu_View_XMAS_mode_config = new JMenuItem();
+			menu_View_XMAS_mode_config.setName("menu_View_XMAS_mode_config");
+			menu_View_XMAS_mode_config.setMnemonic('x');
+			menu_View_XMAS_mode_config.setText("X-Mas mode...");
+			menu_View_XMAS_mode_config.setFont(Helpers.getDialogFont());
+			menu_View_XMAS_mode_config.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					getXmasConfigDialog().setVisible(true);
+				}
+			});
+		}
+		return menu_View_XMAS_mode_config;
+	}
+	private JCheckBoxMenuItem getMenu_View_UseSystemTray()
 	{
 		if (menu_View_UseSystemTray == null)
 		{
-			menu_View_UseSystemTray = new javax.swing.JCheckBoxMenuItem();
+			menu_View_UseSystemTray = new JCheckBoxMenuItem();
 			menu_View_UseSystemTray.setName("menu_View_UseSystemTray");
 			menu_View_UseSystemTray.setMnemonic('t');
 			menu_View_UseSystemTray.setText("Use system tray");
@@ -1243,11 +1316,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_View_UseSystemTray;
 	}
-	private javax.swing.JMenuItem getMenu_Help_CheckUpdate()
+	private JMenuItem getMenu_Help_CheckUpdate()
 	{
 		if (menu_Help_CheckUpdate == null)
 		{
-			menu_Help_CheckUpdate = new javax.swing.JMenuItem();
+			menu_Help_CheckUpdate = new JMenuItem();
 			menu_Help_CheckUpdate.setName("menu_Help_CheckUpdate");
 			menu_Help_CheckUpdate.setMnemonic('c');
 			menu_Help_CheckUpdate.setText("Check for update...");
@@ -1262,11 +1335,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_Help_CheckUpdate;
 	}
-	private javax.swing.JMenuItem getMenu_Help_ShowSoundHardware()
+	private JMenuItem getMenu_Help_ShowSoundHardware()
 	{
 		if (menu_Help_ShowSoundHardware == null)
 		{
-			menu_Help_ShowSoundHardware = new javax.swing.JMenuItem();
+			menu_Help_ShowSoundHardware = new JMenuItem();
 			menu_Help_ShowSoundHardware.setName("menu_Help_ShowSoundHardware");
 			menu_Help_ShowSoundHardware.setMnemonic('s');
 			menu_Help_ShowSoundHardware.setText("Show sound hardware info...");
@@ -1283,11 +1356,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_Help_ShowSoundHardware;
 	}
-	private javax.swing.JMenuItem getMenu_Help_ShowVersionHistory()
+	private JMenuItem getMenu_Help_ShowVersionHistory()
 	{
 		if (menu_Help_ShowVersionHistory == null)
 		{
-			menu_Help_ShowVersionHistory = new javax.swing.JMenuItem();
+			menu_Help_ShowVersionHistory = new JMenuItem();
 			menu_Help_ShowVersionHistory.setName("menu_Help_showVersionHistory");
 			menu_Help_ShowVersionHistory.setMnemonic('s');
 			menu_Help_ShowVersionHistory.setText("Show version history...");
@@ -1304,11 +1377,11 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return menu_Help_ShowVersionHistory;
 	}
-	private javax.swing.JMenuItem getMenu_Help_About()
+	private JMenuItem getMenu_Help_About()
 	{
 		if (menu_Help_About == null)
 		{
-			menu_Help_About = new javax.swing.JMenuItem();
+			menu_Help_About = new JMenuItem();
 			menu_Help_About.setName("menu_Help_About");
 			menu_Help_About.setMnemonic('a');
 			menu_Help_About.setText("About...");
@@ -1454,7 +1527,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		if (useSystemTray)
 		{
 			// no check, if iconified, as that *will* be true already!
-			// remember visiable state of all windows
+			// remember visible state of all windows
 			windowsVisibleState = new boolean[windows.size()];
 			for (int x=0; x<windows.size(); x++)
 				windowsVisibleState[x] = windows.get(x).isVisible();
@@ -1493,7 +1566,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			final java.net.URL iconURL = MainForm.class.getResource(DEFAULTTRAYICONPATH);
 			if (iconURL!=null)
 			{
-				final Image trayIconImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
+				final Image trayIconImage = Toolkit.getDefaultToolkit().getImage(iconURL);
 				Dimension trayIconSize = SystemTray.getSystemTray().getTrayIconSize();
 				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				javaModTrayIcon = new TrayIcon(trayIconImage.getScaledInstance(-1, trayIconSize.height, Image.SCALE_SMOOTH));
@@ -1560,7 +1633,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			final java.net.URL iconURL = MainForm.class.getResource(path);
 			if (iconURL!=null)
 			{
-				final Image tempImage = java.awt.Toolkit.getDefaultToolkit().getImage(iconURL);
+				final Image tempImage = Toolkit.getDefaultToolkit().getImage(iconURL);
 				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				windowIcons = new ArrayList<Image>();
 				// Create some typical dimensions of our Icon for Java to use.
@@ -1577,41 +1650,41 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return windowIcons;
 	}
-	public javax.swing.JPanel getBaseContentPane()
+	public JPanel getBaseContentPane()
 	{
 		if (baseContentPane==null)
 		{
-			baseContentPane = new javax.swing.JPanel();
+			baseContentPane = new JPanel();
 			baseContentPane.setName("baseContentPane");
-			baseContentPane.setLayout(new java.awt.BorderLayout());
+			baseContentPane.setLayout(new BorderLayout());
 
-			baseContentPane.add(getMessages(), java.awt.BorderLayout.SOUTH);
-			baseContentPane.add(getMainContentPane(), java.awt.BorderLayout.CENTER);
+			baseContentPane.add(getMessages(), BorderLayout.SOUTH);
+			baseContentPane.add(getMainContentPane(), BorderLayout.CENTER);
 		}
 		return baseContentPane;
 	}
-	public javax.swing.JTextField getMessages()
+	public JTextField getMessages()
 	{
 		if (messages==null)
 		{
-			messages = new javax.swing.JTextField();
+			messages = new JTextField();
 			messages.setName("messages");
 			messages.setEditable(false);
 			messages.setFont(Helpers.getDialogFont());
 		}
 		return messages;
 	}
-	public javax.swing.JPanel getMainContentPane()
+	public JPanel getMainContentPane()
 	{
 		if (mainContentPane==null)
 		{
-			mainContentPane = new javax.swing.JPanel();
+			mainContentPane = new JPanel();
 			mainContentPane.setName("mainContentPane");
-			mainContentPane.setLayout(new java.awt.GridBagLayout());
+			mainContentPane.setLayout(new GridBagLayout());
 
-			mainContentPane.add(getMusicDataPane(),		Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.CENTER, 0.0, 1.0));
-			mainContentPane.add(getPlayerDataPane(),	Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.CENTER, 0.0, 1.0));
-			mainContentPane.add(getPlayerControlPane(),	Helpers.getGridBagConstraint(0, 2, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
+			mainContentPane.add(getMusicDataPane(),		Helpers.getGridBagConstraint(0, 0, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.CENTER, 0.0, 1.0));
+			mainContentPane.add(getPlayerDataPane(),	Helpers.getGridBagConstraint(0, 1, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.CENTER, 0.0, 1.0));
+			mainContentPane.add(getPlayerControlPane(),	Helpers.getGridBagConstraint(0, 2, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.CENTER, 0.0, 0.0));
 		}
 		return mainContentPane;
 	}
@@ -1637,7 +1710,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			urlDialog.setLocation(Helpers.getFrameCenteredLocation(urlDialog, this));
 		return urlDialog;
 	}
-	public javax.swing.JDialog getEffectDialog()
+	public JDialog getEffectDialog()
 	{
 		if (equalizerDialog==null)
 		{
@@ -1653,7 +1726,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return equalizerDialog;
 	}
-	public javax.swing.JDialog getPlayerSetUpDialog()
+	public JDialog getXmasConfigDialog()
+	{
+		if (xmasConfigDialog==null)
+		{
+			xmasConfigDialog = new JDialog(this, false);
+			xmasConfigDialog.setTitle("X-Mas config");
+			xmasConfigDialog.setName("equalizerDialog");
+			xmasConfigDialog.setSize(xmasConfigDialogSize);
+			xmasConfigDialog.setPreferredSize(xmasConfigDialogSize);
+			xmasConfigDialog.setContentPane(getXmasConfigPanel());
+			if (xmasConfigDialogLocation == null || (xmasConfigDialogLocation.getX()==-1 || xmasConfigDialogLocation.getY()==-1))
+				xmasConfigDialogLocation = Helpers.getFrameCenteredLocation(xmasConfigDialog, null); 
+			xmasConfigDialog.setLocation(xmasConfigDialogLocation);
+			xmasConfigDialog.addWindowFocusListener(makeMainWindowVisiable);
+		}
+		return xmasConfigDialog;
+	}
+	public JDialog getPlayerSetUpDialog()
 	{
 		if (playerSetUpDialog==null)
 		{
@@ -1669,7 +1759,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return playerSetUpDialog;
 	}
-	public javax.swing.JDialog getModInfoDialog()
+	public JDialog getModInfoDialog()
 	{
 		if (modInfoDialog==null)
 		{
@@ -1685,19 +1775,19 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return modInfoDialog;
 	}
-	public javax.swing.JPanel getModInfoPane()
+	public JPanel getModInfoPane()
 	{
 		if (modInfoPane==null)
 		{
-			modInfoPane = new javax.swing.JPanel();
+			modInfoPane = new JPanel();
 			modInfoPane.setName("ModInfoPane");
-			modInfoPane.setLayout(new java.awt.BorderLayout());
+			modInfoPane.setLayout(new BorderLayout());
 			modInfoPane.setBorder(new TitledBorder(null, "Multimedia File Info", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			changeInfoPane();
 		}
 		return modInfoPane;
 	}
-	public javax.swing.JDialog getPlaylistDialog()
+	public JDialog getPlaylistDialog()
 	{
 		if (playlistDialog==null)
 		{
@@ -1713,13 +1803,13 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return playlistDialog;
 	}
-	public javax.swing.JPanel getPlaylistPane()
+	public JPanel getPlaylistPane()
 	{
 		if (playlistPane==null)
 		{
-			playlistPane = new javax.swing.JPanel();
+			playlistPane = new JPanel();
 			playlistPane.setName("playlistPane");
-			playlistPane.setLayout(new java.awt.BorderLayout());
+			playlistPane.setLayout(new BorderLayout());
 			playlistPane.setBorder(new TitledBorder(null, "Playlist", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			playlistPane.add(getPlaylistGUI());
 		}
@@ -1734,17 +1824,28 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return playlistGUI;
 	}
-	public javax.swing.JPanel getEffectPane()
+	public JPanel getEffectPane()
 	{
 		if (effectPane==null)
 		{
-			effectPane = new javax.swing.JPanel();
+			effectPane = new JPanel();
 			effectPane.setName("effectPane");
-			effectPane.setLayout(new java.awt.BorderLayout());
+			effectPane.setLayout(new BorderLayout());
 			effectPane.setBorder(new TitledBorder(null, "Effects", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			effectPane.add(getEffectsPanel());
 		}
 		return effectPane;
+	}
+	public XmasConfigPanel getXmasConfigPanel()
+	{
+		if (xmasConfigPanel==null)
+		{
+			DisplayMode mode = Helpers.getScreenInfoOf(this);
+			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			xmasConfigPanel = new XmasConfigPanel(refreshRate);
+			xmasConfigPanel.setName("xmasConfigPane");
+		}
+		return xmasConfigPanel;
 	}
 	private GraphicEqGUI getEqualizerGui()
 	{
@@ -1766,7 +1867,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 	{
 		if (effectGUI==null)
 		{
-			javax.swing.JPanel [] effectPanels = 
+			JPanel [] effectPanels = 
 			{
 			 	getEqualizerGui(),
 			 	getPitchShiftGui()
@@ -1775,13 +1876,13 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return effectGUI;
 	}
-	public javax.swing.JPanel getPlayerSetUpPane()
+	public JPanel getPlayerSetUpPane()
 	{
 		if (playerSetUpPane==null)
 		{
-			playerSetUpPane = new javax.swing.JPanel();
+			playerSetUpPane = new JPanel();
 			playerSetUpPane.setName("playerSetUpPane");
-			playerSetUpPane.setLayout(new java.awt.BorderLayout());
+			playerSetUpPane.setLayout(new BorderLayout());
 			playerSetUpPane.setBorder(new TitledBorder(null, "Mixer Control", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			playerSetUpPane.add(getPlayerConfigPanel());
 			changeConfigPane();
@@ -1888,16 +1989,16 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return vuRMeterPanel;
 	}
-	public javax.swing.JPanel getMusicDataPane()
+	public JPanel getMusicDataPane()
 	{
 		if (musicDataPane==null)
 		{
-			musicDataPane = new javax.swing.JPanel();
+			musicDataPane = new JPanel();
 			musicDataPane.setName("musicDataPane");
-			musicDataPane.setLayout(new java.awt.GridBagLayout());
+			musicDataPane.setLayout(new GridBagLayout());
 			musicDataPane.setBorder(new TitledBorder(null, "Name", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			
-			musicDataPane.add(getLEDScrollPanel(), Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
+			musicDataPane.add(getLEDScrollPanel(), Helpers.getGridBagConstraint(0, 0, 1, 0, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
 		}
 		return musicDataPane;
 	}
@@ -1919,41 +2020,41 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return ledScrollPanel;
 	}
-	public javax.swing.JPanel getPlayerDataPane()
+	public JPanel getPlayerDataPane()
 	{
 		if (playerDataPane==null)
 		{
-			playerDataPane = new javax.swing.JPanel();
+			playerDataPane = new JPanel();
 			playerDataPane.setName("playerDataPane");
-			playerDataPane.setLayout(new java.awt.GridBagLayout());
+			playerDataPane.setLayout(new GridBagLayout());
 			playerDataPane.setBorder(new TitledBorder(null, "Player Data", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			
-			playerDataPane.add(getVULMeterPanel(), Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerDataPane.add(getSALMeterPanel(), Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerDataPane.add(getSARMeterPanel(), Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerDataPane.add(getVURMeterPanel(), Helpers.getGridBagConstraint(3, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
+			playerDataPane.add(getVULMeterPanel(), Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerDataPane.add(getSALMeterPanel(), Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerDataPane.add(getSARMeterPanel(), Helpers.getGridBagConstraint(2, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerDataPane.add(getVURMeterPanel(), Helpers.getGridBagConstraint(3, 0, 1, 0, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
 		}
 		return playerDataPane;
 	}
-	public javax.swing.JPanel getPlayerControlPane()
+	public JPanel getPlayerControlPane()
 	{
 		if (playerControlPane==null)
 		{
-			playerControlPane = new javax.swing.JPanel();
+			playerControlPane = new JPanel();
 			playerControlPane.setName("playerControlPane");
-			playerControlPane.setLayout(new java.awt.GridBagLayout());
+			playerControlPane.setLayout(new GridBagLayout());
 			playerControlPane.setBorder(new TitledBorder(null, "Player Control", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 
-			playerControlPane.add(getButton_Prev(),		Helpers.getGridBagConstraint(0, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getButton_Play(),		Helpers.getGridBagConstraint(1, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getButton_Next(),		Helpers.getGridBagConstraint(2, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getButton_Pause(),	Helpers.getGridBagConstraint(3, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getButton_Stop(),		Helpers.getGridBagConstraint(4, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getVolumeSlider(),	Helpers.getGridBagConstraint(5, 0, 1, 1, java.awt.GridBagConstraints.VERTICAL, java.awt.GridBagConstraints.CENTER, 0.0, 1.0));
-			playerControlPane.add(getBalanceSlider(),	Helpers.getGridBagConstraint(6, 0, 1, 0, java.awt.GridBagConstraints.VERTICAL, java.awt.GridBagConstraints.CENTER, 0.0, 1.0));
-			playerControlPane.add(getVolumeLabel(),		Helpers.getGridBagConstraint(5, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getBalanceLabel(),	Helpers.getGridBagConstraint(6, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
-			playerControlPane.add(getSeekBarPanel(),	Helpers.getGridBagConstraint(0, 2, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.CENTER, 1.0, 1.0));
+			playerControlPane.add(getButton_Prev(),		Helpers.getGridBagConstraint(0, 0, 2, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getButton_Play(),		Helpers.getGridBagConstraint(1, 0, 2, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getButton_Next(),		Helpers.getGridBagConstraint(2, 0, 2, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getButton_Pause(),	Helpers.getGridBagConstraint(3, 0, 2, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getButton_Stop(),		Helpers.getGridBagConstraint(4, 0, 2, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getVolumeSlider(),	Helpers.getGridBagConstraint(5, 0, 1, 1, GridBagConstraints.VERTICAL, GridBagConstraints.CENTER, 0.0, 1.0));
+			playerControlPane.add(getBalanceSlider(),	Helpers.getGridBagConstraint(6, 0, 1, 0, GridBagConstraints.VERTICAL, GridBagConstraints.CENTER, 0.0, 1.0));
+			playerControlPane.add(getVolumeLabel(),		Helpers.getGridBagConstraint(5, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getBalanceLabel(),	Helpers.getGridBagConstraint(6, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.CENTER, 0.0, 0.0));
+			playerControlPane.add(getSeekBarPanel(),	Helpers.getGridBagConstraint(0, 2, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.CENTER, 1.0, 1.0));
 		}
 		return playerControlPane;
 	}
@@ -1977,24 +2078,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return seekBarPanel;
 	}
-	private javax.swing.JButton getButton_Play()
+	private JButton getButton_Play()
 	{
 		if (button_Play == null)
 		{
-			buttonPlay_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONPLAY_NORMAL));
-			buttonPlay_Inactive = new javax.swing.ImageIcon(getClass().getResource(BUTTONPLAY_INACTIVE));
-			buttonPlay_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONPLAY_ACTIVE));
+			buttonPlay_normal = new ImageIcon(getClass().getResource(BUTTONPLAY_NORMAL));
+			buttonPlay_Inactive = new ImageIcon(getClass().getResource(BUTTONPLAY_INACTIVE));
+			buttonPlay_Active = new ImageIcon(getClass().getResource(BUTTONPLAY_ACTIVE));
 
-			button_Play = new javax.swing.JButton();
+			button_Play = new JButton();
 			button_Play.setName("button_Play");
 			button_Play.setText(Helpers.EMPTY_STING);
 			button_Play.setToolTipText("play");
-			button_Play.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-			button_Play.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Play.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Play.setVerticalTextPosition(SwingConstants.BOTTOM);
 			button_Play.setIcon(buttonPlay_normal);
 			button_Play.setDisabledIcon(buttonPlay_Inactive);
 			button_Play.setPressedIcon(buttonPlay_Active);
-			button_Play.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Play.setMargin(new Insets(4, 6, 4, 6));
 			button_Play.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -2005,24 +2106,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return button_Play;
 	}
-	private javax.swing.JButton getButton_Pause()
+	private JButton getButton_Pause()
 	{
 		if (button_Pause == null)
 		{
-			buttonPause_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONPAUSE_NORMAL));
-			buttonPause_Inactive = new javax.swing.ImageIcon(getClass().getResource(BUTTONPAUSE_INACTIVE));
-			buttonPause_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONPAUSE_ACTIVE));
+			buttonPause_normal = new ImageIcon(getClass().getResource(BUTTONPAUSE_NORMAL));
+			buttonPause_Inactive = new ImageIcon(getClass().getResource(BUTTONPAUSE_INACTIVE));
+			buttonPause_Active = new ImageIcon(getClass().getResource(BUTTONPAUSE_ACTIVE));
 
-			button_Pause = new javax.swing.JButton();
+			button_Pause = new JButton();
 			button_Pause.setName("button_Pause");
 			button_Pause.setText(Helpers.EMPTY_STING);
 			button_Pause.setToolTipText("pause");
-			button_Pause.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-			button_Pause.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Pause.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Pause.setVerticalTextPosition(SwingConstants.BOTTOM);
 			button_Pause.setIcon(buttonPause_normal);
 			button_Pause.setDisabledIcon(buttonPause_Inactive);
 			button_Pause.setPressedIcon(buttonPause_Active);
-			button_Pause.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Pause.setMargin(new Insets(4, 6, 4, 6));
 			button_Pause.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -2033,24 +2134,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return button_Pause;
 	}
-	private javax.swing.JButton getButton_Stop()
+	private JButton getButton_Stop()
 	{
 		if (button_Stop == null)
 		{
-			buttonStop_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONSTOP_NORMAL));
-			buttonStop_Inactive = new javax.swing.ImageIcon(getClass().getResource(BUTTONSTOP_INACTIVE));
-			buttonStop_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONSTOP_ACTIVE));
+			buttonStop_normal = new ImageIcon(getClass().getResource(BUTTONSTOP_NORMAL));
+			buttonStop_Inactive = new ImageIcon(getClass().getResource(BUTTONSTOP_INACTIVE));
+			buttonStop_Active = new ImageIcon(getClass().getResource(BUTTONSTOP_ACTIVE));
 
-			button_Stop = new javax.swing.JButton();
+			button_Stop = new JButton();
 			button_Stop.setName("button_Stop");
 			button_Stop.setText(Helpers.EMPTY_STING);
 			button_Stop.setToolTipText("stop");
-			button_Stop.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-			button_Stop.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Stop.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Stop.setVerticalTextPosition(SwingConstants.BOTTOM);
 			button_Stop.setIcon(buttonStop_normal);
 			button_Stop.setDisabledIcon(buttonStop_Inactive);
 			button_Stop.setPressedIcon(buttonStop_Active);
-			button_Stop.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Stop.setMargin(new Insets(4, 6, 4, 6));
 			button_Stop.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -2061,24 +2162,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return button_Stop;
 	}
-	private javax.swing.JButton getButton_Prev()
+	private JButton getButton_Prev()
 	{
 		if (button_Prev == null)
 		{
-			buttonPrev_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONPREV_NORMAL));
-			buttonPrev_Inactive = new javax.swing.ImageIcon(getClass().getResource(BUTTONPREV_INACTIVE));
-			buttonPrev_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONPREV_ACTIVE));
+			buttonPrev_normal = new ImageIcon(getClass().getResource(BUTTONPREV_NORMAL));
+			buttonPrev_Inactive = new ImageIcon(getClass().getResource(BUTTONPREV_INACTIVE));
+			buttonPrev_Active = new ImageIcon(getClass().getResource(BUTTONPREV_ACTIVE));
 
-			button_Prev = new javax.swing.JButton();
+			button_Prev = new JButton();
 			button_Prev.setName("button_Prev");
 			button_Prev.setText(Helpers.EMPTY_STING);
 			button_Prev.setToolTipText("previous");
-			button_Prev.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-			button_Prev.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Prev.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Prev.setVerticalTextPosition(SwingConstants.BOTTOM);
 			button_Prev.setIcon(buttonPrev_normal);
 			button_Prev.setDisabledIcon(buttonPrev_Inactive);
 			button_Prev.setPressedIcon(buttonPrev_Active);
-			button_Prev.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Prev.setMargin(new Insets(4, 6, 4, 6));
 			button_Prev.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -2089,24 +2190,24 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return button_Prev;
 	}
-	private javax.swing.JButton getButton_Next()
+	private JButton getButton_Next()
 	{
 		if (button_Next == null)
 		{
-			buttonNext_normal = new javax.swing.ImageIcon(getClass().getResource(BUTTONNEXT_NORMAL));
-			buttonNext_Inactive = new javax.swing.ImageIcon(getClass().getResource(BUTTONNEXT_INACTIVE));
-			buttonNext_Active = new javax.swing.ImageIcon(getClass().getResource(BUTTONNEXT_ACTIVE));
+			buttonNext_normal = new ImageIcon(getClass().getResource(BUTTONNEXT_NORMAL));
+			buttonNext_Inactive = new ImageIcon(getClass().getResource(BUTTONNEXT_INACTIVE));
+			buttonNext_Active = new ImageIcon(getClass().getResource(BUTTONNEXT_ACTIVE));
 
-			button_Next = new javax.swing.JButton();
+			button_Next = new JButton();
 			button_Next.setName("button_Next");
 			button_Next.setText(Helpers.EMPTY_STING);
 			button_Next.setToolTipText("next");
-			button_Next.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-			button_Next.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+			button_Next.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Next.setVerticalTextPosition(SwingConstants.BOTTOM);
 			button_Next.setIcon(buttonNext_normal);
 			button_Next.setDisabledIcon(buttonNext_Inactive);
 			button_Next.setPressedIcon(buttonNext_Active);
-			button_Next.setMargin(new java.awt.Insets(4, 6, 4, 6));
+			button_Next.setMargin(new Insets(4, 6, 4, 6));
 			button_Next.addActionListener(new ActionListener()
 			{
 				public void actionPerformed(ActionEvent e)
@@ -2117,7 +2218,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return button_Next;
 	}
-	public javax.swing.JLabel getVolumeLabel()
+	public JLabel getVolumeLabel()
 	{
 		if (volumeLabel==null)
 		{
@@ -2165,7 +2266,7 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		}
 		return volumeSlider;
 	}
-	public javax.swing.JLabel getBalanceLabel()
+	public JLabel getBalanceLabel()
 	{
 		if (balanceLabel==null)
 		{
@@ -2304,15 +2405,20 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 		doDeIconify();
 		
 		doStopPlaying();
-		getSeekBarPanel().pauseThread();
-		getVULMeterPanel().pauseThread();
-		getVURMeterPanel().pauseThread();
-		getSALMeterPanel().pauseThread();
-		getSARMeterPanel().pauseThread();
-		getLEDScrollPanel().pauseThread();
-		writePropertyFile();
-		if (audioProcessor!=null) audioProcessor.removeListener(this);
 		
+		// Stop update threads on all ThreadUpdatePanels
+		getSeekBarPanel().stopThread();
+		getVULMeterPanel().stopThread();
+		getVURMeterPanel().stopThread();
+		getSALMeterPanel().stopThread();
+		getSARMeterPanel().stopThread();
+		getLEDScrollPanel().stopThread();
+		getXmasConfigPanel().stopThreads();
+		
+		// Write the property file
+		writePropertyFile();
+		// remove listeners
+		if (audioProcessor!=null) audioProcessor.removeListener(this);
 		MultimediaContainerManager.removeMultimediaContainerEventListener(this);
 		MultimediaContainerManager.cleanUpAllContainers();
 
@@ -2989,15 +3095,4 @@ public class MainForm extends javax.swing.JFrame implements DspProcessorCallBack
 			}
 		});
 	}
-	/**
-	 * Shows the errormessage
-	 * 
-	 * @since 22.06.2006
-	 * @param error
-	 */
-//	private void showMessage(Throwable ex)
-//	{
-//		showMessage(ex.toString());
-//		ex.printStackTrace(System.err);
-//	}
 }

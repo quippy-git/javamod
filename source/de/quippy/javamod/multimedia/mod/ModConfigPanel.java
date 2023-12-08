@@ -319,7 +319,7 @@ public class ModConfigPanel extends JPanel
 		{
 			playerSetUp_fadeOutLoops = new JCheckBox();
 			playerSetUp_fadeOutLoops.setName("playerSetUp_fadeOutLoops");
-			playerSetUp_fadeOutLoops.setText("Fade out infinit loops");
+			playerSetUp_fadeOutLoops.setText("Fade out infinite loops");
 			playerSetUp_fadeOutLoops.setFont(Helpers.getDialogFont());
 			playerSetUp_fadeOutLoops.addItemListener(new ItemListener()
 			{
@@ -342,7 +342,7 @@ public class ModConfigPanel extends JPanel
 		{
 			playerSetUp_ignoreLoops = new JCheckBox();
 			playerSetUp_ignoreLoops.setName("playerSetUp_ignoreLoops");
-			playerSetUp_ignoreLoops.setText("Ignore infinit loops");
+			playerSetUp_ignoreLoops.setText("Ignore infinite loops");
 			playerSetUp_ignoreLoops.setFont(Helpers.getDialogFont());
 			playerSetUp_ignoreLoops.addItemListener(new ItemListener()
 			{

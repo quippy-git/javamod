@@ -269,27 +269,24 @@ public class XMMod extends ProTrackerMod
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
 			LSEEK = inputStream.getFilePointer();
-			int patternHeaderSize = inputStream.readIntelDWord();
-			int packingType = inputStream.read();
+			final int patternHeaderSize = inputStream.readIntelDWord();
+			final int packingType = inputStream.read();
 			if (packingType!=0) throw new IOException("Unknown pattern packing type: " + packingType);
-			int rows = inputStream.readIntelUnsignedWord();
-			int packedPatternDataSize = inputStream.readIntelUnsignedWord();
+			final int rows = inputStream.readIntelUnsignedWord();
+			final int packedPatternDataSize = inputStream.readIntelUnsignedWord();
 			inputStream.seek(LSEEK + patternHeaderSize);
 			
 			Pattern currentPattern = new Pattern(rows);
-			if (packedPatternDataSize>0)
+			for (int row=0; row<rows; row++)
 			{
-				for (int row=0; row<rows; row++)
+				PatternRow currentRow = new PatternRow(getNChannels());
+				for (int channel=0; channel<getNChannels(); channel++)
 				{
-					PatternRow currentRow = new PatternRow(getNChannels());
-					for (int channel=0; channel<getNChannels(); channel++)
-					{
-						PatternElement currentElement = new PatternElement(pattNum, row, channel);
-						setIntoPatternElement(currentElement, inputStream);
-						currentRow.setPatternElement(channel, currentElement);
-					}
-					currentPattern.setPatternRow(row, currentRow);
+					PatternElement currentElement = new PatternElement(pattNum, row, channel);
+					if (packedPatternDataSize>0) setIntoPatternElement(currentElement, inputStream);
+					currentRow.setPatternElement(channel, currentElement);
 				}
+				currentPattern.setPatternRow(row, currentRow);
 			}
 			patternContainer.setPattern(pattNum, currentPattern);
 		}

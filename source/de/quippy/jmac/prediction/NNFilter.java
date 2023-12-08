@@ -19,10 +19,10 @@
 
 package de.quippy.jmac.prediction;
 
+import java.util.Arrays;
+
 import de.quippy.jmac.tools.JMACException;
 import de.quippy.jmac.tools.RollBufferShort;
-
-import java.util.Arrays;
 
 /**
  * Author: Dmitry Vaguine

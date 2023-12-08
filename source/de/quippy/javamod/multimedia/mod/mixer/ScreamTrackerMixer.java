@@ -28,6 +28,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
+import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 
 /**
@@ -58,7 +59,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	{
 		if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0)
 		{
-			aktMemo.muted = ((mod.getPanningValue(channel) & 0x200)!=0); // 0x80<<2
+			aktMemo.wasITforced = aktMemo.muted = ((mod.getPanningValue(channel) & 0x200)!=0); // 0x80<<2
 			aktMemo.doSurround = (mod.getPanningValue(channel) == 400); // 100<<2 - ist in der Tat kein HEX!!!
 		}
 		if ((mod.getSongFlags()&ModConstants.SONG_AMIGALIMITS)!=0) // S3M Amiga Limit flag
@@ -137,24 +138,24 @@ public class ScreamTrackerMixer extends BasicModMixer
 		
 		switch (aktMemo.effekt)
 		{
-			case 0x00:			// no effect
+			case 0x00:			// no effect, only effect OP is set
 				break;
-			case 0x01 :			// SET SPEED
+			case 0x01:			// SET SPEED
 				currentTick = currentTempo = aktMemo.effektParam;
 				break;
-			case 0x02 :			// Pattern position jump
+			case 0x02:			// Pattern position jump
 				patternBreakJumpPatternIndex = aktMemo.effektParam;
 				break;
-			case 0x03 :			// Pattern break
+			case 0x03:			// Pattern break
 				patternBreakRowIndex = aktMemo.effektParam&0xFF;
 				break;
-			case 0x04 :			// Volume Slide
+			case 0x04:			// Volume Slide
 				if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
 				// Fine Volume Up/Down and FastSlides
 				if (isFineVolumeSlide(aktMemo.volumSlideValue) || (mod.getSongFlags()&ModConstants.SONG_FASTVOLSLIDES)!=0)
 					doVolumeSlideEffekt(aktMemo);
 				break;
-			case 0x05 :			// Porta Down
+			case 0x05:			// Porta Down
 				if (aktMemo.effektParam!=0)
 				{
 					aktMemo.portaStepDown = aktMemo.effektParam;
@@ -182,7 +183,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					setNewPlayerTuningFor(aktMemo);
 				}
 				break;
-			case 0x06 :			// Porta Up
+			case 0x06:			// Porta Up
 				if (aktMemo.effektParam!=0)
 				{
 					aktMemo.portaStepUp=aktMemo.effektParam;
@@ -210,7 +211,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					setNewPlayerTuningFor(aktMemo);
 				}
 				break;
-			case 0x07 : 		// Porta To Note
+			case 0x07: 		// Porta To Note
 				if (element!=null && (element.getPeriod()>0 && element.getNoteIndex()>0)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				if (aktMemo.effektParam!=0)
 				{
@@ -218,13 +219,13 @@ public class ScreamTrackerMixer extends BasicModMixer
 					if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) aktMemo.IT_EFG = aktMemo.portaNoteStep;
 				}
 				break;
-			case 0x08 :			// Vibrato
+			case 0x08:			// Vibrato
 				if ((aktMemo.effektParam>>4)!=0) aktMemo.vibratoStep = aktMemo.effektParam>>4;
 				if ((aktMemo.effektParam&0xF)!=0) aktMemo.vibratoAmplitude = (aktMemo.effektParam&0xF)<<2;
 				aktMemo.vibratoOn = true;
 				if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0) doVibratoEffekt(aktMemo, false); // IT: on first TICK
 				break;
-			case 0x09 :			// Tremor
+			case 0x09:			// Tremor
 				if (aktMemo.effektParam!=0)
 				{
 					aktMemo.savedCurrentVolume = aktMemo.currentVolume;
@@ -240,7 +241,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				if (aktMemo.tremorOfftimeSet==0) aktMemo.tremorOfftimeSet=1;
 				doTremorEffekt(aktMemo);
 				break;
-			case 0x0A :			// Arpeggio
+			case 0x0A:			// Arpeggio
 				if (aktMemo.effektParam != 0) aktMemo.arpegioParam = aktMemo.effektParam;
 				if (aktMemo.assignedNotePeriod!=0)
 				{
@@ -257,31 +258,31 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.arpegioIndex=0;
 				}
 				break;
-			case 0x0B :			// Vibrato + Volume Slide
+			case 0x0B:			// Vibrato + Volume Slide
 				aktMemo.vibratoOn = true;
 				if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
 				// Fine Volume Up/Down and FastSlides
 				if (isFineVolumeSlide(aktMemo.volumSlideValue) || (mod.getSongFlags()&ModConstants.SONG_FASTVOLSLIDES)!=0)
 					doVolumeSlideEffekt(aktMemo);
 				break;
-			case 0x0C :			// Porta To Note + VolumeSlide
+			case 0x0C:			// Porta To Note + VolumeSlide
 				if (element!=null && (element.getPeriod()>0 && element.getNoteIndex()>0)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
 				// Fine Volume Up/Down and FastSlides
 				if (isFineVolumeSlide(aktMemo.volumSlideValue) || (mod.getSongFlags()&ModConstants.SONG_FASTVOLSLIDES)!=0)
 					doVolumeSlideEffekt(aktMemo);
 				break;
-			case 0x0D :			// Set Channel Volume
+			case 0x0D:			// Set Channel Volume
 				aktMemo.channelVolume = aktMemo.effektParam;
 				if (aktMemo.channelVolume>64) aktMemo.channelVolume = 64;
 				break;
-			case 0x0E :			// Channel Volume Slide
+			case 0x0E:			// Channel Volume Slide
 				if (aktMemo.effektParam!=0) aktMemo.channelVolumSlideValue = aktMemo.effektParam;
 				// Fine Volume Up/Down and FastSlides
 				if (isFineVolumeSlide(aktMemo.channelVolumSlideValue) || (mod.getSongFlags()&ModConstants.SONG_FASTVOLSLIDES)!=0)
 					doChannelVolumeSlideEffekt(aktMemo);
 				break;
-			case 0x0F : 		// Sample Offset
+			case 0x0F: 		// Sample Offset
 				if (aktMemo.effektParam!=0)
 				{
 					aktMemo.sampleOffset = aktMemo.highSampleOffset<<16 | aktMemo.effektParam<<8;
@@ -289,7 +290,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				}
 				doSampleOffsetEffekt(aktMemo, element);
 				break;
-			case 0x10 :			// Panning Slide
+			case 0x10:			// Panning Slide
 				if (aktMemo.effektParam!=0)
 				{
 					if ((aktMemo.effektParam>>4)!=0)
@@ -306,12 +307,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 				}
 				doRetrigNote(aktMemo, false);
 				break;
-			case 0x12 :			// Tremolo
+			case 0x12:			// Tremolo
 				if ((aktMemo.effektParam>>4)!=0) aktMemo.tremoloStep = aktMemo.effektParam>>4;
 				if ((aktMemo.effektParam&0xF)!=0) aktMemo.tremoloAmplitude = aktMemo.effektParam&0xF;
 				aktMemo.tremoloOn = true;
 				break;
-			case 0x13 : 		// Extended
+			case 0x13: 		// Extended
 				final int effektParam = (aktMemo.effektParam==0) ? aktMemo.S_Effect_Memory : (aktMemo.S_Effect_Memory=aktMemo.effektParam);
 				final int effektOpEx = effektParam&0x0F;
 				switch (effektParam>>4)
@@ -345,7 +346,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 							case 0x0: // Note Cut all NNAs of this channel
 								doNNAforAllof(aktMemo, ModConstants.NNA_CUT);
 								break;
-							case 0x1: // Note Off NNAs of this channel
+							case 0x1: // Note Off all NNAs of this channel
 								doNNAforAllof(aktMemo, ModConstants.NNA_OFF);
 								break;
 							case 0x2: // Note Fade all NNAs of this channel
@@ -445,7 +446,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					case 0xA:	// set High Offset
 						aktMemo.highSampleOffset = effektOpEx;
 						break;
-					case 0xB :	// JumpLoop
+					case 0xB:	// JumpLoop
 						if (effektOpEx==0) // Set a marker for loop
 						{
 							aktMemo.jumpLoopPatternRow = currentRow;
@@ -476,7 +477,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 							}
 						}
 						break;
-					case 0xC :	// Note Cut
+					case 0xC:	// Note Cut
 						if (aktMemo.noteCutCount<0)
 						{
 							if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0)
@@ -494,7 +495,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 								aktMemo.noteCutCount = effektOpEx;
 						}
 						break;
-					case 0xD :	// Note Delay
+					case 0xD:	// Note Delay
 						if (aktMemo.noteDelayCount<0) // is done in BasicModMixer::doRowEvents
 						{
 							if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0)
@@ -512,7 +513,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 								aktMemo.noteDelayCount = effektOpEx;
 						}
 						break;
-					case 0xE :	// Pattern Delay - if currently in the patternDelay, do NOT reset the value. We would wait forever!!!
+					case 0xE:	// Pattern Delay - if currently in the patternDelay, do NOT reset the value. We would wait forever!!!
 						if (patternDelayCount<0) patternDelayCount=effektOpEx;
 						break;
 					case 0xF:	// Set Active Macro (s3m: Funk Repeat)
@@ -523,7 +524,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 						break;
 				}
 				break;
-			case 0x14 :			// set Tempo
+			case 0x14:			// set Tempo
 				if (aktMemo.effektParam>>4==0) 			// 0x0X
 					currentBPM -= aktMemo.effektParam&0xF;
 				else
@@ -533,7 +534,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					currentBPM = aktMemo.effektParam;	// 0x2X
 				samplePerTicks = calculateSamplesPerTick();
 				break;
-			case 0x15 :			// Fine Vibrato
+			case 0x15:			// Fine Vibrato
 				// This effect is identical to the vibrato, but has a 4x smaller amplitude (more precise).
 				if ((aktMemo.effektParam>>4)!=0) aktMemo.vibratoStep = aktMemo.effektParam>>4;
 				if ((aktMemo.effektParam&0xF)!=0)
@@ -545,7 +546,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				aktMemo.vibratoOn = true;
 				if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0) doVibratoEffekt(aktMemo, true); // IT: on first TICK
 				break;
-			case 0x16 :			// Set Global Volume
+			case 0x16:			// Set Global Volume
 				if (aktMemo.effektParam<=0x80)
 				{
 					globalVolume = aktMemo.effektParam;
@@ -557,15 +558,15 @@ public class ScreamTrackerMixer extends BasicModMixer
 					}
 				}
 				break;
-			case 0x17 :			// Global Volume Slide
+			case 0x17:			// Global Volume Slide
 				if (aktMemo.effektParam!=0) aktMemo.globalVolumSlideValue = aktMemo.effektParam;
 				if (isFineVolumeSlide(aktMemo.globalVolumSlideValue))
 					doGlobalVolumeSlideEffekt(aktMemo);
 				break;
-			case 0x18 :			// Set Panning
+			case 0x18:			// Set Panning
 				doPanning(aktMemo, aktMemo.effektParam, ModConstants.PanBits.Pan8Bit);
 				break;
-			case 0x19 :			// Panbrello
+			case 0x19:			// Panbrello
 				if ((aktMemo.effektParam>>4)!=0) aktMemo.panbrelloStep = aktMemo.effektParam>>4;
 				if ((aktMemo.effektParam&0xF)!=0) aktMemo.panbrelloAmplitude = aktMemo.effektParam&0xF;
 				aktMemo.panbrelloOn = true;
@@ -590,7 +591,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		                processMIDIMacro(aktMemo, true, smoothMacro.getMidiZXXExt(aktMemo.effektParam & 0x7F), 0);
 				}
 	            break;
-			default :
+			default:
 				Log.debug(String.format("Unknown Effekt: Effect:%02X Op:%02X in [Pattern:%03d: Row:%03d Channel:%03d]", Integer.valueOf(aktMemo.effekt), Integer.valueOf(aktMemo.effektParam), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
 				break;
 		}
@@ -1314,13 +1315,16 @@ public class ScreamTrackerMixer extends BasicModMixer
 					if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) aktMemo.IT_EFG = aktMemo.portaStepUp;
 				}
 				break;
-			case 0x0E: // Sample Cues - MPT specific
+//			case 0x0E: // Sample Cues - MPT specific
 //				final Sample sample = aktMemo.currentSample;
 //				if (sample!=null && sample.cues!=null && aktMemo.volumeEffektOp <= sample.cues.length)
 //				{
 //					if (aktMemo.volumeEffektOp!=0) aktMemo.sampleOffset = sample.cues[aktMemo.volumeEffektOp - 1];
 //					doSampleOffsetEffekt(aktMemo, aktMemo.currentElement);
 //				}
+//				break;
+			default:
+				Log.debug(String.format("Unknown VolEffekt: Effect:%02X Op:%02X in [Pattern:%03d: Row:%03d Channel:%03d]", Integer.valueOf(aktMemo.volumeEffekt), Integer.valueOf(aktMemo.volumeEffektOp), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
 				break;
 		}
 	}
@@ -1411,5 +1415,127 @@ public class ScreamTrackerMixer extends BasicModMixer
 	{
 		if (effekt==0x13 && effektParam == 0) return aktMemo.S_Effect_Memory;
 		return effektParam;
+	}
+	/**
+	 * @param effekt
+	 * @param effektParam
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#getEffectName(int, int)
+	 */
+	@Override
+	public String getEffectName(final int effekt, final int effektParam)
+	{
+		if (effekt==0 && effektParam==0) return Helpers.EMPTY_STING;
+		
+		switch (effekt)
+		{
+			case 0x00: return "only OP set(!)";
+			case 0x01: return "Set Speed";
+			case 0x02: return "Pattern Position Jump";
+			case 0x03: return "Pattern break";
+			case 0x04: return "Volume Slide";
+			case 0x05: return "Porta Down";
+			case 0x06: return "Porta Up";
+			case 0x07: return "Porta To Note";
+			case 0x08: return "Vibrato";
+			case 0x09: return "Tremor";
+			case 0x0A: return "Arpeggio";
+			case 0x0B: return "Vibrato + VolSlide";
+			case 0x0C: return "PortaNote + VolSlide";
+			case 0x0D: return "Set Volume";
+			case 0x0E: return "Volume Slide";
+			case 0x0F: return "Sample Offset";
+			case 0x10: return "Panning Slide";
+			case 0x11: return "Retrig Note";
+			case 0x12: return "Tremolo";
+			case 0x13 : 		// Extended
+				final int effektOpEx = effektParam&0x0F;
+				switch (effektParam>>4)
+				{
+					case 0x1: return "Glissando";
+					case 0x2: return "Set FineTune";
+					case 0x3: return "Set Vibrato Type";
+					case 0x4: return "Set Tremolo Type";
+					case 0x5: return "Set Panbrello Type";
+					case 0x6: return "Pattern Delay Frame";
+					case 0x7:	// set NNA and others
+						switch (effektOpEx)
+						{
+							case 0x0: return "Note Cut all NNAs";
+							case 0x1: return "Note Off all NNAs";
+							case 0x2: return "Note Fade all NNAs";
+							case 0x3: return "NNA Cut";
+							case 0x4: return "NNA Continue";
+							case 0x5: return "NNA Off";
+							case 0x6: return "NNA Fade";
+							case 0x7: return "Volume Envelope Off";
+							case 0x8: return "Volume Envelope On";
+							case 0x9: return "Panning Envelope Off";
+							case 0xA: return "Panning Envelope On";
+							case 0xB: return "Pitch Envelope Off";
+							case 0xC: return "Pitch Envelope On";
+						}
+						break;
+					case 0x8: return "Set Fine Panning";
+					case 0x9:	// Sound Control
+						switch (effektOpEx)
+						{
+							case 0x0: return "No Surround";
+							case 0x1: return "Enabl. Surround";
+						}
+						break;
+					case 0xA: return "Set High Offset";
+					case 0xB: if (effektOpEx==0) return "Jump Loop Set"; else return "Jump Loop";
+					case 0xC: return "Note Cut";
+					case 0xD: return "Note Delay";
+					case 0xE: return "Pattern Delay";
+					case 0xF: if ((mod.getModType()&ModConstants.MODTYPE_IT)!=0) return "Set Active Macro"; else return "Funk Repeat";
+				}
+				break;
+			case 0x14: 
+				if (effektParam>>4==0) 			// 0x0X
+					return "Set BPM (slower)";
+				else
+				if (effektParam>>4==1) 			// 0x1X
+					return "Set BPM (faster)";
+				else
+					return "Set BPM";			// 0x2X
+			case 0x15: return "Fine Vibrato";
+			case 0x16: return "Set Global Volume";
+			case 0x17: return "Global Volume Slide";
+			case 0x18: return "Set Panning";
+			case 0x19: return "Panbrello";
+			case 0x1A: return "Midi Macro";
+			case 0x1C: return "Smooth Midi Macro";
+		}
+		return "Unknown: " + Integer.toHexString(effekt) + "/" + Integer.toHexString(effektParam);
+	}
+	/**
+	 * @param volumeEffekt
+	 * @param volumeEffektOp
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#getVolEffectName(int, int)
+	 */
+	@Override
+	public String getVolEffectName(final int volumeEffekt, final int volumeEffektOp)
+	{
+		if (volumeEffekt==0) return Helpers.EMPTY_STING;
+		
+		switch (volumeEffekt)
+		{
+			case 0x01: return "Set Volume";
+			case 0x02: return "Volslide down";
+			case 0x03: return "Volslide up";
+			case 0x04: return "Fine Volslide Down";
+			case 0x05: return "Fine Volslide Up";
+			case 0x07: if (volumeEffektOp!=0) return "Set Vibrato Depth"; else return "Vibrato";
+			case 0x08: return "Set Panning";
+			case 0x09: return "Panning Slide Left";
+			case 0x0A: return "Panning Slide Right";
+			case 0x0B: return "Porta To Note";
+			case 0x0C: return "Porta Down";
+			case 0x0D: return "Porta Up";
+		}
+		return "Unknown: " + Integer.toHexString(volumeEffekt);
 	}
 }

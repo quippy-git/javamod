@@ -25,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Transparency;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
@@ -40,10 +41,10 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 {
 	private static final long serialVersionUID = -7284099301353768209L;
 
-	private volatile int myTop;
-	private volatile int myLeft;
-	private volatile int myWidth;
-	private volatile int myHeight;
+	protected volatile int myTop;
+	protected volatile int myLeft;
+	protected volatile int myWidth;
+	protected volatile int myHeight;
 
 	private Image imageBuffer;
 	/**
@@ -86,12 +87,12 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 		
 		if (myWidth>0 && myHeight>0) componentWasResized(0, 0, myWidth, myHeight);
 	}
-	protected synchronized Image getDoubleBuffer()
+	protected synchronized Image getDoubleBuffer(final int myWidth, final int myHeight)
 	{
     	if (imageBuffer==null && myWidth>0 && myHeight>0)
 		{
 			GraphicsConfiguration graConf = getGraphicsConfiguration();
-			if (graConf!=null) imageBuffer = graConf.createCompatibleImage(myWidth, myHeight);
+			if (graConf!=null) imageBuffer = graConf.createCompatibleImage(myWidth, myHeight, Transparency.OPAQUE);
 		}
 		return imageBuffer;
 	}
@@ -100,13 +101,13 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	 */
 	protected synchronized void doThreadUpdate()
 	{
-       	Image buffer = getDoubleBuffer();
+       	Image buffer = getDoubleBuffer(myWidth, myHeight);
        	if (buffer!=null)
        	{
 	   		try
 	   		{
 	   			drawMeter(buffer.getGraphics(), 0, 0, myWidth, myHeight);
-		   		repaint();
+		   		repaint(myTop, myLeft, myWidth, myHeight);
 	   		}
 	   		catch (Exception ex)
 	   		{
@@ -122,7 +123,10 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	public void paintComponent(Graphics g)
 	{
 		super.paintComponent(g);
-		Image buffer = getDoubleBuffer();
+//		Graphics2D g2d = (Graphics2D) g;
+//		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+		Image buffer = getDoubleBuffer(myWidth, myHeight);
 		if (buffer!=null) g.drawImage(buffer, myLeft, myTop, null);
 	}
 	/**

@@ -185,7 +185,7 @@ public class PlayList
 	 */
 	public synchronized void doShuffle()
 	{
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 		ArrayList<PlayListEntry> newEntries = new ArrayList<PlayListEntry>(size());
 		while (!entries.isEmpty())
 		{

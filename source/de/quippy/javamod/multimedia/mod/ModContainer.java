@@ -285,6 +285,8 @@ public class ModContainer extends MultimediaContainer
 		props.setProperty(PROPERTY_PLAYER_DITHERBYPASS, Boolean.toString(configPanel.getPlayerSetUp_ByPassDither().isSelected()));
 	}
 	/**
+	 * Will create a new mixer for the currently loaded mod.
+	 * We assume, that a mod is already loaded and therefore registering a listener is valid!
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#createNewMixer()
 	 * @since: 12.10.2007
 	 * @return
@@ -294,7 +296,7 @@ public class ModContainer extends MultimediaContainer
 	{
 		deregisterUpdateListener();
 
-		if (currentMod==null) return null;
+		if (currentMod==null) return null; // you cannot get a mixer without a mod loaded.
 		
 		Properties props = new Properties();
 		configurationSave(props);
@@ -335,7 +337,8 @@ public class ModContainer extends MultimediaContainer
 			}
 		}
 		// always stop the update thread - if it is not there, this does no harm
-		modInfoPanel.getModPatternDialog().stopUpdateThread();
+		((ModInfoPanel)getInfoPanel()).getModPatternDialog().stopUpdateThread();
+		((ModInfoPanel)getInfoPanel()).getModPatternDialog().setMixer(null);
 	}
 	/**
 	 * @since 11.11.2023
@@ -349,9 +352,10 @@ public class ModContainer extends MultimediaContainer
 			BasicModMixer mixer = currentMixer.getModMixer();
 			if (mixer!=null)
 			{
-				mixer.registerUpdateListener(modInfoPanel.getModPatternDialog());
-				modInfoPanel.getModPatternDialog().startUpdateThread();
+				mixer.registerUpdateListener(((ModInfoPanel)getInfoPanel()).getModPatternDialog());
+				((ModInfoPanel)getInfoPanel()).getModPatternDialog().startUpdateThread();
 			}
+			((ModInfoPanel)getInfoPanel()).getModPatternDialog().setMixer(mixer);
 		}
 	}
 	/**

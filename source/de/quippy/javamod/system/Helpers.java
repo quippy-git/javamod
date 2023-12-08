@@ -29,6 +29,7 @@ import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -87,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.6";
+	public static final String VERSION = "V3.7";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -100,7 +101,7 @@ public class Helpers
 	/** Codepages used when reading mod files */
 	public static final String CODING_GUI = "cp850";
 	public static final String CODING_COMMANLINE = "cp1252";
-	/** Default value - changes whether SWING or commandline */
+	/** Default value - changes whether SWING or command line */
 	public static String currentCoding = CODING_GUI;
 	/** Codepages used when reading playlist files */
 	public static final String CODING_M3U = "ISO-8859-1";
@@ -334,7 +335,8 @@ public class Helpers
 		if (htmlColor.length()>6) htmlColor = htmlColor.substring(htmlColor.length() - 6);
 		return htmlColor;
 	}
-	private static java.awt.Insets DEFAULT_INSETS = new java.awt.Insets(4, 4, 4, 4);
+	private static Insets DEFAULT_INSETS = new Insets(4, 4, 4, 4);
+	public static Insets NULL_INSETS = new Insets(0,0,0,0);
 	/**
 	 * @since 22.06.2006
 	 * @param gridx
@@ -347,7 +349,7 @@ public class Helpers
 	 * @param weighty
 	 * @return
 	 */
-	public static java.awt.GridBagConstraints getGridBagConstraint(final int gridx, final int gridy, final int gridheight, final int gridwidth, final int fill, final int anchor, final double weightx, final double weighty)
+	public static GridBagConstraints getGridBagConstraint(final int gridx, final int gridy, final int gridheight, final int gridwidth, final int fill, final int anchor, final double weightx, final double weighty)
 	{
 		return getGridBagConstraint(gridx, gridy, gridheight, gridwidth, fill, anchor, weightx, weighty, DEFAULT_INSETS);
 	}
@@ -364,9 +366,9 @@ public class Helpers
 	 * @param insets
 	 * @return
 	 */
-	public static java.awt.GridBagConstraints getGridBagConstraint(final int gridx, final int gridy, final int gridheight, final int gridwidth, final int fill, final int anchor, final double weightx, final double weighty, final Insets insets)
+	public static GridBagConstraints getGridBagConstraint(final int gridx, final int gridy, final int gridheight, final int gridwidth, final int fill, final int anchor, final double weightx, final double weighty, final Insets insets)
 	{
-		java.awt.GridBagConstraints constraints = new java.awt.GridBagConstraints();
+		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = gridx; 
 		constraints.gridy = gridy;
 		constraints.gridheight = gridheight;
@@ -502,16 +504,16 @@ public class Helpers
 	public static List <?> getDropData(DropTargetDropEvent dtde)
 	{
 		List<?> files = null;
+        boolean handled = false;
 		try
 		{
-			final Transferable t = dtde.getTransferable();
-			if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+			final Transferable transferable = dtde.getTransferable();
+			if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor) && (dtde.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE)!=0)
 			{
-                boolean handled = false;
-				dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+                dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
                 
 				// Check, if we have a flavor to read manually from
-				DataFlavor[] flavors = t.getTransferDataFlavors();
+				DataFlavor[] flavors = transferable.getTransferDataFlavors();
                 for (int flv=0; flv<flavors.length && !handled; flv++)
                 {
                 	DataFlavor flavor = flavors[flv];
@@ -519,30 +521,31 @@ public class Helpers
                 	// KDE BUG: check for flavors to manually read from
                 	if (flavor.isRepresentationClassReader())
                     {
-                        Reader reader = flavor.getReaderForText(t);
+                        Reader reader = flavor.getReaderForText(transferable);
 						files = Helpers.readLinesFromFlavor(new BufferedReader(reader));
 						handled = true; // we are already satisfied
                     }
                 }
                 if (!handled) // no readable flavor was found - use the javaFileListFlavor
                 {
-    				final Object userObject = t.getTransferData(DataFlavor.javaFileListFlavor);
+    				final Object userObject = transferable.getTransferData(DataFlavor.javaFileListFlavor);
     				if (userObject!=null && userObject instanceof List<?>)
     				{
 						files = ((List<?>)userObject);
 						handled = true;
                 	}
                 }
-				if (!handled) dtde.rejectDrop();
 			}
+			else
+				dtde.rejectDrop();
 		}
 		catch (Throwable ex)
 		{
-			Log.error("Helpers:handleDrop", ex);
+			Log.error("Helpers::handleDrop", ex);
 		}
 		finally
 		{
-			dtde.dropComplete(true);
+			dtde.dropComplete(handled);
 		}
 		return files;
 	}
