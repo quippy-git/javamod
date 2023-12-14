@@ -568,27 +568,43 @@ public abstract class Module
 			else
 			if ((flags&ModConstants.SM_PCM16D)==ModConstants.SM_PCM16D)
 			{
-				short delta = 0;
+				int delta = 0;
 				for (int s=0; s<current.length; s++)
-					current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
+				{
+					delta += (int)inputStream.readIntelWord();
+					if (delta>32767) delta = 32767; else if (delta<-32768) delta = -32768;
+					current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)delta);
+				}
 				if (isStereo)
 				{
 					delta = 0;
 					for (int s=0; s<current.length; s++)
-						current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
+					{
+						delta += (int)inputStream.readIntelWord();
+						if (delta>32767) delta = 32767; else if (delta<-32768) delta = -32768;
+						current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)delta);
+					}
 				}
 			}
 			else
 			if ((flags&ModConstants.SM_PCMD)==ModConstants.SM_PCMD)
 			{
-				byte delta = 0;
+				int delta = 0;
 				for (int s=0; s<current.length; s++)
-					current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+				{
+					delta += (int)inputStream.readByte();
+					if (delta>127) delta = 127; else if (delta<-128) delta = -128;
+					current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)delta);
+				}
 				if (isStereo)
 				{
 					delta = 0;
 					for (int s=0; s<current.length; s++)
-						current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+					{
+						delta += (int)inputStream.readByte();
+						if (delta>127) delta = 127; else if (delta<-128) delta = -128;
+						current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)delta);
+					}
 				}
 			}
 			else

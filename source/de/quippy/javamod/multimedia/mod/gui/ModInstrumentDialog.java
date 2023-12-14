@@ -188,7 +188,7 @@ public class ModInstrumentDialog extends JDialog
         pack();
 		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
 		
-		fillWithInstrument(null);
+		clearInstrument();
 	}
 	public void doClose()
 	{
@@ -741,6 +741,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField getCheckDNA()
 	{
 		if (checkDNA==null)
+			
 		{
 			checkDNA = new JTextField();
 			checkDNA.setName("checkDNA");
@@ -1002,77 +1003,75 @@ public class ModInstrumentDialog extends JDialog
 		getVolumeEnvelopePanel().setEnvelope(null, EnvelopeType.volume);
 		getPanningEnvelopePanel().setEnvelope(null, EnvelopeType.panning);
 		getPitchEnvelopePanel().setEnvelope(null, EnvelopeType.pitch);
-	}
-	private void fillWithInstrument(Instrument newInstrument)
-	{
-		if (newInstrument==null)
-		{
-			clearInstrument();
-		}
-		else
-		{
-			spinnerModelData = new ArrayList<String>(instruments.length);
-			for (int i=0; i<instruments.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
-			getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
-
-			getInstrumentName().setText(newInstrument.name);
-			getFileName().setText(newInstrument.dosFileName);
-			
-			getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
-			getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
-			getSetPan().setFixedState(newInstrument.defaultPan!=-1);
-			getSetPanValue().setText(Integer.toString(newInstrument.defaultPan));
-			
-			getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
-			getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
-	
-			if (newInstrument.initialFilterResonance!=-1)
-			{
-				getSetResonance().setFixedState((newInstrument.initialFilterResonance&0x80)!=0);
-				getResonanceValue().setText(Integer.toString(newInstrument.initialFilterResonance&0x7F));
-			}
-			else
-			{
-				getSetResonance().setFixedState(false);
-				getResonanceValue().setText("-1");
-			}
-			if (newInstrument.initialFilterCutoff!=-1)
-			{
-				getSetCutOff().setFixedState((newInstrument.initialFilterCutoff&0x80)!=0);
-				getCutOffValue().setText(Integer.toString(newInstrument.initialFilterCutoff&0x7F));
-			}
-			else
-			{
-				getSetCutOff().setFixedState(false);
-				getCutOffValue().setText("-1");
-			}
-			
-			getVolumeVariation().setText(Integer.toString(newInstrument.randomVolumeVariation));
-			getPanningVariation().setText(Integer.toString(newInstrument.randomPanningVariation));
-			getResonanceVariation().setText(Integer.toString(newInstrument.randomResonanceVariation));
-			getCutOffVariation().setText(Integer.toString(newInstrument.randomCutOffVariation));
-			
-			getActionNNA().setText(getNNAActionString(newInstrument.NNA));
-			getCheckDNA().setText(getDNACheckString(newInstrument.dublicateNoteCheck));
-			getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
-			
-			getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
-			getSampleMap().select(0,0);
-			
-			getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope, EnvelopeType.volume);
-			getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope, EnvelopeType.panning);
-			getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope, EnvelopeType.pitch);
-		}
 
 		// after setting the new model, make the editor of the spinner un-editable
 		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
+	}
+	private void fillWithInstrument(Instrument newInstrument)
+	{
+		getInstrumentName().setText(newInstrument.name);
+		getFileName().setText(newInstrument.dosFileName);
+		
+		getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
+		getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
+		getSetPan().setFixedState(newInstrument.defaultPan!=-1);
+		getSetPanValue().setText(Integer.toString(newInstrument.defaultPan));
+		
+		getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
+		getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
+
+		if (newInstrument.initialFilterResonance!=-1)
+		{
+			getSetResonance().setFixedState((newInstrument.initialFilterResonance&0x80)!=0);
+			getResonanceValue().setText(Integer.toString(newInstrument.initialFilterResonance&0x7F));
+		}
+		else
+		{
+			getSetResonance().setFixedState(false);
+			getResonanceValue().setText("-1");
+		}
+		if (newInstrument.initialFilterCutoff!=-1)
+		{
+			getSetCutOff().setFixedState((newInstrument.initialFilterCutoff&0x80)!=0);
+			getCutOffValue().setText(Integer.toString(newInstrument.initialFilterCutoff&0x7F));
+		}
+		else
+		{
+			getSetCutOff().setFixedState(false);
+			getCutOffValue().setText("-1");
+		}
+		
+		getVolumeVariation().setText(Integer.toString(newInstrument.randomVolumeVariation));
+		getPanningVariation().setText(Integer.toString(newInstrument.randomPanningVariation));
+		getResonanceVariation().setText(Integer.toString(newInstrument.randomResonanceVariation));
+		getCutOffVariation().setText(Integer.toString(newInstrument.randomCutOffVariation));
+		
+		getActionNNA().setText(getNNAActionString(newInstrument.NNA));
+		getCheckDNA().setText(getDNACheckString(newInstrument.dublicateNoteCheck));
+		getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
+		
+		getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
+		getSampleMap().select(0,0);
+		
+		getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope, EnvelopeType.volume);
+		getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope, EnvelopeType.panning);
+		getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope, EnvelopeType.pitch);
 	}
 	public void fillWithInstrumentArray(final Instrument [] instruments)
 	{
 		this.instruments = instruments;
 		if (instruments!=null)
+		{
+			spinnerModelData = new ArrayList<String>(instruments.length);
+			for (int i=0; i<instruments.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
+			getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
+
 			fillWithInstrument(instruments[0]);
+
+			// after setting the new model, make the editor of the spinner un-editable
+			((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
+		}
 		else
-			fillWithInstrument(null);
+			clearInstrument();
 	}
 }

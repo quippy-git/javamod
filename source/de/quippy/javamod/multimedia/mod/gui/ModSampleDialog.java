@@ -168,7 +168,7 @@ public class ModSampleDialog extends JDialog
         pack();
 		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
 		
-		fillWithSample(null);
+		clearSample();
 	}
 	public void doClose()
 	{
@@ -866,44 +866,34 @@ public class ModSampleDialog extends JDialog
 		// can handle NULL-Sample:
 		getImageBufferPanel().setSample(null);
 		getImageBufferPanel().drawMe();
+
+		// after setting the new model, make the editor of the spinner un-editable
+		((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
 	}
 	private void fillWithSample(final Sample sample)
 	{
-		if (sample==null)
-		{
-			clearSample();
-		}
-		else
-		{
-			spinnerModelData = new ArrayList<String>(samples.length);
-			for (int i=0; i<samples.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
-			getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
-
-			getSampleType().setText(sample.getSampleTypeString());
-			getSampleName().setText(sample.name);
-			getDosFileName().setText(sample.dosFileName);
-			getDefaultVolume().setText(Integer.toString(sample.volume));
-			getGlobalVolume().setText(Integer.toString(sample.globalVolume));
-			getSetPan().setFixedState(sample.panning!=-1);
-			getSetPanValue().setText(Integer.toString(sample.panning));
-			getFineTuneValue().setText(Integer.toString(sample.fineTune));
-			getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
-			getTransposeValue().setText(Integer.toString(sample.transpose));
-			getLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_IS_PINGPONG)==0?"On":"Bidi");
-			getLoopStartValue().setText(Integer.toString(sample.loopStart));
-			getLoopEndValue().setText(Integer.toString(sample.loopStop));
-			getSustainLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_SUSTAIN_IS_PINGPONG)==0?"On":"Bidi");
-			getSustainLoopStartValue().setText(Integer.toString(sample.sustainLoopStart));
-			getSustainLoopEndValue().setText(Integer.toString(sample.sustainLoopStop));
-			getAutoVibTypeValue().setText(AUTOVIBRATO_TYPES[sample.vibratoType]);
-			getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
-			getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
-			getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
-			getImageBufferPanel().setSample(sample);
-			getImageBufferPanel().drawMe();
-		}
-		// after setting the new model, make the editor of the spinner un-editable
-		((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
+		getSampleType().setText(sample.getSampleTypeString());
+		getSampleName().setText(sample.name);
+		getDosFileName().setText(sample.dosFileName);
+		getDefaultVolume().setText(Integer.toString(sample.volume));
+		getGlobalVolume().setText(Integer.toString(sample.globalVolume));
+		getSetPan().setFixedState(sample.panning!=-1);
+		getSetPanValue().setText(Integer.toString(sample.panning));
+		getFineTuneValue().setText(Integer.toString(sample.fineTune));
+		getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
+		getTransposeValue().setText(Integer.toString(sample.transpose));
+		getLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_IS_PINGPONG)==0?"On":"Bidi");
+		getLoopStartValue().setText(Integer.toString(sample.loopStart));
+		getLoopEndValue().setText(Integer.toString(sample.loopStop));
+		getSustainLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_SUSTAIN_IS_PINGPONG)==0?"On":"Bidi");
+		getSustainLoopStartValue().setText(Integer.toString(sample.sustainLoopStart));
+		getSustainLoopEndValue().setText(Integer.toString(sample.sustainLoopStop));
+		getAutoVibTypeValue().setText(AUTOVIBRATO_TYPES[sample.vibratoType]);
+		getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
+		getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
+		getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
+		getImageBufferPanel().setSample(sample);
+		getImageBufferPanel().drawMe();
 	}
 	public void showSample(final int sampleIndex)
 	{
@@ -917,8 +907,17 @@ public class ModSampleDialog extends JDialog
 	{
 		this.samples = samples;
 		if (samples!=null)
+		{
+			spinnerModelData = new ArrayList<String>(samples.length);
+			for (int i=0; i<samples.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
+			getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
+
 			fillWithSample(samples[0]);
+
+			// after setting the new model, make the editor of the spinner un-editable
+			((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
+		}
 		else
-			fillWithSample(null);
+			clearSample();
 	}
 }

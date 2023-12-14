@@ -190,6 +190,12 @@ public class ProTrackerMod extends Module
 				setNChannels(8);
 				return "Atari Oktalyzer";
 			}
+			if (kennung.equals("!PM!"))
+			{
+				isAmigaLike = true;
+				setNChannels(4);
+				return "Unknown Tracker";
+			}
 	
 			String firstKennung = kennung.substring(0,2);
 			String lastKennung = kennung.substring(2,4);
@@ -301,9 +307,16 @@ public class ProTrackerMod extends Module
 			pe.setPeriod((note&0xFFFF0000)>>16);
 		}
 
+		if (pe.getPeriod()<25) 
+			pe.setPeriod(0);
+		else
 		if (pe.getPeriod()>0)
 		{
-			pe.setNoteIndex(ModConstants.getNoteIndexForPeriod(pe.getPeriod())+1);
+			final int noteIndex = ModConstants.getNoteIndexForPeriod(pe.getPeriod());
+			if (noteIndex>0)
+				pe.setNoteIndex(noteIndex+1);
+			else
+				pe.setPeriod(0);
 		}
 
 		pe.setEffekt((note&0xF00)>>8);
@@ -500,7 +513,10 @@ public class ProTrackerMod extends Module
 		for (int i=0; i<getNSamples(); i++)
 		{
 			Sample current = getInstrumentContainer().getSample(i);
-			current.setSampleType(ModConstants.SM_PCMS);
+			if (getModID().equals("!PM!"))
+				current.setSampleType(ModConstants.SM_PCMD);
+			else
+				current.setSampleType(ModConstants.SM_PCMS);
 			readSampleData(current, inputStream);
 		}
 		cleanUpArrangement();

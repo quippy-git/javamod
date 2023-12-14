@@ -750,7 +750,7 @@ public abstract class BasicModMixer
 				return (ModConstants.FreqS3MTable[noteIndex%12] << 7) >> (noteIndex/12);
 
 			case ModConstants.AMIGA_TABLE:
-				return ModConstants.protracker_fineTunedPeriods[(aktMemo.currentFineTune>>ModConstants.PERIOD_SHIFT)+8][period-25]; // Amiga has less octaves!
+				return (period<25)?0:ModConstants.protracker_fineTunedPeriods[(aktMemo.currentFineTune>>ModConstants.PERIOD_SHIFT)+8][period-25]; // Amiga has less octaves!
 			
 			case ModConstants.XM_AMIGA_TABLE:
 				int fineTune=aktMemo.currentFineTune;
