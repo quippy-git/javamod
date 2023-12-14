@@ -114,7 +114,7 @@ public class XmasScreenConfigPanel extends JPanel
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
 						final boolean isEnabled = getXmasEnabledCheckBox().isSelected();
-						getTransparentJFrame().setVisible(isEnabled);
+						getTransparentJWindow().setVisible(isEnabled);
 						if (isEnabled) startThread(); // else: do not stop the thread - that cannot be undone
 					}
 				}
@@ -224,7 +224,7 @@ public class XmasScreenConfigPanel extends JPanel
 		}
 		return updateFPSSelector;
 	}
-	private JWindow getTransparentJFrame()
+	private JWindow getTransparentJWindow()
 	{
 		// Examples use always a java.awt.Window for this. That basically does work.
 		// But whatever the difference of a JWindow to a Window is, a Window
@@ -256,7 +256,7 @@ public class XmasScreenConfigPanel extends JPanel
 			xmasDecorationPanel.setBorder(BorderFactory.createEmptyBorder());
 			xmasDecorationPanel.setOpaque(false);
 			xmasDecorationPanel.setBackground(new Color(0, true));
-			final Dimension d = getTransparentJFrame().getSize();
+			final Dimension d = getTransparentJWindow().getSize();
 			xmasDecorationPanel.setSize(d);
 		}
 		return xmasDecorationPanel;

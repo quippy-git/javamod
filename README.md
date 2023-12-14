@@ -1,4 +1,4 @@
-# JavaMod V3.7
+# JavaMod V3.7.1
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -66,6 +66,10 @@ JavaMod incorporates modified versions of the following libraries:
 * Midi and AdLib/OPL with Mods
 * read 7z archives
 
+## New in Version 3.7.1
+* FIX: Error if window manager does not support tray icon. So really check for
+       tray icon support. Would end up in a hard error, JavaMod will not start!
+
 ## New in Version 3.7
 * NEW  XMAS SPECIAL:
        Enjoy some light bulbs on your desktop. You can enable it in the view
@@ -76,27 +80,27 @@ JavaMod incorporates modified versions of the following libraries:
        flawlessly, but on KDE it is either flickery or with opengl it inherits
        the dim color of a window decoration under it.
 * NEW: Follow song in pattern dialog is now fun to watch:
-       - The arrangement is now scrolling to the activated pattern.
-       - In the pattern dialog horizontal scrolling by user is not reset by
+       * The arrangement is now scrolling to the activated pattern.
+       * In the pattern dialog horizontal scrolling by user is not reset by
          caret anymore.
-       - no editing the caret (mark text) via mouse by user
-       - Rows and channels are fixed for scrolling - and added some color (yes,
+       * no editing the caret (mark text) via mouse by user
+       * Rows and channels are fixed for scrolling - and added some color (yes,
          a bit more gray)
-       - channel markers are buttons for muting and have a context menu to
+       * channel markers are buttons for muting and have a context menu to
          select solo, mute and un-mute per channel
-       - resetting to normal mute will regard muted channels with ITs (if the
+       * resetting to normal mute will regard muted channels with ITs (if the
          author wanted them to be muted)
-       - Added sample / panning representation in channel buttons based on
+       * Added sample / panning representation in channel buttons based on
          samples / volumes and panning in channel
-       - Coding of colored version was deleted... It is too slow anyways.
-       - Follow song can be switched off - however, this will only stop
+       * Coding of colored version was deleted... It is too slow anyways.
+       * Follow song can be switched off - however, this will only stop
          automatic scrolling and pattern display. If the currently watched
          pattern is played, the caret will fly by (though being of lightest
          gray)
-       - display of current volume column effect and effect column effect
-       - No FollowSong while exporting - except for when doing play back while
+       * display of current volume column effect and effect column effect
+       * No FollowSong while exporting - except for when doing play back while
          exporting
-       - upper left corner shows pattern number
+       * upper left corner shows pattern number
 * NEW: Pattern/Sample/Instrument dialogs will disappear when a file other than
        a mod (e.g. mp3) is played - and reappear when a mod is played again
 * NEW: To make pattern sample/instrument data (hex values) fit to sample and
@@ -109,12 +113,12 @@ JavaMod incorporates modified versions of the following libraries:
        set. (BTW: The behavior of FT2, IT2.14, Schism and ModPlug is totally
        different here, which values for volume and panning reset to use.)
        Three things are now done:
-       - if the current instrument is a long player (i.e. has loops), we will
+       * if the current instrument is a long player (i.e. has loops), we will
          continue using that. If no instrument is playing, we will use the new
          given instrument and switch to it 
-       - but also safe the instrument set. Following notes (without instrument)
+       * but also safe the instrument set. Following notes (without instrument)
          will use exactly that new one.
-       - reset panning and volume to the instrument chosen from above
+       * reset panning and volume to the instrument chosen from above
        Check with Airborn.xm and Anthem.mod
 * FIX: PatternBreak at end of Song: do a loop and start at given row, do a
        fade-out if wished. Do not do so, if infinite loops are to be ignored.
@@ -218,7 +222,7 @@ JavaMod incorporates modified versions of the following libraries:
        volume and preamp. New ModPlug-Songs were played fare to silent then
 * FIX: End of envelopes now correctly identified, count of active NNAs, that 
        are not active anymore, does not explode anymore
-* FIX: volume column effects for IT and XM refactored, many fixes on
+* FIX: volume column effects for IT and XM re-factored, many fixes on
        ImpulseTracker
 * FIX: s3m load volume column as panning, if above 128
 * FIX: also stm and s3m (with IT Compatmode OFF) share Porta memories now (like
@@ -263,9 +267,9 @@ JavaMod incorporates modified versions of the following libraries:
 * FIX: MP3 info panel: Label "Duration" is "Bit Rate"
 * FIX: Detailed progress bar while export did not restart properly
 * FIX: Exported MP3, FLAC, WAV,... in chunks
-       -> did not stop exactly at end position but at end of chunk
-       -> MP3: counting samples now, recalculating milliseconds from that
-          (previously added milliseconds send to buffer, which is not accurate)
+       * did not stop exactly at end position but at end of chunk
+       * MP3: counting samples now, recalculating milliseconds from that
+         (previously added milliseconds send to buffer, which is not accurate)
 * FIX: Export file name generation allowed illegal characters
 * UNFIX FIX: pattern break with row index stays in last pattern now, but only if
        "ignore loop" is not checked

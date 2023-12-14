@@ -167,6 +167,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 				g2d.setColor(new Color(0, true));
 				g2d.setComposite(AlphaComposite.Clear);
 				g2d.fillRect(0, 0, myWidth, myHeight);
+				//g2d.clearRect(0, 0, myWidth, myHeight);
 			}
 		}
 		return imageBuffer;

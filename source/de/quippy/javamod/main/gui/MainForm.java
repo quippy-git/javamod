@@ -694,8 +694,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 
 		setName(WINDOW_NAME);
 		setTitle(WINDOW_TITLE);
-		getTrayIcon().setToolTip(WINDOW_TITLE);
-
+		setTrayIconToolTip(WINDOW_TITLE);
+		
     	setIconImages(getWindowIconImages(DEFAULTWINDOWICONPATH));
 		
 	    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -1559,9 +1559,13 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			}
 		}
 	}
+	/**
+	 * 
+	 * @since 07.02.2012
+	 */
 	private TrayIcon getTrayIcon()
 	{
-		if (javaModTrayIcon==null)
+		if (javaModTrayIcon==null && SystemTray.isSupported())
 		{
 			final java.net.URL iconURL = MainForm.class.getResource(DEFAULTTRAYICONPATH);
 			if (iconURL!=null)
@@ -1598,27 +1602,40 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		return javaModTrayIcon;
 	}
 	/**
+	 * @since 12.12.2023
+	 * @param newToolTip
+	 */
+	private void setTrayIconToolTip(final String newToolTip)
+	{
+		if (SystemTray.isSupported())
+		{
+			final TrayIcon trayIcon = getTrayIcon();
+			if (trayIcon!=null) trayIcon.setToolTip(newToolTip);
+		}
+	}
+	/**
 	 * 
 	 * @since 07.02.2012
 	 */
 	private void setSystemTray()
 	{
-		// Check the SystemTray is supported
-		if (SystemTray.isSupported())
+		try
 		{
-			final SystemTray tray = SystemTray.getSystemTray();
-			try
+			// Check the SystemTray is supported
+			if (SystemTray.isSupported())
 			{
-				tray.remove(getTrayIcon());
-				if (useSystemTray)
+				final SystemTray tray = SystemTray.getSystemTray();
+				final TrayIcon trayIcon = getTrayIcon();
+				if (tray!=null && trayIcon!=null)
 				{
-					tray.add(getTrayIcon());
+					tray.remove(trayIcon);
+					if (useSystemTray) tray.add(trayIcon);
 				}
 			}
-			catch (AWTException e)
-			{
-				Log.error("TrayIcon could not be added.", e);
-			}
+		}
+		catch (AWTException e)
+		{
+			Log.error("TrayIcon could not be added.", e);
 		}
 	}
 	/**
@@ -2327,7 +2344,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		else
 		if (event.getType() == MultimediaContainerEvent.SONG_NAME_CHANGED_OLD_INVALID)
 			getLEDScrollPanel().setScrollTextTo(event.getEvent().toString() + Helpers.SCROLLY_BLANKS);
-		getTrayIcon().setToolTip(event.getEvent().toString());
+		setTrayIconToolTip(event.getEvent().toString());
 	}
 	/**
 	 * @param thread
@@ -3033,7 +3050,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	    			{
 	    				currentContainer = newContainer;
 	        			getLEDScrollPanel().setScrollTextTo(currentContainer.getSongName() + Helpers.SCROLLY_BLANKS);
-	        			getTrayIcon().setToolTip(currentContainer.getSongName());
+	        			setTrayIconToolTip(currentContainer.getSongName());
 	    			}
 	    		}
 	    	}
