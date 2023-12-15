@@ -1,4 +1,4 @@
-# JavaMod V3.7.2
+# JavaMod V3.7.3
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -65,6 +65,11 @@ JavaMod incorporates modified versions of the following libraries:
 * MO3 support
 * Midi and AdLib/OPL with Mods
 * read 7z archives
+
+## New in Version 3.7.3
+* NEW: Supporting additional Protracker type mods
+* FIX: Tremolo fixed, added FT2-bug - speed and depth for XM and IT
+* FIX: sample delta loading with special cases
 
 ## New in Version 3.7.2
 * FIX: Sample- and instrument dialog - iterating through the instruments was

@@ -54,6 +54,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -186,6 +188,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private static final String PROPERTY_PITCHSHIFT_OVERSAMPLING = "javamod.player.pitchshift.oversampling";
 	
 	private static final int PROPERTY_LASTLOADED_MAXENTRIES = 10;
+	private static final String PROPERTY_LAST_UPDATECHECK = "javamod.last_update_check";
 	
 	private static final String WINDOW_TITLE = Helpers.FULLVERSION;
 	private static final String WINDOW_NAME = "JavaMod";
@@ -331,6 +334,10 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private boolean useSystemTray = false;
 	private float currentVolume; /* 0.0 - 1.0 */
 	private float currentBalance; /* -1.0 - 1.0 */
+	private LocalDate lastUpdateCheck;
+	private static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final LocalDate today = LocalDate.now();
+
 	
 	private ArrayList<URL> lastLoaded;
 	private ArrayList<Window> windows;
@@ -478,6 +485,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			getSALMeterPanel().setDrawWhatTo(saMeterLeftDrawType);
 			getSARMeterPanel().setDrawWhatTo(saMeterRightDrawType);
 			
+			lastUpdateCheck = LocalDate.from(DATE_FORMATER.parse(props.getProperty(PROPERTY_LAST_UPDATECHECK, DATE_FORMATER.format(today))));
+					
 			if (currentEqualizer!=null)
 			{
 				boolean isActive = Boolean.parseBoolean(props.getProperty(PROPERTY_EQUALIZER_ISACTIVE, "FALSE"));
@@ -558,6 +567,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			props.setProperty(PROPERTY_XMASCONFIG_VISABLE, Boolean.toString(getXmasConfigDialog().isVisible()));
 			props.setProperty(PROPERTY_SAMETER_LEFT_DRAWTYPE, Integer.toString(getSALMeterPanel().getDrawWhat()));
 			props.setProperty(PROPERTY_SAMETER_RIGHT_DRAWTYPE, Integer.toString(getSARMeterPanel().getDrawWhat()));
+			props.setProperty(PROPERTY_LAST_UPDATECHECK, DATE_FORMATER.format(lastUpdateCheck));
 
 			if (currentEqualizer!=null)
 			{
@@ -759,8 +769,33 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		createFileFilter();
 
 	    currentContainer = null; //set Back to null!
-	    showMessage("Ready...");
+		//if (today.minusDays(30).isAfter(lastUpdateCheck)) checkForUpdate();
+
+		showMessage("Ready...");
 	}
+//TODO: We might want to enable this once...
+//	private void checkForUpdate()
+//	{
+//		new Thread( new Runnable()
+//		{
+//			public void run()
+//			{
+//				try
+//				{
+//					lastUpdateCheck = LocalDate.now();
+//					String serverVersion = Helpers.getCurrentServerVersion();
+//					if (Helpers.compareVersions(Helpers.VERSION, serverVersion)<0)
+//					{
+//						getLEDScrollPanel().addScrollText("Version ("+serverVersion+") available" + Helpers.SCROLLY_BLANKS);
+//					}
+//				}
+//				catch (Throwable ex) 
+//				{
+//					/* NOOP */
+//				}
+//			}
+//		}).run();
+//	}
 	private void createAllWindows()
 	{
 		windows = new ArrayList<Window>();

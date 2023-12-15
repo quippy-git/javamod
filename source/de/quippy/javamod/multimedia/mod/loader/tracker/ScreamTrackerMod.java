@@ -154,6 +154,15 @@ public class ScreamTrackerMod extends Module
 		return null;
 	}
 	/**
+	 * @return always false for these mods
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFT2Tremolo()
+	 */
+	@Override
+	public boolean getFT2Tremolo()
+	{
+		return false;
+	}
+	/**
 	 * @param inputStream
 	 * @return true, if this is a protracker mod, false if this is not clear
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)

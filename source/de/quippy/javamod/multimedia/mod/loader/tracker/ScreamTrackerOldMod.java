@@ -159,6 +159,15 @@ public class ScreamTrackerOldMod extends Module
 		return null;
 	}
 	/**
+	 * @return always false for these mods
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFT2Tremolo()
+	 */
+	@Override
+	public boolean getFT2Tremolo()
+	{
+		return false;
+	}
+	/**
 	 * Get the current modtype
 	 * @param kennung
 	 * @return

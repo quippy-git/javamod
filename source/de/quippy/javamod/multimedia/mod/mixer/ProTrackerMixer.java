@@ -542,7 +542,7 @@ public class ProTrackerMixer extends BasicModMixer
 			setNewPlayerTuningFor(aktMemo);
 	}
 	/**
-	 * returns values in the range of -64..64
+	 * returns values in the range of -255..255
 	 * @since 29.06.2020
 	 * @param type
 	 * @param position
@@ -553,8 +553,8 @@ public class ProTrackerMixer extends BasicModMixer
 		position &= 0x3F;
 		switch (type & 0x03)
 		{
-			case 0: //Sinus
 			default:
+			case 0: //Sinus
 				return ModConstants.ModSinusTable[position];
 			case 1: // Ramp Down / Sawtooth
 				return ModConstants.ModRampDownTable[position];
@@ -570,7 +570,7 @@ public class ProTrackerMixer extends BasicModMixer
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#doAutoVibratoEffekt(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory, de.quippy.javamod.multimedia.mod.loader.instrument.Sample)
 	 */
 	@Override
-	protected void doAutoVibratoEffekt(final ChannelMemory aktMemo, final Sample currentSample, int currentPeriod)
+	protected void doAutoVibratoEffekt(final ChannelMemory aktMemo, final Sample currentSample, final int currentPeriod)
 	{
 		if (currentSample.vibratoRate==0) return;
 		
@@ -593,19 +593,18 @@ public class ProTrackerMixer extends BasicModMixer
 			default:
 			case 0:	periodAdd = -ModConstants.ITSinusTable[aktMemo.autoVibratoTablePos & 0xFF];		// Sine
 					break;
-			case 1:	periodAdd = ((aktMemo.autoVibratoTablePos & 0x80)!=0) ? +64 : -64;			// Square
+			case 1:	periodAdd = ((aktMemo.autoVibratoTablePos & 0x80)!=0) ? +0x40 : -0x40;			// Square
 					break;
-			case 2:	periodAdd = ((0x40 + (aktMemo.autoVibratoTablePos >> 1)) & 0x7f) - 0x40;	// Ramp Up
+			case 2:	periodAdd = ((0x40 + (aktMemo.autoVibratoTablePos >> 1)) & 0x7f) - 0x40;		// Ramp Up
 					break;
-			case 3:	periodAdd = ((0x40 - (aktMemo.autoVibratoTablePos >> 1)) & 0x7F) - 0x40;	// Ramp Down
+			case 3:	periodAdd = ((0x40 - (aktMemo.autoVibratoTablePos >> 1)) & 0x7F) - 0x40;		// Ramp Down
 					break;
-			case 4:	periodAdd = ModConstants.ModRandomTable[aktMemo.autoVibratoTablePos & 0x3F];		// Random
+			case 4:	periodAdd = ModConstants.ModRandomTable[aktMemo.autoVibratoTablePos & 0x3F]>>2;	// Random
 					aktMemo.autoVibratoTablePos++;
 					break;
 		}
-		periodAdd =	(periodAdd * aktMemo.autoVibratoAmplitude) >> 8;
-		currentPeriod += (periodAdd>>ModConstants.PERIOD_SHIFT);
-		setNewPlayerTuningFor(aktMemo, currentPeriod);
+		periodAdd =	(periodAdd * aktMemo.autoVibratoAmplitude) >> (8+ModConstants.PERIOD_SHIFT);
+		setNewPlayerTuningFor(aktMemo, currentPeriod + periodAdd);
 	}
 	/**
 	 * Convenient Method for the vibrato effekt
@@ -626,7 +625,6 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void doPanbrelloEffekt(final ChannelMemory aktMemo)
 	{
 		int newPanning = getVibratoDelta(aktMemo.panbrelloType, aktMemo.panbrelloTablePos);
-
 		aktMemo.panbrelloTablePos = (aktMemo.panbrelloTablePos + aktMemo.panbrelloStep) & 0x3F;
 		
 		newPanning = ((newPanning * aktMemo.panbrelloAmplitude) + 2) >> 3;
@@ -639,11 +637,24 @@ public class ProTrackerMixer extends BasicModMixer
 	 */
 	protected void doTremoloEffekt(final ChannelMemory aktMemo)
 	{
-		int volumeAdd = getVibratoDelta(aktMemo.tremoloType, aktMemo.tremoloTablePos);
+		int delta;
+		if ((aktMemo.tremoloType & 0x03)==1 && mod.getFT2Tremolo())
+		{
+			// FT2 compatibility: Tremolo ramp down / triangle implementation is weird and affected by vibrato position (copypaste bug)
+			int ramp = (aktMemo.tremoloTablePos<<2)&0xFF;
+			int vibPos = aktMemo.vibratoTablePos;
+			if (aktMemo.vibratoOn) vibPos += aktMemo.vibratoStep;
+			if ((vibPos & 0x3F)>=32) ramp ^= 0xFF;
+			if ((aktMemo.tremoloTablePos & 0x3F)>=32)
+				delta = -ramp;
+			else
+				delta = ramp;
+		}
+		else 
+			delta = getVibratoDelta(aktMemo.tremoloType, aktMemo.tremoloTablePos);
+		
 		aktMemo.tremoloTablePos = (aktMemo.tremoloTablePos + aktMemo.tremoloStep) & 0x3F;
-
-		volumeAdd = (volumeAdd * aktMemo.tremoloAmplitude) >> 7;
-		aktMemo.currentVolume = aktMemo.savedCurrentVolume + volumeAdd;
+		aktMemo.currentVolume = aktMemo.savedCurrentVolume + ((delta * aktMemo.tremoloAmplitude) >> 6);
 	}
 	/**
 	 * The tremor effekt

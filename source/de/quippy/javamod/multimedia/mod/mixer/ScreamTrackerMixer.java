@@ -734,13 +734,13 @@ public class ScreamTrackerMixer extends BasicModMixer
 			default:
 			case 0:	periodAdd = ModConstants.ITSinusTable[position];	// Sine
 					break;
-			case 1:	periodAdd = position<128? 0x40:0;			// Square
+			case 1:	periodAdd = position<128? 0x40:0;					// Square
 					break;
-			case 2:	periodAdd = ((position + 1)>>1) - 0x40;		// Ramp Up
+			case 2:	periodAdd = ((position + 1)>>1) - 0x40;				// Ramp Up
 					break;
-			case 3:	periodAdd = 0x40 - ((position + 1)>>1);		// Ramp Down
+			case 3:	periodAdd = 0x40 - ((position + 1)>>1);				// Ramp Down
 					break;
-			case 4:	periodAdd = (swinger.nextInt() % 0x40);		// Random
+			case 4:	periodAdd = (swinger.nextInt() % 0x40);				// Random
 					break;
 		}
 		int slideIndex = (periodAdd * depth) >> 7; // periodAdd 0..128
@@ -794,8 +794,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 		position &= 0xFF;
 		switch (type & 0x03)
 		{
-			case 0: //Sinus
 			default:
+			case 0: //Sinus
 				return ModConstants.ITSinusTable[position];
 			case 1: // Ramp Down / Sawtooth
 				return 0x40 - ((position + 1)>>1);
@@ -893,11 +893,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	protected void doTremoloEffekt(final ChannelMemory aktMemo)
 	{
-		int volumeAdd = getVibratoDelta(aktMemo.tremoloType, aktMemo.tremoloTablePos);
-
-		aktMemo.tremoloTablePos = (aktMemo.tremoloTablePos + aktMemo.tremoloStep) & 0xFF;
-		volumeAdd = (volumeAdd * aktMemo.tremoloAmplitude) >> 6;
-		aktMemo.currentVolume = aktMemo.savedCurrentVolume + volumeAdd;
+		int delta = getVibratoDelta(aktMemo.tremoloType, aktMemo.tremoloTablePos);
+		aktMemo.tremoloTablePos = (aktMemo.tremoloTablePos + (aktMemo.tremoloStep<<2)) & 0xFF;
+		aktMemo.currentVolume = aktMemo.savedCurrentVolume + ((delta * aktMemo.tremoloAmplitude) >> 6);
 	}
 	/**
 	 * The tremor effekt

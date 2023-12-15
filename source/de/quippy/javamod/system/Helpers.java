@@ -88,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.7.2";
+	public static final String VERSION = "V3.7.3";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -1255,7 +1255,7 @@ public class Helpers
 		}
 		catch (Throwable ex)
 		{
-			Log.error("getCurrentServerVersion", ex);
+			/* NOOP */
 		}
 		finally
 		{
@@ -1268,10 +1268,12 @@ public class Helpers
 	 * @since 16.01.2010
 	 * @param v1
 	 * @param v2
-	 * @return v1>v2: 1; v1==v2: 0; v1<v2: -1
+	 * @return v1&gt;v2: 1; v1==v2: 0; v1&lt;v2: -1
 	 */
 	public static int compareVersions(String v1, String v2)
 	{
+		if (v1==null || v2==null) return 0;
+		
 		if (v1.startsWith("V")) v1 = v1.substring(1);
 		StringTokenizer t1 = new StringTokenizer(v1, ".");
 		if (v2.startsWith("V")) v2 = v2.substring(1);

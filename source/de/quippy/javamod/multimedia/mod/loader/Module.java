@@ -568,43 +568,27 @@ public abstract class Module
 			else
 			if ((flags&ModConstants.SM_PCM16D)==ModConstants.SM_PCM16D)
 			{
-				int delta = 0;
+				short delta = 0;
 				for (int s=0; s<current.length; s++)
-				{
-					delta += (int)inputStream.readIntelWord();
-					if (delta>32767) delta = 32767; else if (delta<-32768) delta = -32768;
-					current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)delta);
-				}
+					current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
 				if (isStereo)
 				{
 					delta = 0;
 					for (int s=0; s<current.length; s++)
-					{
-						delta += (int)inputStream.readIntelWord();
-						if (delta>32767) delta = 32767; else if (delta<-32768) delta = -32768;
-						current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)delta);
-					}
+						current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
 				}
 			}
 			else
 			if ((flags&ModConstants.SM_PCMD)==ModConstants.SM_PCMD)
 			{
-				int delta = 0;
+				byte delta = 0;
 				for (int s=0; s<current.length; s++)
-				{
-					delta += (int)inputStream.readByte();
-					if (delta>127) delta = 127; else if (delta<-128) delta = -128;
-					current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)delta);
-				}
+					current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
 				if (isStereo)
 				{
 					delta = 0;
 					for (int s=0; s<current.length; s++)
-					{
-						delta += (int)inputStream.readByte();
-						if (delta>127) delta = 127; else if (delta<-128) delta = -128;
-						current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)delta);
-					}
+						current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
 				}
 			}
 			else
@@ -721,7 +705,11 @@ public abstract class Module
 	 * @since 15.06.2020
 	 */
 	public abstract MidiMacros getMidiConfig();
-	
+	/**
+	 * @since 15.12.2023
+	 * @return
+	 */
+	public abstract boolean getFT2Tremolo();
 	/**
 	 * @since 25.06.2006
 	 * @param length

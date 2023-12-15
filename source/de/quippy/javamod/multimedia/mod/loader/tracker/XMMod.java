@@ -114,6 +114,15 @@ public class XMMod extends ProTrackerMod
 		return songMessage;
 	}
 	/**
+	 * @return always true for XMs
+	 * @see de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod#getFT2Tremolo()
+	 */
+	@Override
+	public boolean getFT2Tremolo()
+	{
+		return true;
+	}
+	/**
 	 * @since 26.05.2006
 	 * @param currentElement
 	 * @param inputStream
