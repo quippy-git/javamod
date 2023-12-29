@@ -41,10 +41,10 @@ public class PatternContainer
 		this(anzPattern);
 		for (int i=0; i<anzPattern; i++) pattern[i] = new Pattern(row);
 	}
-	public PatternContainer(int anzPattern, int row, int channels)
+	public PatternContainer(final int anzPattern, final int rows, final int channels)
 	{
 		this(anzPattern);
-		for (int i=0; i<anzPattern; i++) pattern[i] = new Pattern(row, channels);
+		for (int i=0; i<anzPattern; i++) pattern[i] = new Pattern(rows, channels);
 	}
 	/**
 	 * @return

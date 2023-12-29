@@ -160,4 +160,8 @@ public class SampleImagePanel extends ImagePanel
 		this.sample = sample;
 		repaint();
 	}
+	public Sample getSample()
+	{
+		return sample;
+	}
 }

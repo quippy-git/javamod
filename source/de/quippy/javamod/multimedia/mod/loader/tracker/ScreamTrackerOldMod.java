@@ -168,6 +168,15 @@ public class ScreamTrackerOldMod extends Module
 		return false;
 	}
 	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModSpeedIsTicks()
+	 */
+	@Override
+	public boolean getModSpeedIsTicks()
+	{
+		return false;
+	}
+	/**
 	 * Get the current modtype
 	 * @param kennung
 	 * @return

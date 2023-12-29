@@ -37,6 +37,9 @@ import de.quippy.javamod.system.Log;
  */
 public class ProTrackerMixer extends BasicModMixer
 {
+	// if we ever want to support this, we can make a switch out of it...
+	private boolean FT2LikeVolSlides = true; // false: Volslide and FineVolSlide share same memory - start with EAx or EBx and continue with A00
+	
 	/**
 	 * Constructor for ProTrackerMixer
 	 */
@@ -127,7 +130,7 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		if (aktMemo.tremorWasActive)
 		{
-			aktMemo.currentVolume = aktMemo.savedCurrentVolume;
+			aktMemo.currentVolume = aktMemo.currentInstrumentVolume;
 			aktMemo.tremorWasActive = false;
 		}
 
@@ -173,29 +176,47 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x05:			// Porta To Note + VolumeSlide
 				if (element!=null && (element.getPeriod()>0 && element.getNoteIndex()>0)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				// With Protracker Mods Porta without Parameter is just Porta, no Vol-Slide
-				if ((mod.getModType()&ModConstants.MODTYPE_MOD)!=0 && aktMemo.effektParam==0) 
+				if (isMOD && aktMemo.effektParam==0) 
 					aktMemo.volumSlideValue = 0;
 				else
 				{
-					if ((aktMemo.effektParam>>4)!=0)
-						aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+					if (FT2LikeVolSlides)
+					{
+						if ((aktMemo.effektParam>>4)!=0)
+							aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+						else
+						if ((aktMemo.effektParam&0xF)!=0) 
+							aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					}
 					else
-					if ((aktMemo.effektParam&0xF)!=0) 
-						aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					{
+						if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
+						if (isFineSlide(aktMemo.volumSlideValue))
+							doVolumeSlideEffekt(aktMemo);
+					}
 				}
 				break;
 			case 0x06:			// Vibrato + VolumeSlide
 				aktMemo.vibratoOn = true;
 				// With Protracker Mods Vibrato without Parameter is just Vibrato, no Vol-Slide
-				if ((mod.getModType()&ModConstants.MODTYPE_MOD)!=0 && aktMemo.effektParam==0) 
+				if (isMOD && aktMemo.effektParam==0) 
 					aktMemo.volumSlideValue = 0;
 				else
 				{
-					if ((aktMemo.effektParam>>4)!=0)
-						aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+					if (FT2LikeVolSlides)
+					{
+						if ((aktMemo.effektParam>>4)!=0)
+							aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+						else
+						if ((aktMemo.effektParam&0xF)!=0)
+							aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					}
 					else
-					if ((aktMemo.effektParam&0xF)!=0)
-						aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					{
+						if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
+						if (isFineSlide(aktMemo.volumSlideValue))
+							doVolumeSlideEffekt(aktMemo);
+					}
 				}
 				break;
 			case 0x07:			// Tremolo
@@ -227,22 +248,35 @@ public class ProTrackerMixer extends BasicModMixer
 				break;
 			case 0x0A:			// Volume Slide
 				// With Protracker Mods Volumeslide without Parameter is not "old Parameter"
-				if ((mod.getModType()&ModConstants.MODTYPE_MOD)!=0 && aktMemo.effektParam==0) 
+				if (isMOD && aktMemo.effektParam==0) 
 					aktMemo.volumSlideValue = 0;
 				else
 				{
-					if ((aktMemo.effektParam>>4)!=0)
-						aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+					if (FT2LikeVolSlides)
+					{
+						if ((aktMemo.effektParam>>4)!=0)
+							aktMemo.volumSlideValue = aktMemo.effektParam>>4;
+						else
+						if ((aktMemo.effektParam&0xF)!=0) 
+							aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					}
 					else
-					if ((aktMemo.effektParam&0xF)!=0) 
-						aktMemo.volumSlideValue = -(aktMemo.effektParam&0xF);
+					{
+						if (aktMemo.effektParam!=0) aktMemo.volumSlideValue = aktMemo.effektParam;
+						if (isFineSlide(aktMemo.volumSlideValue))
+							doVolumeSlideEffekt(aktMemo);
+					}
 				}
 				break;
 			case 0x0B:			// Pattern position jump
 				patternBreakJumpPatternIndex = aktMemo.effektParam;
 				break;
 			case 0x0C:			// Set volume
-				aktMemo.savedCurrentVolume = aktMemo.currentVolume = aktMemo.effektParam;
+				aktMemo.currentVolume = aktMemo.effektParam;
+				if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+				else
+				if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 				break;
 			case 0x0D:			// Pattern break
 				patternBreakRowIndex = ((aktMemo.effektParam>>4)*10)+(aktMemo.effektParam&0x0F);
@@ -316,15 +350,31 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0x9:	// Retrig Note
 						aktMemo.retrigCount = aktMemo.retrigMemo = effektOp;
 						break;
-					case 0xA:	// Fine Volume Up
-						aktMemo.currentVolume += effektOp;
-						if (aktMemo.currentVolume>64) aktMemo.currentVolume = 64;
-						aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+					case 0xA:	// Fine VolSlide Up
+						if (FT2LikeVolSlides)
+						{
+							aktMemo.currentVolume += effektOp;
+							if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+							aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+						}
+						else
+						{
+							if (effektOp!=0) aktMemo.volumSlideValue = ((effektOp<<4) & 0xF0) | 0x0F;
+							doVolumeSlideEffekt(aktMemo);
+						}
 						break;
-					case 0xB:	// Fine Volume Down
-						aktMemo.currentVolume -= effektOp;
-						if (aktMemo.currentVolume<0) aktMemo.currentVolume = 0;
-						aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+					case 0xB:	// Fine VolSlide Down
+						if (FT2LikeVolSlides)
+						{
+							aktMemo.currentVolume -= effektOp;
+							if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+							aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+						}
+						else
+						{
+							if (effektOp!=0) aktMemo.volumSlideValue = (effektOp & 0xF) | 0xF0;
+							doVolumeSlideEffekt(aktMemo);
+						}
 						break;
 					case 0xC:	// Note Cut
 						if (aktMemo.noteCutCount<0)
@@ -348,12 +398,12 @@ public class ProTrackerMixer extends BasicModMixer
 						if (patternDelayCount<0) patternDelayCount=effektOp; // if currently in the patternDelay, do NOT reset the value. We would wait forever!!!
 						break;
 					case 0xF:	// set MIDI Makro (ProTracker: Funk It!)
-						if ((mod.getModType()&ModConstants.MODTYPE_XM)!=0) aktMemo.activeMidiMacro = aktMemo.effektParam&0x7F;
+						if (isXM) aktMemo.activeMidiMacro = aktMemo.effektParam&0x7F;
 						break;
 				}
 				break;
 			case 0x0F:			// SET SPEED / BPM
-				if (aktMemo.effektParam>31) // set BPM
+				if (aktMemo.effektParam>31 && !mod.getModSpeedIsTicks()) // set BPM
 				{
 					currentBPM = aktMemo.effektParam;
 					samplePerTicks = calculateSamplesPerTick();
@@ -363,7 +413,7 @@ public class ProTrackerMixer extends BasicModMixer
 				break;
 			case 0x10:			// Set global volume
 				globalVolume = (aktMemo.effektParam)<<1;
-				if (globalVolume>128) globalVolume = 128;
+				if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
 				break;
 			case 0x11:			// Global volume slide
 				if (aktMemo.effektParam!=0) aktMemo.globalVolumSlideValue = aktMemo.effektParam;
@@ -390,11 +440,14 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x1D:			// Tremor
 				if (aktMemo.effektParam!=0)
 				{
-					aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+					aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 					aktMemo.tremorOntimeSet = (aktMemo.effektParam>>4);
 					aktMemo.tremorOfftimeSet = (aktMemo.effektParam&0xF);
 				}
 				doTremorEffekt(aktMemo);
+				break;
+			case 0x20:			// EMPTY
+				// This effect can be set in OMPT, but is without function (yet?) 
 				break;
 			case 0x21:			// Extended XM Effects
 				final int effektOpEx = aktMemo.effektParam&0x0F;
@@ -482,6 +535,9 @@ public class ProTrackerMixer extends BasicModMixer
 		                processMIDIMacro(aktMemo, true, smoothMacro.getMidiZXXExt(aktMemo.effektParam & 0x7F), 0);
 				}
 	            break;
+			case 0x26:			// Parameter Extension
+				// OMPT Specific, unsupported
+				break;
 			default:
 				Log.debug(String.format("Unknown Effekt: Effect:%02X Op:%02X in [Pattern:%03d: Row:%03d Channel:%03d]", Integer.valueOf(aktMemo.effekt), Integer.valueOf(aktMemo.effektParam), Integer.valueOf(currentPatternIndex), Integer.valueOf(currentRow), Integer.valueOf(aktMemo.channelNumber+1)));
 				break;
@@ -554,7 +610,7 @@ public class ProTrackerMixer extends BasicModMixer
 		switch (type & 0x03)
 		{
 			default:
-			case 0: //Sinus
+			case 0: //Sine
 				return ModConstants.ModSinusTable[position];
 			case 1: // Ramp Down / Sawtooth
 				return ModConstants.ModRampDownTable[position];
@@ -574,28 +630,29 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		if (currentSample.vibratoRate==0) return;
 		
+		final int vibDepthMod = currentSample.vibratoDepth << 8;
 		if (currentSample.vibratoSweep == 0)
-			aktMemo.autoVibratoAmplitude = currentSample.vibratoDepth << 8;
+			aktMemo.autoVibratoAmplitude = vibDepthMod;
 		else
 		{
 			if (!aktMemo.keyOff)
 			{
-				aktMemo.autoVibratoAmplitude += (currentSample.vibratoDepth << 8) / currentSample.vibratoSweep;
-				if ((aktMemo.autoVibratoAmplitude >> 8) > currentSample.vibratoDepth)
-					aktMemo.autoVibratoAmplitude = currentSample.vibratoDepth << 8;
+				aktMemo.autoVibratoAmplitude += vibDepthMod / currentSample.vibratoSweep;
+				if (aktMemo.autoVibratoAmplitude > vibDepthMod)
+					aktMemo.autoVibratoAmplitude = vibDepthMod;
 			}
 		}
 		
 		aktMemo.autoVibratoTablePos += currentSample.vibratoRate;
-		int periodAdd;
-		switch (currentSample.vibratoType & 0x07)
+		int periodAdd; // values -64..+64 - not -256..+256 !!
+		switch (currentSample.vibratoType & 0x07) // No Random in FT2, as far as I know - but what the heck...
 		{
 			default:
-			case 0:	periodAdd = -ModConstants.ITSinusTable[aktMemo.autoVibratoTablePos & 0xFF];		// Sine
+			case 0:	periodAdd = -ModConstants.ITSinusTable[aktMemo.autoVibratoTablePos & 0xFF];		// Sine - With IT Table - but FT2 does that, too
 					break;
 			case 1:	periodAdd = ((aktMemo.autoVibratoTablePos & 0x80)!=0) ? +0x40 : -0x40;			// Square
 					break;
-			case 2:	periodAdd = ((0x40 + (aktMemo.autoVibratoTablePos >> 1)) & 0x7f) - 0x40;		// Ramp Up
+			case 2:	periodAdd = ((0x40 + (aktMemo.autoVibratoTablePos >> 1)) & 0x7F) - 0x40;		// Ramp Up
 					break;
 			case 3:	periodAdd = ((0x40 - (aktMemo.autoVibratoTablePos >> 1)) & 0x7F) - 0x40;		// Ramp Down
 					break;
@@ -613,7 +670,7 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void doVibratoEffekt(final ChannelMemory aktMemo)
 	{
 		int periodAdd = getVibratoDelta(aktMemo.vibratoType, aktMemo.vibratoTablePos);
-		aktMemo.vibratoTablePos = (aktMemo.vibratoTablePos + aktMemo.vibratoStep) & 0x3F;
+		aktMemo.vibratoTablePos = aktMemo.vibratoTablePos + aktMemo.vibratoStep;
 
 		periodAdd = ((periodAdd<<ModConstants.PERIOD_SHIFT) * aktMemo.vibratoAmplitude) >> 7;
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod + periodAdd);
@@ -624,11 +681,11 @@ public class ProTrackerMixer extends BasicModMixer
 	 */
 	protected void doPanbrelloEffekt(final ChannelMemory aktMemo)
 	{
-		int newPanning = getVibratoDelta(aktMemo.panbrelloType, aktMemo.panbrelloTablePos);
-		aktMemo.panbrelloTablePos = (aktMemo.panbrelloTablePos + aktMemo.panbrelloStep) & 0x3F;
+		int newPanning = getVibratoDelta(aktMemo.panbrelloType, aktMemo.panbrelloTablePos >> 2);
+		aktMemo.panbrelloTablePos = aktMemo.panbrelloTablePos + aktMemo.panbrelloStep;
 		
-		newPanning = ((newPanning * aktMemo.panbrelloAmplitude) + 2) >> 3;
-		newPanning += aktMemo.panning;
+		newPanning = ((newPanning * aktMemo.panbrelloAmplitude) + 8) >> 5; // +8: round me at bit 3
+		newPanning += aktMemo.currentInstrumentPanning;
 		aktMemo.panning = (newPanning<0)?0:((newPanning>256)?256:newPanning);
 	}
 	/**
@@ -640,7 +697,7 @@ public class ProTrackerMixer extends BasicModMixer
 		int delta;
 		if ((aktMemo.tremoloType & 0x03)==1 && mod.getFT2Tremolo())
 		{
-			// FT2 compatibility: Tremolo ramp down / triangle implementation is weird and affected by vibrato position (copypaste bug)
+			// With FT2, tremolo ramp down implementation is affected by vibrato position (copy&paste bug) (found in OMPT)
 			int ramp = (aktMemo.tremoloTablePos<<2)&0xFF;
 			int vibPos = aktMemo.vibratoTablePos;
 			if (aktMemo.vibratoOn) vibPos += aktMemo.vibratoStep;
@@ -653,8 +710,11 @@ public class ProTrackerMixer extends BasicModMixer
 		else 
 			delta = getVibratoDelta(aktMemo.tremoloType, aktMemo.tremoloTablePos);
 		
-		aktMemo.tremoloTablePos = (aktMemo.tremoloTablePos + aktMemo.tremoloStep) & 0x3F;
-		aktMemo.currentVolume = aktMemo.savedCurrentVolume + ((delta * aktMemo.tremoloAmplitude) >> 6);
+		aktMemo.tremoloTablePos = aktMemo.tremoloTablePos + aktMemo.tremoloStep;
+		aktMemo.currentVolume = aktMemo.currentInstrumentVolume + ((delta * aktMemo.tremoloAmplitude) >> 7); // normally >>8 because -256..+256
+		if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+		else
+		if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
 	}
 	/**
 	 * The tremor effekt
@@ -678,7 +738,7 @@ public class ProTrackerMixer extends BasicModMixer
 			aktMemo.tremorOntime--;
 			// set Offtime to current value set.
 			if (aktMemo.tremorOntime<=0) aktMemo.tremorOfftime = aktMemo.tremorOfftimeSet;
-			aktMemo.currentVolume = aktMemo.savedCurrentVolume;
+			aktMemo.currentVolume = aktMemo.currentInstrumentVolume;
 		}
 		else
 		if (aktMemo.tremorOfftime>0)
@@ -696,11 +756,15 @@ public class ProTrackerMixer extends BasicModMixer
 	 */
 	protected void doVolumeSlideEffekt(final ChannelMemory aktMemo)
 	{
-		aktMemo.currentVolume += aktMemo.volumSlideValue;
-		if (aktMemo.currentVolume<0) aktMemo.currentVolume = 0;
+		if (FT2LikeVolSlides)
+			aktMemo.currentVolume += aktMemo.volumSlideValue;
 		else
-		if (aktMemo.currentVolume>64) aktMemo.currentVolume = 64;
-		aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+			aktMemo.currentVolume += getFineSlideValue(aktMemo.volumSlideValue);
+
+		if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+		else
+		if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+		aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 	}
 	/**
 	 * Convenient Method for the Global VolumeSlideEffekt
@@ -715,7 +779,7 @@ public class ProTrackerMixer extends BasicModMixer
 		if ((aktMemo.globalVolumSlideValue&0x0F)!=0)
 			globalVolume -= (aktMemo.globalVolumSlideValue&0xF)<<1;
 
-		if (globalVolume>128) globalVolume = 128;
+		if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
 		else
 		if (globalVolume<0) globalVolume = 0;
 	}
@@ -727,7 +791,7 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		aktMemo.doSurround = false;
 		aktMemo.panning += aktMemo.panningSlideValue;
-		if (aktMemo.panning<0) aktMemo.panning = 0; else if (aktMemo.panning>255) aktMemo.panning = 255;
+		if (aktMemo.panning<0) aktMemo.panning = 0; else if (aktMemo.panning>256) aktMemo.panning = 256;
 	}
 	/**
 	 * Retriggers the note and does volume slide
@@ -746,25 +810,25 @@ public class ProTrackerMixer extends BasicModMixer
 				switch (aktMemo.retrigVolSlide)
 				{
 					case 0x1: aktMemo.currentVolume--; break;
-					case 0x2: aktMemo.currentVolume-=2; break;
-					case 0x3: aktMemo.currentVolume-=4; break;
-					case 0x4: aktMemo.currentVolume-=8; break;
-					case 0x5: aktMemo.currentVolume-=16; break;
-					case 0x6: aktMemo.currentVolume=(aktMemo.currentVolume<<1)/3; break;
+					case 0x2: aktMemo.currentVolume-=  2; break;
+					case 0x3: aktMemo.currentVolume-=  4; break;
+					case 0x4: aktMemo.currentVolume-=  8; break;
+					case 0x5: aktMemo.currentVolume-= 16; break;
+					case 0x6: aktMemo.currentVolume = (aktMemo.currentVolume<<1)/3; break;
 					case 0x7: aktMemo.currentVolume>>=1; break;
-					case 0x8: /* Documentary says ? */ break;
+					case 0x8: /* No volume Change */ break;
 					case 0x9: aktMemo.currentVolume++; break;
-					case 0xA: aktMemo.currentVolume+=2; break;
-					case 0xB: aktMemo.currentVolume+=4; break;
-					case 0xC: aktMemo.currentVolume+=8; break;
-					case 0xD: aktMemo.currentVolume+=16; break;
-					case 0xE: aktMemo.currentVolume=(aktMemo.currentVolume*3)>>1; break;
+					case 0xA: aktMemo.currentVolume+=  2; break;
+					case 0xB: aktMemo.currentVolume+=  4; break;
+					case 0xC: aktMemo.currentVolume+=  8; break;
+					case 0xD: aktMemo.currentVolume+= 16; break;
+					case 0xE: aktMemo.currentVolume=  (aktMemo.currentVolume*3)>>1; break;
 					case 0xF: aktMemo.currentVolume<<=1; break;
 				}
-				if (aktMemo.currentVolume>64) aktMemo.currentVolume = 64;
+				if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
 				else
-				if (aktMemo.currentVolume<0) aktMemo.currentVolume = 0;
-				aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+				if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 			}
 		}
 	}
@@ -798,17 +862,20 @@ public class ProTrackerMixer extends BasicModMixer
 				break;
 			case 0x05 :			// Porta to Note + VolumeSlide
 				doPortaToNoteEffekt(aktMemo);
-				doVolumeSlideEffekt(aktMemo);
+				if (FT2LikeVolSlides || !isFineSlide(aktMemo.volumSlideValue))
+					doVolumeSlideEffekt(aktMemo);
 				break;
 			case 0x06:			// Vibrato + VolumeSlide
 				doVibratoEffekt(aktMemo);
-				doVolumeSlideEffekt(aktMemo);
+				if (FT2LikeVolSlides || !isFineSlide(aktMemo.volumSlideValue))
+					doVolumeSlideEffekt(aktMemo);
 				break;
 			case 0x07 :			// Tremolo
 				doTremoloEffekt(aktMemo);
 				break;
 			case 0x0A : 		// VolumeSlide
-				doVolumeSlideEffekt(aktMemo);
+				if (FT2LikeVolSlides || !isFineSlide(aktMemo.volumSlideValue))
+					doVolumeSlideEffekt(aktMemo);
 				break;
 			case 0x0E :			// Extended
 				switch (aktMemo.effektParam>>4)
@@ -878,31 +945,61 @@ public class ProTrackerMixer extends BasicModMixer
 		switch (aktMemo.volumeEffekt)
 		{
 			case 0x01: // Set Volume
-				aktMemo.savedCurrentVolume = aktMemo.currentVolume = aktMemo.volumeEffektOp;
+				aktMemo.currentVolume = aktMemo.volumeEffektOp;
+				if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+				else
+				if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 				break;
 			case 0x02: // Volslide down
-				aktMemo.volumSlideValue = -aktMemo.volumeEffektOp;
-				doVolumeSlideEffekt(aktMemo);
+				if (FT2LikeVolSlides)
+					aktMemo.volumSlideValue = -aktMemo.volumeEffektOp;
+				else
+					aktMemo.volumSlideValue = aktMemo.volumeEffektOp & 0x0F;
 				break;
 			case 0x03: // Volslide up
-				aktMemo.volumSlideValue = aktMemo.volumeEffektOp;
-				doVolumeSlideEffekt(aktMemo);
+				if (FT2LikeVolSlides)
+					aktMemo.volumSlideValue = aktMemo.volumeEffektOp;
+				else
+					aktMemo.volumSlideValue = (aktMemo.volumeEffektOp<<4) & 0xF0;
 				break;
-			case 0x04: // Fine Volslide down
-				aktMemo.currentVolume -= aktMemo.volumeEffektOp;
-				if (aktMemo.currentVolume<0) aktMemo.currentVolume = 0;
-				aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+			case 0x04: // Fine VolSlide down
+				if (FT2LikeVolSlides)
+				{
+					aktMemo.currentVolume -= aktMemo.volumeEffektOp;
+					if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
+					aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+				}
+				else
+				{
+					if (aktMemo.volumeEffektOp!=0) 
+						aktMemo.volumSlideValue = (aktMemo.volumeEffektOp & 0xF) | 0xF0;
+					else
+						aktMemo.volumSlideValue = 0; // avoid 0xF0
+					doVolumeSlideEffekt(aktMemo);
+				}
 				break;
-			case 0x05: // Fine Volslide up
-				aktMemo.currentVolume += aktMemo.volumeEffektOp;
-				if (aktMemo.currentVolume>64) aktMemo.currentVolume = 64;
-				aktMemo.savedCurrentVolume = aktMemo.currentVolume;
+			case 0x05: // Fine VolSlide up
+				if (FT2LikeVolSlides)
+				{
+					aktMemo.currentVolume += aktMemo.volumeEffektOp;
+					if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
+					aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+				}
+				else
+				{
+					if (aktMemo.volumeEffektOp!=0) 
+						aktMemo.volumSlideValue = ((aktMemo.volumeEffektOp<<4) & 0xF0) | 0x0F;
+					else 
+						aktMemo.volumSlideValue = 0; // avoid 0x0F
+					doVolumeSlideEffekt(aktMemo);
+				}
 				break;
-			case 0x06: // vibrato speed
-				if (aktMemo.volumeEffektOp!=0) aktMemo.vibratoStep = aktMemo.volumeEffektOp;
+			case 0x06: // vibrato speed - does not activate
+				aktMemo.vibratoStep = aktMemo.volumeEffektOp;
 				break;
 			case 0x07: // vibrato
-				if (aktMemo.volumeEffektOp!=0) aktMemo.vibratoAmplitude = aktMemo.volumeEffektOp;
+				aktMemo.vibratoAmplitude = aktMemo.volumeEffektOp;
 				aktMemo.vibratoOn = true;
 				break;
 			case 0x08: // Set Panning
@@ -920,7 +1017,7 @@ public class ProTrackerMixer extends BasicModMixer
 				if (aktMemo.volumeEffektOp!=0)
 				{
 					aktMemo.portaNoteStep = aktMemo.volumeEffektOp<<4;
-					if ((mod.getModType()&ModConstants.MODTYPE_XM)!=0) // ProTracker does not have volume effects
+					if (isXM) // ProTracker does not have volume effects
 					{
 						// Yes, FT2 is *that* weird. If there is a Mx command in the volume column
 						// and a normal 3xx command, the 3xx command is ignored but the Mx command's
@@ -958,7 +1055,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x03: // Volslide up
 				doVolumeSlideEffekt(aktMemo);
 				break;
-//			case 0x06: // vibrato speed
+//			case 0x06: // vibrato speed - but does not enable vibrato
 			case 0x07: // vibrato
 				doVibratoEffekt(aktMemo);
 				break;
@@ -1075,10 +1172,10 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0xC: return "Note Cut";
 					case 0xD: return "Note Delay";
 					case 0xE: return "Pattern Delay";
-					case 0xF: if ((mod.getModType()&ModConstants.MODTYPE_XM)!=0) return "Set MIDI Makro"; else return "Funk It!";
+					case 0xF: if (isXM) return "Set MIDI Makro"; else return "Funk It!";
 				}
 				break;
-			case 0x0F: if (effektParam>31) return "Set BPM"; else return "Set Speed"; 
+			case 0x0F: if (effektParam>31 && !mod.getModSpeedIsTicks()) return "Set BPM"; else return "Set Speed"; 
 			case 0x10: return "Set global volume";
 			case 0x11: return "Global Volume Slide";
 			case 0x14: return "Key off";
@@ -1086,6 +1183,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x19: return "Panning Slide";
 			case 0x1B: return "Retrig Note + VolSlide";
 			case 0x1D: return "Tremor";
+			case 0x20: return "Empty";
 			case 0x21: // Extended XM Effects
 				switch (effektParam>>4)
 				{
@@ -1107,6 +1205,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x22: return "Panbrello"; 
 			case 0x23: return "Midi Macro";
 			case 0x24: return "Smooth Midi Macro";
+			case 0x26: return "Parameter Extension";
 		}
 		return "Unknown: " + Integer.toHexString(effekt) + "/" + Integer.toHexString(effektParam);
 	}

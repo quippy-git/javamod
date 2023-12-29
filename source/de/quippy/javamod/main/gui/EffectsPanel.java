@@ -80,6 +80,7 @@ public class EffectsPanel extends JPanel
 			passThrough = new javax.swing.JCheckBox();
 			passThrough.setName("passThrough");
 			passThrough.setText("activate effects");
+			passThrough.setToolTipText("If not activated, the downard settings are bypassed completely. Gains performance, if needed.");
 			passThrough.setFont(Helpers.getDialogFont());
 			if (audioProcessor!=null) passThrough.setSelected(audioProcessor.isDspEnabled());
 			passThrough.addItemListener(new ItemListener()
@@ -103,6 +104,7 @@ public class EffectsPanel extends JPanel
 			useGaplessAudio = new javax.swing.JCheckBox();
 			useGaplessAudio.setName("useGaplessAudio");
 			useGaplessAudio.setText("use gapless audio stream");
+			useGaplessAudio.setToolTipText("A re-use if the output stream enables replay of pieces without gaps. However, on some sound hardware this results in scrambled sound.");
 			useGaplessAudio.setFont(Helpers.getDialogFont());
 			if (parent!=null) useGaplessAudio.setSelected(parent.useGaplessAudio());
 			useGaplessAudio.addItemListener(new ItemListener()

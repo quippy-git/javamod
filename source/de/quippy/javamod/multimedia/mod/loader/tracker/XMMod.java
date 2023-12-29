@@ -123,6 +123,15 @@ public class XMMod extends ProTrackerMod
 		return true;
 	}
 	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModSpeedIsTicks()
+	 */
+	@Override
+	public boolean getModSpeedIsTicks()
+	{
+		return false;
+	}
+	/**
 	 * @since 26.05.2006
 	 * @param currentElement
 	 * @param inputStream

@@ -348,6 +348,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			scrollPane = new javax.swing.JScrollPane();
 			scrollPane.setName("scrollPane_TextField");
 			scrollPane.setViewportView(getPlaylistTextArea());
+			scrollPane.setDoubleBuffered(true);
 		}
 		return scrollPane;
 	}

@@ -39,11 +39,11 @@ public class PatternElement
 	private int effektOp;
 	private int volumeEffekt;
 	private int volumeEffektOp;
-
+	
 	/**
 	 * Constructor for PatternElement
 	 */
-	public PatternElement(int patternIndex, int patternRow, int channel)
+	public PatternElement(final int patternIndex, final int patternRow, final int channel)
 	{
 		super();
 		this.patternIndex = patternIndex;
@@ -57,48 +57,6 @@ public class PatternElement
 		this.effekt = 0;
 		this.effektOp = 0;
 	}
-///////////////////////////////////////////////////////////////////////////////
-// WE CAN SEPARATE THIS TO ALLOW DETAILED STRING. But we want to be fast...
-///////////////////////////////////////////////////////////////////////////////
-//	public String getVolumeEffektString()
-//	{
-//		if (volumeEffekt==0) return " ..";
-//		
-//		StringBuilder sb = new StringBuilder();
-//		switch (volumeEffekt)
-//		{
-//			case 0x01: sb.append('v'); break;
-//			case 0x02: sb.append('d'); break;
-//			case 0x03: sb.append('c'); break;
-//			case 0x04: sb.append('b'); break;
-//			case 0x05: sb.append('a'); break;
-//			case 0x06: sb.append('u'); break;
-//			case 0x07: sb.append('h'); break;
-//			case 0x08: sb.append('p'); break;
-//			case 0x09: sb.append('l'); break;
-//			case 0x0A: sb.append('r'); break;
-//			case 0x0B: sb.append('g'); break;
-//			case 0x0C: sb.append('e'); break;
-//			case 0x0D: sb.append('f'); break;
-//			case 0x0E: sb.append('o'); break;
-//			case 0x0F: sb.append('?'); break;
-//		}
-//		sb.append(ModConstants.getAsHex(volumeEffektOp, 2));
-//		return sb.toString();
-//	}
-//	public String getEffektString()
-//	{
-//		if (effekt==0) return "...";
-//		
-//		StringBuilder sb = new StringBuilder();
-//		if (effekt<=0x0F)
-//			sb.append(ModConstants.getAsHex(effekt, 1));
-//		else
-//			sb.append((char)('F' + effekt - 0x0F));
-//		sb.append(ModConstants.getAsHex(effektOp, 2));
-//		return sb.toString();
-//	}
-///////////////////////////////////////////////////////////////////////////////
 	/**
 	 * @return
 	 * @see java.lang.Object#toString()
@@ -106,12 +64,29 @@ public class PatternElement
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder(" ");
-		sb.append(ModConstants.getNoteNameForIndex(noteIndex));
-//		if ((period==0 && noteIndex!=0) || (period!=0 && noteIndex==0))
-//			sb.append('!');
-//		else
-			sb.append(' ');
+		return toString(false);
+	}
+	/**
+	 * toString - however regarding if ImpulseTracker family or not
+	 * @since 22.12.2023
+	 * @param isIT
+	 * @return
+	 */
+	public String toString(final boolean isIT)
+	{
+		final StringBuilder sb = new StringBuilder();
+		addToStringBuilder(sb, isIT);
+		return sb.toString();
+	}
+	/**
+	 * Add patternElement string representation to a StringBuilder
+	 * @since 22.12.2023
+	 * @param sb
+	 * @param isIT
+	 */
+	public void addToStringBuilder(final StringBuilder sb, final boolean isIT)
+	{
+		sb.append(' ').append(ModConstants.getNoteNameForIndex(noteIndex)).append(' ');
 		if (instrument!=0) sb.append(ModConstants.getAsHex(instrument, 2)); else sb.append("..");
 		if (volumeEffekt!=0)
 		{
@@ -139,18 +114,29 @@ public class PatternElement
 			sb.append(" ..");
 		
 		sb.append(' ');
-		if (effekt!=0)
+		if (effekt!=0 || (effekt==0 && effektOp!=0))
 		{
-			if (effekt<=0x0F)
-				sb.append(ModConstants.getAsHex(effekt, 1));
+			if (isIT)
+			{
+				sb.append((effekt==0x1B)?'#':(char)('A' + effekt - 1));
+			}
 			else
-				sb.append((char)('F' + effekt - 0x0F));
+			{
+				if (effekt<=0x0F)
+					sb.append(ModConstants.numbers[effekt]);
+				else
+				if (effekt==0x24)
+					sb.append('\\');
+				else
+				if (effekt==0x26)
+					sb.append('#');
+				else
+					sb.append((char)('G' + effekt - 0x10));
+			}
 			sb.append(ModConstants.getAsHex(effektOp, 2));
 		}
 		else 
 			sb.append("...");
-		
-		return sb.toString();
 	}
 	/**
 	 * @return Returns the channel.

@@ -388,10 +388,7 @@ public class ModMixer extends BasicMixer
 	@Override
 	protected void seek(final long milliseconds)
 	{
-		final boolean fireUpdateStatus = modMixer.getFireUpdates();
-		modMixer.setFireUpdates(false);
 		currentSamplesWritten = modMixer.seek(milliseconds);
-		modMixer.setFireUpdates(fireUpdateStatus);
 	}
 	/**
 	 * 
@@ -433,6 +430,14 @@ public class ModMixer extends BasicMixer
 	public int getCurrentSampleRate()
 	{
 		return sampleRate;
+	}
+	public int getCurrentSampleSizeInBits()
+	{
+		return sampleSizeInBits;
+	}
+	public int getCurrentChannels()
+	{
+		return channels;
 	}
 	/**
 	 * @since 22.06.2006

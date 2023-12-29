@@ -33,7 +33,7 @@ public class PatternRow
 	/**
 	 * Constructor for PatternRow
 	 */
-	public PatternRow(int channels)
+	public PatternRow(final int channels)
 	{
 		super();
 		patternElements = new PatternElement[channels];
@@ -46,14 +46,33 @@ public class PatternRow
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
+		return toString(false);
+	}
+	/**
+	 * toString - however regarding if ImpulseTracker family or not
+	 * @since 22.12.2023
+	 * @param isIT
+	 * @return
+	 */
+	public String toString(final boolean isIT)
+	{
+		final StringBuilder sb = new StringBuilder();
+		addToStringBuilder(sb, isIT);
+		return sb.toString();
+	}
+	/**
+	 * Add to patternRow string representation to a StringBuilder
+	 * @since 22.12.2023
+	 * @param sb
+	 * @param isIT
+	 */
+	public void addToStringBuilder(final StringBuilder sb, final boolean isIT)
+	{
 		for (int channel=0; channel<patternElements.length; channel++)
 		{
-			if (patternElements[channel]!=null) sb.append(patternElements[channel].toString());
+			if (patternElements[channel]!=null) patternElements[channel].addToStringBuilder(sb, isIT);
 			sb.append(" |");
 		}
-		//sb.append(Boolean.toString(rowPlayed)).append(" | ");
-		return sb.toString();
 	}
 	/**
 	 * Set this row to have nChannels channels
@@ -65,7 +84,7 @@ public class PatternRow
 		final PatternElement[] newPatternElements = new PatternElement[nChannels];
 		for (int channel=0; channel<nChannels; channel++)
 		{
-			if (channel < patternElements.length) 
+			if (channel < patternElements.length && patternElements[channel]!=null) 
 				newPatternElements[channel] = patternElements[channel];
 			else
 				newPatternElements[channel] = new PatternElement(patternIndex, row, channel);

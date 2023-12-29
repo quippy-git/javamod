@@ -306,6 +306,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		// finetune Value>7 means negative 8..15= -8..-1
 		/*final int fine = */inputStream.read(); // shall we use this?!
 		current.setFineTune(0);
+		current.setBaseFrequency(ModConstants.BASEFREQUENCY);
 		
 		// volume
 		final int vol = inputStream.read();
@@ -349,7 +350,6 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		current.setStereo(false);
 		current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
 		current.setTranspose(0);
-		current.setBaseFrequency(8363);
 		current.setPanning(-1);
 		
 		// SampleData

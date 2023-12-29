@@ -88,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.7.3";
+	public static final String VERSION = "V3.8";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -1202,37 +1202,39 @@ public class Helpers
 	 * @since 26.12.2007
 	 * @throws ClassNotFoundException
 	 */
-	public static void registerAllClasses() throws ClassNotFoundException
+	public static void registerAllClasses()
 	{
-		Class.forName("de.quippy.javamod.system.Log");
-		Class.forName("de.quippy.javamod.system.Helpers");
+		// Just load these in advance
+		try { Class.forName("de.quippy.javamod.system.Log"); } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.system.Helpers"); } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		
 		// Interpolation Routines - doing pre-calculations
-		Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");
-		Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		
 		// The following are essential for registration at the ModuleFactory
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");
-		Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 
 		// The following are essential for registration at the MultimediaContainerManager
-		Class.forName("de.quippy.javamod.multimedia.mod.ModContainer"); // ModContainer uses the ModFactory!!
-		Class.forName("de.quippy.javamod.multimedia.wav.WavContainer");
-		Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container");
-		Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer");
-		Class.forName("de.quippy.javamod.multimedia.ape.APEContainer");
-		Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer");
-		Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer");
-		Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer");
-		Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container");
+		// ModContainer uses the ModFactory!!
+		try { Class.forName("de.quippy.javamod.multimedia.mod.ModContainer"); } catch (ClassNotFoundException ex) { Log.info("No MOD file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.wav.WavContainer"); } catch (ClassNotFoundException ex) { Log.info("No WAV file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container"); } catch (ClassNotFoundException ex) { Log.info("No MP3 file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer"); } catch (ClassNotFoundException ex) { Log.info("No OGG file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ape.APEContainer"); } catch (ClassNotFoundException ex) { Log.info("No APE file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer"); } catch (ClassNotFoundException ex) { Log.info("No FLAC file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer"); } catch (ClassNotFoundException ex) { Log.info("No MIDI file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container"); } catch (ClassNotFoundException ex) { Log.info("No OPL file support!"); }
 		
-		// SID WAVE Loading
-		Class.forName("de.quippy.sidplay.resid_builder.resid.Wave");
+		// SID and SID WAVE Loading - moved to separate project javamod_sid - SID support is added there
+		try { Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer"); } catch (ClassNotFoundException ex) { Log.info("No SID file support!"); }
+		try { Class.forName("de.quippy.sidplay.resid_builder.resid.Wave"); } catch (ClassNotFoundException ex) { Log.info("No SID WAVE support!"); }
 	}
 	/**
 	 * Opens a txt-File on the server containing the current populated
@@ -1247,7 +1249,7 @@ public class Helpers
 		try
 		{
 			URL version_url = createURLfromString(Helpers.VERSION_URL);
-			reader = new BufferedReader(new InputStreamReader(version_url.openStream(), Helpers.CODING_M3U));
+			reader = new BufferedReader(new InputStreamReader(version_url.openStream(), Helpers.CODING_HTTP));
 			String version = reader.readLine();
 			reader.close();
 			reader = null;

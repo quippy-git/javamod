@@ -145,6 +145,36 @@ public class InstrumentsContainer
 	{
 		return parent;
 	}
+	public boolean hasInstruments()
+	{
+		return instruments!=null && instruments.length>0; 
+	}
+	public String getInstrumentNames()
+	{
+		StringBuilder bf = new StringBuilder();
+		if (instruments!=null && instruments.length>0)
+		{
+			for (int i=0; i<instruments.length; i++)
+			{
+				if (instruments[i]!=null) bf.append(instruments[i].toString());
+				bf.append('\n');
+			}
+		}
+		return bf.toString();
+	}
+	public String getSampleNames()
+	{
+		StringBuilder bf = new StringBuilder();
+		if (samples!=null && samples.length>0)
+		{
+			for (int i=0; i<samples.length; i++)
+			{
+				if (samples[i]!=null) bf.append(samples[i].toShortString());
+				bf.append('\n');
+			}
+		}
+		return bf.toString();
+	}
 	/**
 	 * @return
 	 * @see java.lang.Object#toString()
@@ -153,23 +183,16 @@ public class InstrumentsContainer
 	public String toString()
 	{
 		StringBuilder bf = new StringBuilder();
-		
-		if (instruments!=null && instruments.length>0)
+		final boolean hasInstruments = hasInstruments();
+		if (hasInstruments)
 		{
 			bf.append("Instruments:\n");
-			for (int i=0; i<instruments.length; i++)
-			{
-				bf.append(instruments[i].toString()).append('\n');
-			}
+			bf.append(getInstrumentNames());
 		}
 		if (samples!=null && samples.length>0)
 		{
-			if (instruments!=null && instruments.length>0) bf.append("\nSamples:\n");
-			for (int i=0; i<samples.length; i++)
-			{
-				if (samples[i]!=null) bf.append(samples[i].toShortString());
-				bf.append('\n');
-			}
+			if (hasInstruments) bf.append("\nSamples:\n");
+			bf.append(getSampleNames());
 		}
 		return bf.toString();
 	}

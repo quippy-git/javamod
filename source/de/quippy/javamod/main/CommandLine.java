@@ -213,7 +213,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	{
 		if (playerThread!=null)
 		{
-			playerThread.stopMod();
+			playerThread.stopPlayback();
 			playerThread = null;
 		}
 	}

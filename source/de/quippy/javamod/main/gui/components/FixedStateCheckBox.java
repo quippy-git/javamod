@@ -19,7 +19,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------
  */
-package de.quippy.javamod.main.gui.tools;
+package de.quippy.javamod.main.gui.components;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;

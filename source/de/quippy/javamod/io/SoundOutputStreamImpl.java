@@ -76,6 +76,8 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		this.playDuringExport = playDuringExport;
 		this.keepSilent = keepSilent;
 		this.sourceLineBufferSize = -1;
+		this.currentVolume = 1.0f;
+		this.currentBalance = 0.0f;
 	}
 	public SoundOutputStreamImpl(final AudioFormat audioFormat, final AudioProcessor audioProcessor, final File exportFile, final boolean playDuringExport, final boolean keepSilent, final int sourceLineBufferSize)
 	{
@@ -185,43 +187,58 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	}
 	/**
 	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#open()
 	 */
+	@Override
 	public synchronized void open()
 	{
 		close();
 		if (playDuringExport || exportFile==null) openSourceLine();
 		openExportFile();
+		//flushLine(); // might avoid "clutter" with PulseAudio, but did not do the trick!
 	}
 	/**
 	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#close()
 	 */
+	@Override
 	public synchronized void close()
 	{
 		closeSourceLine();
 		closeAudioProcessor();
 		closeExportFile();
 	}
+	/**
+	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#closeAllDevices()
+	 */
+	@Override
 	public synchronized void closeAllDevices()
 	{
 		close();
 	}
 	/**
-	 * @since 30.12.2007
 	 * @return
+	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#isInitialized()
 	 */
+	@Override
 	public synchronized boolean isInitialized()
 	{
 		return (sourceLine!=null && sourceLine.isOpen()) || exportFile!=null;
 	}
 	/**
+	 * @param flushOrDrain
 	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#startLine(boolean)
 	 */
-	public synchronized void startLine(final boolean closeWhenOpen)
+	@Override
+	public synchronized void startLine(final boolean flushOrDrain)
 	{
 		// if there is a line, flush or drain it 
-		if (sourceLine!=null && closeWhenOpen)
+		if (sourceLine!=null && flushOrDrain)
 		{
-			stopLine(closeWhenOpen); // if running, drain or flush and close the line
+			stopLine(flushOrDrain); // if running, drain or flush and close the line
 		}
 		// now start it - if sourceLine is null, open a new line
 		// stopping sourceline will eventually make it null - so no ELSE here!
@@ -231,14 +248,17 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			sourceLine.start();
 	}
 	/**
+	 * @param flushOrDrain
 	 * @since 30.12.2007
+	 * @see de.quippy.javamod.io.SoundOutputStream#stopLine(boolean)
 	 */
-	public synchronized void stopLine(final boolean closeLine)
+	@Override
+	public synchronized void stopLine(final boolean flushOrDrain)
 	{
 		if (sourceLine!=null)
 		{
 			// play, whatever is left in the buffers. Caution! Will block, until everything is played
-			if (closeLine)
+			if (flushOrDrain)
 			{
 				if (sourceLine.isOpen() && sourceLine.isRunning()) 
 					drainLine();
@@ -246,7 +266,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 					flushLine();
 			}
 			sourceLine.stop();
-			if (closeLine)
+			if (flushOrDrain)
 			{
 				sourceLine.close();
 				sourceLine = null;
@@ -260,12 +280,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	@Override
 	public void flushLine()
 	{
-		if (sourceLine!=null)
-		{
-			sourceLine.flush();
-			// on Linux a small amount can be left over - but waiting is not reliable
-			//try { Thread.sleep(150L); } catch (InterruptedException ex) { /*NOOP*/ }
-		}
+		if (sourceLine!=null) sourceLine.flush();
 	}
 	/**
 	 * BLOCKING Method!!!
@@ -278,12 +293,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	@Override
 	public void drainLine()
 	{
-		if (sourceLine!=null)
-		{
-			sourceLine.drain();
-			// on Linux a small amount can be left over - but waiting is not reliable
-			//try { Thread.sleep(150L); } catch (InterruptedException ex) { /*NOOP*/ }
-		}
+		if (sourceLine!=null) sourceLine.drain();
 	}
 	/**
 	 * @since 11.11.2023

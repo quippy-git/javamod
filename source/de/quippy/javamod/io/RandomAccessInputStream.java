@@ -50,8 +50,6 @@ public interface RandomAccessInputStream
 	// RandomAccessFile functions
 	public int skipBytes(int n) throws IOException;
 	public long length() throws IOException;
-	public int readFully(byte[] b) throws IOException;
-	public int readFully(byte[] b, int offs, int len) throws IOException;
 	public boolean readBoolean() throws IOException;
 	public char readChar() throws IOException;
 	public short readShort() throws IOException;

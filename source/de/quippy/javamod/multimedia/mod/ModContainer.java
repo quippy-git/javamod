@@ -29,9 +29,12 @@ import javax.swing.JPanel;
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
+import de.quippy.javamod.multimedia.mod.gui.ModInstrumentDialog;
+import de.quippy.javamod.multimedia.mod.gui.ModPatternDialog;
+import de.quippy.javamod.multimedia.mod.gui.ModSampleDialog;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.ModuleFactory;
-import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
+import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 
 /**
@@ -54,9 +57,20 @@ public class ModContainer extends MultimediaContainer
 	public static final String PROPERTY_PLAYER_DITHERFILTER = "javamod.player.ditherfilter"; 
 	public static final String PROPERTY_PLAYER_DITHERTYPE = "javamod.player.dithertype"; 
 	public static final String PROPERTY_PLAYER_DITHERBYPASS = "javamod.player.ditherbypass"; 
+
+	private static final String PROPERTY_PATTERN_POS = "javamod.player.position.patterns";
+	private static final String PROPERTY_PATTERN_SIZE = "javamod.player.size.patterns";
+	private static final String PROPERTY_PATTERN_VISABLE = "javamod.player.open.patterns";
+	private static final String PROPERTY_SAMPLE_POS = "javamod.player.position.samples";
+	private static final String PROPERTY_SAMPLE_SIZE = "javamod.player.size.samples";
+	private static final String PROPERTY_SAMPLE_VISABLE = "javamod.player.open.samples";
+	private static final String PROPERTY_INSTRUMENT_POS = "javamod.player.position.instruments";
+	private static final String PROPERTY_INSTRUMENT_SIZE = "javamod.player.size.instruments";
+	private static final String PROPERTY_INSTRUMENT_VISABLE = "javamod.player.open.instruments";
+
 	/* GUI Constants ---------------------------------------------------------*/
 	public static final String DEFAULT_BITSPERSAMPLE = "16";
-   	public static final String DEFAULT_CHANNEL = "2";
+	public static final String DEFAULT_CHANNEL = "2";
 	public static final String DEFAULT_SAMPLERATE = "48000";
 	public static final String DEFAULT_MSBUFFERSIZE = "250";
 	public static final String DEFAULT_WIDESTEREOMIX = "false";
@@ -69,31 +83,31 @@ public class ModContainer extends MultimediaContainer
 	public static final String DEFAULT_DITHERFILTER = "4";
 	public static final String DEFAULT_DITHERTYPE = "2";
 	public static final String DEFAULT_DITHERBYPASS = "false";
-	public static final String[] SAMPLERATE = new String[]
+	protected static final String[] SAMPLERATE = new String[]
 	{
 		"8000", "11025", "16000", "22050", "33075", "44100", DEFAULT_SAMPLERATE, "96000", "192000"
 	};
-	public static final String[] CHANNELS = new String[]
+	protected static final String[] CHANNELS = new String[]
    	{
    		"1", DEFAULT_CHANNEL
    	};
-	public static final String[] BITSPERSAMPLE = new String[]
+	protected static final String[] BITSPERSAMPLE = new String[]
 	{
 		"8", DEFAULT_BITSPERSAMPLE, "24", "32"
 	};
-	public static final String[] INTERPOLATION = new String[]
+	protected static final String[] INTERPOLATION = new String[]
   	{
   		"none", "linear", "cubic spline", "windowed FIR"
   	};
-	public static final String[] BUFFERSIZE = new String[]
+	protected static final String[] BUFFERSIZE = new String[]
   	{
-  		"30", "50", "75", "100", "125", "150", "175", "200", "225", "250", "500", "750"
+  		"30", "50", "75", "100", "125", "150", "175", "200", "225", DEFAULT_MSBUFFERSIZE, "500", "750"
   	};
-	public static final String[] MAX_NNA_CHANNELS= new String[]
+	protected static final String[] MAX_NNA_CHANNELS= new String[]
   	{
-  		"25", "50", "75", "100", "125", "150", "175", "200", "225", "250", "275", "300", "325", "350", "375", "400", "1000"
+  		"25", "50", "75", "100", "125", "150", "175", DEFAULT_MAXNNACHANNELS, "225", "250", "275", "300", "325", "350", "375", "400", "1000"
   	};
-
+	
 	private Module currentMod;
 	private ModMixer currentMixer;
 	private ModInfoPanel modInfoPanel;
@@ -176,7 +190,11 @@ public class ModContainer extends MultimediaContainer
 			final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
 			int loopValue = configPanel.getLoopValue();
 			if (loopValue == ModConstants.PLAYER_LOOP_DEACTIVATED) loopValue = ModConstants.PLAYER_LOOP_IGNORE;
-			ModMixer theMixer = new ModMixer(theMod, 8, 1, 22050, 0, false, false, false, false, loopValue, 0, 500, 0, 0, true);
+			// try to re-use an existing mixer, if its one for the same mod.
+			// The "ModMixer::getLengthInMilliseconds" is synchronized to avoid double entry
+			ModMixer theMixer = getCurrentMixer();
+			if (theMixer==null || !theMixer.getMod().getFileName().equals(theMod.getFileName()))
+					theMixer = new ModMixer(theMod, 8, 1, 22050, 0, false, false, false, false, loopValue, 0, 500, 0, 0, true);
 			duration = Long.valueOf(theMixer.getLengthInMilliseconds());
 		}
 		catch (Throwable ex)
@@ -202,7 +220,11 @@ public class ModContainer extends MultimediaContainer
 	@Override
 	public JPanel getInfoPanel()
 	{
-		if (modInfoPanel==null) modInfoPanel = new ModInfoPanel();
+		if (modInfoPanel==null)
+		{
+			modInfoPanel = new ModInfoPanel();
+			modInfoPanel.setParentContainer(this);
+		}
 		return modInfoPanel;
 	}
 	/**
@@ -245,7 +267,7 @@ public class ModContainer extends MultimediaContainer
 	@Override
 	public void configurationChanged(Properties props)
 	{
-		ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
+		final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
 		configPanel.getPlayerSetUp_SampleRate().setSelectedItem(props.getProperty(PROPERTY_PLAYER_FREQUENCY, DEFAULT_SAMPLERATE));
 		configPanel.getPlayerSetUp_BufferSize().setSelectedItem(props.getProperty(PROPERTY_PLAYER_MSBUFFERSIZE, DEFAULT_MSBUFFERSIZE));
 		configPanel.getPlayerSetUp_BitsPerSample().setSelectedItem(props.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE)); 
@@ -260,15 +282,26 @@ public class ModContainer extends MultimediaContainer
 		configPanel.getPlayerSetUp_DitherFilterType().setSelectedIndex(Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER)));
 		configPanel.getPlayerSetUp_DitherType().setSelectedIndex(Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE)));
 		configPanel.getPlayerSetUp_ByPassDither().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS)));
+		// Info Dialog sizes and locations
+		final ModInfoPanel infoPanel = (ModInfoPanel)getInfoPanel();
+		infoPanel.setPatternDialogLocation(Helpers.getPointFromString(props.getProperty(PROPERTY_PATTERN_POS, "-1x-1")));
+		infoPanel.setPatternDialogSize(Helpers.getDimensionFromString(props.getProperty(PROPERTY_PATTERN_SIZE, "640x480")));
+		infoPanel.setPatternDialogVisable(Boolean.parseBoolean(props.getProperty(PROPERTY_PATTERN_VISABLE, "false")));
+		infoPanel.setSampleDialogLocation(Helpers.getPointFromString(props.getProperty(PROPERTY_SAMPLE_POS, "-1x-1")));
+		infoPanel.setSampleDialogSize(Helpers.getDimensionFromString(props.getProperty(PROPERTY_SAMPLE_SIZE, "640x480")));
+		infoPanel.setSampleDialogVisable(Boolean.parseBoolean(props.getProperty(PROPERTY_SAMPLE_VISABLE, "false")));
+		infoPanel.setInstrumentDialogLocation(Helpers.getPointFromString(props.getProperty(PROPERTY_INSTRUMENT_POS, "-1x-1")));
+		infoPanel.setInstrumentDialogSize(Helpers.getDimensionFromString(props.getProperty(PROPERTY_INSTRUMENT_SIZE, "640x480")));
+		infoPanel.setInstrumentDialogVisable(Boolean.parseBoolean(props.getProperty(PROPERTY_INSTRUMENT_VISABLE, "false")));
 	}
 	/**
-	 * Get the values from the gui and store them into the main Properties
+	 * Get the values from the GUI and store them into the main Properties
 	 * @since 13.10.2007
 	 */
 	@Override
 	public void configurationSave(Properties props)
 	{
-		ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
+		final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
 		props.setProperty(PROPERTY_PLAYER_FREQUENCY, configPanel.getPlayerSetUp_SampleRate().getSelectedItem().toString());
 		props.setProperty(PROPERTY_PLAYER_MSBUFFERSIZE, configPanel.getPlayerSetUp_BufferSize().getSelectedItem().toString());
 		props.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, configPanel.getPlayerSetUp_BitsPerSample().getSelectedItem().toString());
@@ -283,19 +316,22 @@ public class ModContainer extends MultimediaContainer
 		props.setProperty(PROPERTY_PLAYER_DITHERFILTER, Integer.toString(configPanel.getPlayerSetUp_DitherFilterType().getSelectedIndex()));
 		props.setProperty(PROPERTY_PLAYER_DITHERTYPE, Integer.toString(configPanel.getPlayerSetUp_DitherType().getSelectedIndex()));
 		props.setProperty(PROPERTY_PLAYER_DITHERBYPASS, Boolean.toString(configPanel.getPlayerSetUp_ByPassDither().isSelected()));
+		// Info Dialog sizes and locations
+		final ModPatternDialog patternDialog = ((ModInfoPanel)getInfoPanel()).getModPatternDialog();
+		props.setProperty(PROPERTY_PATTERN_POS, Helpers.getStringFromPoint(patternDialog.getLocation()));
+		props.setProperty(PROPERTY_PATTERN_SIZE, Helpers.getStringFromDimension(patternDialog.getSize()));
+		props.setProperty(PROPERTY_PATTERN_VISABLE, Boolean.toString(((ModInfoPanel)getInfoPanel()).getModPatternDialogisVisible()));
+		final ModSampleDialog sampleDialog = ((ModInfoPanel)getInfoPanel()).getModSampleDialog();
+		props.setProperty(PROPERTY_SAMPLE_POS, Helpers.getStringFromPoint(sampleDialog.getLocation()));
+		props.setProperty(PROPERTY_SAMPLE_SIZE, Helpers.getStringFromDimension(sampleDialog.getSize()));
+		props.setProperty(PROPERTY_SAMPLE_VISABLE, Boolean.toString(((ModInfoPanel)getInfoPanel()).getModSampleDialogisVisible()));
+		final ModInstrumentDialog instrumentDialog = ((ModInfoPanel)getInfoPanel()).getModInstrumentDialog();
+		props.setProperty(PROPERTY_INSTRUMENT_POS, Helpers.getStringFromPoint(instrumentDialog.getLocation()));
+		props.setProperty(PROPERTY_INSTRUMENT_SIZE, Helpers.getStringFromDimension(instrumentDialog.getSize()));
+		props.setProperty(PROPERTY_INSTRUMENT_VISABLE, Boolean.toString(((ModInfoPanel)getInfoPanel()).getModInstrumentDialogisVisible()));
 	}
-	/**
-	 * Will create a new mixer for the currently loaded mod.
-	 * We assume, that a mod is already loaded and therefore registering a listener is valid!
-	 * @see de.quippy.javamod.multimedia.MultimediaContainer#createNewMixer()
-	 * @since: 12.10.2007
-	 * @return
-	 */
-	@Override
-	public Mixer createNewMixer()
+	public ModMixer createNewMixer0()
 	{
-		deregisterUpdateListener();
-
 		if (currentMod==null) return null; // you cannot get a mixer without a mod loaded.
 		
 		Properties props = new Properties();
@@ -315,9 +351,24 @@ public class ModContainer extends MultimediaContainer
 		final int ditherFilter = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 		final int ditherType = Integer.parseInt(props.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		boolean ditherByPass = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
-		currentMixer = new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		return new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+	}
+	/**
+	 * Will create a new mixer for the currently loaded mod.
+	 * We assume, that a mod is already loaded and therefore registering a listener is valid!
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#createNewMixer()
+	 * @since: 12.10.2007
+	 * @return
+	 */
+	@Override
+	public Mixer createNewMixer()
+	{
+		deregisterMixer();
+
+		currentMixer = createNewMixer0();
+		if (currentMixer==null) return null;
 		
-		registerUpdateListener();
+		registerMixer();
 		
 		return currentMixer;
 	}
@@ -325,38 +376,17 @@ public class ModContainer extends MultimediaContainer
 	 * @since 11.11.2023
 	 * @param currentMixer
 	 */
-	private void deregisterUpdateListener()
+	private void deregisterMixer()
 	{
-		// These null checks are a bit superfluous, because we know when we call it
-		if (currentMixer!=null && modInfoPanel!=null)
-		{
-			BasicModMixer mixer = currentMixer.getModMixer();
-			if (mixer!=null)
-			{
-				mixer.deregisterUpdateListener(modInfoPanel.getModPatternDialog());
-			}
-		}
-		// always stop the update thread - if it is not there, this does no harm
-		((ModInfoPanel)getInfoPanel()).getModPatternDialog().stopUpdateThread();
 		((ModInfoPanel)getInfoPanel()).getModPatternDialog().setMixer(null);
 	}
 	/**
 	 * @since 11.11.2023
 	 * @param currentMixer
 	 */
-	private void registerUpdateListener()
+	private void registerMixer()
 	{
-		// These null checks are a bit superfluous, because we know when we call it
-		if (currentMixer!=null && modInfoPanel!=null)
-		{
-			BasicModMixer mixer = currentMixer.getModMixer();
-			if (mixer!=null)
-			{
-				mixer.registerUpdateListener(((ModInfoPanel)getInfoPanel()).getModPatternDialog());
-				((ModInfoPanel)getInfoPanel()).getModPatternDialog().startUpdateThread();
-			}
-			((ModInfoPanel)getInfoPanel()).getModPatternDialog().setMixer(mixer);
-		}
+		((ModInfoPanel)getInfoPanel()).getModPatternDialog().setMixer(currentMixer);
 	}
 	/**
 	 * @since 14.10.2007
@@ -376,6 +406,6 @@ public class ModContainer extends MultimediaContainer
 	@Override
 	public void cleanUp()
 	{
-		deregisterUpdateListener();
+		deregisterMixer();
 	}
 }

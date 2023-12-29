@@ -132,6 +132,24 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	{
 		return midiMacros;
 	}
+	/**
+	 * @return always false for these mods
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFT2Tremolo()
+	 */
+	@Override
+	public boolean getFT2Tremolo()
+	{
+		return false;
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModSpeedIsTicks()
+	 */
+	@Override
+	public boolean getModSpeedIsTicks()
+	{
+		return false;
+	}
 
 	private void readEnvelopeData(final Envelope env, final int add, final int maxValue, final ModfileInputStream inputStream) throws IOException
 	{
@@ -648,14 +666,14 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 
 		PatternContainer patternContainer = new PatternContainer(getNPattern());
 		setPatternContainer(patternContainer);
-		int maxChannels = 0;
+		int maxChannelIndex = 0;
 		
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
 			final long seek = patternParaPointer[pattNum];
 			if (seek<=0) // Empty pattern - create one with default 64 rows
 			{
-				patternContainer.setPattern(pattNum, new Pattern(64));
+				patternContainer.setPattern(pattNum, new Pattern(64)); // PatternElements will get created when we know the amount of channels.
 				continue;
 			} 
 			inputStream.seek(seek);
@@ -694,7 +712,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 					continue;
 				}
 				int channel = (channelByte - 1) & 0x3F;
-				if (channel>maxChannels) maxChannels = channel;
+				if (channel>maxChannelIndex) maxChannelIndex = channel;
 				PatternElement element = patternContainer.getPatternElement(pattNum, row, channel);
 				
 				if ((channelByte & 0x80)!=0)
@@ -787,8 +805,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				}
 			}
 		}
-		if (maxChannels<4) maxChannels=4;
-		setNChannels(maxChannels+1);
+		setNChannels((maxChannelIndex<3)?4:maxChannelIndex+1); // minimum 4 channels
 		patternContainer.setToChannels(getNChannels());
 		
 		// Correct the songlength for playing, skip markerpattern... (do not want to skip them during playing!)

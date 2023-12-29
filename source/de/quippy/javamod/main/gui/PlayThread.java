@@ -41,8 +41,7 @@ public final class PlayThread extends Thread implements Serializable
 	
 	public PlayThread(Mixer currentMixer, PlayThreadEventListener listener)
 	{
-		if (currentMixer==null) 
-			throw new IllegalArgumentException("Provided Mixer was NULL");
+		if (currentMixer==null) throw new IllegalArgumentException("Provided Mixer was NULL");
 		this.currentMixer = currentMixer;
 		this.isRunning = false;
 		this.finishedNormaly = false;
@@ -55,7 +54,7 @@ public final class PlayThread extends Thread implements Serializable
 	{
 		listener.playThreadEventOccured(this);
 	}
-	public void stopMod()
+	public void stopPlayback()
 	{
 		if (isRunning)
 		{
@@ -66,7 +65,7 @@ public final class PlayThread extends Thread implements Serializable
 			}
 		}
 	}
-	public void pausePlay()
+	public void pausePlayback()
 	{
 		if (isRunning) this.currentMixer.pausePlayback();
 		informListener();

@@ -154,6 +154,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private static final String PROPERTY_LOOKANDFEEL = "javamod.lookandfeel.classname"; 
 	private static final String PROPERTY_LASTLOADED = "javamod.path.lastloaded";
 	private static final String PROPERTY_SYSTEMTRAY = "javamod.systemtray";
+	private static final String PROPERTY_AUTOUPDATECHECK = "javamod.autoupdatecheck";
 	private static final String PROPERTY_MAINDIALOG_POS = "javamod.dialog.position.main";
 	private static final String PROPERTY_SETUPDIALOG_POS = "javamod.dialog.position.setup";
 	private static final String PROPERTY_PROPERTIESDIALOG_POS = "javamod.dialog.position.properties";
@@ -193,6 +194,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private static final String WINDOW_TITLE = Helpers.FULLVERSION;
 	private static final String WINDOW_NAME = "JavaMod";
 	
+	private transient final MakeMainWindowVisible makeMainWindowVisiable = new MakeMainWindowVisible();
+
 	private static FileFilter fileFilterExport[];
 	private static FileFilter fileFilterLoad[];
 	
@@ -294,6 +297,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private JMenuItem menu_View_XMAS_mode_config = null;
 	private JCheckBoxMenuItem menu_View_UseSystemTray = null;
 	private JMenuItem menu_Help_CheckUpdate = null;
+	private JCheckBoxMenuItem menu_Help_AutoUpdateCheck = null;
 	private JMenuItem menu_Help_ShowSoundHardware = null;
 	private JMenuItem menu_Help_ShowVersionHistory = null;
 	private JMenuItem menu_Help_About = null;
@@ -332,6 +336,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private String exportPath;
 	private String uiClassName;
 	private boolean useSystemTray = false;
+	private boolean automaticUpdateCheck = true;
 	private float currentVolume; /* 0.0 - 1.0 */
 	private float currentBalance; /* -1.0 - 1.0 */
 	private LocalDate lastUpdateCheck;
@@ -402,7 +407,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			MainForm.this.setFocusableWindowState(true);
 		}
 	}
-	private transient final MakeMainWindowVisible makeMainWindowVisiable = new MakeMainWindowVisible();
 	/**
 	 * Constructor for MainForm
 	 * @param title
@@ -449,6 +453,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	        searchPath = props.getProperty(PROPERTY_SEARCHPATH, Helpers.HOMEDIR);
 			exportPath = props.getProperty(PROPERTY_EXPORTPATH, Helpers.HOMEDIR);
 			useSystemTray = Boolean.parseBoolean(props.getProperty(PROPERTY_SYSTEMTRAY, "FALSE"));
+			automaticUpdateCheck = Boolean.parseBoolean(props.getProperty(PROPERTY_AUTOUPDATECHECK, "TRUE"));
 
 			uiClassName = props.getProperty(PROPERTY_LOOKANDFEEL, UIManager.getSystemLookAndFeelClassName());
 		    setLookAndFeel(uiClassName); // set the Look&Feel to be used, so when creating the menu we select the current Look&Feel set
@@ -538,6 +543,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			props.setProperty(PROPERTY_EXPORTPATH, exportPath);
 			props.setProperty(PROPERTY_LOOKANDFEEL, uiClassName);
 			props.setProperty(PROPERTY_SYSTEMTRAY, Boolean.toString(useSystemTray));
+			props.setProperty(PROPERTY_AUTOUPDATECHECK, Boolean.toString(automaticUpdateCheck));
 			props.setProperty(PROPERTY_VOLUME_VALUE, Float.toString(currentVolume));
 			props.setProperty(PROPERTY_BALANCE_VALUE, Float.toString(currentBalance));
 			for (int i=0; i<PROPERTY_LASTLOADED_MAXENTRIES; i++)
@@ -769,33 +775,11 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		createFileFilter();
 
 	    currentContainer = null; //set Back to null!
-		//if (today.minusDays(30).isAfter(lastUpdateCheck)) checkForUpdate();
 
 		showMessage("Ready...");
+		
+		doAutomaticUpdateCheck();
 	}
-//TODO: We might want to enable this once...
-//	private void checkForUpdate()
-//	{
-//		new Thread( new Runnable()
-//		{
-//			public void run()
-//			{
-//				try
-//				{
-//					lastUpdateCheck = LocalDate.now();
-//					String serverVersion = Helpers.getCurrentServerVersion();
-//					if (Helpers.compareVersions(Helpers.VERSION, serverVersion)<0)
-//					{
-//						getLEDScrollPanel().addScrollText("Version ("+serverVersion+") available" + Helpers.SCROLLY_BLANKS);
-//					}
-//				}
-//				catch (Throwable ex) 
-//				{
-//					/* NOOP */
-//				}
-//			}
-//		}).run();
-//	}
 	private void createAllWindows()
 	{
 		windows = new ArrayList<Window>();
@@ -880,10 +864,14 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 	    setLookAndFeel(lookAndFeelClassName);
 	    MultimediaContainerManager.updateLookAndFeel();
-		SwingUtilities.updateComponentTreeUI(this); pack();
+		SwingUtilities.updateComponentTreeUI(this);
+		setPreferredSize(getSize());
+		pack();
 	    for (Window window : windows)
 	    {
-			SwingUtilities.updateComponentTreeUI(window); window.pack();
+			SwingUtilities.updateComponentTreeUI(window);
+			window.setPreferredSize(window.getSize());
+			window.pack();
 	    }
 	}
 	private JPanel oInfoPanel = null;
@@ -1032,6 +1020,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			menu_Help.setText("Help");
 			menu_Help.setFont(Helpers.getDialogFont());
 			menu_Help.add(getMenu_Help_CheckUpdate());
+			menu_Help.add(getMenu_Help_AutomaticUpdateCheck());
+			menu_Help.add(new JSeparator());
 			menu_Help.add(getMenu_Help_ShowSoundHardware());
 			menu_Help.add(getMenu_Help_ShowVersionHistory());
 			menu_Help.add(new JSeparator());
@@ -1364,11 +1354,32 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					doCheckUpdate();
+					doCheckUpdate(false);
 				}
 			});
 		}
 		return menu_Help_CheckUpdate;
+	}
+	private JCheckBoxMenuItem getMenu_Help_AutomaticUpdateCheck()
+	{
+		if (menu_Help_AutoUpdateCheck == null)
+		{
+			menu_Help_AutoUpdateCheck = new JCheckBoxMenuItem();
+			menu_Help_AutoUpdateCheck.setName("menu_Help_AutoUpdateCheck");
+			menu_Help_AutoUpdateCheck.setMnemonic('a');
+			menu_Help_AutoUpdateCheck.setText("Automatic update check");
+			menu_Help_AutoUpdateCheck.setFont(Helpers.getDialogFont());
+			menu_Help_AutoUpdateCheck.setSelected(automaticUpdateCheck);
+			menu_Help_AutoUpdateCheck.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+					automaticUpdateCheck = getMenu_Help_AutomaticUpdateCheck().isSelected();
+					doCheckUpdate(true);
+				}
+			});
+		}
+		return menu_Help_AutoUpdateCheck;
 	}
 	private JMenuItem getMenu_Help_ShowSoundHardware()
 	{
@@ -1819,11 +1830,12 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			modInfoDialog.setName("modInfoDialog");
 			modInfoDialog.setSize(modInfoDialogSize);
 			modInfoDialog.setPreferredSize(modInfoDialogSize);
-			modInfoDialog.setContentPane(getModInfoPane());
 			if (modInfoDialogLocation == null || (modInfoDialogLocation.getX()==-1 || modInfoDialogLocation.getY()==-1))
 				modInfoDialogLocation = Helpers.getFrameCenteredLocation(modInfoDialog, null); 
 		    modInfoDialog.setLocation(modInfoDialogLocation);
 		    modInfoDialog.addWindowFocusListener(makeMainWindowVisiable);
+			
+		    modInfoDialog.setContentPane(getModInfoPane());
 		}
 		return modInfoDialog;
 	}
@@ -2770,10 +2782,36 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		simpleTextViewerDialog.setLocation(Helpers.getFrameCenteredLocation(simpleTextViewerDialog, this));
 		return simpleTextViewerDialog;
 	}
-	private void doCheckUpdate()
+	private void doAutomaticUpdateCheck()
+	{
+		if (automaticUpdateCheck && today.minusDays(30).isAfter(lastUpdateCheck))
+		{
+			doCheckUpdate(true);
+//			new Thread(new Runnable()
+//			{
+//				public void run()
+//				{
+//					try
+//					{
+//						lastUpdateCheck = LocalDate.now();
+//						String serverVersion = Helpers.getCurrentServerVersion();
+//						if (Helpers.compareVersions(Helpers.VERSION, serverVersion)<0)
+//						{
+//							getLEDScrollPanel().setScrollTextTo(Helpers.FULLVERSION + " - new Version ("+serverVersion+") available." + Helpers.SCROLLY_BLANKS);
+//						}
+//					}
+//					catch (Throwable ex) 
+//					{
+//						/* NOOP */
+//					}
+//				}
+//			}).run();
+		}
+	}
+	private void doCheckUpdate(final boolean beSilent)
 	{
 		// This is necessary - to make the progress indicator work
-		new Thread( new Runnable()
+		new Thread(new Runnable()
 		{
 			public void run()
 			{
@@ -2837,13 +2875,16 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		    		}
 				}
 				else
-				if (compareResult>0)
+				if (!beSilent)
 				{
-					JOptionPane.showMessageDialog(MainForm.this, "Your version of JavaMod is newer!", "Newer version", JOptionPane.INFORMATION_MESSAGE);
-				}
-				else
-				{
-					JOptionPane.showMessageDialog(MainForm.this, "Your version of JavaMod is up-to-date.", "Up-To-Date", JOptionPane.INFORMATION_MESSAGE);
+					if (compareResult>0)
+					{
+						JOptionPane.showMessageDialog(MainForm.this, "Your version of JavaMod is newer!", "Newer version", JOptionPane.INFORMATION_MESSAGE);
+					}
+					else
+					{
+						JOptionPane.showMessageDialog(MainForm.this, "Your version of JavaMod is up-to-date.", "Up-To-Date", JOptionPane.INFORMATION_MESSAGE);
+					}
 				}
 			}
 		}).start();
@@ -2876,7 +2917,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			{
 				if (playerThread!=null && !reuseMixer)
 				{
-					playerThread.stopMod();
+					playerThread.stopPlayback();
 					playerThread = null;
 					removeMixer();
 				}
@@ -2904,7 +2945,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		{
 			if (playerThread!=null)
 			{
-				playerThread.stopMod();
+				playerThread.stopPlayback();
 				playerThread = null;
 				removeMixer();
 			}
@@ -2919,7 +2960,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 		if (playerThread!=null)
 		{
-			playerThread.stopMod();
+			playerThread.stopPlayback();
 			getSoundOutputStream().closeAllDevices();
 			playerThread = null;
 			removeMixer();
@@ -2933,7 +2974,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 		if (playerThread!=null)
 		{
-			playerThread.pausePlay();
+			playerThread.pausePlayback();
 		}
 	}
 	private boolean doNextPlayListEntry()
@@ -3043,7 +3084,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	 */
 	private boolean loadMultimediaOrPlayListFile(URL mediaPLSFileURL)
 	{
-		Log.info(Helpers.EMPTY_STING);
 		addFileToLastLoaded(mediaPLSFileURL);
 		currentPlayList = null;
     	try

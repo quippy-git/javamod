@@ -39,8 +39,10 @@ public class ModConstants
 	/**
 	 * Some constants
 	 */
+	// The C-4 period / noteindex and the basic freq with protracker mods
 	public static final int BASEFREQUENCY = 8363;
 	public static final int BASEPERIOD = 428;
+	public static final int BASENOTEINDEX = 48;
 
 	//The frequency tables supported
 	public static final int STM_S3M_TABLE 	= 0x01;
@@ -59,7 +61,8 @@ public class ModConstants
 	public static final int MODTYPE_OMPT = 0x30; // OpenModPlugTracker - special IT
 	public static final int MODTYPE_MPT = 0x50; // ModPlugTracker - special IT - LEGACY
 	public static final int MODTYPE_FASTTRACKER = MODTYPE_MOD | MODTYPE_XM;
-	public static final int MODTYPE_SCREAMTRACKER = MODTYPE_IT | MODTYPE_S3M | MODTYPE_STM;
+	public static final int MODTYPE_SCREAMTRACKER = MODTYPE_S3M | MODTYPE_STM;
+	public static final int MODTYPE_IMPULSETRACKER = MODTYPE_IT | MODTYPE_SCREAMTRACKER;
 
 	// PreAmp constants
 	public static final int PREAMP_SHIFT = 8;
@@ -75,19 +78,25 @@ public class ModConstants
 	};
 
 	// Volume constants
-	public static final int VOLUMESHIFT = 6;
-	public static final int MAXCHANNELVOLUME = 64 << VOLUMESHIFT;
-	public static final int MAXVOLUMESHIFT = VOLUMESHIFT + 6 - 1; // This is the SHIFT for reducing VOLUMESHIFT (64), MAXCHANNELVOLUME (64) -1 because of extraAttenuation of 0 for OMPT 
-	public static final int MAXGLOBALVOLUME = 128; // the maximum global volume
-	public static final int MAXSAMPLEVOLUME = 64;  // the sample maximum global volume
+	public static final int MAXGLOBALVOLUME = 128; // the maximum global volume at mod loading
+	public static final int MAXSAMPLEVOLUME = 64;  // the sample maximum global volume at mod loading
+
+	public static final int MAX_SAMPLE_VOL = MAXSAMPLEVOLUME;					// and its corresponding max
+	public static final int MIN_SAMPLE_VOL = 0;									// and min values (in this case "zero" is 3)
+	public static final int VOLUMESHIFT = 6; 									// this is the shift done in processEnvelopes
+	public static final int MAXCHANNELVOLUME = MAX_SAMPLE_VOL << VOLUMESHIFT;	// plus the max (reflecting VOLUME_INIT_SHIFT)
+	public static final int MINCHANNELVOLUME = 0;								// and min value for clipping
+	// This is the final SHIFT before rednering into buffers for reducing VOLUMESHIFT (64), VOLUME_INIT_SHIFT (4), MAXCHANNELVOLUME (64) -1 because of extraAttenuation of 0 for OMPT
+	public static final int MAXVOLUMESHIFT = VOLUMESHIFT + 6 - 1;  
+	
 	public static final int MAXFADEOUTVOLSHIFT = 16; // This is for loop fade out *and* NOTE_FADE!!!
 	public static final int MAXFADEOUTVOLUME = 1<<MAXFADEOUTVOLSHIFT;
 	public static final int FADEOUT_SUB = 0x100;
 	
 	// TuningPos shift for fraction
 	public static final int SHIFT = 16;
-	public static final int SHIFT_ONE = 1<<SHIFT;
-	public static final int SHIFT_MASK = SHIFT_ONE-1;
+	public static final int SHIFT_MAX = 1<<SHIFT;
+	public static final int SHIFT_MASK = SHIFT_MAX-1;
 
 	public static final int PERIOD_SHIFT = 4;
 	// Interpolation shift samples and clipping
@@ -95,10 +104,13 @@ public class ModConstants
 	public static final long CLIPP32BIT_MAX = 0x000000007FFFFFFFL;
 	public static final long CLIPP32BIT_MIN = 0xFFFFFFFF80000000L;
 
+	// The volume ramping constants
 	public static final int VOL_RAMP_FRAC = 4;
 	public static final int VOL_RAMP_LEN  = 1<<VOL_RAMP_FRAC;
-	public static final int VOLRAMPLEN_MS = 146;
-
+	public static final int VOLRAMPLEN_FRAC = 12;
+	public static final int VOLRAMPLEN_YS = 950;
+	
+	// Constants for different supported samples
 	public static final int SM_PCMS		= 	0x00;					// PCM 8 Bit Signed
 	public static final int SM_PCMU		= 	0x01;					// PCM 8 Bit unsigned
 	public static final int SM_PCMD 	=	0x02;					// PCM 8 Bit delta values
@@ -521,51 +533,40 @@ public class ModConstants
 	};
 
 	/**
-	 * Sinus table
+	 * FT2 sine table
 	 */
 	public static final int [] ModSinusTable = new int[]
 	{
 		   0,   24,   49,   74,   97,  120,  141,  161,  180,  197,  212,  224,  235,  244,  250,  253,
-		 255,  253,  250,  244,  235,  224,  212,  197,  180,  161,  141,  120,   97,   74,   49,   24,
+		 256,  253,  250,  244,  235,  224,  212,  197,  180,  161,  141,  120,   97,   74,   49,   24,
 		   0,  -24,  -49,  -74,  -97, -120, -141, -161, -180, -197, -212, -224, -235, -244, -250, -253,
-		-255, -253, -250, -244, -235, -224, -212, -197, -180, -161, -141, -120,  -97,  -74,  -49,  -24
+		-256, -253, -250, -244, -235, -224, -212, -197, -180, -161, -141, -120,  -97,  -74,  -49,  -24
 	};
 
-//	/**
-//	 * Triangle wave table (ramp down)
-//	 */
-//	public static final int [] ModRampDownTable = new int[]
-//	{
-//		   0,   -8,  -16,  -24,  -32,  -40,  -48,  -56,  -64,  -72,  -80,  -88,  -96, -104, -112, -120,
-//		-128, -136, -144, -152, -160, -168, -176, -184, -192, -200, -208, -216, -224, -232, -240, -248,
-//		 255,  247,  239,  231,  223,  215,  207,  199,  191,  183,  175,  167,  159,  151,  143,  135,
-//		 127,  119,  113,  103,   95,   87,   79,   71,   63,   55,   47,   39,   31,   23,   15,    7,
-//	};
-
 	/**
-	 * Triangle wave table (ramp down)
+	 * FT2 triangle wave table (ramp down)
 	 */
 	public static final int [] ModRampDownTable = new int[]
 	{
-	 	 255,  247,  239,  231,  223,  215,  207,  199,  191,  183,  175,  167,  159,  151,  143,  135,
+	 	 256,  247,  239,  231,  223,  215,  207,  199,  191,  183,  175,  167,  159,  151,  143,  135,
 	 	 127,  119,  111,  103,   95,   87,   79,   71,   63,   55,   47,   39,   31,   23,   15,    7,
 	 	  -1,   -9,  -17,  -25,  -33,  -41,  -49,  -57,  -65,  -73,  -81,  -89,  -97, -105, -113, -121,
 	 	-129, -137, -145, -153, -161, -169, -177, -185, -193, -201, -209, -217, -225, -233, -241, -249
 	};
 
 	/**
-	 * Square wave table (normaly useless, but this keeps the used logic the same)
+	 * FT2 square wave table (normally useless, but this keeps the used logic the same)
 	 */
 	public static final int [] ModSquareTable = new int []
 	{
-		 255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,
-		 255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,  255,
-		-255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255,
-		-255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255, -255
+		 256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,
+		 256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,  256,
+		-256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256,
+		-256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256, -256
 	};
 
 	/**
-	 * Random wave table
+	 * FT2 random wave table
 	 */
 	public static final int [] ModRandomTable = new int []
 	{
@@ -575,9 +576,8 @@ public class ModConstants
 		  84,  -68,  178,   -8, -102, -144,   42,  -58,  224,  246,  168, -202, -184,  196, -108, -190
 	};
 	/**
-	 * The FT2 vibrato table
+	 * Impulse Tracker sine table (ITTECH.TXT) - also used in FT2 AutoVibrato
 	 */
-	// Impulse Tracker sinus table (ITTECH.TXT)
 	public static final int [] ITSinusTable = new int[]
 	{
 		  0,  2,  3,  5,  6,  8,  9, 11, 12, 14, 16, 17, 19, 20, 22, 23,
@@ -597,17 +597,6 @@ public class ModConstants
 		-45,-44,-43,-42,-41,-39,-38,-37,-36,-34,-33,-32,-30,-29,-27,-26,
 		-24,-23,-22,-20,-19,-17,-16,-14,-12,-11, -9, -8, -6, -5, -3, -2,
 	};
-
-	/**
-	 * The table for volume slide (Qxy)
-	 */
-	public static final int [] ft2TwoThirds = new int []
-	{
-	 	 0,  0,  1,  1,  2,  3,  3,  4,  5,  5,  6,  6,  7,  8,  8,  9,
-	 	10, 10, 11, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 18, 18, 19,
-	 	20, 20, 21, 21, 22, 23, 23, 24, 25, 25, 26, 26, 27, 28, 28, 29,
-	 	30, 30, 31, 31, 32, 33, 33, 34, 35, 35, 36, 36, 37, 38, 38, 39
-	 };
 
 	/**
 	 * FT2's square root panning law LUT.
@@ -717,8 +706,16 @@ public class ModConstants
 	{
 		return getNoteNameForIndex(getNoteIndexForPeriod(period));
 	}
+    public static final char[] numbers = 
+	{
+		'0', '1', '2', '3', '4', 
+		'5', '6', '7', '8', '9',
+		'A', 'B', 'C', 'D', 'E',
+		'F'
+	};
 	/**
-	 * Displays a value as a hex-value, using #digits
+	 * Displays a value as a hex-value, using #digits. If the digits are not
+	 * sufficient, the number is cut!
 	 * @param value
 	 * @param digits
 	 * @return
@@ -726,11 +723,16 @@ public class ModConstants
 	public static String getAsHex(final int value, final int digits)
 	{
 		StringBuilder result = new StringBuilder();
-		String hex = Integer.toString(value, 16).toUpperCase();
-		for (int i=0; i<digits-hex.length(); i++) result.append('0');
-		return (result.append(hex)).toString();
+		for (int shift=(digits-1)<<2; shift>=0; shift-=4) 
+			result.append(numbers[(value>>shift)&0xF]);
+		return result.toString();
+//		Old standard way, much slower, much more fail safe.		
+//		final String hex = Integer.toHexString(value).toUpperCase();
+//		final int zeros = digits - hex.length();
+//		for (int i=0; i<zeros; i++) result.append('0');
+//		return (result.append(hex)).toString();
 	}
-	// Konversions for read bytes! *********************************************
+	// Conversions for read bytes! *********************************************
 //	/**
 //	 * Converts an Intel like stored word to an integer
 //	 * @param buf
@@ -792,7 +794,7 @@ public class ModConstants
 		return (buf[offset]&0xFF) | ((buf[offset+1]&0xFF)<<8) | ((buf[offset+2]&0xFF)<<16) | ((buf[offset+3]&0xFF)<<24);
 	}
 
-	// Konversions for Sampledata! *********************************************
+	// Conversions for sample data! ********************************************
 //	/**
 //	 * converts signed 8 bit values to signed 16 bit
 //	 * @param sample

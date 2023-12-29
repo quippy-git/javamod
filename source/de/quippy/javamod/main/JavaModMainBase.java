@@ -35,15 +35,7 @@ public class JavaModMainBase
 	{
 		// Now load and initialize all classes, that should not be
 		// initialized during play!
-		try
-		{
-			Helpers.registerAllClasses();
-		}
-		catch (ClassNotFoundException ex)
-		{
-			Log.error("JavaModMainBase: a class moved?!", ex);
-			System.exit(3);
-		}
+		Helpers.registerAllClasses();
 		Log.setLogLevel(Log.LOGLEVEL_ERROR | Log.LOGLEVEL_INFO);
 	}
 	/**

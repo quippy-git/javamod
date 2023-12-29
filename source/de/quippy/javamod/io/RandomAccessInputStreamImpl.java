@@ -501,31 +501,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	@Override
 	public int read(byte[] b) throws IOException
 	{
-		return read(b, 0, b.length);
-	}
-	/**
-	 * @param b
-	 * @param offs
-	 * @param len
-	 * @return
-	 * @throws IOException
-	 * @see de.quippy.javamod.io.RandomAccessInputStream#readFully(byte[], int, int)
-	 */
-	@Override
-	public int readFully(byte[] b, int offs, int len) throws IOException
-	{
-		return read(b, offs, len);
-	}
-	/**
-	 * @param b
-	 * @return
-	 * @throws IOException
-	 * @see de.quippy.javamod.io.RandomAccessInputStream#readFully(byte[])
-	 */
-	@Override
-	public int readFully(byte[] b) throws IOException
-	{
-		return read(b);
+		if (b!=null) return read(b, 0, b.length); else throw new NullPointerException("Buffer is null");
 	}
 /*********************  Read & conversion Methods *****************************/	
 	/**
@@ -699,7 +675,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 		int count = 0;
 		int chararr_count = 0;
 
-		readFully(bytearr, 0, utflen);
+		read(bytearr, 0, utflen);
 
 		while (count < utflen)
 		{

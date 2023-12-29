@@ -88,11 +88,11 @@ public class RandomAccessFile extends File {
     }
 
     public void readFully(byte[] b) throws IOException {
-        file.readFully(b);
+        file.read(b);
     }
 
     public void readFully(byte[] b, int offs, int len) throws IOException {
-        file.readFully(b, offs, len);
+        file.read(b, offs, len);
     }
 
     public void close() throws IOException {

@@ -36,12 +36,12 @@ public class Pattern
 	/**
 	 * Constructor for Pattern
 	 */
-	public Pattern(int rows)
+	public Pattern(final int rows)
 	{
 		super();
 		patternRows = new PatternRow[rows];
 	}
-	public Pattern(int rows, int channels)
+	public Pattern(final int rows, final int channels)
 	{
 		this(rows);
 		for (int i=0; i<rows; i++) patternRows[i] = new PatternRow(channels);
@@ -53,23 +53,34 @@ public class Pattern
 	@Override
 	public String toString()
 	{
-		return toPatternDataString(true);
+		return toString(true, false);
 	}
 	/**
-	 * Same as toString, but no row indexes
 	 * @since 27.11.2023
+	 * @param withRowMarker: display row indices
+	 * @param isIT true: display effects for IT, false: for XM
 	 * @return
 	 */
-	public String toPatternDataString(final boolean withRowMarker)
+	public String toString(final boolean withRowMarker, final boolean isIT)
 	{
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
+		addToStringBuilder(sb, withRowMarker, isIT);
+		return sb.toString();
+	}
+	/**
+	 * @since 22.12.2023
+	 * @param sb
+	 * @param withRowMarker
+	 * @param isIT
+	 */
+	public void addToStringBuilder(final StringBuilder sb, final boolean withRowMarker, final boolean isIT)
+	{
 		for (int row=0; row<patternRows.length; row++)
 		{
 			if (withRowMarker) sb.append(ModConstants.getAsHex(row, 2)).append(" |");
-			if (patternRows[row]!=null) sb.append(patternRows[row].toString());
+			if (patternRows[row]!=null) patternRows[row].addToStringBuilder(sb, isIT);
 			sb.append('\n');
 		}
-		return sb.toString();
 	}
 	/**
 	 * @since 11.11.2023
@@ -89,7 +100,8 @@ public class Pattern
 	{
 		for (int row=0; row<patternRows.length; row++)
 		{
-			if (patternRows[row]!=null) patternRows[row].setToChannels(patternIndex, row, nChannels); 
+			if (patternRows[row]==null) patternRows[row] = new PatternRow(nChannels);
+			patternRows[row].setToChannels(patternIndex, row, nChannels);
 		}
 	}
 	/**

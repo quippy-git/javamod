@@ -55,10 +55,10 @@ public class XmasScreenConfigPanel extends JPanel
 {
 	private static final long serialVersionUID = -8071971305563557958L;
 
-	private static final String PROPERTY_XMAS_ENABLED = "javamod.player.xmas.enabled";
-	private static final String PROPERTY_XMAS_WITHSPACE = "javamod.player.xmas.withspace";
-	private static final String PROPERTY_XMAS_FLICKERTYPE = "javamod.player.xmas.flickertype";
-	private static final String PROPERTY_XMAS_UPDATEFPS = "javamod.player.xmas.updatefps";
+	private static final String PROPERTY_XMAS_ENABLED = "javamod.xmas.enabled.";
+	private static final String PROPERTY_XMAS_WITHSPACE = "javamod.xmas.withspace.";
+	private static final String PROPERTY_XMAS_FLICKERTYPE = "javamod.xmas.flickertype.";
+	private static final String PROPERTY_XMAS_UPDATEFPS = "javamod.xmas.updatefps.";
 
 	private JCheckBox xmasEnabledCheckBox = null;
 	private JCheckBox withSpaceCheckBox = null;
@@ -300,7 +300,7 @@ public class XmasScreenConfigPanel extends JPanel
 
 	public void readProperties(final Properties props, final int forScreen)
 	{
-		final String index = '.'+Integer.toString(forScreen);
+		final String index = Integer.toString(forScreen);
 		setFlickerType(Integer.parseInt(props.getProperty(PROPERTY_XMAS_FLICKERTYPE+index, "4")));
 		setUpdateFPS(Integer.parseInt(props.getProperty(PROPERTY_XMAS_UPDATEFPS+index, "2")));
 		setWithSpaceEnabled(Boolean.parseBoolean(props.getProperty(PROPERTY_XMAS_WITHSPACE+index, "FALSE")));
@@ -308,7 +308,7 @@ public class XmasScreenConfigPanel extends JPanel
 	}
 	public void writeProperties(final Properties props, final int forScreen)
 	{
-		final String index = '.'+Integer.toString(forScreen);
+		final String index = Integer.toString(forScreen);
 		props.setProperty(PROPERTY_XMAS_ENABLED+index, Boolean.toString(isXmasEnabled()));
 		props.setProperty(PROPERTY_XMAS_WITHSPACE+index, Boolean.toString(isWithSpaceEnabled()));
 		props.setProperty(PROPERTY_XMAS_FLICKERTYPE+index, Integer.toString(getFlickerType()));

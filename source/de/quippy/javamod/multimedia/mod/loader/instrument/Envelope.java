@@ -96,8 +96,7 @@ public class Envelope
 	 * get the value at the positions
 	 * Returns values between 0 and 512
 	 * @since 19.06.2006
-	 * @param p
-	 * @param defautlValue the defaultValue (middle-Position 256 with a range 0..512)
+	 * @param position
 	 * @return
 	 */
 	public int getValueForPosition(final int position)
@@ -115,7 +114,6 @@ public class Envelope
 		else
 		{
 			// if we are somewhere in between two points, do a linear interpolation
-			int y2 = value[index]<<SHIFT;
 			int x1 = 0;
 			
 			// get previous point, if any
@@ -124,10 +122,10 @@ public class Envelope
 				y1 = value[index - 1]<<SHIFT; 
 				x1 = positions[index - 1];
 			}
-//			else { x1 = 0; y1 = 0; }
 
 			if(x2>x1 && position>x1)
 			{
+				int y2 = value[index]<<SHIFT;
 				y1 += ((y2 - y1) * (position - x1)) / (x2 - x1);
 			}
 		}

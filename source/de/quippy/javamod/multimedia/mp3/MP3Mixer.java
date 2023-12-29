@@ -87,6 +87,7 @@ public class MP3Mixer extends BasicMixer
 		if (httpResource!=null) httpResource.close();
 		httpResource = new HttpResource(mp3FileUrl);
 		httpResource.setUser_agent(Helpers.USER_AGENT);
+		httpResource.setAccept_charset(Helpers.CODING_ICY);
 		HashMap<String, String> additionalHeaders = new HashMap<String, String>();
 		additionalHeaders.put("Ultravox-transport-type", "TCP");
 		additionalHeaders.put("Icy-MetaData", "1");

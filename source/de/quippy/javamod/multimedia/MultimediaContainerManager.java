@@ -26,7 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
@@ -44,7 +43,6 @@ public class MultimediaContainerManager
 {
 	private static HashMap<String, MultimediaContainer> fileExtensionMap;
 	private static ArrayList<MultimediaContainer> containerArray;
-	private static Properties containerConfigs;
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -65,44 +63,17 @@ public class MultimediaContainerManager
 			containerArray = new ArrayList<MultimediaContainer>();
 		return containerArray;
 	}
-	public static Properties getContainerConfigs()
-	{
-		if (containerConfigs==null) containerConfigs = new Properties();
-		return containerConfigs;
-	}
 	public static void getContainerConfigs(Properties intoProps)
 	{
-		fireConfigurationSave();
-		Enumeration<Object> propertyEnum = getContainerConfigs().keys();
-		while (propertyEnum.hasMoreElements())
-		{
-			Object key = propertyEnum.nextElement();
-			Object value = getContainerConfigs().get(key);
-			intoProps.put(key, value);
-		}
+		ArrayList<MultimediaContainer> listeners = getContainerArray();
+		for (int i=0; i<listeners.size(); i++)
+			listeners.get(i).configurationSave(intoProps);
 	}
 	public static void configureContainer(Properties fromProps)
 	{
-		Enumeration<Object> propertyEnum = fromProps.keys();
-		while (propertyEnum.hasMoreElements())
-		{
-			Object key = propertyEnum.nextElement();
-			Object value = fromProps.get(key);
-			/*if (getContainerConfigs().contains(key))*/ getContainerConfigs().put(key, value);
-		}
-		fireConfiggurationChanged();
-	}
-	private static void fireConfiggurationChanged()
-	{
 		ArrayList<MultimediaContainer> listeners = getContainerArray();
 		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).configurationChanged(getContainerConfigs());
-	}
-	private static void fireConfigurationSave()
-	{
-		ArrayList<MultimediaContainer> listeners = getContainerArray();
-		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).configurationSave(getContainerConfigs());
+			listeners.get(i).configurationChanged(fromProps);
 	}
 	public static void registerContainer(MultimediaContainer container)
 	{

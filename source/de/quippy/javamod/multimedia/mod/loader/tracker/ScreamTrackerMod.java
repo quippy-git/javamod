@@ -163,6 +163,15 @@ public class ScreamTrackerMod extends Module
 		return false;
 	}
 	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModSpeedIsTicks()
+	 */
+	@Override
+	public boolean getModSpeedIsTicks()
+	{
+		return false;
+	}
+	/**
 	 * @param inputStream
 	 * @return true, if this is a protracker mod, false if this is not clear
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
@@ -561,8 +570,11 @@ public class ScreamTrackerMod extends Module
 
 			final long pointer = paraPointers[getNSamples() + pattNum];
 			if (pointer + 0x40 > inputStream.getLength()) continue;
-			inputStream.seek(pointer);
-			setPattern(pattNum, inputStream);
+			if (pointer>0) // 0== empty pattern
+			{
+				inputStream.seek(pointer);
+				setPattern(pattNum, inputStream);
+			}
 		}
 
 		// Correct the songlength for playing, skip markerpattern... (do not want to skip them during playing!)

@@ -59,8 +59,8 @@ public class ProTrackerMod extends Module
 	private boolean isNoiseTracker; // No pattern breaks with noise tracker
 	private boolean isGenericMultiChannel;
 	private boolean isMdKd;
-//	private boolean modVBlankTiming; // changes playing behavior to set always speed (ticks), never BPM
-	private boolean swapBytes; // For .DTM files from Apocalypse Abyss, where the first 2108 bytes are swapped
+	private boolean modSpeedIsTicks; // changes playing behavior to set always speed (ticks), never BPM
+//	private boolean swapBytes; // For .DTM files from Apocalypse Abyss, where the first 2108 bytes are swapped - we do not support that yet!
 	private boolean ft2Tremolos; // Tremolo Ramp Down Waveform behavior change for some mods (FT2 style)
 	
 	/**
@@ -165,6 +165,15 @@ public class ProTrackerMod extends Module
 		return ft2Tremolos;
 	}
 	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModSpeedIsTicks()
+	 */
+	@Override
+	public boolean getModSpeedIsTicks()
+	{
+		return modSpeedIsTicks;
+	}
+	/**
 	 * @param inputStream
 	 * @return true, if this is a protracker mod, false if this is not clear
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
@@ -207,7 +216,7 @@ public class ProTrackerMod extends Module
 		isNoiseTracker = false;
 		isStarTrekker = false;
 		isMdKd = false;
-//		modVBlankTiming = false;
+		modSpeedIsTicks = false;
 //		swapBytes = false;
 		isGenericMultiChannel = false;
 
@@ -219,78 +228,78 @@ public class ProTrackerMod extends Module
 				isAmigaLike = true;
 				isMdKd = modID.equals("M.K.");
 				setNChannels(4);
-				return "Generic ProTracker or compatible";
+				return "ProTracker or compatible (" + modID + ")";
 			}
 			if (modID.equals("M&K!") || modID.equals("FEST") || modID.equals("N.T."))
 			{
 				isAmigaLike = true;
 				isNoiseTracker = true;
-//				modVBlankTiming = true;
+				modSpeedIsTicks = true;
 				setNChannels(4);
-				return "NoiseTracker";
+				return "NoiseTracker (" + modID + ")";
 			}
 			if (modID.equals("OKTA") || modID.equals("OCTA"))
 			{
 				setNChannels(8);
-				return "Oktalyzer";
+				return "Oktalyzer (" + modID + ")";
 			}
 			if (modID.equals("CD81") || modID.equals("CD61"))
 			{
 				setNChannels(Integer.parseInt(Character.toString(modID.charAt(2))));
-				return "Oktalyzer (Atari)";
+				return "Oktalyzer (Atari " + modID + ")";
 			}
 			if (magicNumber == 0x4D000000 || magicNumber == 0x38000000)
 			{
 				isDeltaPacked = true;
 				if (modID.charAt(0)=='8') setNChannels(8); else setNChannels(4);
-				return "Inconexia demo";
+				return "Inconexia demo (" + modID + ")";
 			}
 			if (modID.startsWith("FA0"))
 			{
 				setNChannels(Integer.parseInt(Character.toString(modID.charAt(3))));
-				return "Digital Tracker (Atari Falcon)";
+				return "Digital Tracker (Atari Falcon " + modID + ")";
 			}
 			if (modID.startsWith("FLT") || modID.startsWith("EX0"))
 			{
 				isStarTrekker = true;
-//				modVBlankTiming = true;
+				modSpeedIsTicks = true;
 				setNChannels(Integer.parseInt(Character.toString(modID.charAt(3))));
-				return "Startrekker";
+				return "Startrekker (" + modID + ")";
 			}
 			if (modID.endsWith("CHN"))
 			{
 				isGenericMultiChannel = true;
 				setNChannels(Integer.parseInt(Character.toString(modID.charAt(0))));
-				return "Generic MOD-compatible Tracker";
+				return "Generic MOD compatible Tracker (" + modID + ")";
 			}
 			if (modID.endsWith("CH") || modID.endsWith("CN"))
 			{
 				isGenericMultiChannel = true;
 				setNChannels(Integer.parseInt(modID.substring(0,2)));
-				return "Generic MOD-compatible Tracker";
+				return "Generic MOD compatible Tracker (" + modID + ")";
 			}	 
-			if (modID.startsWith("TDZ"))
-			{
-				setNChannels(Integer.parseInt(Character.toString(modID.charAt(3))));
-				return "TakeTracker";
-			}
-			if (modID.equals(".M.K"))
-			{
-				setNChannels(4);
-				swapBytes = true;
-				return "Game Apocalypse Abyss";
-			}
 			if (modID.equals("WARD"))
 			{
 				isGenericMultiChannel = true;
 				setNChannels(8);
-				return "Generic MOD-compatible Tracker";
+				return "Generic MOD compatible Tracker (" + modID + ")";
 			}
+			if (modID.startsWith("TDZ"))
+			{
+				setNChannels(Integer.parseInt(Character.toString(modID.charAt(3))));
+				return "TakeTracker (" + modID + ")";
+			}
+//			if (modID.equals(".M.K"))
+//			{
+//				setNChannels(4);
+//				swapBytes = true;
+//				return "Game Apocalypse Abyss (.M.K)";
+//			}
 			if (modID.equals("!PM!")) // 14.12.2023: Someone came up with these..
 			{
 				isDeltaPacked = true;
 				setNChannels(4);
-				return "Unknown Tracker";
+				return "Unknown Tracker (" + modID + ")";
 			}
 		}
 
@@ -300,10 +309,10 @@ public class ProTrackerMod extends Module
 		setNSamples(15);
 		setNChannels(4);
 		setModID("NONE");
-		return "NoiseTracker";
+		return "NoiseTracker (no ID)";
 	}
 	/**
-	 * Many modfiles are too short or too long.
+	 * Many mod files are too short or too long.
 	 * Here we try to find out about this, as the real
 	 * saved count of pattern is not saved anywhere.
 	 * @param fileSize
@@ -312,13 +321,13 @@ public class ProTrackerMod extends Module
 	private int calculatePatternCount(final int fileSize)
 	{
 		int headerLen = 150; // Name+SongLen+CIAA+SongArrangement
-		if (getNSamples()>15) headerLen += 4L;  // Kennung
+		if (getNSamples()>15) headerLen += 4;  // Kennung
 
 		int sampleLen = 0;
 		for (int i=0; i<getNSamples(); i++)
-			sampleLen += 30L + getInstrumentContainer().getSample(i).length;
+			sampleLen += 30 + getInstrumentContainer().getSample(i).length;
 
-		int spaceForPattern = fileSize - headerLen - sampleLen;
+		final int spaceForPattern = fileSize - headerLen - sampleLen;
 		
 		// Lets find out about the highest Patternnumber used
 		// in the song arrangement
@@ -335,23 +344,24 @@ public class ProTrackerMod extends Module
 		if (isMdKd)
 		{
 			// so check for 8 channels:
-			int totalPatternBytes = maxPatternNumber * (64*4*8);
+			final int totalPatternBytes = maxPatternNumber * (64*4*8);
 			// This mod has 8 channels! --> WOW
 			if (totalPatternBytes == spaceForPattern)
 			{
 				isAmigaLike = true;
 				setNChannels(8);
-				setTrackerName("Grave Composer");
+				setTrackerName("Grave Composer (" + getModID() + ")");
 			}
 		}
 
-		int bytesPerPattern=64*4*getNChannels();
-		setNPattern(spaceForPattern / bytesPerPattern);
+		final int bytesPerPattern=64*4*getNChannels();
+		final int patternCount = spaceForPattern / bytesPerPattern; 
 		int bytesLeft = spaceForPattern % bytesPerPattern;
+		setNPattern(patternCount);
 
 		if (bytesLeft>0) // It does not fit!
 		{
-			if (maxPatternNumber>getNPattern())
+			if (maxPatternNumber>patternCount)
 			{
 				// The modfile is too short. The highest pattern is reaching into
 				// the sampledata, but it has to be read!
@@ -458,10 +468,8 @@ public class ProTrackerMod extends Module
 		inputStream.seek(0);
 		setTrackerName(getModType(getModID(), magicNumber));
 		
-		if (swapBytes) throw new IOException("This Mod type is not yet supported " + getTrackerName());
-		
-		final boolean isFLT8 = isStarTrekker && getNChannels()==8;
 		ft2Tremolos = (isGenericMultiChannel || isMdKd);
+		final boolean isFLT8 = isStarTrekker && getNChannels()==8;
 		final boolean isHMNT = getModID().equals("M&K!") || getModID().equals("FEST");
 		
 		setModType(ModConstants.MODTYPE_MOD);
@@ -487,22 +495,17 @@ public class ProTrackerMod extends Module
 			current.setLength(inputStream.readMotorolaUnsignedWord() << 1);
 			
 			int fine = 0;
-			if (isHMNT)
-			{
-				fine = inputStream.read();
-				current.setFineTune((-fine)<<(ModConstants.PERIOD_SHIFT - 1));
-				// BaseFrequenzy from Table: FineTune is -8...+7
-				current.setBaseFrequency(ModConstants.it_fineTuneTable[fine+8]);
-			}
+			if (isHMNT) // His Masters Noise - Noise Tracker (FEST) - different FineTune setting...
+				fine = (-((int)inputStream.readByte()))>>1;
 			else
 			{
 				fine = inputStream.read() & 0xF;
 				// finetune Value is a two's complement based on four bits
 				fine = fine>7?fine-16:fine;
-				current.setFineTune(fine<<ModConstants.PERIOD_SHIFT);
-				// BaseFrequenzy from Table: FineTune is -8...+7
-				current.setBaseFrequency(ModConstants.it_fineTuneTable[fine+8]);
 			}
+			current.setFineTune(fine<<ModConstants.PERIOD_SHIFT);
+			// BaseFrequenzy from Table: FineTune is -8...+7
+			current.setBaseFrequency(ModConstants.it_fineTuneTable[fine+8]);
 			current.setTranspose(0);
 			
 			if(current.length > 65535) isNoiseTracker = false;			
@@ -583,7 +586,7 @@ public class ProTrackerMod extends Module
 		if (getModID().startsWith("FA0")) inputStream.skip(4);
 		
 		// Read the pattern data
-		int bytesLeft = calculatePatternCount((int)inputStream.getLength()); // Get the amount of pattern and keep "bytesLeft" in mind!
+		final int bytesLeft = calculatePatternCount((int)inputStream.getLength()); // Get the amount of pattern and keep "bytesLeft" in mind!
 		
 		PatternContainer patternContainer = new PatternContainer(getNPattern(), 64, getNChannels());
 		setPatternContainer(patternContainer);

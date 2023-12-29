@@ -65,6 +65,7 @@ public class HttpResource implements Closeable
 	private long contentLength;
 	
 	private String user_agent = "Java HttpResource 1.0";
+	private String accept_charset = "UTF-8";
 
 	/**
 	 * Constructor for HttpResource
@@ -130,6 +131,20 @@ public class HttpResource implements Closeable
 	public String getUser_agent()
 	{
 		return user_agent;
+	}
+	/**
+	 * @return the accept_charset
+	 */
+	public String getAccept_charset()
+	{
+		return accept_charset;
+	}
+	/**
+	 * @param accept_charset the accept_charset to set
+	 */
+	public void setAccept_charset(String accept_charset)
+	{
+		this.accept_charset = accept_charset;
 	}
 	/**
 	 * @return the resourceHeaders
@@ -298,17 +313,13 @@ public class HttpResource implements Closeable
 		{
 			final StringBuilder getString = new StringBuilder()
 					.append("GET ").append(path).append(" HTTP/1.1\r\nHost: ").append(ressource.getHost())
-					.append("\r\nuser-agent: ").append(user_agent).append("\r\nAccept: */*\r\nAccept-Charset: ").append(Helpers.CODING_ICY)
+					.append("\r\nuser-agent: ").append(user_agent).append("\r\nAccept: */*\r\nAccept-Charset: ").append(accept_charset)
 					.append("\r\n");
 			for (String key: additionalRequestHeaders.keySet())
 			{
 				getString.append(key).append(": ").append(additionalRequestHeaders.get(key)).append("\r\n");
 			}
-			getString.append("Connection: ");
-			if (keep_alive) 
-				getString.append("keep_alive\r\n\r\n"); 
-			else 
-				getString.append("close\r\n\r\n");
+			getString.append("Connection: ").append((keep_alive)?"keep_alive":"close").append("\r\n\r\n");
 			// now send this "get" command and open the input Stream
 			open();
 			final OutputStream os=socket.getOutputStream();

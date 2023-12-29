@@ -26,7 +26,7 @@ import java.awt.LayoutManager;
 
 import javax.swing.JPanel;
 
-import de.quippy.javamod.main.gui.tools.FixedStateCheckBox;
+import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
 import de.quippy.javamod.system.Helpers;
 

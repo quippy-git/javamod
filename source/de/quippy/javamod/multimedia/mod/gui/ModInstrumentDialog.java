@@ -25,10 +25,17 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -39,18 +46,24 @@ import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.SpinnerListModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.Caret;
+import javax.swing.text.DefaultCaret;
 
-import de.quippy.javamod.main.gui.tools.FixedStateCheckBox;
+import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.ModInfoPanel;
+import de.quippy.javamod.multimedia.mod.ModMixer;
 import de.quippy.javamod.multimedia.mod.gui.EnvelopePanel.EnvelopeType;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
+import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
+import de.quippy.javamod.multimedia.mod.mixer.SampleInstrumentPlayer;
 import de.quippy.javamod.system.Helpers;
 
 /**
@@ -63,9 +76,19 @@ public class ModInstrumentDialog extends JDialog
 	
 	private static final int SAMPLE_MAP_LINE_LENGTH = 15;
 
+	public static final String BUTTONPLAY_INACTIVE = "/de/quippy/javamod/main/gui/ressources/play.gif";
+	public static final String BUTTONPLAY_ACTIVE = "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
+	public static final String BUTTONPLAY_NORMAL = "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
+
+	private ImageIcon buttonPlay_Active = null;
+	private ImageIcon buttonPlay_Inactive = null;
+	private ImageIcon buttonPlay_normal = null;
+
 	private JLabel labelSelectInstrument = null;
 	private JSpinner selectInstrument = null;
 	
+	private JButton button_Play = null;
+
 	private JPanel instrumentNamePanel = null;
 	private JLabel instrumentNameLabel = null;
 	private JTextField instrumentName = null;
@@ -112,6 +135,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField actionDNA = null;
 
 	private JPanel sampleMapPanel = null;
+	private JScrollPane sampleMapScrollPane = null;
 	private JTextArea sampleMap = null;
 
 	private JTabbedPane envelopeTabbedPane = null;
@@ -119,10 +143,14 @@ public class ModInstrumentDialog extends JDialog
 	private EnvelopePanel panningEnvelopePanel = null;
 	private EnvelopePanel pitchEnvelopePanel = null;
 	
+	private SampleInstrumentPlayer player = null;
 	private Instrument [] instruments = null;
 	private ArrayList<String> spinnerModelData = null;
+	private int noteIndexRow = ModConstants.BASENOTEINDEX;
 	
 	private ModInfoPanel myModInfoPanel;
+	private ModMixer currentModMixer;
+	private BasicModMixer currentMixer;
 
 	/**
 	 * Constructor for ModPatternDialog
@@ -162,12 +190,13 @@ public class ModInstrumentDialog extends JDialog
 
 		baseContentPane.add(getLabelSelectInstrument(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getSelectInstrument(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getInstrumentNamePanel(), 		Helpers.getGridBagConstraint(2, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getGlobalInfoPanel(), 			Helpers.getGridBagConstraint(0, 1, 2, 2, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getFilterPanel(), 				Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getNNAPanel(), 					Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getSampleMapPanel(),			Helpers.getGridBagConstraint(4, 1, 2, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getRandomVariationPanel(), 		Helpers.getGridBagConstraint(2, 2, 1, 2, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		baseContentPane.add(getInstrumentNamePanel(), 		Helpers.getGridBagConstraint(2, 0, 1, 3, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getButton_Play(), 				Helpers.getGridBagConstraint(5, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getGlobalInfoPanel(), 			Helpers.getGridBagConstraint(0, 1, 2, 3, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		baseContentPane.add(getFilterPanel(), 				Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		baseContentPane.add(getNNAPanel(), 					Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		baseContentPane.add(getSampleMapPanel(),			Helpers.getGridBagConstraint(5, 1, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+		baseContentPane.add(getRandomVariationPanel(), 		Helpers.getGridBagConstraint(3, 2, 1, 2, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
 		baseContentPane.add(getTabbedPane(), 				Helpers.getGridBagConstraint(0, 3, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.NORTHWEST, 1.0, 1.0));
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -183,10 +212,7 @@ public class ModInstrumentDialog extends JDialog
 		setName("Show mod instruments");
 		setTitle("Show mod instruments");
 		setResizable(true);
-		setSize(640, 480);
-		setPreferredSize(getSize());
         pack();
-		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
 		
 		clearInstrument();
 	}
@@ -253,6 +279,59 @@ public class ModInstrumentDialog extends JDialog
 			
 		}
 		return instrumentNamePanel;
+	}
+	private JButton getButton_Play()
+	{
+		if (button_Play == null)
+		{
+			buttonPlay_normal = new ImageIcon(getClass().getResource(BUTTONPLAY_NORMAL));
+			buttonPlay_Inactive = new ImageIcon(getClass().getResource(BUTTONPLAY_INACTIVE));
+			buttonPlay_Active = new ImageIcon(getClass().getResource(BUTTONPLAY_ACTIVE));
+
+			button_Play = new JButton();
+			button_Play.setName("button_Play");
+			button_Play.setText(Helpers.EMPTY_STING);
+			button_Play.setToolTipText("play");
+			button_Play.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Play.setVerticalTextPosition(SwingConstants.BOTTOM);
+			button_Play.setIcon(buttonPlay_normal);
+			button_Play.setDisabledIcon(buttonPlay_Inactive);
+			button_Play.setPressedIcon(buttonPlay_Active);
+			button_Play.setMargin(new Insets(4, 6, 4, 6));
+			button_Play.addActionListener(new ActionListener()
+			{
+				boolean playing = false;
+
+				public void actionPerformed(ActionEvent e)
+				{
+					if (playing)
+					{
+						if (player!=null && player.isPlaying()) player.stopPlayback();
+					}
+					else
+					{
+						if (instruments == null) return;
+
+						playing = true;
+						getButton_Play().setIcon(buttonPlay_Active);
+						player = new SampleInstrumentPlayer(myModInfoPanel.getParentContainer().createNewMixer0());
+						// play inside a thread, so we do not block anything...
+						new Thread(new Runnable()
+						{
+							public void run()
+							{
+								player.startPlayback(instruments[getCurrentInstrument()], null, (noteIndexRow<0)?ModConstants.BASENOTEINDEX:noteIndexRow + 1);
+								getButton_Play().setIcon(buttonPlay_normal);
+								player = null;
+								playing = false;
+							}
+						}).start();
+					}
+				}
+			});
+					
+		}
+		return button_Play;
 	}
 	private JLabel getInstrumentNameLabel()
 	{
@@ -789,14 +868,52 @@ public class ModInstrumentDialog extends JDialog
 		if (sampleMapPanel==null)
 		{
 			sampleMapPanel = new JPanel();
-			sampleMapPanel.setBorder(new TitledBorder(null, "Sampe/Note Map", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			sampleMapPanel.setBorder(new TitledBorder(null, "Sample/Note Map", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			sampleMapPanel.setLayout(new GridBagLayout());
-			JScrollPane scrollPane = new JScrollPane();
-			scrollPane.setViewportView(getSampleMap());
-			sampleMapPanel.add(scrollPane, 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 
+			sampleMapPanel.add(getSampleMapScrollPane(), Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
+			
+			final Insets inset = getSampleMapScrollPane().getInsets();
+			final int scrollbarSpace = (getSampleMapScrollPane().getVerticalScrollBar().getPreferredSize().width<<1) + inset.left + inset.right; 
+			final FontMetrics metrics = sampleMapPanel.getFontMetrics(Helpers.getDialogFont());
+			final Dimension d = new Dimension((SAMPLE_MAP_LINE_LENGTH*metrics.charWidth('0')) + scrollbarSpace, 12*metrics.getHeight());
+			sampleMapPanel.setSize(d);
+			sampleMapPanel.setMinimumSize(d);
+			sampleMapPanel.setMaximumSize(d);
+			sampleMapPanel.setPreferredSize(d);
 		}
 		return sampleMapPanel;
+	}
+	private JScrollPane getSampleMapScrollPane()
+	{
+		if (sampleMapScrollPane==null)
+		{
+			sampleMapScrollPane = new JScrollPane();
+			sampleMapScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+			sampleMapScrollPane.setViewportView(getSampleMap());
+		}
+		return sampleMapScrollPane;
+	}
+	private int markRowInSampleMap(final int newNoteIndexRow)
+	{
+		final int startPoint = (newNoteIndexRow<0)?0:newNoteIndexRow * SAMPLE_MAP_LINE_LENGTH;
+		final int endPoint = (newNoteIndexRow<0)?0:startPoint + SAMPLE_MAP_LINE_LENGTH;
+		try
+		{
+			getSampleMap().setCaretPosition(startPoint);
+			getSampleMap().moveCaretPosition(endPoint);
+			return newNoteIndexRow;
+		}
+		catch (IllegalArgumentException ex)
+		{
+			// Ignore it...
+		}
+		return -1;
+	}
+	private int markRowInSampleMap(final Point mouseCursor)
+	{
+		final int modelPos = getSampleMap().viewToModel2D(mouseCursor);
+		return markRowInSampleMap(modelPos / SAMPLE_MAP_LINE_LENGTH); // 15 characters per line incl. LF
 	}
 	private JTextArea getSampleMap()
 	{
@@ -806,41 +923,47 @@ public class ModInstrumentDialog extends JDialog
 			sampleMap.setName("SampleMap");
 			sampleMap.setEditable(false); // no editing
 			sampleMap.setFont(Helpers.getTextAreaFont());
-			final Caret caret = sampleMap.getCaret();
-			caret.setVisible(false); // no cursor
+			final Caret caret = new DefaultCaret() // create a caret that does not hide when fokus is lost
+			{
+				private static final long serialVersionUID = 1927570313134336141L;
+				/**
+				 * @param e
+				 * @see javax.swing.text.DefaultCaret#focusLost(java.awt.event.FocusEvent)
+				 */
+				@Override
+				public void focusLost(FocusEvent e)
+				{
+					super.focusLost(e);
+					setSelectionVisible(true);
+				}
+			};
+			sampleMap.setCaret(caret); // must be set to the element !before! doing anything with it, otherwise "this.component is null"
+			caret.setVisible(false); // no cursor visible
 			caret.setSelectionVisible(true); // but selection is visible
 			// As in some cases, when the textbox gains focus, the cursor appears nevertheless, we just make it invisible...
 			sampleMap.setCaretColor(sampleMap.getBackground());
+
 			sampleMap.addMouseListener(new MouseAdapter()
 			{
 				public void mouseClicked(MouseEvent e)
 				{
 					if (e.isConsumed() || instruments == null) return;
 					
-					final int modelPos = getSampleMap().viewToModel2D(e.getPoint());
-					final int row = modelPos / SAMPLE_MAP_LINE_LENGTH; // 15 characters per line incl. LF
-
-					// show a marker at what we selected.
-					final int startPoint = row * SAMPLE_MAP_LINE_LENGTH;
-					final int endPoint = startPoint + SAMPLE_MAP_LINE_LENGTH;
-					try
+					final int newRow = markRowInSampleMap(e.getPoint());
+					if (newRow==-1)
+						markRowInSampleMap(noteIndexRow);
+					else
 					{
-						getSampleMap().setCaretPosition(startPoint);
-						getSampleMap().moveCaretPosition(endPoint);
-						
+						noteIndexRow = newRow;
 						if (SwingUtilities.isLeftMouseButton(e))
 						{
 							if (e.getClickCount()>1)
 							{
 								// now get the sample and force sample dialog to open and show that:
-								final int sampleIndex = getSampleIndex(getCurrentInstrument(), row);
+								final int sampleIndex = getSampleIndex(getCurrentInstrument(), noteIndexRow);
 								if (sampleIndex!=-1) myModInfoPanel.showSample(sampleIndex);
 							}
 						}
-					}
-					catch (IllegalArgumentException ex)
-					{
-						// Ignore it...
 					}
 				}
 			});
@@ -971,6 +1094,9 @@ public class ModInstrumentDialog extends JDialog
 		spinnerModelData = new ArrayList<String>(1);
 		spinnerModelData.add(ModConstants.getAsHex(0, 2));
 		getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
+		
+		getButton_Play().setEnabled(false);
+		markRowInSampleMap(-1);
 
 		getInstrumentName().setText(Helpers.EMPTY_STING);
 		getFileName().setText(Helpers.EMPTY_STING);
@@ -1010,7 +1136,9 @@ public class ModInstrumentDialog extends JDialog
 	private void fillWithInstrument(Instrument newInstrument)
 	{
 		getInstrumentName().setText(newInstrument.name);
+		getInstrumentName().setCaretPosition(0); getInstrumentName().moveCaretPosition(0);
 		getFileName().setText(newInstrument.dosFileName);
+		getFileName().setCaretPosition(0); getFileName().moveCaretPosition(0);
 		
 		getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
 		getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
@@ -1051,11 +1179,13 @@ public class ModInstrumentDialog extends JDialog
 		getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
 		
 		getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
-		getSampleMap().select(0,0);
 		
 		getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope, EnvelopeType.volume);
 		getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope, EnvelopeType.panning);
 		getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope, EnvelopeType.pitch);
+
+		markRowInSampleMap(noteIndexRow);
+		getButton_Play().setEnabled(true);
 	}
 	public void fillWithInstrumentArray(final Instrument [] instruments)
 	{
@@ -1065,13 +1195,36 @@ public class ModInstrumentDialog extends JDialog
 			spinnerModelData = new ArrayList<String>(instruments.length);
 			for (int i=0; i<instruments.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
 			getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
-
-			fillWithInstrument(instruments[0]);
+			getSelectInstrument().setValue(spinnerModelData.get(0)); // in some unknown cases, the index is not really set.
+			fillWithInstrument(instruments[0]); // as index is normally not changed, no change event is fired
 
 			// after setting the new model, make the editor of the spinner un-editable
 			((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
 		}
 		else
 			clearInstrument();
+	}
+	/**
+	 * For mute/unmute we need the current Mixer.
+	 * ModContainer will take care of setting it. If no mixer is present,
+	 * it is set to "null" here!
+	 * @since 28.11.2023
+	 * @param mixer
+	 */
+	public void setMixer(ModMixer theModMixer)
+	{
+		currentModMixer = theModMixer;
+		
+		if (currentModMixer!=null)
+		{
+			currentMixer = currentModMixer.getModMixer();
+		}
+		else
+		{
+			if (currentMixer!=null)
+			{
+				currentMixer=null;
+			}
+		}
 	}
 }

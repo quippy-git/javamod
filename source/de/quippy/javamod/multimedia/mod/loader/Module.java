@@ -711,6 +711,11 @@ public abstract class Module
 	 */
 	public abstract boolean getFT2Tremolo();
 	/**
+	 * @since 20.12.2023
+	 * @return true for some MODs not supporting BPM
+	 */
+	public abstract boolean getModSpeedIsTicks();
+	/**
 	 * @since 25.06.2006
 	 * @param length
 	 */
@@ -1038,23 +1043,37 @@ public abstract class Module
 		this.lengthInMilliseconds = lengthInMilliseconds;
 	}
 	/**
+	 * @since 18.12.2023
+	 * @return
+	 */
+	public String getFrequencyTableString()
+	{
+		switch (getFrequencyTable())
+		{
+			case ModConstants.STM_S3M_TABLE: return "Scream Tracker";
+			case ModConstants.IT_AMIGA_TABLE: return "Impulse Tracker log";
+			case ModConstants.IT_LINEAR_TABLE: return "Impulse Tracker linear";
+			case ModConstants.AMIGA_TABLE: return "Protracker log";
+			case ModConstants.XM_AMIGA_TABLE: return "Fast Tracker log";
+			case ModConstants.XM_LINEAR_TABLE: return "Fast Tracker linear";
+		}
+		return "Unknown";
+	}
+	public boolean isStereo()
+	{
+		return ((songFlags&ModConstants.SONG_ISSTEREO)!=0);
+	}
+	/**
 	 * @since 29.03.2010
 	 * @return
 	 */
 	public String toShortInfoString()
 	{
 		StringBuilder modInfo = new StringBuilder(getTrackerName());
-		modInfo.append(((songFlags&ModConstants.SONG_ISSTEREO)!=0)?" (stereo) ":" (mono) ").append(" mod with ").append(getNSamples()).append(" samples and ").append(getNChannels()).append(" channels using ");
-		switch (getFrequencyTable())
-		{
-			case ModConstants.AMIGA_TABLE: modInfo.append("Protracker"); break;
-			case ModConstants.STM_S3M_TABLE: modInfo.append("Scream Tracker"); break;
-			case ModConstants.XM_AMIGA_TABLE: modInfo.append("Fast Tracker log"); break;
-			case ModConstants.XM_LINEAR_TABLE: modInfo.append("Fast Tracker linear"); break;
-			case ModConstants.IT_LINEAR_TABLE: modInfo.append("Impulse Tracker linear"); break;
-			case ModConstants.IT_AMIGA_TABLE: modInfo.append("Impulse Tracker log"); break;
-		}
-		modInfo.append(" frequency table");
+		modInfo.append(isStereo()?" stereo":" mono").append(" mod with ");
+		if (instrumentContainer!=null && instrumentContainer.hasInstruments()) modInfo.append(getNInstruments()).append(" instruments mapping ");
+		modInfo.append(getNSamples()).append(" samples and ").append(getNChannels()).append(" channels using ")
+		.append(getFrequencyTableString()).append(" frequency table");
 		return modInfo.toString();
 	}
 	/**

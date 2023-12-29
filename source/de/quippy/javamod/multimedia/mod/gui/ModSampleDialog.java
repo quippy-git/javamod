@@ -23,26 +23,39 @@ package de.quippy.javamod.multimedia.mod.gui;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FontMetrics;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTextField;
 import javax.swing.SpinnerListModel;
-import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import de.quippy.javamod.main.gui.tools.FixedStateCheckBox;
+import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.ModInfoPanel;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
+import de.quippy.javamod.multimedia.mod.mixer.SampleInstrumentPlayer;
 import de.quippy.javamod.system.Helpers;
 
 /**
@@ -54,9 +67,21 @@ public class ModSampleDialog extends JDialog
 	private static final long serialVersionUID = -9058637708283713743L;
 
 	private static String [] AUTOVIBRATO_TYPES = new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
+	private static String [] ZOOM_TYPES = new String [] { "Auto", "1:1", "2:1", "4:1", "8:1", "16:1", "32:1" };
+
+	public static final String BUTTONPLAY_INACTIVE = "/de/quippy/javamod/main/gui/ressources/play.gif";
+	public static final String BUTTONPLAY_ACTIVE = "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
+	public static final String BUTTONPLAY_NORMAL = "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
+
+	private ImageIcon buttonPlay_Active = null;
+	private ImageIcon buttonPlay_Inactive = null;
+	private ImageIcon buttonPlay_normal = null;
 
 	private JLabel labelSelectSample = null;
 	private JSpinner selectSample = null;
+	private JComboBox<String> zoomSelector = null;
+	private JComboBox<String> noteSelector = null;
+	private JButton button_Play = null;
 	private JTextField sampleType = null;
 	private SampleImagePanel imageBufferPanel = null;
 	private JPanel sampleNameAndLoopsPanel = null;
@@ -83,6 +108,7 @@ public class ModSampleDialog extends JDialog
 	private JTextField transposeValue = null;
 	private JLabel loopTypeLabel = null;
 	private JTextField loopTypeValue = null;
+
 	private JLabel loopStartLabel = null;
 	private JTextField loopStartValue = null;
 	private JLabel loopEndLabel = null;
@@ -102,10 +128,10 @@ public class ModSampleDialog extends JDialog
 	private JLabel autoVibRateLabel = null;
 	private JTextField autoVibRateValue = null;
 
+	private SampleInstrumentPlayer player = null;
 	private Sample [] samples;
-	private ArrayList<String> spinnerModelData = null; 
+	private ArrayList<String> spinnerModelData = null;
 
-	@SuppressWarnings("unused")
 	private ModInfoPanel myModInfoPanel;
 
 	/**
@@ -144,11 +170,15 @@ public class ModSampleDialog extends JDialog
         final Container baseContentPane = getContentPane();
 		baseContentPane.setLayout(new java.awt.GridBagLayout());
 		
-		baseContentPane.add(getLabelSelectSample(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getSelectSample(), 				Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getSampleNameAndLoopsPanel(),	Helpers.getGridBagConstraint(2, 0, 2, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getVolumePanel(),				Helpers.getGridBagConstraint(0, 1, 2, 2, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getImageBufferPanel(), 			Helpers.getGridBagConstraint(0, 3, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
+		baseContentPane.add(getLabelSelectSample(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getSelectSample(), 				Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getZoomSelector(),				Helpers.getGridBagConstraint(2, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getNoteSelector(), 				Helpers.getGridBagConstraint(3, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getButton_Play(), 				Helpers.getGridBagConstraint(4, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getSampleType(),				Helpers.getGridBagConstraint(5, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getVolumePanel(),				Helpers.getGridBagConstraint(0, 1, 1, 3, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getSampleNameAndLoopsPanel(),	Helpers.getGridBagConstraint(3, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getImageBufferPanel(), 			Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
 		
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter()
@@ -163,10 +193,7 @@ public class ModSampleDialog extends JDialog
 		setName("Show mod samples");
 		setTitle("Show mod samples");
 		setResizable(true);
-		setSize(640, 480);
-		setPreferredSize(getSize());
         pack();
-		setLocation(Helpers.getFrameCenteredLocation(this, getParent()));
 		
 		clearSample();
 	}
@@ -219,6 +246,95 @@ public class ModSampleDialog extends JDialog
 		}
 		return selectSample;
 	}
+	private JComboBox getZoomSelector()
+	{
+		if (zoomSelector==null)
+		{
+			zoomSelector = new JComboBox<String>();
+			zoomSelector.setName("zoomSelector");
+			zoomSelector.setFont(Helpers.getDialogFont());
+
+			for (int i=0; i<ZOOM_TYPES.length; i++) zoomSelector.addItem(ZOOM_TYPES[i]);
+			zoomSelector.addItemListener(new ItemListener()
+			{
+				@Override
+				public void itemStateChanged(ItemEvent e)
+				{
+					if (samples==null) return;
+					changeZoom(getZoomSelector().getSelectedIndex());
+				}
+			});
+		}
+		
+		return zoomSelector;
+	}
+	private JComboBox getNoteSelector()
+	{
+		if (noteSelector==null)
+		{
+			noteSelector = new JComboBox<String>();
+			noteSelector.setName("noteSelector");
+			noteSelector.setFont(Helpers.getDialogFont());
+
+			for (int i=1; i<=ModConstants.noteValues.length; i++) noteSelector.addItem(ModConstants.getNoteNameForIndex(i));
+			noteSelector.setSelectedIndex(ModConstants.getNoteIndexForPeriod(ModConstants.BASEPERIOD));
+		}
+		
+		return noteSelector;
+	}
+	private JButton getButton_Play()
+	{
+		if (button_Play == null)
+		{
+			buttonPlay_normal = new ImageIcon(getClass().getResource(BUTTONPLAY_NORMAL));
+			buttonPlay_Inactive = new ImageIcon(getClass().getResource(BUTTONPLAY_INACTIVE));
+			buttonPlay_Active = new ImageIcon(getClass().getResource(BUTTONPLAY_ACTIVE));
+
+			button_Play = new JButton();
+			button_Play.setName("button_Play");
+			button_Play.setText(Helpers.EMPTY_STING);
+			button_Play.setToolTipText("play");
+			button_Play.setHorizontalTextPosition(SwingConstants.CENTER);
+			button_Play.setVerticalTextPosition(SwingConstants.BOTTOM);
+			button_Play.setIcon(buttonPlay_normal);
+			button_Play.setDisabledIcon(buttonPlay_Inactive);
+			button_Play.setPressedIcon(buttonPlay_Active);
+			button_Play.setMargin(new Insets(4, 6, 4, 6));
+			button_Play.addActionListener(new ActionListener()
+			{
+				boolean playing = false;
+
+				public void actionPerformed(ActionEvent e)
+				{
+					if (playing)
+					{
+						if (player!=null && player.isPlaying()) player.stopPlayback();
+					}
+					else
+					{
+						if (samples == null) return;
+
+						playing = true;
+						getButton_Play().setIcon(buttonPlay_Active);
+						player = new SampleInstrumentPlayer(myModInfoPanel.getParentContainer().createNewMixer0());
+						// play inside a thread, so we do not block anything...
+						new Thread(new Runnable()
+						{
+							public void run()
+							{
+								player.startPlayback(null, samples[getCurrentSampleIndex()], getNoteSelector().getSelectedIndex()+1);
+								getButton_Play().setIcon(buttonPlay_normal);
+								player = null;
+								playing = false;
+							}
+						}).start();
+					}
+				}
+			});
+					
+		}
+		return button_Play;
+	}
 	private JTextField getSampleType()
 	{
 		if (sampleType==null)
@@ -227,12 +343,12 @@ public class ModSampleDialog extends JDialog
 			sampleType.setName("sampleType");
 			sampleType.setEditable(false);
 			sampleType.setFont(Helpers.getDialogFont());
-//			final FontMetrics metrics = sampleType.getFontMetrics(Helpers.getDialogFont());
-//			final Dimension d = new Dimension(8*metrics.charWidth('0'), metrics.getHeight());
-//			sampleType.setSize(d);
-//			sampleType.setMinimumSize(d);
-//			sampleType.setMaximumSize(d);
-//			sampleType.setPreferredSize(d);
+			final FontMetrics metrics = sampleType.getFontMetrics(Helpers.getDialogFont());
+			final Dimension d = new Dimension(40*metrics.charWidth('0'), metrics.getHeight());
+			sampleType.setSize(d);
+			sampleType.setMinimumSize(d);
+			sampleType.setMaximumSize(d);
+			sampleType.setPreferredSize(d);
 		}
 		return sampleType;
 	}
@@ -242,11 +358,10 @@ public class ModSampleDialog extends JDialog
 		{
 			sampleNameAndLoopsPanel = new JPanel();
 			sampleNameAndLoopsPanel.setLayout(new GridBagLayout());
-			sampleNameAndLoopsPanel.add(getSampleType(),		Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sampleNameAndLoopsPanel.add(getSampleNamePanel(),	Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sampleNameAndLoopsPanel.add(getLoopPanel(),			Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-			sampleNameAndLoopsPanel.add(getSustainLoopPanel(),	Helpers.getGridBagConstraint(2, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-			sampleNameAndLoopsPanel.add(getAutoVibratoPanel(),	Helpers.getGridBagConstraint(3, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+			sampleNameAndLoopsPanel.add(getSampleNamePanel(),	Helpers.getGridBagConstraint(0, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 0.0, 0.0));
+			sampleNameAndLoopsPanel.add(getLoopPanel(),			Helpers.getGridBagConstraint(1, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.NORTHWEST, 0.0, 0.0));
+			sampleNameAndLoopsPanel.add(getSustainLoopPanel(),	Helpers.getGridBagConstraint(2, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.NORTHWEST, 0.0, 0.0));
+			sampleNameAndLoopsPanel.add(getAutoVibratoPanel(),	Helpers.getGridBagConstraint(3, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.NORTHWEST, 0.0, 0.0));
 		}
 		return sampleNameAndLoopsPanel;
 	}
@@ -257,10 +372,10 @@ public class ModSampleDialog extends JDialog
 			sampleNamePanel = new JPanel();
 			sampleNamePanel.setBorder(new TitledBorder(null, "Names", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			sampleNamePanel.setLayout(new GridBagLayout());
-			sampleNamePanel.add(getSampleNameLabel(),	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sampleNamePanel.add(getSampleName(),		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-			sampleNamePanel.add(getDosFileNameLabel(),	Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sampleNamePanel.add(getDosFileName(),		Helpers.getGridBagConstraint(3, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			sampleNamePanel.add(getSampleNameLabel(),	Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sampleNamePanel.add(getSampleName(),		Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			sampleNamePanel.add(getDosFileNameLabel(),	Helpers.getGridBagConstraint(2, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sampleNamePanel.add(getDosFileName(),		Helpers.getGridBagConstraint(3, 0, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return sampleNamePanel;
 	}
@@ -316,18 +431,18 @@ public class ModSampleDialog extends JDialog
 			volumePanel = new JPanel();
 			volumePanel.setBorder(new TitledBorder(null, "Volume / Finetune", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			volumePanel.setLayout(new GridBagLayout());
-			volumePanel.add(getDefaultVolumeLabel(), Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getDefaultVolume(), 	 Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getGlobalVolumeLabel(),  Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getGlobalVolume(), 	 	 Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getSetPan(),  			 Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getSetPanValue(),	 	 Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getFinetuneLabel(),		 Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getFineTuneValue(),	 	 Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getBaseFreqLabel(),		 Helpers.getGridBagConstraint(0, 4, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getBaseFreqValue(),	 	 Helpers.getGridBagConstraint(1, 4, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getTransposeLabel(),	 Helpers.getGridBagConstraint(0, 5, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			volumePanel.add(getTransposeValue(), 	 Helpers.getGridBagConstraint(1, 5, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getDefaultVolumeLabel(), Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getDefaultVolume(), 	 Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getGlobalVolumeLabel(),  Helpers.getGridBagConstraint(0, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getGlobalVolume(), 	 	 Helpers.getGridBagConstraint(1, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getSetPan(),  			 Helpers.getGridBagConstraint(0, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getSetPanValue(),	 	 Helpers.getGridBagConstraint(1, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getFinetuneLabel(),		 Helpers.getGridBagConstraint(0, 3, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getFineTuneValue(),	 	 Helpers.getGridBagConstraint(1, 3, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getBaseFreqLabel(),		 Helpers.getGridBagConstraint(0, 4, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getBaseFreqValue(),	 	 Helpers.getGridBagConstraint(1, 4, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getTransposeLabel(),	 Helpers.getGridBagConstraint(0, 5, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			volumePanel.add(getTransposeValue(), 	 Helpers.getGridBagConstraint(1, 5, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		}
 		return volumePanel;
 	}
@@ -506,12 +621,12 @@ public class ModSampleDialog extends JDialog
 			loopPanel = new JPanel();
 			loopPanel.setBorder(new TitledBorder(null, "Loop", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			loopPanel.setLayout(new GridBagLayout());
-			loopPanel.add(getLoopTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			loopPanel.add(getLoopTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			loopPanel.add(getLoopStartLabel(), Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			loopPanel.add(getLoopStartValue(), Helpers.getGridBagConstraint(1, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			loopPanel.add(getLoopEndLabel(),   Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			loopPanel.add(getLoopEndValue(),   Helpers.getGridBagConstraint(1, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopStartLabel(), Helpers.getGridBagConstraint(0, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopStartValue(), Helpers.getGridBagConstraint(1, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopEndLabel(),   Helpers.getGridBagConstraint(0, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			loopPanel.add(getLoopEndValue(),   Helpers.getGridBagConstraint(1, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		}
 		return loopPanel;
 	}
@@ -606,12 +721,12 @@ public class ModSampleDialog extends JDialog
 			sustainLoopPanel = new JPanel();
 			sustainLoopPanel.setBorder(new TitledBorder(null, "Sustain Loop", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			sustainLoopPanel.setLayout(new GridBagLayout());
-			sustainLoopPanel.add(getSustainLoopTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sustainLoopPanel.add(getSustainLoopTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sustainLoopPanel.add(getSustainLoopStartLabel(), Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sustainLoopPanel.add(getSustainLoopStartValue(), Helpers.getGridBagConstraint(1, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sustainLoopPanel.add(getSustainLoopEndLabel(),   Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			sustainLoopPanel.add(getSustainLoopEndValue(),   Helpers.getGridBagConstraint(1, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopStartLabel(), Helpers.getGridBagConstraint(0, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopStartValue(), Helpers.getGridBagConstraint(1, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopEndLabel(),   Helpers.getGridBagConstraint(0, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			sustainLoopPanel.add(getSustainLoopEndValue(),   Helpers.getGridBagConstraint(1, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		}
 		return sustainLoopPanel;
 	}
@@ -706,14 +821,14 @@ public class ModSampleDialog extends JDialog
 			autoVibratoPanel = new JPanel();
 			autoVibratoPanel.setBorder(new TitledBorder(null, "Auto Vibrato", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			autoVibratoPanel.setLayout(new GridBagLayout());
-			autoVibratoPanel.add(getAutoVibTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibDepthLabel(),  Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibDepthValue(),  Helpers.getGridBagConstraint(1, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibSweepLabel(),  Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibSweepValue(),  Helpers.getGridBagConstraint(1, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibRateLabel(),  Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			autoVibratoPanel.add(getAutoVibRateValue(),  Helpers.getGridBagConstraint(1, 3, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibTypeLabel(),  Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibTypeValue(),  Helpers.getGridBagConstraint(1, 0, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibDepthLabel(), Helpers.getGridBagConstraint(0, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibDepthValue(), Helpers.getGridBagConstraint(1, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibSweepLabel(), Helpers.getGridBagConstraint(0, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibSweepValue(), Helpers.getGridBagConstraint(1, 2, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibRateLabel(),  Helpers.getGridBagConstraint(0, 3, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			autoVibratoPanel.add(getAutoVibRateValue(),  Helpers.getGridBagConstraint(1, 3, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		}
 		return autoVibratoPanel;
 	}
@@ -829,6 +944,18 @@ public class ModSampleDialog extends JDialog
 		}
 		return autoVibRateValue;
 	}
+	private JScrollPane imageBufferScrollPane = null;
+	private JScrollPane getImageBufferScrollPane()
+	{
+		if (imageBufferScrollPane==null)
+		{
+			imageBufferScrollPane = new javax.swing.JScrollPane();
+			imageBufferScrollPane.setName("imageBufferScrollPane");
+			imageBufferScrollPane.setViewportView(getImageBufferPanel());
+			imageBufferScrollPane.setDoubleBuffered(true);
+		}
+		return imageBufferScrollPane;
+	}
 	private SampleImagePanel getImageBufferPanel()
 	{
 		if (imageBufferPanel==null)
@@ -837,11 +964,55 @@ public class ModSampleDialog extends JDialog
 		}
 		return imageBufferPanel;
 	}
+	private void changeZoom(final int newZoom)
+	{
+		final Dimension d = getImageBufferPanel().getSize();
+		if (newZoom == 0)
+		{
+			getContentPane().remove(getImageBufferScrollPane());
+			getContentPane().add(getImageBufferPanel(), Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
+		}
+		else
+		{
+			final Sample theSample = getImageBufferPanel().getSample();
+			if (theSample!=null)
+			{
+				final int scrollBarHeight = getImageBufferScrollPane().getHorizontalScrollBar().getPreferredSize().height;
+				final Insets inset = getImageBufferScrollPane().getInsets();
+				d.height= getImageBufferScrollPane().getHeight() - inset.top - inset.bottom - (scrollBarHeight<<1);
+				d.width = theSample.length << (newZoom-1);
+				getContentPane().remove(getImageBufferPanel());
+				getImageBufferScrollPane().setViewportView(getImageBufferPanel());
+				getContentPane().add(getImageBufferScrollPane(), Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
+			}
+		}
+		EventQueue.invokeLater(new Runnable()
+		{
+			public void run()
+			{				
+				try
+				{
+					getImageBufferPanel().setSize(d);
+					getImageBufferPanel().setMinimumSize(d);
+					getImageBufferPanel().setMaximumSize(d);
+					getImageBufferPanel().setPreferredSize(d);
+					pack();
+				}
+				catch (Throwable ex)
+				{
+					// Keep it!
+				}
+			}
+		});
+	}
 	private void clearSample()
 	{
 		spinnerModelData = new ArrayList<String>(1);
 		spinnerModelData.add(ModConstants.getAsHex(0, 2));
 		getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
+		
+		getButton_Play().setEnabled(false);
+		getZoomSelector().setEnabled(false);
 
 		getSampleType().setText(Helpers.EMPTY_STING);
 		getSampleName().setText(Helpers.EMPTY_STING);
@@ -863,18 +1034,24 @@ public class ModSampleDialog extends JDialog
 		getAutoVibDepthValue().setText(Helpers.EMPTY_STING);
 		getAutoVibSweepValue().setText(Helpers.EMPTY_STING);
 		getAutoVibRateValue().setText(Helpers.EMPTY_STING);
-		// can handle NULL-Sample:
+		
+		getZoomSelector().setSelectedIndex(0);
 		getImageBufferPanel().setSample(null);
-		getImageBufferPanel().drawMe();
 
 		// after setting the new model, make the editor of the spinner un-editable
 		((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
 	}
 	private void fillWithSample(final Sample sample)
 	{
+		getButton_Play().setEnabled(true);
+		getZoomSelector().setEnabled(true);
+
 		getSampleType().setText(sample.getSampleTypeString());
+		getSampleType().setCaretPosition(0); getSampleType().moveCaretPosition(0);
 		getSampleName().setText(sample.name);
+		getSampleName().setCaretPosition(0); getSampleName().moveCaretPosition(0);
 		getDosFileName().setText(sample.dosFileName);
+		getDosFileName().setCaretPosition(0); getDosFileName().moveCaretPosition(0);
 		getDefaultVolume().setText(Integer.toString(sample.volume));
 		getGlobalVolume().setText(Integer.toString(sample.globalVolume));
 		getSetPan().setFixedState(sample.panning!=-1);
@@ -892,8 +1069,8 @@ public class ModSampleDialog extends JDialog
 		getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
 		getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
 		getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
+		
 		getImageBufferPanel().setSample(sample);
-		getImageBufferPanel().drawMe();
 	}
 	public void showSample(final int sampleIndex)
 	{
@@ -911,13 +1088,15 @@ public class ModSampleDialog extends JDialog
 			spinnerModelData = new ArrayList<String>(samples.length);
 			for (int i=0; i<samples.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
 			getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
-
-			fillWithSample(samples[0]);
+			getSelectSample().setValue(spinnerModelData.get(0)); // in some unknown cases, the index is not really set.
+			fillWithSample(samples[0]); // as index is normally not changed, no change event is fired
 
 			// after setting the new model, make the editor of the spinner un-editable
 			((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
 		}
 		else
 			clearSample();
+		setPreferredSize(getSize());
+		pack();
 	}
 }

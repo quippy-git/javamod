@@ -1,4 +1,4 @@
-# JavaMod V3.7.3
+# JavaMod V3.8
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -25,14 +25,14 @@ On Linux consider starting with OpenGL render pipeline activated:
 
 ## Supported file types:
 * Mods (FAR, NST, MOD, MTM, STK, WOW, XM, STM, S3M, IT, PowerPacker)
-* SID
+* OPL2/3 (ROL, LAA, CMF, DRO, SCI)
+* WAV, AU, AIFF
+* MIDI (MID, RMF, RMI) with SF2 soundfont files
 * MP3 (Files and Streams)
 * FLAC
 * APE (ape, apl, mac)
 * OGG/Vorbis (ogg, oga)
-* WAV, AU, AIFF
-* MIDI (MID, RMF, RMI) with SF2 soundfont files
-* OPL2/3 (ROL, LAA, CMF, DRO, SCI)
+* SID (very basic support. Use JSidPlay2 or Vice SID Player)
 * Playlists PLS, M3U, M3U8, ZIP, CUE
 
 ## Technical info:
@@ -51,13 +51,12 @@ JavaMod incorporates modified versions of the following libraries:
 * FMOPL (https://github.com/mamedev/mame - was removed from mame 03/2021)
 
 ## Known issues:
-* reading midi devices in MidiContainer can take a long time on Linux
-  as here we can have a whole bunch of devices. Asynchronous loading
-  is not an option. Lazy loading does not help as the available MidiDevices 
-  must be present when creating the config drop down list for selection.
-* On Linux 
+* With PulseAudio: 
   * gapless audio streams do not work if SourceLine Buffers drain out
+  * scrambled sound
+* With KDE:
   * JDialogs, when set visible, will not come to front
+  * X-Mas Decoration does not work as intended
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
 
 ## Planned:
@@ -65,6 +64,63 @@ JavaMod incorporates modified versions of the following libraries:
 * MO3 support
 * Midi and AdLib/OPL with Mods
 * read 7z archives
+
+## New in Version 3.8
+* NEW: Implemented an automatic update check every 30 days. *Disable* it in the
+       "Help" menu.
+* NEW: In the sample and instrument dialog the sample and instrument can now be
+       played. In the instrument dialog select a note in the mapping to change
+       the note played. In the sample dialog there is a drop down box for that
+* NEW: Added a zoom feature in the sample dialogs
+* NEW: Save location, size and visible status of pattern, sample and instrument
+       dialogs. Buttons now alternate visibility of dialogs 
+* NEW: Updated the MOD info dialog to present information more clearly
+* NEW: Pattern display now with IT effect identifiers (were always MOD/XMs)
+* NEW: Speed up pattern display by implementing a very basic toHex-function that
+       fits for our purpose - and by reusing the StringBuilder instance.
+* NEW: Effect display in pattern dialog are now buttons so mute / unmute works
+       there, too - enlarges the clickable area
+* NEW: if a channel is surround, the peek meter in the pattern dialog will show
+       )))CH((( instead of (((CH)))
+* NEW: When seeking in a song, mute status is remembered
+* NEW: OpenModPlug allows to enter effect "W" with FT2 XMs, it is however empty.
+       To avoid loading errors regarding unsupported effects, it is also
+       "supported" as empty with JavaMod
+* NEW: His Master of Noise: StarTrecker with ID FEST: have some special FineTune
+       setting (negate it and divide by two)
+* NEW: (internally) RandomAccessStream lost "readFully"-methods
+* NEW: added some tool tip texts
+* FIX: Arpeggio in MODs were not displayed, because effect byte is zero. 
+       However, if effect OPs are set it's an arpeggio
+* FIX: Spinners of sample / instrument dialog were - sometimes, in
+       unreproducible scenarios - not reseted to index 0
+* FIX: Updated container configuration management. All entries were copied and 
+       stayed in .javamod.properties - even very old ones, that are not
+       supported anymore.
+       Also changed name of XMas decoration property, so please enable again
+* FIX: The Tremolo effect was very imprecise. Furthermore, Tremolo with ITs is
+       already on first tick
+* FIX: The Panbrello effect was added on the current panning set. That is wrong.
+       We now save either a panning effect value or the instrument / sample
+       panning and work the effect on that value.
+* FIX: Panning with IT/S3M supports also Fine Panning
+* INFO:Modern trackers like Schism or OMPT share a memory with VolumeSlide
+       and FineVolSlide with XMs - like IT does - and support weird effect
+       combinations, e.g. start with EAx or EBx for a FineVolSlide up/down, and
+       continue with A00. I added the support, but flagged it to false.
+       FT2 does not do it like that, so we don't either.
+* FIX: Support empty pattern in S3M (like already in IT) and do not load garbage
+* FIX: VolRamp code was a complete mess. Now we support 5ms super smooth volRamp
+       for XMs and others get at least 950ys. Yet, no difference between
+       volRampUp or VolRampDown
+* FIX: RandomVolumeVariation was wrongly calculated. Based on instrument global
+       Volume - which in most cases is 64 - and now on instrument default volume
+* FIX: Optimized the "getLengthInMilliseconds" to avoid double measurement (one
+       after loading for the seekbar and one from the playlist for retrieving
+       song infos)
+* FIX: PatternBreak at end of Song: do a loop and start at given row, do a
+       fade-out if wished. Do not do so, if infinite loops are to be ignored AND
+       don't do is as well if loop song is not checked (the latter is new).        
 
 ## New in Version 3.7.3
 * NEW: Supporting additional Protracker type mods
@@ -89,8 +145,8 @@ JavaMod incorporates modified versions of the following libraries:
        speed per screen.
        Remark: it depends on the desktop render engine how transparent windows
        are rendered and if a "click through" works. On Windows this works really
-       flawlessly, but on KDE it is either flickery or with opengl it inherits
-       the dim color of a window decoration under it.
+       flawlessly, but on KDE it is either flickery or with OpenGL render
+       pipeline the bulbs are somewhat half transparent.
 * NEW: Follow song in pattern dialog is now fun to watch:
        * The arrangement is now scrolling to the activated pattern.
        * In the pattern dialog horizontal scrolling by user is not reset by

@@ -59,7 +59,7 @@ public class TableGenerator
 		"vibratoOn", "vibratoNoRetrig",
 		"tremoloTablePos", "tremoloStep", "tremoloAmplitude", "tremoloType",
 		"tremoloOn", "tremoloNoRetrig",
-		"panbrelloTablePos", "panbrelloStep", "panbrelloAmplitude", "panbrelloType",
+		"panbrelloTablePos", "panbrelloStep", "panbrelloAmplitude", "panbrelloType", "panbrelloRandomMemory",
 		"panbrelloOn", "panbrelloNoRetrig",
 		"tremorOntime", "tremorOfftime", "tremorOntimeSet", "tremorOfftimeSet",
 		"tremorWasActive",

@@ -68,8 +68,9 @@ public interface ModUpdateListener
 		public int channel;
 		public int actPeekLeft;
 		public int actPeekRight;
+		public boolean isSurround;
 		
-		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final long actPeekLeft, final long actPeekRight)
+		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final long actPeekLeft, final long actPeekRight, final boolean isSurround)
 		{
 			super(sampleRate, samplesMixed);
 			this.channel = channel;
@@ -78,10 +79,11 @@ public interface ModUpdateListener
 			if (this.actPeekLeft==0 && actPeekLeft>0) this.actPeekLeft = 1;
 			this.actPeekRight = (int)(actPeekRight / 0xFFFFFFF);
 			if (this.actPeekRight==0 && actPeekRight>0) this.actPeekRight = 1;
+			this.isSurround = isSurround;
 		}
 		public String toString()
 		{
-			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight;
+			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":"");
 		}
 	}
 	public class StatusInformation
