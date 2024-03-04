@@ -1905,7 +1905,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (xmasConfigPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			xmasConfigPanel = new XmasConfigPanel(refreshRate);
 			xmasConfigPanel.setName("xmasConfigPane");
 		}
@@ -1992,7 +1992,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (saLMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			saLMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saLMeterPanel.setSize(d);
@@ -2009,7 +2009,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (saRMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			saRMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saRMeterPanel.setSize(d);
@@ -2026,7 +2026,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (vuLMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			vuLMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuLMeterPanel.setSize(d);
@@ -2042,7 +2042,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (vuRMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			vuRMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuRMeterPanel.setSize(d);
@@ -2073,7 +2073,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (ledScrollPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			ledScrollPanel = new LEDScrollPanel(refreshRate, Helpers.FULLVERSION + ' ' + Helpers.COPYRIGHT + "                  ", chars, Color.GREEN, Color.GRAY);
 			Dimension d = new Dimension((chars*brick*6)+4, (brick*8)+4);
 			ledScrollPanel.setSize(d);
@@ -2127,7 +2127,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (seekBarPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode != null && mode.getRefreshRate() != DisplayMode.REFRESH_RATE_UNKNOWN) ? mode.getRefreshRate() : 60;
 			seekBarPanel = new SeekBarPanel(refreshRate, false);
 			seekBarPanel.setName("SeekBarPanel");
 			seekBarPanel.addListener(new SeekBarPanelListener()
