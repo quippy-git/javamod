@@ -21,22 +21,28 @@
  */
 package de.quippy.javamod.multimedia.mod.loader.pattern;
 
+import de.quippy.javamod.multimedia.mod.loader.Module;
+
 /**
  * @author Daniel Becker
  * @since 28.04.2006
  */
 public class PatternRow
 {
-	private PatternElement [] patternElements;
-	private boolean rowPlayed;
+	protected Module parentMod;
+	protected Pattern parentPattern;
+	protected PatternElement [] patternElements;
+	protected boolean rowPlayed;
 	
 	/**
 	 * Constructor for PatternRow
 	 */
-	public PatternRow(final int channels)
+	public PatternRow(final Module parentMod, final Pattern parentPattern, final int channels)
 	{
 		super();
 		patternElements = new PatternElement[channels];
+		this.parentMod = parentMod;
+		this.parentPattern = parentPattern;
 		resetRowPlayed();
 	}
 	/**
@@ -46,18 +52,8 @@ public class PatternRow
 	@Override
 	public String toString()
 	{
-		return toString(false);
-	}
-	/**
-	 * toString - however regarding if ImpulseTracker family or not
-	 * @since 22.12.2023
-	 * @param isIT
-	 * @return
-	 */
-	public String toString(final boolean isIT)
-	{
 		final StringBuilder sb = new StringBuilder();
-		addToStringBuilder(sb, isIT);
+		addToStringBuilder(sb);
 		return sb.toString();
 	}
 	/**
@@ -66,12 +62,12 @@ public class PatternRow
 	 * @param sb
 	 * @param isIT
 	 */
-	public void addToStringBuilder(final StringBuilder sb, final boolean isIT)
+	public void addToStringBuilder(final StringBuilder sb)
 	{
 		for (int channel=0; channel<patternElements.length; channel++)
 		{
-			if (patternElements[channel]!=null) patternElements[channel].addToStringBuilder(sb, isIT);
-			sb.append(" |");
+			if (patternElements[channel]!=null) patternElements[channel].addToStringBuilder(sb);
+			sb.append("|");
 		}
 	}
 	/**
@@ -79,17 +75,33 @@ public class PatternRow
 	 * @since 24.11.2023
 	 * @param nChannels
 	 */
-	public void setToChannels(final int patternIndex, final int row, final int nChannels)
+	public void setToChannels(final int patternIndex, final int row, final int channels)
 	{
-		final PatternElement[] newPatternElements = new PatternElement[nChannels];
-		for (int channel=0; channel<nChannels; channel++)
+		final PatternElement[] oldPatternElements = patternElements;
+		patternElements = new PatternElement[channels];
+		for (int channel=0; channel<channels; channel++)
 		{
-			if (channel < patternElements.length && patternElements[channel]!=null) 
-				newPatternElements[channel] = patternElements[channel];
+			if (channel<oldPatternElements.length && oldPatternElements[channel]!=null)
+				patternElements[channel] = oldPatternElements[channel];
 			else
-				newPatternElements[channel] = new PatternElement(patternIndex, row, channel);
+			{
+				parentPattern.parentPatternContainer.createPatternElement(patternIndex, row, channel);
+			}
 		}
-		patternElements = newPatternElements;
+	}
+	/**
+	 * @return the parentMod
+	 */
+	public Module getParentMod()
+	{
+		return parentMod;
+	}
+	/**
+	 * @return the parentPattern
+	 */
+	public Pattern getParentPattern()
+	{
+		return parentPattern;
 	}
 	/**
 	 * @since 27.11.2023

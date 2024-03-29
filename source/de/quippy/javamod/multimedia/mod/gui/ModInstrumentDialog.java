@@ -27,6 +27,7 @@ import java.awt.FontMetrics;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -34,10 +35,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -60,7 +61,6 @@ import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.ModInfoPanel;
 import de.quippy.javamod.multimedia.mod.ModMixer;
-import de.quippy.javamod.multimedia.mod.gui.EnvelopePanel.EnvelopeType;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
 import de.quippy.javamod.multimedia.mod.mixer.SampleInstrumentPlayer;
@@ -94,7 +94,9 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField instrumentName = null;
 	private JLabel fileNameLabel = null;
 	private JTextField fileName = null;
-	private JPanel globalInfoPanel = null;
+	private JPanel infoPanelOne = null;
+	private JPanel infoPanelTwo = null;
+	private JPanel infoPanelThree= null;
 
 	private JPanel globalVolumePanel = null;
 	private JLabel globalVolumeLabel = null;
@@ -110,11 +112,19 @@ public class ModInstrumentDialog extends JDialog
 	private JLabel pitchPanCenterLabel = null;
 	private JTextField pitchPanCenter = null;
 	
+	private JPanel sampleQualityPanel = null;
+	private JLabel rampingLabel = null;
+	private JTextField ramping = null;
+	private JLabel resamplingLabel = null;
+	private JTextField resampling = null;
+
 	private JPanel filterPanel = null;
 	private FixedStateCheckBox setResonance = null;
 	private JTextField resonanceValue = null;
 	private FixedStateCheckBox setCutOff = null;
 	private JTextField cutOffValue = null;
+	private JLabel filterModeLabel = null;
+	private JTextField filterMode = null;
 	
 	private JPanel randomVariationPanel = null;
 	private JLabel volumeVariationLabel = null;
@@ -134,6 +144,18 @@ public class ModInstrumentDialog extends JDialog
 	private JLabel actionDNALabel = null;
 	private JTextField actionDNA = null;
 
+	private JPanel pluginMidiPanel = null;
+	private JLabel pluginLabel = null;
+	private JTextField plugin = null;
+	private JLabel midiChannelLabel = null;
+	private JTextField midiChannel = null;
+	private JLabel midiProgramlLabel = null;
+	private JTextField midiProgram = null;
+	private JLabel midiBankLabel = null;
+	private JTextField midiBank = null;
+	private JLabel pwdDepthLabel = null;
+	private JTextField pwdDepth = null;
+	
 	private JPanel sampleMapPanel = null;
 	private JScrollPane sampleMapScrollPane = null;
 	private JTextArea sampleMap = null;
@@ -153,33 +175,14 @@ public class ModInstrumentDialog extends JDialog
 	private BasicModMixer currentMixer;
 
 	/**
-	 * Constructor for ModPatternDialog
-	 */
-	public ModInstrumentDialog(ModInfoPanel infoPanel)
-	{
-		super();
-		myModInfoPanel = infoPanel;
-		initialize();
-	}
-	/**
-	 * Constructor for ModPatternDialog
+	 * Constructor for ModInstrumentDialog
 	 * @param owner
 	 * @param modal
+	 * @param infoPanel
 	 */
-	public ModInstrumentDialog(ModInfoPanel infoPanel, JFrame owner, boolean modal)
+	public ModInstrumentDialog(Window owner, boolean modal, ModInfoPanel infoPanel)
 	{
-		super(owner, modal);
-		myModInfoPanel = infoPanel;
-		initialize();
-	}
-	/**
-	 * Constructor for ModPatternDialog
-	 * @param owner
-	 * @param modal
-	 */
-	public ModInstrumentDialog(ModInfoPanel infoPanel, JDialog owner, boolean modal)
-	{
-		super(owner, modal);
+		super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
 		myModInfoPanel = infoPanel;
 		initialize();
 	}
@@ -190,14 +193,12 @@ public class ModInstrumentDialog extends JDialog
 
 		baseContentPane.add(getLabelSelectInstrument(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getSelectInstrument(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getInstrumentNamePanel(), 		Helpers.getGridBagConstraint(2, 0, 1, 3, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getButton_Play(), 				Helpers.getGridBagConstraint(5, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		baseContentPane.add(getGlobalInfoPanel(), 			Helpers.getGridBagConstraint(0, 1, 2, 3, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getFilterPanel(), 				Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getNNAPanel(), 					Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getSampleMapPanel(),			Helpers.getGridBagConstraint(5, 1, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getRandomVariationPanel(), 		Helpers.getGridBagConstraint(3, 2, 1, 2, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-		baseContentPane.add(getTabbedPane(), 				Helpers.getGridBagConstraint(0, 3, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.NORTHWEST, 1.0, 1.0));
+		baseContentPane.add(getInstrumentNamePanel(), 		Helpers.getGridBagConstraint(2, 0, 1, 2, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getButton_Play(), 				Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		baseContentPane.add(getInfoPanelOne(), 				Helpers.getGridBagConstraint(0, 1, 1, 3, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		baseContentPane.add(getInfoPanelTwo(), 				Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		baseContentPane.add(getInfoPanelThree(), 			Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		baseContentPane.add(getTabbedPane(), 				Helpers.getGridBagConstraint(0, 2, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter()
@@ -377,16 +378,43 @@ public class ModInstrumentDialog extends JDialog
 		}
 		return fileName;
 	}
-	private JPanel getGlobalInfoPanel()
+	private JPanel getInfoPanelOne()
 	{
-		if (globalInfoPanel==null)
+		if (infoPanelOne==null)
 		{
-			globalInfoPanel = new JPanel();
-			globalInfoPanel.setLayout(new GridBagLayout());
-			globalInfoPanel.add(getGlobalVolumePanel(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
-			globalInfoPanel.add(getPitchPanSepPanel(), 			Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHWEST, 0.0, 0.0));
+			infoPanelOne = new JPanel();
+			infoPanelOne.setBorder(BorderFactory.createEmptyBorder());
+			infoPanelOne.setLayout(new GridBagLayout());
+			infoPanelOne.add(getGlobalVolumePanel(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			infoPanelOne.add(getPitchPanSepPanel(), 		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			infoPanelOne.add(getSampleQualityPanel(), 		Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
-		return globalInfoPanel;
+		return infoPanelOne;
+	}
+	private JPanel getInfoPanelTwo()
+	{
+		if (infoPanelTwo==null)
+		{
+			infoPanelTwo = new JPanel();
+			infoPanelTwo.setBorder(BorderFactory.createEmptyBorder());
+			infoPanelTwo.setLayout(new GridBagLayout());
+			infoPanelTwo.add(getFilterPanel(), 				Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			infoPanelTwo.add(getRandomVariationPanel(), 	Helpers.getGridBagConstraint(0, 1, 1, 2, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		}
+		return infoPanelTwo;
+	}
+	private JPanel getInfoPanelThree()
+	{
+		if (infoPanelThree==null)
+		{
+			infoPanelThree = new JPanel();
+			infoPanelThree.setBorder(BorderFactory.createEmptyBorder());
+			infoPanelThree.setLayout(new GridBagLayout());
+			infoPanelThree.add(getNNAPanel(), 				Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			infoPanelThree.add(getPlugInMidiPanel(), 		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			infoPanelThree.add(getSampleMapPanel(),			Helpers.getGridBagConstraint(1, 0, 2, 1, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
+		}
+		return infoPanelThree;
 	}
 	private JPanel getGlobalVolumePanel()
 	{
@@ -396,11 +424,11 @@ public class ModInstrumentDialog extends JDialog
 			globalVolumePanel.setBorder(new TitledBorder(null, "General", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			globalVolumePanel.setLayout(new GridBagLayout());
 			globalVolumePanel.add(getGlobalVolumeLabel(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			globalVolumePanel.add(getGlobalVolume(), 		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			globalVolumePanel.add(getGlobalVolume(), 		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			globalVolumePanel.add(getFadeOutVolumeLabel(), 	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			globalVolumePanel.add(getFadeOutVolume(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			globalVolumePanel.add(getFadeOutVolume(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			globalVolumePanel.add(getSetPan(), 				Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			globalVolumePanel.add(getSetPanValue(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			globalVolumePanel.add(getSetPanValue(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return globalVolumePanel;
 	}
@@ -423,12 +451,6 @@ public class ModInstrumentDialog extends JDialog
 			globalVolume.setName("globalVolume");
 			globalVolume.setEditable(false);
 			globalVolume.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = globalVolume.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(8*metrics.charWidth('0'), metrics.getHeight());
-			globalVolume.setSize(d);
-			globalVolume.setMinimumSize(d);
-			globalVolume.setMaximumSize(d);
-			globalVolume.setPreferredSize(d);
 		}
 		return globalVolume;
 	}
@@ -451,12 +473,6 @@ public class ModInstrumentDialog extends JDialog
 			fadeOutVolume.setName("fadeOutVolume");
 			fadeOutVolume.setEditable(false);
 			fadeOutVolume.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = fadeOutVolume.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(8*metrics.charWidth('0'), metrics.getHeight());
-			fadeOutVolume.setSize(d);
-			fadeOutVolume.setMinimumSize(d);
-			fadeOutVolume.setMaximumSize(d);
-			fadeOutVolume.setPreferredSize(d);
 		}
 		return fadeOutVolume;
 	}
@@ -479,12 +495,6 @@ public class ModInstrumentDialog extends JDialog
 			setPanValue.setName("setPanValue");
 			setPanValue.setEditable(false);
 			setPanValue.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = setPanValue.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(8*metrics.charWidth('0'), metrics.getHeight());
-			setPanValue.setSize(d);
-			setPanValue.setMinimumSize(d);
-			setPanValue.setMaximumSize(d);
-			setPanValue.setPreferredSize(d);
 		}
 		return setPanValue;
 	}
@@ -496,9 +506,9 @@ public class ModInstrumentDialog extends JDialog
 			pitchPanSepPanel.setBorder(new TitledBorder(null, "Pitch/Pan Separation", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			pitchPanSepPanel.setLayout(new GridBagLayout());
 			pitchPanSepPanel.add(getPitchPanSepLabel(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			pitchPanSepPanel.add(getPitchPanSep(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pitchPanSepPanel.add(getPitchPanSep(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			pitchPanSepPanel.add(getPitchPanCenterLabel(), 	Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			pitchPanSepPanel.add(getPitchPanCenter(), 		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pitchPanSepPanel.add(getPitchPanCenter(), 		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return pitchPanSepPanel;
 	}
@@ -521,12 +531,6 @@ public class ModInstrumentDialog extends JDialog
 			pitchPanSep.setName("pitchPanSep");
 			pitchPanSep.setEditable(false);
 			pitchPanSep.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = pitchPanSep.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			pitchPanSep.setSize(d);
-			pitchPanSep.setMinimumSize(d);
-			pitchPanSep.setMaximumSize(d);
-			pitchPanSep.setPreferredSize(d);
 		}
 		return pitchPanSep;
 	}
@@ -549,14 +553,66 @@ public class ModInstrumentDialog extends JDialog
 			pitchPanCenter.setName("pitchPanSep");
 			pitchPanCenter.setEditable(false);
 			pitchPanCenter.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = pitchPanCenter.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			pitchPanCenter.setSize(d);
-			pitchPanCenter.setMinimumSize(d);
-			pitchPanCenter.setMaximumSize(d);
-			pitchPanCenter.setPreferredSize(d);
 		}
 		return pitchPanCenter;
+	}
+	private JPanel getSampleQualityPanel()
+	{
+		if (sampleQualityPanel==null)
+		{
+			sampleQualityPanel = new JPanel();
+			sampleQualityPanel.setBorder(new TitledBorder(null, "Sample Quality", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			sampleQualityPanel.setLayout(new GridBagLayout());
+			sampleQualityPanel.add(getRampingLabel(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			sampleQualityPanel.add(getRamping(), 			Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			sampleQualityPanel.add(getResamplingLabel(), 	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			sampleQualityPanel.add(getResampling(), 		Helpers.getGridBagConstraint(1, 1, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		}
+		return sampleQualityPanel;
+	}
+	private JLabel getRampingLabel()
+	{
+		if (rampingLabel==null)
+		{
+			rampingLabel = new JLabel();
+			rampingLabel.setName("rampingLabel");
+			rampingLabel.setText("Ramping");
+			rampingLabel.setFont(Helpers.getDialogFont());
+		}
+		return rampingLabel;
+	}
+	private JTextField getRamping()
+	{
+		if (ramping==null)
+		{
+			ramping = new JTextField();
+			ramping.setName("ramping");
+			ramping.setEditable(false);
+			ramping.setFont(Helpers.getDialogFont());
+		}
+		return ramping;
+	}
+	private JLabel getResamplingLabel()
+	{
+		if (resamplingLabel==null)
+		{
+			resamplingLabel = new JLabel();
+			resamplingLabel.setName("resamplingLabel");
+			resamplingLabel.setText("Resampling");
+			resamplingLabel.setFont(Helpers.getDialogFont());
+		}
+		return resamplingLabel;
+	}
+	private JTextField getResampling()
+	{
+		if (resampling==null)
+		{
+			resampling = new JTextField();
+			resampling.setName("resampling");
+			resampling.setEditable(false);
+			resampling.setFont(Helpers.getDialogFont());
+		}
+		return resampling;
 	}
 	private JPanel getFilterPanel()
 	{
@@ -566,9 +622,11 @@ public class ModInstrumentDialog extends JDialog
 			filterPanel.setBorder(new TitledBorder(null, "Filter", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			filterPanel.setLayout(new GridBagLayout());
 			filterPanel.add(getSetResonance(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			filterPanel.add(getResonanceValue(), 	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			filterPanel.add(getResonanceValue(), 	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			filterPanel.add(getSetCutOff(), 		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			filterPanel.add(getCutOffValue(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			filterPanel.add(getCutOffValue(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			filterPanel.add(getFilterModeLabel(),	Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			filterPanel.add(getFilterMode(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return filterPanel;
 	}
@@ -591,12 +649,6 @@ public class ModInstrumentDialog extends JDialog
 			resonanceValue.setName("resonanceValue");
 			resonanceValue.setEditable(false);
 			resonanceValue.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = resonanceValue.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			resonanceValue.setSize(d);
-			resonanceValue.setMinimumSize(d);
-			resonanceValue.setMaximumSize(d);
-			resonanceValue.setPreferredSize(d);
 		}
 		return resonanceValue;
 	}
@@ -619,14 +671,30 @@ public class ModInstrumentDialog extends JDialog
 			cutOffValue.setName("cutOffValue");
 			cutOffValue.setEditable(false);
 			cutOffValue.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = cutOffValue.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			cutOffValue.setSize(d);
-			cutOffValue.setMinimumSize(d);
-			cutOffValue.setMaximumSize(d);
-			cutOffValue.setPreferredSize(d);
 		}
 		return cutOffValue;
+	}
+	private JLabel getFilterModeLabel()
+	{
+		if (filterModeLabel==null)
+		{
+			filterModeLabel = new JLabel();
+			filterModeLabel.setName("filterModeLabel");
+			filterModeLabel.setText("Mode");
+			filterModeLabel.setFont(Helpers.getDialogFont());
+		}
+		return filterModeLabel;
+	}
+	private JTextField getFilterMode()
+	{
+		if (filterMode==null)
+		{
+			filterMode = new JTextField();
+			filterMode.setName("filterMode");
+			filterMode.setEditable(false);
+			filterMode.setFont(Helpers.getDialogFont());
+		}
+		return filterMode;
 	}
 	private JPanel getRandomVariationPanel()
 	{
@@ -636,13 +704,13 @@ public class ModInstrumentDialog extends JDialog
 			randomVariationPanel.setBorder(new TitledBorder(null, "Random Variation", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			randomVariationPanel.setLayout(new GridBagLayout());
 			randomVariationPanel.add(getVolumeVariationLabel(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getVolumeVariation(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			randomVariationPanel.add(getVolumeVariation(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			randomVariationPanel.add(getPanningVariationLabel(), 	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getPanningVariation(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getResonanceVariationLabel(), 	Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getResonanceVariation(), 		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getCutOffVariationLabel(), 	Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			randomVariationPanel.add(getCutOffVariation(), 			Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			randomVariationPanel.add(getPanningVariation(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			randomVariationPanel.add(getResonanceVariationLabel(), 	Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			randomVariationPanel.add(getResonanceVariation(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			randomVariationPanel.add(getCutOffVariationLabel(), 	Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			randomVariationPanel.add(getCutOffVariation(), 			Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return randomVariationPanel;
 	}
@@ -665,12 +733,6 @@ public class ModInstrumentDialog extends JDialog
 			volumeVariation.setName("volumeVariation");
 			volumeVariation.setEditable(false);
 			volumeVariation.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = volumeVariation.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			volumeVariation.setSize(d);
-			volumeVariation.setMinimumSize(d);
-			volumeVariation.setMaximumSize(d);
-			volumeVariation.setPreferredSize(d);
 		}
 		return volumeVariation;
 	}
@@ -693,12 +755,6 @@ public class ModInstrumentDialog extends JDialog
 			panningVariation.setName("panningVariation");
 			panningVariation.setEditable(false);
 			panningVariation.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = panningVariation.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			panningVariation.setSize(d);
-			panningVariation.setMinimumSize(d);
-			panningVariation.setMaximumSize(d);
-			panningVariation.setPreferredSize(d);
 		}
 		return panningVariation;
 	}
@@ -710,7 +766,6 @@ public class ModInstrumentDialog extends JDialog
 			resonanceVariationLabel.setName("resonanceVariationLabel");
 			resonanceVariationLabel.setText("Resonance");
 			resonanceVariationLabel.setFont(Helpers.getDialogFont());
-			resonanceVariationLabel.setEnabled(false);
 		}
 		return resonanceVariationLabel;
 	}
@@ -722,13 +777,6 @@ public class ModInstrumentDialog extends JDialog
 			resonanceVariation.setName("resonanceVariation");
 			resonanceVariation.setEditable(false);
 			resonanceVariation.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = resonanceVariation.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			resonanceVariation.setSize(d);
-			resonanceVariation.setMinimumSize(d);
-			resonanceVariation.setMaximumSize(d);
-			resonanceVariation.setPreferredSize(d);
-			resonanceVariation.setEnabled(false);
 		}
 		return resonanceVariation;
 	}
@@ -740,7 +788,6 @@ public class ModInstrumentDialog extends JDialog
 			cutOffVariationLabel.setName("cutOffVariationLabel");
 			cutOffVariationLabel.setText("Cutoff");
 			cutOffVariationLabel.setFont(Helpers.getDialogFont());
-			cutOffVariationLabel.setEnabled(false);
 		}
 		return cutOffVariationLabel;
 	}
@@ -752,13 +799,6 @@ public class ModInstrumentDialog extends JDialog
 			cutOffVariation.setName("cutOffVariation");
 			cutOffVariation.setEditable(false);
 			cutOffVariation.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = cutOffVariation.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(5*metrics.charWidth('0'), metrics.getHeight());
-			cutOffVariation.setSize(d);
-			cutOffVariation.setMinimumSize(d);
-			cutOffVariation.setMaximumSize(d);
-			cutOffVariation.setPreferredSize(d);
-			cutOffVariation.setEnabled(false);
 		}
 		return cutOffVariation;
 	}
@@ -770,11 +810,11 @@ public class ModInstrumentDialog extends JDialog
 			NNAPanel.setBorder(new TitledBorder(null, "New Note Action", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			NNAPanel.setLayout(new GridBagLayout());
 			NNAPanel.add(getActionNNALabel(), 	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			NNAPanel.add(getActionNNA(), 		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			NNAPanel.add(getActionNNA(), 		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			NNAPanel.add(getCheckDNALabel(), 	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			NNAPanel.add(getCheckDNA(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			NNAPanel.add(getCheckDNA(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			NNAPanel.add(getActionDNALabel(), 	Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-			NNAPanel.add(getActionDNA(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			NNAPanel.add(getActionDNA(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		}
 		return NNAPanel;
 	}
@@ -797,12 +837,6 @@ public class ModInstrumentDialog extends JDialog
 			actionNNA.setName("actionNNA");
 			actionNNA.setEditable(false);
 			actionNNA.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = actionNNA.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(10*metrics.charWidth('0'), metrics.getHeight());
-			actionNNA.setSize(d);
-			actionNNA.setMinimumSize(d);
-			actionNNA.setMaximumSize(d);
-			actionNNA.setPreferredSize(d);
 		}
 		return actionNNA;
 	}
@@ -826,12 +860,6 @@ public class ModInstrumentDialog extends JDialog
 			checkDNA.setName("checkDNA");
 			checkDNA.setEditable(false);
 			checkDNA.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = checkDNA.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(10*metrics.charWidth('0'), metrics.getHeight());
-			checkDNA.setSize(d);
-			checkDNA.setMinimumSize(d);
-			checkDNA.setMaximumSize(d);
-			checkDNA.setPreferredSize(d);
 		}
 		return checkDNA;
 	}
@@ -854,14 +882,138 @@ public class ModInstrumentDialog extends JDialog
 			actionDNA.setName("actionDNA");
 			actionDNA.setEditable(false);
 			actionDNA.setFont(Helpers.getDialogFont());
-			final FontMetrics metrics = actionDNA.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension(10*metrics.charWidth('0'), metrics.getHeight());
-			actionDNA.setSize(d);
-			actionDNA.setMinimumSize(d);
-			actionDNA.setMaximumSize(d);
-			actionDNA.setPreferredSize(d);
 		}
 		return actionDNA;
+	}
+	private JPanel getPlugInMidiPanel()
+	{
+		if (pluginMidiPanel==null)
+		{
+			pluginMidiPanel = new JPanel();
+			pluginMidiPanel.setBorder(new TitledBorder(null, "Plugin / MIDI", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			pluginMidiPanel.setLayout(new GridBagLayout());
+			pluginMidiPanel.add(getPluginLabel(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pluginMidiPanel.add(getPlugin(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			pluginMidiPanel.add(getMidiChannelLabel(), 	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pluginMidiPanel.add(getMidiChannel(), 		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			pluginMidiPanel.add(getMidiProgramLabel(), 	Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pluginMidiPanel.add(getMidiProgram(), 		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			pluginMidiPanel.add(getMidiBankLabel(), 	Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pluginMidiPanel.add(getMidiBank(), 			Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			pluginMidiPanel.add(getPwdDepthLabel(), 	Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			pluginMidiPanel.add(getPwdDepth(), 			Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		}
+		return pluginMidiPanel;
+	}
+	private JLabel getPluginLabel()
+	{
+		if (pluginLabel==null)
+		{
+			pluginLabel = new JLabel();
+			pluginLabel.setName("pluginLabel");
+			pluginLabel.setText("Plugin");
+			pluginLabel.setFont(Helpers.getDialogFont());
+		}
+		return pluginLabel;
+	}
+	private JTextField getPlugin()
+	{
+		if (plugin==null)
+		{
+			plugin = new JTextField();
+			plugin.setName("plugin");
+			plugin.setEditable(false);
+			plugin.setFont(Helpers.getDialogFont());
+		}
+		return plugin;
+	}
+	private JLabel getMidiChannelLabel()
+	{
+		if (midiChannelLabel==null)
+		{
+			midiChannelLabel = new JLabel();
+			midiChannelLabel.setName("midiChannelLabel");
+			midiChannelLabel.setText("MIDI channel");
+			midiChannelLabel.setFont(Helpers.getDialogFont());
+		}
+		return midiChannelLabel;
+	}
+	private JTextField getMidiChannel()
+	{
+		if (midiChannel==null)
+		{
+			midiChannel = new JTextField();
+			midiChannel.setName("midiChannel");
+			midiChannel.setEditable(false);
+			midiChannel.setFont(Helpers.getDialogFont());
+		}
+		return midiChannel;
+	}
+	private JLabel getMidiProgramLabel()
+	{
+		if (midiProgramlLabel==null)
+		{
+			midiProgramlLabel = new JLabel();
+			midiProgramlLabel.setName("midiProgramlLabel");
+			midiProgramlLabel.setText("MIDI program");
+			midiProgramlLabel.setFont(Helpers.getDialogFont());
+		}
+		return midiProgramlLabel;
+	}
+	private JTextField getMidiProgram()
+	{
+		if (midiProgram==null)
+		{
+			midiProgram = new JTextField();
+			midiProgram.setName("midiProgram");
+			midiProgram.setEditable(false);
+			midiProgram.setFont(Helpers.getDialogFont());
+		}
+		return midiProgram;
+	}
+	private JLabel getMidiBankLabel()
+	{
+		if (midiBankLabel==null)
+		{
+			midiBankLabel = new JLabel();
+			midiBankLabel.setName("midiBankLabel");
+			midiBankLabel.setText("MIDI bank");
+			midiBankLabel.setFont(Helpers.getDialogFont());
+		}
+		return midiBankLabel;
+	}
+	private JTextField getMidiBank()
+	{
+		if (midiBank==null)
+		{
+			midiBank = new JTextField();
+			midiBank.setName("midiBank");
+			midiBank.setEditable(false);
+			midiBank.setFont(Helpers.getDialogFont());
+		}
+		return midiBank;
+	}
+	private JLabel getPwdDepthLabel()
+	{
+		if (pwdDepthLabel==null)
+		{
+			pwdDepthLabel = new JLabel();
+			pwdDepthLabel.setName("pwdDepthLabel");
+			pwdDepthLabel.setText("Pitch Wheel Depth");
+			pwdDepthLabel.setFont(Helpers.getDialogFont());
+		}
+		return pwdDepthLabel;
+	}
+	private JTextField getPwdDepth()
+	{
+		if (pwdDepth==null)
+		{
+			pwdDepth = new JTextField();
+			pwdDepth.setName("pwdDepth");
+			pwdDepth.setEditable(false);
+			pwdDepth.setFont(Helpers.getDialogFont());
+		}
+		return pwdDepth;
 	}
 	private JPanel getSampleMapPanel()
 	{
@@ -873,14 +1025,14 @@ public class ModInstrumentDialog extends JDialog
 
 			sampleMapPanel.add(getSampleMapScrollPane(), Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 			
-			final Insets inset = getSampleMapScrollPane().getInsets();
-			final int scrollbarSpace = (getSampleMapScrollPane().getVerticalScrollBar().getPreferredSize().width<<1) + inset.left + inset.right; 
-			final FontMetrics metrics = sampleMapPanel.getFontMetrics(Helpers.getDialogFont());
-			final Dimension d = new Dimension((SAMPLE_MAP_LINE_LENGTH*metrics.charWidth('0')) + scrollbarSpace, 12*metrics.getHeight());
-			sampleMapPanel.setSize(d);
-			sampleMapPanel.setMinimumSize(d);
-			sampleMapPanel.setMaximumSize(d);
-			sampleMapPanel.setPreferredSize(d);
+//			final Insets inset = getSampleMapScrollPane().getInsets();
+//			final int scrollbarSpace = (getSampleMapScrollPane().getVerticalScrollBar().getPreferredSize().width<<1) + inset.left + inset.right; 
+//			final FontMetrics metrics = sampleMapPanel.getFontMetrics(Helpers.getDialogFont());
+//			final Dimension d = new Dimension((SAMPLE_MAP_LINE_LENGTH*metrics.charWidth('0')) + scrollbarSpace, 12*metrics.getHeight());
+//			sampleMapPanel.setSize(d);
+//			sampleMapPanel.setMinimumSize(d);
+//			sampleMapPanel.setMaximumSize(d);
+//			sampleMapPanel.setPreferredSize(d);
 		}
 		return sampleMapPanel;
 	}
@@ -961,7 +1113,7 @@ public class ModInstrumentDialog extends JDialog
 							{
 								// now get the sample and force sample dialog to open and show that:
 								final int sampleIndex = getSampleIndex(getCurrentInstrument(), noteIndexRow);
-								if (sampleIndex!=-1) myModInfoPanel.showSample(sampleIndex);
+								if (sampleIndex!=-1 && myModInfoPanel!=null) myModInfoPanel.showSample(sampleIndex);
 							}
 						}
 					}
@@ -1057,6 +1209,21 @@ public class ModInstrumentDialog extends JDialog
 		}
 		return "? (ERROR)";
 	}
+	private String getFilterModeString(final int filterMode)
+	{
+		switch (filterMode)
+		{
+			case ModConstants.FLTMODE_HIGHPASS: 
+				return "force highpass";
+			case ModConstants.FLTMODE_BANDPASS:
+				return "force bandpass";
+			case ModConstants.FLTMODE_LOWPASS:
+				return "force lowpass";
+			case ModConstants.FLTMODE_UNCHANGED:
+			default:
+				return "Channel default";
+		}
+	}
 	private String getSampleMapString(int [] noteIndex, int [] sampleIndex)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -1108,11 +1275,15 @@ public class ModInstrumentDialog extends JDialog
 		
 		getPitchPanSep().setText(Helpers.EMPTY_STING);
 		getPitchPanCenter().setText(Helpers.EMPTY_STING);
+		
+		getRamping().setText(Helpers.EMPTY_STING);
+		getResampling().setText(Helpers.EMPTY_STING);
 
 		getSetResonance().setFixedState(false);
 		getResonanceValue().setText(Helpers.EMPTY_STING);
 		getSetCutOff().setFixedState(false);
 		getCutOffValue().setText(Helpers.EMPTY_STING);
+		getFilterMode().setText(Helpers.EMPTY_STING);
 		
 		getVolumeVariation().setText(Helpers.EMPTY_STING);
 		getPanningVariation().setText(Helpers.EMPTY_STING);
@@ -1123,12 +1294,18 @@ public class ModInstrumentDialog extends JDialog
 		getCheckDNA().setText(Helpers.EMPTY_STING);
 		getActionDNA().setText(Helpers.EMPTY_STING);
 		
+		getPlugin().setText(Helpers.EMPTY_STING);
+		getMidiChannel().setText(Helpers.EMPTY_STING);
+		getMidiProgram().setText(Helpers.EMPTY_STING);
+		getMidiBank().setText(Helpers.EMPTY_STING);
+		getPwdDepth().setText(Helpers.EMPTY_STING);
+		
 		getSampleMap().setText(Helpers.EMPTY_STING);
 		getSampleMap().select(0,0);
 		
-		getVolumeEnvelopePanel().setEnvelope(null, EnvelopeType.volume);
-		getPanningEnvelopePanel().setEnvelope(null, EnvelopeType.panning);
-		getPitchEnvelopePanel().setEnvelope(null, EnvelopeType.pitch);
+		getVolumeEnvelopePanel().setEnvelope(null);
+		getPanningEnvelopePanel().setEnvelope(null);
+		getPitchEnvelopePanel().setEnvelope(null);
 
 		// after setting the new model, make the editor of the spinner un-editable
 		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
@@ -1142,12 +1319,15 @@ public class ModInstrumentDialog extends JDialog
 		
 		getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
 		getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
-		getSetPan().setFixedState(newInstrument.defaultPan!=-1);
-		getSetPanValue().setText(Integer.toString(newInstrument.defaultPan));
+		getSetPan().setFixedState(newInstrument.setPanning);
+		getSetPanValue().setText(Integer.toString(newInstrument.defaultPanning));
 		
 		getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
 		getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
 
+		getRamping().setText((newInstrument.volRampUp>0)?Integer.toString(newInstrument.volRampUp):"default");
+		getResampling().setText((newInstrument.resampling>-1)?Integer.toString(newInstrument.resampling):"default");
+		
 		if (newInstrument.initialFilterResonance!=-1)
 		{
 			getSetResonance().setFixedState((newInstrument.initialFilterResonance&0x80)!=0);
@@ -1168,6 +1348,7 @@ public class ModInstrumentDialog extends JDialog
 			getSetCutOff().setFixedState(false);
 			getCutOffValue().setText("-1");
 		}
+		getFilterMode().setText(getFilterModeString(newInstrument.filterMode));
 		
 		getVolumeVariation().setText(Integer.toString(newInstrument.randomVolumeVariation));
 		getPanningVariation().setText(Integer.toString(newInstrument.randomPanningVariation));
@@ -1178,14 +1359,24 @@ public class ModInstrumentDialog extends JDialog
 		getCheckDNA().setText(getDNACheckString(newInstrument.dublicateNoteCheck));
 		getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
 		
+		getPlugin().setText(Integer.toString(newInstrument.plugin));
+		getMidiChannel().setText(Integer.toString(newInstrument.midiChannel));
+		getMidiProgram().setText(Integer.toString(newInstrument.midiProgram));
+		getMidiBank().setText(Integer.toString(newInstrument.midiBank));
+		getPwdDepth().setText(Integer.toString(newInstrument.pitchWheelDepth));
+
 		getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
 		
-		getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope, EnvelopeType.volume);
-		getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope, EnvelopeType.panning);
-		getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope, EnvelopeType.pitch);
+		getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope);
+		getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope);
+		getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope);
 
 		markRowInSampleMap(noteIndexRow);
 		getButton_Play().setEnabled(true);
+	}
+	public void showInstrument(final int instrumentIndex)
+	{
+		if (instruments!=null) getSelectInstrument().setValue(spinnerModelData.get(instrumentIndex));
 	}
 	public void fillWithInstrumentArray(final Instrument [] instruments)
 	{

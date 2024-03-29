@@ -28,6 +28,7 @@ import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -38,7 +39,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -135,33 +135,14 @@ public class ModSampleDialog extends JDialog
 	private ModInfoPanel myModInfoPanel;
 
 	/**
-	 * Constructor for ModPatternDialog
-	 */
-	public ModSampleDialog(ModInfoPanel infoPanel)
-	{
-		super();
-		myModInfoPanel = infoPanel;
-		initialize();
-	}
-	/**
-	 * Constructor for ModPatternDialog
+	 * Constructor for ModSampleDialog
 	 * @param owner
 	 * @param modal
+	 * @param infoPanel
 	 */
-	public ModSampleDialog(ModInfoPanel infoPanel, JFrame owner, boolean modal)
+	public ModSampleDialog(Window owner, boolean modal, ModInfoPanel infoPanel)
 	{
-		super(owner, modal);
-		myModInfoPanel = infoPanel;
-		initialize();
-	}
-	/**
-	 * Constructor for ModPatternDialog
-	 * @param owner
-	 * @param modal
-	 */
-	public ModSampleDialog(ModInfoPanel infoPanel, JDialog owner, boolean modal)
-	{
-		super(owner, modal);
+		super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
 		myModInfoPanel = infoPanel;
 		initialize();
 	}
@@ -1054,8 +1035,8 @@ public class ModSampleDialog extends JDialog
 		getDosFileName().setCaretPosition(0); getDosFileName().moveCaretPosition(0);
 		getDefaultVolume().setText(Integer.toString(sample.volume));
 		getGlobalVolume().setText(Integer.toString(sample.globalVolume));
-		getSetPan().setFixedState(sample.panning!=-1);
-		getSetPanValue().setText(Integer.toString(sample.panning));
+		getSetPan().setFixedState(sample.setPanning);
+		getSetPanValue().setText(Integer.toString(sample.defaultPanning));
 		getFineTuneValue().setText(Integer.toString(sample.fineTune));
 		getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
 		getTransposeValue().setText(Integer.toString(sample.transpose));
@@ -1074,11 +1055,7 @@ public class ModSampleDialog extends JDialog
 	}
 	public void showSample(final int sampleIndex)
 	{
-		if (samples!=null)
-		{
-			getSelectSample().setValue(spinnerModelData.get(sampleIndex));
-			fillWithSample(samples[sampleIndex]);
-		}
+		if (samples!=null) getSelectSample().setValue(spinnerModelData.get(sampleIndex));
 	}
 	public void fillWithSamples(final Sample [] samples)
 	{

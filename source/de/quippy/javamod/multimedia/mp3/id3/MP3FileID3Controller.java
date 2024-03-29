@@ -32,7 +32,6 @@ import de.quippy.javamod.io.RandomAccessInputStreamImpl;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.mp3.id3.exceptions.ID3v2FormatException;
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -72,7 +71,7 @@ public class MP3FileID3Controller
 		}
 		finally
 		{
-			if (raf!=null) try { raf.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (raf!=null) try { raf.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 	private void getTagsFromRAF(RandomAccessInputStream raf)

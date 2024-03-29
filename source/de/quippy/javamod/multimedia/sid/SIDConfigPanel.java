@@ -1,5 +1,5 @@
 /*
- * @(#) SidConfigPanel.java
+ * @(#) SIDConfigPanel.java
  *
  * Created on 10.12.2011 by Daniel Becker
  * 
@@ -24,6 +24,7 @@ package de.quippy.javamod.multimedia.sid;
 import java.awt.LayoutManager;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Properties;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -38,11 +39,9 @@ import de.quippy.javamod.system.Helpers;
  * @author Daniel Becker
  * @since 10.12.2011
  */
-public class SidConfigPanel extends JPanel
+public class SIDConfigPanel extends JPanel
 {
 	private static final long serialVersionUID = -3720765201747394016L;
-
-	private SIDContainer parentContainer;
 
 	private JLabel playerSetUp_L_SampleRate = null;
 	private JComboBox<String> playerSetUp_SampleRate = null;
@@ -56,38 +55,40 @@ public class SidConfigPanel extends JPanel
 	private JCheckBox playerSetUp_UseFilter = null;
 	private JCheckBox playerSetUp_VirtualStereo = null;
 
+	private SIDContainer parentContainer = null;
+
 	/**
-	 * Constructor for SidConfigPanel
+	 * Constructor for SIDConfigPanel
 	 */
-	public SidConfigPanel()
+	public SIDConfigPanel()
 	{
 		super();
 		initialize();
 	}
 	/**
-	 * Constructor for SidConfigPanel
+	 * Constructor for SIDConfigPanel
 	 * @param layout
 	 */
-	public SidConfigPanel(LayoutManager layout)
+	public SIDConfigPanel(LayoutManager layout)
 	{
 		super(layout);
 		initialize();
 	}
 	/**
-	 * Constructor for SidConfigPanel
+	 * Constructor for SIDConfigPanel
 	 * @param isDoubleBuffered
 	 */
-	public SidConfigPanel(boolean isDoubleBuffered)
+	public SIDConfigPanel(boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
 	}
 	/**
-	 * Constructor for SidConfigPanel
+	 * Constructor for SIDConfigPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public SidConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public SIDConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -119,7 +120,7 @@ public class SidConfigPanel extends JPanel
 		this.add(getPlayerSetUp_UseSIDFilter(),			Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_VirtualStereo(),		Helpers.getGridBagConstraint(1, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 	}
-	public javax.swing.JLabel getPlayerSetUp_L_SampleRate()
+	private javax.swing.JLabel getPlayerSetUp_L_SampleRate()
 	{
 		if (playerSetUp_L_SampleRate==null)
 		{
@@ -130,7 +131,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_L_SampleRate;
 	}
-	public javax.swing.JComboBox<String> getPlayerSetUp_SampleRate()
+	private javax.swing.JComboBox<String> getPlayerSetUp_SampleRate()
 	{
 		if (playerSetUp_SampleRate==null)
 		{
@@ -160,7 +161,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_SampleRate;
 	}
-	public javax.swing.JLabel getPlayerSetUp_L_SIDModel()
+	private javax.swing.JLabel getPlayerSetUp_L_SIDModel()
 	{
 		if (playerSetUp_L_SIDModel==null)
 		{
@@ -171,7 +172,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_L_SIDModel;
 	}
-	public javax.swing.JComboBox<String> getPlayerSetUp_SIDModel()
+	private javax.swing.JComboBox<String> getPlayerSetUp_SIDModel()
 	{
 		if (playerSetUp_SIDModel==null)
 		{
@@ -201,7 +202,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_SIDModel;
 	}
-	public javax.swing.JLabel getPlayerSetUp_L_Optimization()
+	private javax.swing.JLabel getPlayerSetUp_L_Optimization()
 	{
 		if (playerSetUp_L_Optimization==null)
 		{
@@ -212,7 +213,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_L_Optimization;
 	}
-	public ButtonGroup getPlayerSetUp_Optimization()
+	private ButtonGroup getPlayerSetUp_Optimization()
 	{
 		if (playerSetUp_Optimization_Group==null)
 		{
@@ -222,7 +223,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_Optimization_Group;
 	}
-	public JPanel getPlayerSetUp_Optimization_Panel()
+	private JPanel getPlayerSetUp_Optimization_Panel()
 	{
 		if (playerSetUpOptimizationPanel==null)
 		{
@@ -235,7 +236,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUpOptimizationPanel;
 	}
-	public JRadioButton getPlayerSetUp_Optimization_Level1()
+	private JRadioButton getPlayerSetUp_Optimization_Level1()
 	{
 		if (playerSetUp_Optimization_Level1==null)
 		{
@@ -263,7 +264,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_Optimization_Level1;
 	}
-	public JRadioButton getPlayerSetUp_Optimization_Level2()
+	private JRadioButton getPlayerSetUp_Optimization_Level2()
 	{
 		if (playerSetUp_Optimization_Level2==null)
 		{
@@ -291,7 +292,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_Optimization_Level2;
 	}
-	public JCheckBox getPlayerSetUp_UseSIDFilter()
+	private JCheckBox getPlayerSetUp_UseSIDFilter()
 	{
 		if (playerSetUp_UseFilter == null)
 		{
@@ -318,7 +319,7 @@ public class SidConfigPanel extends JPanel
 		}
 		return playerSetUp_UseFilter;
 	}
-	public JCheckBox getPlayerSetUp_VirtualStereo()
+	private JCheckBox getPlayerSetUp_VirtualStereo()
 	{
 		if (playerSetUp_VirtualStereo == null)
 		{
@@ -344,5 +345,25 @@ public class SidConfigPanel extends JPanel
 			});
 		}
 		return playerSetUp_VirtualStereo;
+	}
+	public void configurationChanged(Properties newProps)
+	{
+		getPlayerSetUp_SampleRate().setSelectedItem(newProps.getProperty(SIDContainer.PROPERTY_SID_FREQUENCY, SIDContainer.DEFAULT_SAMPLERATE));
+		getPlayerSetUp_SIDModel().setSelectedIndex(Integer.parseInt(newProps.getProperty(SIDContainer.PROPERTY_SID_MODEL, SIDContainer.DEFAULT_SIDMODEL)));
+		getPlayerSetUp_UseSIDFilter().setSelected(Boolean.parseBoolean(newProps.getProperty(SIDContainer.PROPERTY_SID_USEFILTER, SIDContainer.DEFAULT_USEFILTER)));
+		getPlayerSetUp_VirtualStereo().setSelected(Boolean.parseBoolean(newProps.getProperty(SIDContainer.PROPERTY_SID_VIRTUALSTEREO, SIDContainer.DEFAULT_VIRTUALSTEREO)));
+		int optimization = Integer.parseInt(newProps.getProperty(SIDContainer.PROPERTY_SID_OPTIMIZATION, SIDContainer.DEFAULT_OPTIMIZATION));
+		if (optimization<=1) 
+			getPlayerSetUp_Optimization_Level1().setSelected(true);
+		else
+			getPlayerSetUp_Optimization_Level2().setSelected(true);
+	}
+	public void configurationSave(Properties props)
+	{
+		props.setProperty(SIDContainer.PROPERTY_SID_FREQUENCY, getPlayerSetUp_SampleRate().getSelectedItem().toString());
+		props.setProperty(SIDContainer.PROPERTY_SID_MODEL, Integer.toString(getPlayerSetUp_SIDModel().getSelectedIndex()));
+		props.setProperty(SIDContainer.PROPERTY_SID_USEFILTER, Boolean.toString(getPlayerSetUp_UseSIDFilter().isSelected()));
+		props.setProperty(SIDContainer.PROPERTY_SID_VIRTUALSTEREO, Boolean.toString(getPlayerSetUp_VirtualStereo().isSelected()));
+		props.setProperty(SIDContainer.PROPERTY_SID_OPTIMIZATION, (getPlayerSetUp_Optimization_Level1().isSelected())?"1":"2");
 	}
 }

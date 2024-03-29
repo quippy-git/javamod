@@ -73,16 +73,16 @@ public class APEMixer extends BasicMixer
 			blocksPerDecode = 250 * sampleRate / 1000;
 
 			// allocate space for decompression
-			int bufferSize = blockAlign * blocksPerDecode;
+			final int bufferSize = blockAlign * blocksPerDecode;
             output = new byte[bufferSize];
+    		setSourceLineBufferSize(bufferSize);
 
-            AudioFormat audioFormat = new AudioFormat(sampleRate, bitsPerSample, channels, true, false);  
+            AudioFormat audioFormat = new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample <= 8) ? false : true, false);  
     		setAudioFormat(audioFormat);
-    		openAudioDevice();
 		}
 		catch (Exception ex)
 		{
-			if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[APEMixer]", ex);
 		}
 	}
@@ -187,7 +187,7 @@ public class APEMixer extends BasicMixer
 	private void cleanUp()
 	{
 		if (spAPEDecompress!=null) spAPEDecompress = null;
-		if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException e) { Log.error("IGNORED", e); }
+		if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 	}
 	/**
 	 * 
@@ -203,6 +203,9 @@ public class APEMixer extends BasicMixer
 
 		try
 		{
+			openAudioDevice();
+			if (!isInitialized()) return;
+
 			int nBlocksDecoded = 0;
 			
 			do

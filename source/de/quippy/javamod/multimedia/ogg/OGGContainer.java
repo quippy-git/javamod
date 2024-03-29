@@ -41,8 +41,7 @@ public class OGGContainer extends MultimediaContainer
 	{
 		"ogg", "oga"
 	};
-//	private JPanel oggConfigPanel;
-	private JPanel oggInfoPanel;
+	private OGGInfoPanel oggInfoPanel;
 	private OggMetaData oggMetaData = null;
 	/**
 	 * Will be executed during class load
@@ -68,7 +67,7 @@ public class OGGContainer extends MultimediaContainer
 	{
 		MultimediaContainer result = super.getInstance(url);
 		oggMetaData = new OggMetaData(url);
-		((OGGInfoPanel)getInfoPanel()).fillInfoPanelWith(oggMetaData, getPrintableFileUrl());
+		if (!MultimediaContainerManager.isHeadlessMode()) ((OGGInfoPanel)getInfoPanel()).fillInfoPanelWith(oggMetaData, getPrintableFileUrl());
 		return result;
 	}
 	/**
@@ -148,11 +147,6 @@ public class OGGContainer extends MultimediaContainer
 	public JPanel getConfigPanel()
 	{
 		return null;
-//		if (oggConfigPanel==null)
-//		{
-//			oggConfigPanel = new JPanel();
-//		}
-//		return oggConfigPanel;
 	}
 	/**
 	 * @return
@@ -164,6 +158,7 @@ public class OGGContainer extends MultimediaContainer
 		if (oggInfoPanel==null)
 		{
 			oggInfoPanel = new OGGInfoPanel();
+			oggInfoPanel.setParentContainer(this);
 		}
 		return oggInfoPanel;
 	}

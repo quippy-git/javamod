@@ -32,7 +32,6 @@ import java.util.Set;
 
 import de.quippy.javamod.io.FileOrPackedInputStream;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
-import de.quippy.javamod.system.Log;
 
 public class OggMetaData
 {
@@ -104,7 +103,7 @@ public class OggMetaData
 		{
 			if (in!=null)
 			{
-				try { in.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+				try { in.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 				in = null;
 			}
 		}

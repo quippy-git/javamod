@@ -86,8 +86,7 @@ public class SampleInstrumentPlayer
 	public void startPlayback(final Instrument forInstrument, final Sample forSample, final int forNoteIndex)
 	{
 		if (!aktMemo.instrumentFinished) stopPlayback();
-		if (forSample==null && forInstrument==null || forNoteIndex<1) return;
-		if (forNoteIndex<1) return; // no note given
+		if ((forSample==null && forInstrument==null) || forNoteIndex<1) return;
 		
 		instrument = forInstrument;
 		noteIndex = forNoteIndex;
@@ -121,7 +120,7 @@ public class SampleInstrumentPlayer
 	{
 		return !aktMemo.instrumentFinished;
 	}
-	private int prepareAktMemoAndMixer()
+	private void prepareAktMemoAndMixer()
 	{
 		// initialize the mixer
 		currentMixer.initializeMixer(false);
@@ -143,8 +142,9 @@ public class SampleInstrumentPlayer
 		currentMixer.globalVolume = ModConstants.MAXGLOBALVOLUME;
 
 		// now for the tuning of the current note set
-		currentMixer.resetForNewSample(aktMemo);		
-		currentMixer.setNewPlayerTuningFor(aktMemo);
+		currentMixer.resetForNewSample(aktMemo);
+		currentMixer.setPeriodBorders(aktMemo);
+		currentMixer.setNewPlayerTuningFor(aktMemo, currentMixer.getFineTunePeriod(aktMemo));
 		
 		// ImpulseTracker specials
 		if (currentMixer.isIT && instrument!=null)
@@ -155,8 +155,8 @@ public class SampleInstrumentPlayer
 			if (aktMemo.cutOff<0x7F && useFilter) currentMixer.setupChannelFilter(aktMemo, true, 256);
 		}
 		
-		// and return the samples per tick
-		return currentMixer.calculateSamplesPerTick();
+		// and calculate the samples per tick
+		currentMixer.calculateSamplesPerTick();
 	}
 	private void playSample()
 	{
@@ -173,7 +173,8 @@ public class SampleInstrumentPlayer
 
 		final Dither dither = new Dither(channels, sampleSizeInBits, 4, 2, false);
 
-		final int samplesPerTick = prepareAktMemoAndMixer();
+		prepareAktMemoAndMixer();
+		final int samplesPerTick = currentMixer.samplesPerTick; 
 		final long leftBuffer[] = new long[samplesPerTick];
 		final long rightBuffer[] = new long[samplesPerTick];
 

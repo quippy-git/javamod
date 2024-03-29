@@ -22,7 +22,6 @@ package de.quippy.jmac.info;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import de.quippy.jmac.tools.ByteArrayReader;
@@ -35,7 +34,7 @@ import de.quippy.jmac.tools.RandomAccessFile;
  * Date: 04.03.2004
  * Time: 14:51:31
  */
-public class APETag implements Comparator<APETagField> {
+public class APETag {
     public final static String APE_TAG_FIELD_TITLE = "Title";
     public final static String APE_TAG_FIELD_ARTIST = "Artist";
     public final static String APE_TAG_FIELD_ALBUM = "Album";
@@ -374,10 +373,10 @@ public class APETag implements Comparator<APETagField> {
 //    	m_aryFields.toArray(sortArray);
 //        Arrays.sort(sortArray, this);
 //    }
-
-    public int compare(APETagField pFieldA, APETagField pFieldB) {
-        return pFieldA.GetFieldSize() - pFieldB.GetFieldSize();
-    }
+//
+//    public int compare(APETagField pFieldA, APETagField pFieldB) {
+//        return pFieldA.GetFieldSize() - pFieldB.GetFieldSize();
+//    }
 
     // helper set / get field functions
     private String GetFieldID3String(String pFieldName) throws IOException {

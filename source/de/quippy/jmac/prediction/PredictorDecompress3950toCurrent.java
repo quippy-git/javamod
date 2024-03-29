@@ -84,19 +84,19 @@ public class PredictorDecompress3950toCurrent extends IPredictorDecompress {
         if (m_pNNFilter  != null) nA = m_pNNFilter.Decompress(nA);
 
         // stage 1: multiple predictors (order 2 and offset 1)
-        final RollBufferFastInt predictA;
-        final int indexA = (predictA = m_rbPredictionA).index;
+        final RollBufferFastInt predictA = m_rbPredictionA;
+        final int indexA = predictA.index;
         
-        final RollBufferFastInt predictB;
-        final int indexB = (predictB = m_rbPredictionB).index;
-        final int ai[];
-        final int l;
-        (ai = predictA.m_pData)[indexA] = l = m_nLastValueA;
+        final RollBufferFastInt predictB = m_rbPredictionB;
+        final int indexB = predictB.index;
+
+        final int ai[] = predictA.m_pData;
+        final int l = m_nLastValueA;
         final int l1 = indexA - 1;
+        ai[indexA] = l ;
         ai[l1] = l - ai[l1];
 
         final int ai3[] = predictB.m_pData;
-
         ai3[indexB] = nB - ((scaledFilterBLV * 31) >> 5);
         scaledFilterBLV = nB;
 

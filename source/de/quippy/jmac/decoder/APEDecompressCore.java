@@ -112,10 +112,7 @@ public class APEDecompressCore {
                         aryCoefficientsB[z] = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 6);
                     }
                     m_pUnBitArray.GenerateArray(m_pTempData, Number_of_Elements, nFrameBytes);
-                	if (!(pAntiPredictor instanceof AntiPredictorExtraHigh0000To3320)) 
-                		throw new RuntimeException("pAntiPredictor of wrong type");
-                	else
-                		((AntiPredictorExtraHigh0000To3320) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
+               		((AntiPredictorExtraHigh0000To3320) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
                 } else if (m_pAPEDecompress.getApeInfoFileVersion() < 3600) {
                     nNumberOfCoefficients = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 3);
                     for (int z = 0; z <= nNumberOfCoefficients; z++) {
@@ -123,10 +120,7 @@ public class APEDecompressCore {
                         aryCoefficientsB[z] = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 5);
                     }
                     m_pUnBitArray.GenerateArray(m_pTempData, Number_of_Elements, nFrameBytes);
-                	if (!(pAntiPredictor instanceof AntiPredictorExtraHigh3320To3600)) 
-                		throw new RuntimeException("pAntiPredictor of wrong type");
-                	else
-                		((AntiPredictorExtraHigh3320To3600) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
+               		((AntiPredictorExtraHigh3320To3600) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
                 } else if (m_pAPEDecompress.getApeInfoFileVersion() < 3700) {
                     nNumberOfCoefficients = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 3);
                     for (int z = 0; z <= nNumberOfCoefficients; z++) {
@@ -134,10 +128,7 @@ public class APEDecompressCore {
                         aryCoefficientsB[z] = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 6);
                     }
                     m_pUnBitArray.GenerateArray(m_pTempData, Number_of_Elements, nFrameBytes);
-                	if (!(pAntiPredictor instanceof AntiPredictorExtraHigh3600To3700)) 
-                		throw new RuntimeException("pAntiPredictor of wrong type");
-                	else
-                		((AntiPredictorExtraHigh3600To3700) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
+               		((AntiPredictorExtraHigh3600To3700) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
                 } else if (m_pAPEDecompress.getApeInfoFileVersion() < 3800) {
                     nNumberOfCoefficients = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 3);
                     for (int z = 0; z <= nNumberOfCoefficients; z++) {
@@ -145,16 +136,10 @@ public class APEDecompressCore {
                         aryCoefficientsB[z] = m_pUnBitArray.DecodeValue(DecodeValueMethod.DECODE_VALUE_METHOD_X_BITS, 6);
                     }
                     m_pUnBitArray.GenerateArray(m_pTempData, Number_of_Elements, nFrameBytes);
-                	if (!(pAntiPredictor instanceof AntiPredictorExtraHigh3700To3800)) 
-                		throw new RuntimeException("pAntiPredictor of wrong type");
-                	else
-                		((AntiPredictorExtraHigh3700To3800) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
+               		((AntiPredictorExtraHigh3700To3800) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, (int) nNumberOfCoefficients, aryCoefficientsA, aryCoefficientsB);
                 } else {
                     m_pUnBitArray.GenerateArray(m_pTempData, Number_of_Elements, nFrameBytes);
-                	if (!(pAntiPredictor instanceof AntiPredictorExtraHigh3800ToCurrent)) 
-                		throw new RuntimeException("pAntiPredictor of wrong type");
-                	else
-                		((AntiPredictorExtraHigh3800ToCurrent) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, m_pAPEDecompress.getApeInfoFileVersion());
+               		((AntiPredictorExtraHigh3800ToCurrent) pAntiPredictor).AntiPredict(m_pTempData, Input_Array, Number_of_Elements, m_pAPEDecompress.getApeInfoFileVersion());
                 }
 
                 break;

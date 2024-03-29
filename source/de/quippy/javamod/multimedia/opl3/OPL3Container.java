@@ -53,12 +53,13 @@ public class OPL3Container extends MultimediaContainer
 	public static final String DEFAULT_VIRTUAL_STEREO = "false";
 	public static final String DEFAULT_OPLVERSION = "FMOPL_072_YM3812";
 	
+	
+	private Properties currentProps = null;
+
+	private OPL3Sequence opl3Sequence;
+	private OPL3Mixer currentMixer;
 	private OPL3ConfigPanel OPL3ConfigPanel;
 	private OPL3InfoPanel OPL3InfoPanel;
-	
-	private OPL3Sequence opl3Sequence;
-	
-	OPL3Mixer currentMixer;
 
 	/**
 	 * Will be executed during class load
@@ -80,11 +81,17 @@ public class OPL3Container extends MultimediaContainer
 	}
 	private EmuOPL.version getOPLVersion()
 	{
-		return ((OPL3ConfigPanel)getConfigPanel()).getOPLVersion();
+		return Enum.valueOf(EmuOPL.version.class, (currentProps!=null)?currentProps.getProperty(PROPERTY_OPL3PLAYER_OPLVERSION, DEFAULT_OPLVERSION):DEFAULT_OPLVERSION);
 	}
 	public OPL3Mixer getCurrentMixer()
 	{
 		return currentMixer;
+	}
+	private URL getSoundBankURL()
+	{
+		final String soundBankURL = (currentProps!=null)?currentProps.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL):DEFAULT_SOUNDBANKURL;
+		if (soundBankURL==null || soundBankURL.length()==0) return null;
+		return Helpers.createURLfromString(soundBankURL);
 	}
 	/**
 	 * @param url
@@ -97,8 +104,8 @@ public class OPL3Container extends MultimediaContainer
 		MultimediaContainer result = super.getInstance(url);
 		try
 		{
-			opl3Sequence = OPL3Sequence.createOPL3Sequence(url, OPL3ConfigPanel.getSoundBankURL());
-			((OPL3InfoPanel)getInfoPanel()).fillInfoPanelWith(opl3Sequence);
+			opl3Sequence = OPL3Sequence.createOPL3Sequence(url, getSoundBankURL());
+			if (!MultimediaContainerManager.isHeadlessMode()) ((OPL3InfoPanel)getInfoPanel()).fillInfoPanelWith(opl3Sequence);
 		}
 		catch (IOException ex)
 		{
@@ -118,7 +125,7 @@ public class OPL3Container extends MultimediaContainer
 		Long duration = Long.valueOf(-1);
 		try
 		{
-			final OPL3Sequence opl3Sequence = OPL3Sequence.createOPL3Sequence(url, OPL3ConfigPanel.getSoundBankURL());
+			final OPL3Sequence opl3Sequence = OPL3Sequence.createOPL3Sequence(url, getSoundBankURL());
 			songName = opl3Sequence.getSongName();
 			duration = Long.valueOf(opl3Sequence.getLengthInMilliseconds());
 		}
@@ -159,6 +166,7 @@ public class OPL3Container extends MultimediaContainer
 		if (OPL3InfoPanel==null)
 		{
 			OPL3InfoPanel = new OPL3InfoPanel();
+			OPL3InfoPanel.setParentContainer(this);
 		}
 		return OPL3InfoPanel;
 	}
@@ -199,13 +207,18 @@ public class OPL3Container extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(final Properties props)
+	public void configurationChanged(final Properties newProps)
 	{
-		OPL3ConfigPanel configPanel = (OPL3ConfigPanel)getConfigPanel();
-		configPanel.getRolSoundBankURL().setText(props.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
-		configPanel.getVirtualStereo().setSelected(Boolean.parseBoolean(props.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO)));
-		EmuOPL.version version = Enum.valueOf(EmuOPL.version.class, props.getProperty(PROPERTY_OPL3PLAYER_OPLVERSION, DEFAULT_OPLVERSION));
-		configPanel.setOPLVersion(version);
+		if (currentProps==null) currentProps = new Properties();
+		currentProps.setProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, newProps.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
+		currentProps.setProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, newProps.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
+		currentProps.setProperty(PROPERTY_OPL3PLAYER_OPLVERSION, newProps.getProperty(PROPERTY_OPL3PLAYER_OPLVERSION, DEFAULT_OPLVERSION));
+		
+		if (!MultimediaContainerManager.isHeadlessMode())
+		{
+			final OPL3ConfigPanel configPanel = (OPL3ConfigPanel)getConfigPanel();
+			configPanel.configurationChanged(newProps);
+		}
 	}
 	/**
 	 * @param props
@@ -214,10 +227,19 @@ public class OPL3Container extends MultimediaContainer
 	@Override
 	public void configurationSave(final Properties props)
 	{
-		OPL3ConfigPanel configPanel = (OPL3ConfigPanel)getConfigPanel();
-		props.setProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, configPanel.getRolSoundBankURL().getText());
-		props.setProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, Boolean.toString(configPanel.getVirtualStereo().isSelected()));
-		props.setProperty(PROPERTY_OPL3PLAYER_OPLVERSION, configPanel.getOPLVersion().toString());
+		if (currentProps==null) currentProps = new Properties();
+		if (!MultimediaContainerManager.isHeadlessMode())
+		{
+			final OPL3ConfigPanel configPanel = (OPL3ConfigPanel)getConfigPanel();
+			configPanel.configurationSave(currentProps);
+		}
+
+		if (props!=null)
+		{
+			props.setProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, currentProps.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
+			props.setProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, currentProps.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
+			props.setProperty(PROPERTY_OPL3PLAYER_OPLVERSION, currentProps.getProperty(PROPERTY_OPL3PLAYER_OPLVERSION, DEFAULT_OPLVERSION));
+		}
 	}
 	/**
 	 * @return
@@ -228,10 +250,9 @@ public class OPL3Container extends MultimediaContainer
 	{
 		if (opl3Sequence == null) return null;
 		
-		Properties props = new Properties();
-		configurationSave(props);
+		configurationSave(currentProps);
 		
-		boolean doVirtualStereoMix = Boolean.parseBoolean(props.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
+		final boolean doVirtualStereoMix = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
 		
 		currentMixer = new OPL3Mixer(getOPLVersion(), getSampleRate(), opl3Sequence, doVirtualStereoMix);
 		return currentMixer;

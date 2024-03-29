@@ -21,18 +21,19 @@
  */
 package de.quippy.javamod.multimedia.mod.loader;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
 import de.quippy.javamod.io.ModfileInputStream;
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.InstrumentsContainer;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternContainer;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -60,12 +61,26 @@ public abstract class Module
 	private int songRestart;
 	private long lengthInMilliseconds;
 	private int [] arrangement;
+	private long [] msTimeIndex;
 	private boolean [] arrangementPositionPlayed;
 	private int baseVolume; // 0..128
-	private int mixingPreAmp; //0..128
+	private int mixingPreAmp; //0..256 (see ModConstants.MAX_MIXING_PREAMP)
+	private int synthMixingPreAmp; // 0..256 like mixingPreAmp but for synth Channels
 	
 	protected int songFlags;
 	
+	// OMPT specific (or S3M and IT, but manipulated in extended song messages
+	protected int [] panningValue;
+	protected int [] channelVolume;
+	protected int tempoMode;
+	protected int rowsPerBeat;
+	protected int rowsPerMeasure;
+	protected double [] tempoSwing;
+	protected int createdWithVersion;
+	protected int lastSavedWithVersion;
+	protected String author;
+	protected int resampling;
+
 	/**
 	 * This class is used to decrompress the IT>=2.14 samples
 	 * It is a mix from open cubic player and mod plug tracker adopted for
@@ -109,7 +124,7 @@ public abstract class Module
 	 * - if we differentiate this sum, we get a sum of (a(f)*f)*cos(f*t). Due to
 	 *   f being scaled to the nyquist of the sample frequency, it's always
 	 *   between 0 and 1, and we get just what we want - we decrease the ampli-
-	 *   tude of the low frequencies (and shift the signal's phase by 90�, but
+	 *   tude of the low frequencies (and shift the signal's phase by 90°, but
 	 *   that's just a side-effect that doesn't have to interest us)
 	 * - the backwards way is simple integrating over the data and is completely
 	 *   lossless. good.
@@ -165,7 +180,7 @@ public abstract class Module
 	 * - The starting bit width is 9 [17]
 	 * - IT2.15 compression simply doubles the differentiation/integration
 	 *   of the signal, thus eliminating low frequencies some more and turning
-	 *   the signal phase to 180� instead of 90� which can eliminate some sig-
+	 *   the signal phase to 180° instead of 90° which can eliminate some sig-
 	 *   nal peaks here and there - all resulting in a somewhat better ratio.
 	 * 
 	 * ok, but now lets start... but think before you easily somehow misuse
@@ -236,7 +251,7 @@ public abstract class Module
 //				i--;
 //			}
 //			return (int)((value >> (32 - b)) & 0xFFFFFFFF);
-			// adopted version vom OCP - much faster
+			// adopted version from OCP - much faster
 			long value = 0;
 			if (b <= bitsRemain)
 			{
@@ -466,6 +481,12 @@ public abstract class Module
 	{
 		super();
 		lengthInMilliseconds = -1;
+		tempoMode = ModConstants.TEMPOMODE_CLASSIC;
+		rowsPerBeat = 4;
+		rowsPerMeasure = 16;
+		createdWithVersion = -1;
+		lastSavedWithVersion = -1;
+		resampling = -1;
 	}
 	/**
 	 * Constructor for Module
@@ -510,7 +531,7 @@ public abstract class Module
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { Log.error("IGNORED", ex); }
+			if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 	/**
@@ -563,6 +584,25 @@ public abstract class Module
 				{
 					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, (flags & ModConstants.SM_IT2158)==ModConstants.SM_IT2158, inputStream);
 					reader2.decompress8();
+				}
+			}
+			else
+			if ((flags&ModConstants.SM_ADPCM)==ModConstants.SM_ADPCM)
+			{
+				byte [] deltaLUT = new byte[16];
+				inputStream.read(deltaLUT);
+				
+				final int length = (current.length + 1)>>1;
+				byte currentSample = 0;
+				for (int i=0,s=0; i<length; i++)
+				{
+					final int nibble = inputStream.read();
+					
+					currentSample += deltaLUT[nibble & 0x0F];
+					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit((long)currentSample); 
+					
+					currentSample += deltaLUT[nibble >> 4];
+					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit((long)currentSample); 
 				}
 			}
 			else
@@ -722,7 +762,26 @@ public abstract class Module
 	protected void allocArrangement(final int length)
 	{
 		arrangement = new int[length];
+		msTimeIndex = new long[length];
 		arrangementPositionPlayed = new boolean[length];
+	}
+	/**
+	 * Automatically cleans up the arrangement data (if illegal pattnums
+	 * or marker pattern are in there...)
+	 * @since 03.10.2010
+	 */
+	protected void cleanUpArrangement()
+	{
+		int realLen = 0;
+		for (int i=0; i<songLength; i++)
+		{
+			if (getArrangement()[i]==255) // end of Song:
+				break;
+			else
+			if (getArrangement()[i]<254 && getArrangement()[i]<getNPattern())
+				getArrangement()[realLen++]=getArrangement()[i];
+		}
+		songLength = realLen;
 	}
 	/**
 	 * @return Returns the arrangement.
@@ -732,29 +791,19 @@ public abstract class Module
 		return arrangement;
 	}
 	/**
+	 * @since 07.03.2024
+	 * @return the ms time index of an arrangement position
+	 */
+	public long[] getMsTimeIndex()
+	{
+		return msTimeIndex;
+	}
+	/**
 	 * @param arrangement The arrangement to set.
 	 */
 	public void setArrangement(final int[] arrangement)
 	{
 		this.arrangement = arrangement;
-	}
-	/**
-	 * Automatically cleans up the arrangement data (if illegal pattnums
-	 * are in there...)
-	 * @since 03.10.2010
-	 */
-	public void cleanUpArrangement()
-	{
-		int illegalPatternNum = 0;
-		for (int i=0; i<songLength; i++)
-		{
-			if (arrangement[i-illegalPatternNum]>=nPattern)
-			{
-				illegalPatternNum++;
-				System.arraycopy(arrangement, i+1, arrangement, i, arrangement.length - i - 1);
-			}
-		}
-		songLength -= illegalPatternNum;
 	}
 	public void resetLoopRecognition()
 	{
@@ -863,9 +912,9 @@ public abstract class Module
 	/**
 	 * @param songLength The songLength to set.
 	 */
-	protected void setSongLength(final int songLength)
+	protected void setSongLength(final int newSongLength)
 	{
-		this.songLength = songLength;
+		songLength = newSongLength;
 	}
 	/**
 	 * @return the songRestart
@@ -877,9 +926,9 @@ public abstract class Module
 	/**
 	 * @param songRestart the songRestart to set
 	 */
-	protected void setSongRestart(int songRestart)
+	protected void setSongRestart(final int newSongRestart)
 	{
-		this.songRestart = songRestart;
+		songRestart = newSongRestart;
 	}
 	/**
 	 * @return Returns the songName.
@@ -891,9 +940,9 @@ public abstract class Module
 	/**
 	 * @param songName The songName to set.
 	 */
-	protected void setSongName(final String songName)
+	protected void setSongName(final String newSongName)
 	{
-		this.songName = songName;
+		songName = newSongName;
 	}
 	/**
 	 * @return Returns the tempo.
@@ -905,9 +954,9 @@ public abstract class Module
 	/**
 	 * @param tempo The tempo to set.
 	 */
-	protected void setTempo(final int tempo)
+	protected void setTempo(final int newTempo)
 	{
-		this.tempo = tempo;
+		tempo = newTempo;
 	}
 	/**
 	 * @return Returns the trackerName.
@@ -917,11 +966,22 @@ public abstract class Module
 		return trackerName;
 	}
 	/**
+	 * @return the author
+	 */
+	public String getAuthor()
+	{
+		return author;
+	}
+	public int getResampling()
+	{
+		return resampling;
+	}
+	/**
 	 * @param trackerName The trackerName to set.
 	 */
-	protected void setTrackerName(final String trackerName)
+	protected void setTrackerName(final String newTrackerName)
 	{
-		this.trackerName = trackerName;
+		trackerName = newTrackerName;
 	}
 	/**
 	 * @return Returns the patternContainer.
@@ -933,9 +993,9 @@ public abstract class Module
 	/**
 	 * @param patternContainer The patternContainer to set.
 	 */
-	protected void setPatternContainer(final PatternContainer patternContainer)
+	protected void setPatternContainer(final PatternContainer newPatternContainer)
 	{
-		this.patternContainer = patternContainer;
+		patternContainer = newPatternContainer;
 	}
 	/**
 	 * @return the fileName
@@ -954,9 +1014,9 @@ public abstract class Module
 	/**
 	 * @param modID The modID to set.
 	 */
-	protected void setModID(final String modID)
+	protected void setModID(final String newModID)
 	{
-		this.modID = modID;
+		modID = newModID;
 	}
 	/**
 	 * @return Returns the baseVolume (0..128)
@@ -968,12 +1028,12 @@ public abstract class Module
 	/**
 	 * @param baseVolume The baseVolume to set.
 	 */
-	protected void setBaseVolume(final int baseVolume)
+	protected void setBaseVolume(final int newBaseVolume)
 	{
-		this.baseVolume = baseVolume;
+		baseVolume = newBaseVolume;
 	}
 	/**
-	 * @return the mixingPreAmp (0..128)
+	 * @return the mixingPreAmp (0..256)
 	 */
 	public int getMixingPreAmp()
 	{
@@ -982,9 +1042,23 @@ public abstract class Module
 	/**
 	 * @param mixingPreAmp The mixing Pre-Amp to set
 	 */
-	protected void setMixingPreAmp(final int mixingPreAmp)
+	protected void setMixingPreAmp(final int newMixingPreAmp)
 	{
-		this.mixingPreAmp = mixingPreAmp;
+		mixingPreAmp = newMixingPreAmp;
+	}
+	/**
+	 * @return the synthMixingPreAmp (0..256)
+	 */
+	public int getSynthMixingPreAmp()
+	{
+		return synthMixingPreAmp;
+	}
+	/**
+	 * @param synthMixingPreAmp The synth mixing Pre-Amp to set
+	 */
+	protected void setSynthMixingPreAmp(final int newSynthMixingPreAmp)
+	{
+		synthMixingPreAmp = newSynthMixingPreAmp;
 	}
 	/**
 	 * @return the songFlags
@@ -996,9 +1070,9 @@ public abstract class Module
 	/**
 	 * @param songFlags the songFlags to set
 	 */
-	protected void setSongFlags(final int songFlags)
+	protected void setSongFlags(final int newSongFlags)
 	{
-		this.songFlags = songFlags;
+		songFlags = newSongFlags;
 	}
 	/**
 	 * @return Returns the modType.
@@ -1010,9 +1084,9 @@ public abstract class Module
 	/**
 	 * @param modType The modType to set.
 	 */
-	protected void setModType(final int modType)
+	protected void setModType(final int newModType)
 	{
-		this.modType = modType;
+		modType = newModType;
 	}
 	/**
 	 * @return the version
@@ -1024,9 +1098,9 @@ public abstract class Module
 	/**
 	 * @param version the version to set
 	 */
-	public void setVersion(int version)
+	public void setVersion(final int newVersion)
 	{
-		this.version = version;
+		version = newVersion;
 	}
 	/**
 	 * @return the lenthInMilliseconds
@@ -1038,9 +1112,31 @@ public abstract class Module
 	/**
 	 * @param lenthInMilliseconds the lenthInMilliseconds to set
 	 */
-	public void setLengthInMilliseconds(final long lengthInMilliseconds)
+	public void setLengthInMilliseconds(final long newLengthInMilliseconds)
 	{
-		this.lengthInMilliseconds = lengthInMilliseconds;
+		lengthInMilliseconds = newLengthInMilliseconds;
+	}
+	public int getTempoMode()
+	{
+		return tempoMode;
+	}
+	/**
+	 * @return the rowsPerBeat
+	 */
+	public int getRowsPerBeat()
+	{
+		return rowsPerBeat;
+	}
+	/**
+	 * @return the rowsPerMeasure
+	 */
+	public int getRowsPerMeasure()
+	{
+		return rowsPerMeasure;
+	}
+	public double [] getTempoSwing()
+	{
+		return tempoSwing;
 	}
 	/**
 	 * @since 18.12.2023
@@ -1090,5 +1186,392 @@ public abstract class Module
 				.append(getSongMessage()).append('\n')
 				.append(getInstrumentContainer().toString());
 		return modInfo.toString();
+	}
+	
+	// Flags for readExtendedFlags
+	private static final int dFdd_VOLUME 		= 0x0001;
+	private static final int dFdd_VOLSUSTAIN 	= 0x0002;
+	private static final int dFdd_VOLLOOP 		= 0x0004;
+	private static final int dFdd_PANNING 		= 0x0008;
+	private static final int dFdd_PANSUSTAIN 	= 0x0010;
+	private static final int dFdd_PANLOOP 		= 0x0020;
+	private static final int dFdd_PITCH 		= 0x0040;
+	private static final int dFdd_PITCHSUSTAIN 	= 0x0080;
+	private static final int dFdd_PITCHLOOP 	= 0x0100;
+	private static final int dFdd_SETPANNING 	= 0x0200;
+	private static final int dFdd_FILTER 		= 0x0400;
+	private static final int dFdd_VOLCARRY 		= 0x0800;
+	private static final int dFdd_PANCARRY 		= 0x1000;
+	private static final int dFdd_PITCHCARRY 	= 0x2000;
+	private static final int dFdd_MUTE 			= 0x4000;
+	/**
+	 * These flags are not written anymore - and I guess that OMPT reads them
+	 * wrongly now (reads only 8 bits instead of 16 bits).
+	 * We support this for backwards compatibility
+	 * @since 13.02.2024
+	 * @param inputStream
+	 * @param ins
+	 * @param size
+	 * @throws IOException
+	 */
+	protected void readExtendedFlags(final ModfileInputStream inputStream, final Instrument ins, final int size) throws IOException
+	{
+		final int flag = (int)inputStream.readIntelBytes(size); // OMPT reads only 8 bits, but flags indicate 16 bit! We rely on "size"
+		if ((flag & dFdd_VOLUME)		!=0) ins.volumeEnvelope.on = true;
+		if ((flag & dFdd_VOLSUSTAIN)	!=0) ins.volumeEnvelope.sustain = true;
+		if ((flag & dFdd_VOLLOOP)		!=0) ins.volumeEnvelope.loop = true;
+		if ((flag & dFdd_VOLCARRY)		!=0) ins.volumeEnvelope.carry = true;
+
+		if ((flag & dFdd_PANNING)		!=0) ins.panningEnvelope.on = true;
+		if ((flag & dFdd_PANSUSTAIN)	!=0) ins.panningEnvelope.sustain = true;
+		if ((flag & dFdd_PANLOOP)		!=0) ins.panningEnvelope.loop = true;
+		if ((flag & dFdd_PANCARRY)		!=0) ins.panningEnvelope.carry = true;
+		
+		if ((flag & dFdd_PITCH)			!=0) ins.pitchEnvelope.on = true;
+		if ((flag & dFdd_PITCHSUSTAIN)	!=0) ins.pitchEnvelope.sustain = true;
+		if ((flag & dFdd_PITCHLOOP)		!=0) ins.pitchEnvelope.loop = true;
+		if ((flag & dFdd_PITCHCARRY)	!=0) ins.pitchEnvelope.carry = true;
+		if ((flag & dFdd_FILTER)		!=0) ins.pitchEnvelope.filter = true;
+		
+		if ((flag & dFdd_SETPANNING)	!=0) ins.setPanning = true;
+		if ((flag & dFdd_MUTE)			!=0) ins.mute = true;
+	}
+	/**
+	 * @since 03.02.2024
+	 * @param inputStream
+	 * @param ins
+	 * @param code
+	 * @param size
+	 * @throws IOException
+	 */
+	protected void readInstrumentExtensionField(final ModfileInputStream inputStream, final Instrument ins, final int code, final int size) throws IOException
+	{
+		if (size > inputStream.length() || ins==null) return;
+		switch (code)
+		{
+			case 0x56522E2E: //"VR.." VOLRampUp
+				ins.volRampUp = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x464F2E2E: //"FO.." FadeOut
+				ins.volumeFadeOut = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x64462E2E: //"dF.." extended instrument flags
+				readExtendedFlags(inputStream, ins, size);
+				break;
+			case 0x47562E2E: //"GV.." Global Volume
+				ins.globalVolume = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x502E2E2E: //"P..." Pan
+				ins.defaultPanning = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x564C532E: //"VLS." VolEnv LoopStart
+				ins.volumeEnvelope.loopStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x564C452E: //"VLE." VolEnv LoopEnd
+				ins.volumeEnvelope.loopEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x5653422E: //"VSB." VolEnv SustainLoopStart
+				ins.volumeEnvelope.sustainStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x5653452E: //"VSE." VolEnv SustainLoopEnd
+				ins.volumeEnvelope.sustainEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x504C532E: //"PLS." PanEnv LoopStart
+				ins.panningEnvelope.loopStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x504C452E: //"PLE." PanEnv LoopEnd
+				ins.panningEnvelope.loopEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x5053422E: //"PSB." PanEnv SustainLoopStart
+				ins.panningEnvelope.sustainStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x5053452E: //"PSE." PanEnv SustainLoopEnd
+				ins.panningEnvelope.sustainEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50694C53: //"PiLS" PitchEnvelope LoopStart
+				ins.pitchEnvelope.loopStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50694C45: //"PiLE" PitchEnvelope LoopEnd
+				ins.pitchEnvelope.loopEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50695342: //"PiSB" PitchEnvelope SustainLoopStart
+				ins.pitchEnvelope.sustainStartPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50695345: //"PiSE" PitchEnvelope SustainLoopEnd
+				ins.pitchEnvelope.sustainEndPoint = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4E4E412E: //"NNA." NewNoteAction
+				ins.NNA = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4443542E: //"DCT." DuplicateNoteCheck
+				ins.dublicateNoteCheck = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x444E412E: //"DNA." DuplicateNoteAction
+				ins.dublicateNoteAction = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50532E2E: //"PS..." PanSwing
+				ins.randomPanningVariation = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x56532E2E: //"VS..." VolSwing
+				ins.randomVolumeVariation = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4D69502E: //"MiP." MixPlugIn
+				ins.plugin = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x50564548: //"PVEH" PluginVelocityHandling
+			case 0x50564F48: //"PVOH" PluginVolumeHandling
+				inputStream.skip(size);
+				break;
+			case 0x4D422E2E: //"MB.." MidiBank
+				ins.midiBank = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4D502E2E: //"MP.." MidiProgramm
+				ins.midiProgram = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4D432E2E: //"MC.." MidiChannel
+				ins.midiChannel = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x4D505744: //"MPWD" MidiPWD
+				ins.pitchWheelDepth = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x522E2E2E: //"R..." resampling
+				ins.resampling = (int)inputStream.readIntelBytes(size);
+				ins.resampling--; // our "default" is -1
+				if (ins.resampling>3) ins.resampling = 3; // our max value;
+				break;
+			case 0x43532E2E: //"CS.." CutSwing
+				ins.randomCutOffVariation = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x52532E2E: //"RS.." ResSwing
+				ins.randomResonanceVariation = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x464D2E2E: //"FM.." filterMode
+				ins.filterMode = (int)inputStream.readIntelBytes(size);
+				break;
+			case 0x5045524E: //"PERN" PitchEnv.nReleaseNode
+			case 0x4145524E: //"AERN" PanEnv.nReleaseNode
+			case 0x5645524E: //"VERN" VolEnv.nReleaseNode
+			case 0x5054544C: //"PTTL" pitchToTempoLock
+			case 0x46545450: //"FTTP" pitchToTempoLock FracPart
+			default:
+				inputStream.skip(size);
+		}
+	}
+	/**
+	 * @since 19.01.2024
+	 * @param inputStream
+	 * @return
+	 * @throws IOException
+	 */
+	protected boolean loadExtendedInstrumentProperties(final ModfileInputStream inputStream) throws IOException
+	{
+		final int marker = inputStream.readIntelDWord();
+		if (marker != 0x4D505458) // MPTX - ModPlugExtraInstrumentInfo
+		{
+			inputStream.skipBack(4);
+			return false;
+		}
+//		System.out.println("\nExtendedInstrumentProperties");
+		while (inputStream.length()>=6)
+		{
+			final int code = inputStream.readIntelDWord();
+			if (code==0x4D505453 || // Start of MPTM extensions, non-ASCII ID or truncated field
+					(code&0x80808080)!=0 || (code&0x60606060)==0)
+			{
+				inputStream.skipBack(4);
+				break;
+			}
+//			System.out.println("case 0x"+ModConstants.getAsHex(code, 8) + ": //\"" + Helpers.retrieveAsString(new byte[] {(byte)((code>>24)&0xFF), (byte)((code>>16)&0xFF), (byte)((code>>8)&0xFF), (byte)(code&0xFF)}, 0, 4)+"\"");
+			// size of this property for ONE instrument
+			final int size = inputStream.readIntelWord();
+			for (int i=0; i<getNInstruments(); i++)
+			{
+				readInstrumentExtensionField(inputStream, getInstrumentContainer().getInstrument(i), code, size);
+			}
+		}			
+		return true;
+	}
+	/**
+	 * @since 03.02.2024
+	 * @param inputStream
+	 * @param ignoreChannelCount
+	 * @return
+	 * @throws IOException
+	 */
+	protected boolean loadExtendedSongProperties(final ModfileInputStream inputStream, final boolean ignoreChannelCount) throws IOException
+	{
+		final int marker = inputStream.readIntelDWord();
+		if (marker != 0x4D505453) // MPTS - ModPlugExtraSongInfo
+		{
+			inputStream.skipBack(4);
+			return false;
+		}
+//		System.out.println("\nExtendedSongProperties");
+		while (inputStream.length()>=6)
+		{
+			final int code = inputStream.readIntelDWord();
+//			System.out.println("case 0x"+ModConstants.getAsHex(code, 8) + ": //\"" + Helpers.retrieveAsString(new byte[] {(byte)((code>>24)&0xFF), (byte)((code>>16)&0xFF), (byte)((code>>8)&0xFF), (byte)(code&0xFF)}, 0, 4)+"\"");
+			final int size = inputStream.readIntelWord();
+			
+			if (code==0x04383232) // Start of MPTM extensions, non-ASCII ID or truncated field
+			{
+				inputStream.skipBack(6);
+				break;
+			}
+			else
+			if ((code&0x80808080)!=0 || (code&0x60606060)==0 || inputStream.length()<size)
+			{
+				break;
+			}
+			
+			switch (code)
+			{
+				case 0x44542E2E: //"DT.." - default BPM
+					final int bpm = (int)inputStream.readIntelBytes(size);
+					setBPMSpeed(bpm);
+					break;
+				case 0x52464544: //"DTFR" - default BPM - fraction - is written as MagicLE
+					/*final int bpmFrac = (int)*/inputStream.readIntelBytes(size);
+					break;
+				case 0x5250422E: //"RPB." - RowsPerBeat
+					rowsPerBeat = (int)inputStream.readIntelBytes(size);
+					break;
+				case 0x52504D2E: //"RPM." - RowsPerMeasure
+					rowsPerMeasure = (int)inputStream.readIntelBytes(size);
+					break;
+				case 0x432E2E2E: //"C..." - # channels
+					final int channels = (int)inputStream.readIntelBytes(size);
+					if (!ignoreChannelCount) setNChannels(channels);
+					break;
+				case 0x544D2E2E: //"TM.." - Tempo mode
+					tempoMode = (int)inputStream.readIntelBytes(size);
+					if (tempoMode<0 || tempoMode>ModConstants.TEMPOMODE_MODERN) tempoMode = ModConstants.TEMPOMODE_CLASSIC;
+					break;
+				case 0x4357562E: //"CWV." - created with version
+					createdWithVersion = (int)inputStream.readIntelBytes(size);
+					break;
+				case 0x4C535756: //"LSWV" - last saved with version
+					lastSavedWithVersion = (int)inputStream.readIntelBytes(size);
+					break;
+				case 0x5350412E: //"SPA." - SamplePreAmp
+					mixingPreAmp = (int)inputStream.readIntelBytes(size);
+					if (mixingPreAmp > ModConstants.MAX_MIXING_PREAMP) mixingPreAmp = ModConstants.MAX_MIXING_PREAMP;
+					break;
+				case 0x56535456: //"VSTV" - VSTiVolume
+					synthMixingPreAmp = (int)inputStream.readIntelBytes(size);
+					if (synthMixingPreAmp > ModConstants.MAX_MIXING_PREAMP) synthMixingPreAmp = ModConstants.MAX_MIXING_PREAMP;
+					break;
+				case 0x4447562E: //"DGV." - defaultGlobalVolume
+					baseVolume = (int)inputStream.readIntelBytes(size);
+					if (baseVolume > ModConstants.MAXGLOBALVOLUME) baseVolume = ModConstants.MAXGLOBALVOLUME;
+					break;
+				case 0x52502E2E: //"RP.." - Song Restart
+					final int restartPosition = (int)inputStream.readIntelBytes(size);
+					if ((getModType()&ModConstants.MODTYPE_XM)==0) setSongRestart(restartPosition); // Skip for XMs!
+					break;
+				case 0x504D5352: //"RSMP" - Resampling Method - written as MagicLE
+					resampling = (int)inputStream.readIntelBytes(size);
+					resampling--; // our "default" is -1
+					if (resampling>ModConstants.INTERPOLATION_WINDOWSFIR) resampling = ModConstants.INTERPOLATION_WINDOWSFIR; // our max value;
+					break;
+				case 0x4C4F4343: //"CCOL" - Channel Colors - written as MagicLE
+					if ((size % 4)==0)
+					{
+						final int numChannels = size>>2;
+						final Color [] chnColors = new Color[numChannels];
+						
+						final byte [] rgb = new byte[4];
+						for (int c=0; c<numChannels; c++)
+						{
+							inputStream.read(rgb, 0, 4);
+							if (rgb[3]!=0)
+								chnColors[c] = null;
+							else
+								chnColors[c] = new Color((int)(rgb[0]&0xFF) | ((int)(rgb[1]&0xFF) << 8) | ((int)(rgb[2]&0xFF) << 16));
+						}
+					}
+					else
+						inputStream.skip(size);
+					break;
+				case 0x48545541: //"AUTH" - Author - written as MagicLE
+					author = inputStream.readString(size);
+					break;
+				case 0x43686E53: //"ChnS" - channel settings for channels 65-127
+					if ((getModType()&ModConstants.MODTYPE_XM)==0 && size<=64*2 && size%2==0) // Skip for XMs!
+					{
+						final int loopLimit = 64 + size>>1;
+						final int [] newPanningValues = new int[loopLimit];
+						final int [] newChannelVolume = new int[loopLimit];
+						System.arraycopy(panningValue, 0, newPanningValues, 0, 64);
+						System.arraycopy(channelVolume, 0, newChannelVolume, 0, 64);
+
+						for (int c=64; c<loopLimit; c++)
+						{
+							int pan = inputStream.read();
+							final int vol = inputStream.read();
+							if (pan!=0xFF)
+							{
+								newChannelVolume[c] = vol;
+								if (pan==100 || (pan & 0x80)!=0)
+								{
+									// we simply store those, as mixer responds to these in "initializeMixer()"
+									newPanningValues[c] = pan<<2;
+								}
+								else
+								{
+									pan = (pan&0x7F)<<2;
+									if (pan>256) pan = 256;
+									newPanningValues[c]=pan; 
+								}
+							}
+						}
+						
+						panningValue = newPanningValues;
+						channelVolume = newChannelVolume;
+					}
+					else
+						inputStream.skip(size);
+					break;
+				case 0x53455543: //"CUES" - Sample Cues - written as MagicLE
+					if (size>2)
+					{
+						int cues = (size - 2)>>2; // should be MAX_CUES (or less)
+						final int sampleIndex = inputStream.readIntelWord();
+						if (sampleIndex>0 && sampleIndex<=getNSamples())
+						{
+							final Sample sample = getInstrumentContainer().getSample(sampleIndex);
+							// future versions of OMPT might have more than 9 cues...
+							final int [] theCues = new int[cues<Sample.MAX_CUES?Sample.MAX_CUES:cues];
+							int cue = 0;
+							for (; cue<cues; cue++) theCues[cue] = inputStream.readIntelDWord();
+							// if we had less than max_cues, fill up with default
+							for (; cue<Sample.MAX_CUES; cue++) theCues[cue] = sample.length;
+							sample.setCues(theCues);
+						}
+						else
+							inputStream.skip(cues<<2);
+					}
+					else
+						inputStream.skip(size);
+					break;
+				case 0x474E5753: //"SWNG" - Tempo Swing factors - written as MagicLE
+					if (size>2)
+					{
+						final int anzNums = inputStream.readIntelWord();
+						tempoSwing = new double[anzNums];
+						for (int i=0; i<anzNums; i++) tempoSwing[i] = (double)inputStream.readIntelDWord();
+					}
+					else
+						inputStream.skip(size);
+					break;
+				case 0x504D4D2E: //"PMM." - MixLevels - this is OMPT specific to let old MPTs sound equally - we ignore that for now
+				case 0x4D53462E: //"MSF." - Playback Compatibility Flags - OMPT specific - we ignore that
+				case 0x4D494D41: //"MIMA" - MidiMapper - guess we cannot use this - especially when running on linux
+				default: // if it is not implemented, skip it!
+					inputStream.skip(size);
+					break;
+			}
+		}
+		return true;
 	}
 }

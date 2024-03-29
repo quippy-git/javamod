@@ -32,6 +32,10 @@
  * as java converts all bit operations into int anyways.
  * short a; short b = (short)(a<<1): result is an int, so cast to short is 
  * needed.
+ * connect1 will be a reference to either output or phase_modulation. As in Java
+ * we have no pointers and Integer-Objects are not manipulable we avoid creating
+ * a small IntegerPointer-class and simply use an int[] with length 1 to go
+ * around this - not nice but effective and fast.
  * Function-Pointers not existent in Java - need interfaces instead. But we
  * do not use callbacks here anyways.
  * The Y8950 code was documented out, we do not need it here. 
@@ -1500,7 +1504,7 @@ public class FMOPL_072
 			SLOT = P_CH[6].SLOT[SLOT2];
 			env = volume_calc(SLOT);
 			if( env < ENV_QUIET )
-				output[0] += op_calc(SLOT.Cnt, env, phase_modulation[0], SLOT.wavetable) * 2;
+				output[0] += op_calc(SLOT.Cnt, env, phase_modulation[0], SLOT.wavetable) << 1; //* 2;
 
 			/* Phase generation is based on: */
 			/* HH  (13) channel 7->slot 1 combined with channel 8->slot 2 (same combination as TOP CYMBAL but different output phases) */
@@ -1566,7 +1570,7 @@ public class FMOPL_072
 						phase = 0xd0>>2;
 				}
 
-				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT7_1.wavetable) * 2;
+				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT7_1.wavetable) << 1; //* 2;
 			}
 
 			/* Snare Drum (verified on real YM3812) */
@@ -1588,14 +1592,14 @@ public class FMOPL_072
 				if (noise!=0)
 					phase ^= 0x100;
 
-				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT7_2.wavetable) * 2;
+				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT7_2.wavetable) << 1; //* 2;
 			}
 
 			/* Tom Tom (verified on real YM3812) */
 			final OPL_SLOT SLOT8_1 = P_CH[8].SLOT[SLOT1];
 			env = volume_calc(SLOT8_1);
 			if( env < ENV_QUIET )
-				output[0] += op_calc(SLOT8_1.Cnt, env, 0, SLOT8_1.wavetable) * 2;
+				output[0] += op_calc(SLOT8_1.Cnt, env, 0, SLOT8_1.wavetable) << 1; //* 2;
 
 			/* Top Cymbal (verified on real YM3812) */
 			env = volume_calc(SLOT8_2);
@@ -1622,7 +1626,7 @@ public class FMOPL_072
 				if (res2!=0)
 					phase = 0x300;
 
-				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT8_2.wavetable) * 2;
+				output[0] += op_calc(phase<<FREQ_SH, env, 0, SLOT8_2.wavetable) << 1; //* 2;
 			}
 		}
 

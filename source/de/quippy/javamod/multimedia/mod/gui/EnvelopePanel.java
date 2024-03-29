@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 
 import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
+import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope.EnvelopeType;
 import de.quippy.javamod.system.Helpers;
 
 /**
@@ -38,8 +39,6 @@ public class EnvelopePanel extends JPanel
 {
 	private static final long serialVersionUID = 5511415780545189305L;
 	
-	public enum EnvelopeType { volume, panning, pitch }
-	
 	private EnvelopeImagePanel envelopeImagePanel = null;
 
 	private FixedStateCheckBox isEnabled = null;
@@ -47,8 +46,6 @@ public class EnvelopePanel extends JPanel
 	private FixedStateCheckBox isFilterEnabled = null;
 	private FixedStateCheckBox isLoopEnabled = null;
 	private FixedStateCheckBox isSustainEnabled = null;
-	
-	//private Envelope envelope = null;
 
 	/**
 	 * Constructor for EnvelopePanel
@@ -94,7 +91,7 @@ public class EnvelopePanel extends JPanel
 		add(getIsFilterEnabled(), 		Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getIsLoopEnabled(), 		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getIsSustainEnabled(), 		Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getEnvelopeImagePanel(), 		Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
+		add(getEnvelopeImagePanel(), 	Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 	}
 	private FixedStateCheckBox getIsEnabled()
 	{
@@ -159,15 +156,14 @@ public class EnvelopePanel extends JPanel
 		}
 		return envelopeImagePanel;
 	}
-	public void setEnvelope(Envelope envelope, EnvelopeType type)
+	public void setEnvelope(final Envelope envelope)
 	{
-		//this.envelope = envelope;
 		if (envelope!=null)
 		{
 			getIsEnabled().setFixedState(envelope.on);
 			getIsCarryEnabled().setFixedState(envelope.carry);
 			getIsFilterEnabled().setFixedState(envelope.filter);
-			getIsFilterEnabled().setEnabled(type == EnvelopeType.pitch);
+			getIsFilterEnabled().setEnabled(envelope.getEnvelopeType() == EnvelopeType.pitch);
 			getIsLoopEnabled().setFixedState(envelope.loop);
 			getIsSustainEnabled().setFixedState(envelope.sustain);
 		}

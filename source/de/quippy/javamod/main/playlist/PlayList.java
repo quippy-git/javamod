@@ -876,7 +876,7 @@ public class PlayList
 		}
 		finally
 		{
-			if (input!=null) try { input.close(); } catch (IOException e) { Log.error("IGNORED", e); }
+			if (input!=null) try { input.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		if (entries.size()>0)
 			return new PlayList(entries.toArray(new File[entries.size()]), shuffle, repeat);
@@ -1052,7 +1052,7 @@ public class PlayList
 			}
 			finally
 			{
-				if (br!=null) try { br.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+				if (br!=null) try { br.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 		else

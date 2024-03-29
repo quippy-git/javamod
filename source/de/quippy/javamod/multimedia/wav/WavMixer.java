@@ -67,7 +67,7 @@ public class WavMixer extends BasicMixer
 	{
 		try
 		{
-			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			audioInputStream = AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
 			AudioFormat audioFormat = audioInputStream.getFormat();
 			
@@ -98,7 +98,7 @@ public class WavMixer extends BasicMixer
 				{
 					audioInputStream = AudioSystem.getAudioInputStream(possibleFormats[0], audioInputStream);
 					audioFormat = audioInputStream.getFormat();
-					Log.info("Converting input data to " + audioFormat.toString());
+					//Log.info("Converting input data to " + audioFormat.toString());
 				}
 			}
 			setAudioFormat(audioFormat);
@@ -113,6 +113,7 @@ public class WavMixer extends BasicMixer
 			// Now for the bits (linebuffer):
 			bufferSize *= sampleSizeInBytes;
 			output = new byte[bufferSize];
+			setSourceLineBufferSize(bufferSize);
 		}
 		catch (Throwable ex)
 		{
@@ -152,7 +153,7 @@ public class WavMixer extends BasicMixer
 		{
 			if (getMillisecondPosition() > milliseconds)
 			{
-				if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+				if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 				audioInputStream = AudioSystem.getAudioInputStream(waveFileUrl);
 				currentSamplesWritten = 0;
 			}
@@ -277,7 +278,7 @@ public class WavMixer extends BasicMixer
 		{
 			setIsStopped();
 			closeAudioDevice();
-			if (audioInputStream!=null) try { audioInputStream.close(); audioInputStream = null; } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (audioInputStream!=null) try { audioInputStream.close(); audioInputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

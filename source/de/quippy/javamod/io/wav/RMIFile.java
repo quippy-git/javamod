@@ -94,7 +94,7 @@ public class RMIFile extends RiffFile
 			}
 			finally
 			{
-				if (input!=null) try { input.close(); } catch (Exception ex) { Log.error("IGNORED", ex); }
+				if (input!=null) try { input.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 		catch (IOException ex)
@@ -103,7 +103,7 @@ public class RMIFile extends RiffFile
 		}
 		finally
 		{
-			if (rmiInput!=null) try { rmiInput.close(); } catch (Exception ex) { Log.error("IGNORED", ex); }
+			if (rmiInput!=null) try { rmiInput.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return null;		
 	}

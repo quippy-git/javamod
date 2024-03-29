@@ -22,12 +22,13 @@
 package de.quippy.javamod.main.gui.components;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Transparency;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.image.BufferedImage;
 
 import javax.swing.border.Border;
 
@@ -46,7 +47,7 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	protected volatile int myWidth;
 	protected volatile int myHeight;
 
-	private Image imageBuffer;
+	private BufferedImage imageBuffer;
 	/**
 	 * Constructor for MeterPanelBase
 	 */
@@ -62,9 +63,13 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	{
 		addComponentListener(new ComponentListener()
 		{
+			@Override
 			public void componentHidden(ComponentEvent e) {}
+			@Override
 			public void componentMoved(ComponentEvent e) {}
+			@Override
 			public void componentShown(ComponentEvent e) {}
+			@Override
 			public void componentResized(ComponentEvent e)
 			{
 				internalComponentWasResized();
@@ -76,22 +81,22 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	 */
 	protected synchronized void internalComponentWasResized()
 	{
-		imageBuffer=null;
-
 		Border b = this.getBorder();
-		Insets inset = (b==null)?new Insets(1,1,1,1):b.getBorderInsets(this);
+		Insets inset = (b==null)?new Insets(0,0,0,0):b.getBorderInsets(this);
 		myTop = inset.top;
 		myLeft = inset.left;
 		myWidth = this.getWidth() - inset.left - inset.right;
 		myHeight = this.getHeight() - inset.top - inset.bottom;
 		
+		imageBuffer=null;
+
 		if (myWidth>0 && myHeight>0) componentWasResized(0, 0, myWidth, myHeight);
 	}
-	protected synchronized Image getDoubleBuffer(final int myWidth, final int myHeight)
+	protected synchronized BufferedImage getDoubleBuffer(final int myWidth, final int myHeight)
 	{
     	if (imageBuffer==null && myWidth>0 && myHeight>0)
 		{
-			GraphicsConfiguration graConf = getGraphicsConfiguration();
+			final GraphicsConfiguration graConf = getGraphicsConfiguration();
 			if (graConf!=null) imageBuffer = graConf.createCompatibleImage(myWidth, myHeight, Transparency.OPAQUE);
 		}
 		return imageBuffer;
@@ -101,17 +106,22 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	 */
 	protected synchronized void doThreadUpdate()
 	{
-       	Image buffer = getDoubleBuffer(myWidth, myHeight);
+       	final BufferedImage buffer = getDoubleBuffer(myWidth, myHeight);
        	if (buffer!=null)
        	{
+   			final Graphics2D gfx = (Graphics2D)buffer.getGraphics(); 
 	   		try
 	   		{
-	   			drawMeter(buffer.getGraphics(), 0, 0, myWidth, myHeight);
+	   			drawMeter(gfx, 0, 0, myWidth, myHeight);
 		   		repaint(myTop, myLeft, myWidth, myHeight);
 	   		}
 	   		catch (Exception ex)
 	   		{
 	   			Log.error("[MeterPanelBase]:", ex);
+	   		}
+	   		finally
+	   		{
+	   			gfx.dispose();
 	   		}
        	}
 	}
@@ -123,18 +133,26 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	public void paintComponent(Graphics g)
 	{
 		super.paintComponent(g);
-//		Graphics2D g2d = (Graphics2D) g;
-//		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-		Image buffer = getDoubleBuffer(myWidth, myHeight);
-		if (buffer!=null) g.drawImage(buffer, myLeft, myTop, null);
+		final BufferedImage buffer = getDoubleBuffer(myWidth, myHeight);
+		if (buffer!=null && g!=null)
+		{
+			final Graphics2D gfx = (Graphics2D)g.create();
+			try
+			{
+				gfx.drawImage(buffer, myLeft, myTop, null);
+			}
+			finally
+			{
+				gfx.dispose();
+			}
+		}
 	}
 	/**
 	 * Draws the meter
 	 * @since 01.01.2008
 	 * @param g
 	 */
-	protected abstract void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight);
+	protected abstract void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight);
 	/**
 	 * Will be called from "internalComponentWasResized
 	 * to signal a resize event

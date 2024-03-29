@@ -112,6 +112,8 @@ public class MP3InfoPanel extends JPanel
 	private JLabel v2_L_BPM = null;
 	private JTextField v2_BPM = null;
 	
+	private MP3Container parentContainer = null;
+
 	/**
 	 * Constructor for MP3InfoPanel
 	 */
@@ -148,7 +150,20 @@ public class MP3InfoPanel extends JPanel
 		super(layout, isDoubleBuffered);
 		initialize();
 	}
-
+	/**
+	 * @return the parent
+	 */
+	public MP3Container getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(MP3Container parent)
+	{
+		this.parentContainer = parent;
+	}
 	private void initialize()
 	{
 		this.setName("MP3InfoPane");

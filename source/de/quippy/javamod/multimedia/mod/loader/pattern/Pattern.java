@@ -22,6 +22,7 @@
 package de.quippy.javamod.multimedia.mod.loader.pattern;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.loader.Module;
 
 /**
  * @author Daniel Becker
@@ -29,22 +30,29 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
  */
 public class Pattern
 {
-	private PatternRow [] patternRows;
-	public static int LINEINDEX_LENGTH = 4;
-	public static int ROW_LENGTH = 16;
+	protected Module parentMod;
+	protected PatternContainer parentPatternContainer;
+	protected PatternRow [] patternRows;
+
+	protected String patternName;
+	protected double [] tempoSwing = null;
+	protected int rowsPerBeat = -1;
+	protected int rowsPerMeasure = -1;
 	
 	/**
 	 * Constructor for Pattern
 	 */
-	public Pattern(final int rows)
+	public Pattern(final Module newParentMod, final PatternContainer newParentPatternContainer, final int rows)
 	{
 		super();
 		patternRows = new PatternRow[rows];
+		parentMod = newParentMod;
+		parentPatternContainer = newParentPatternContainer;
 	}
-	public Pattern(final int rows, final int channels)
+	public Pattern(final Module parentMod, final PatternContainer parentPatternContainer, final int rows, final int channels)
 	{
-		this(rows);
-		for (int i=0; i<rows; i++) patternRows[i] = new PatternRow(channels);
+		this(parentMod, parentPatternContainer, rows);
+		for (int i=0; i<rows; i++) patternRows[i] = new PatternRow(parentMod, this, channels);
 	}
 	/**
 	 * @return
@@ -53,7 +61,7 @@ public class Pattern
 	@Override
 	public String toString()
 	{
-		return toString(true, false);
+		return toString(true);
 	}
 	/**
 	 * @since 27.11.2023
@@ -61,10 +69,10 @@ public class Pattern
 	 * @param isIT true: display effects for IT, false: for XM
 	 * @return
 	 */
-	public String toString(final boolean withRowMarker, final boolean isIT)
+	public String toString(final boolean withRowMarker)
 	{
 		final StringBuilder sb = new StringBuilder();
-		addToStringBuilder(sb, withRowMarker, isIT);
+		addToStringBuilder(sb, withRowMarker);
 		return sb.toString();
 	}
 	/**
@@ -73,23 +81,14 @@ public class Pattern
 	 * @param withRowMarker
 	 * @param isIT
 	 */
-	public void addToStringBuilder(final StringBuilder sb, final boolean withRowMarker, final boolean isIT)
+	public void addToStringBuilder(final StringBuilder sb, final boolean withRowMarker)
 	{
 		for (int row=0; row<patternRows.length; row++)
 		{
-			if (withRowMarker) sb.append(ModConstants.getAsHex(row, 2)).append(" |");
-			if (patternRows[row]!=null) patternRows[row].addToStringBuilder(sb, isIT);
+			if (withRowMarker) sb.append(ModConstants.getAsHex(row, 2)).append("|");
+			if (patternRows[row]!=null) patternRows[row].addToStringBuilder(sb);
 			sb.append('\n');
 		}
-	}
-	/**
-	 * @since 11.11.2023
-	 * @return
-	 */
-	public int getPatternRowCharacterLength(final boolean withRowIndex)
-	{
-		final int length = getChannels()*ROW_LENGTH;
-		return (withRowIndex)?LINEINDEX_LENGTH + length:length;
 	}
 	/**
 	 * Set this Pattern to have nChannels channels afterwards
@@ -100,7 +99,7 @@ public class Pattern
 	{
 		for (int row=0; row<patternRows.length; row++)
 		{
-			if (patternRows[row]==null) patternRows[row] = new PatternRow(nChannels);
+			if (patternRows[row]==null) patternRows[row] = new PatternRow(parentMod, this, nChannels);
 			patternRows[row].setToChannels(patternIndex, row, nChannels);
 		}
 	}
@@ -142,36 +141,59 @@ public class Pattern
 	/**
 	 * @return Returns the patternRows.
 	 */
-	public PatternRow getPatternRow(int row)
+	public PatternRow getPatternRow(final int row)
 	{
 		return patternRows[row];
 	}
 	/**
 	 * @return Returns the patternElement.
 	 */
-	public PatternElement getPatternElement(int row, int channel)
+	public PatternElement getPatternElement(final int row, final int channel)
 	{
 		return patternRows[row].getPatternElement(channel);
 	}
 	/**
 	 * @param patternRows The patternRows to set.
 	 */
-	public void setPatternRow(PatternRow[] patternRow)
+	public void setPatternRow(final PatternRow[] patternRow)
 	{
 		this.patternRows = patternRow;
 	}
 	/**
 	 * @param patternRows The patternRows to set.
 	 */
-	public void setPatternRow(int row, PatternRow patternRow)
+	public void setPatternRow(final int row, final PatternRow patternRow)
 	{
 		this.patternRows[row] = patternRow;
 	}
 	/**
 	 * @param patternElement The patternElement to set.
 	 */
-	public void setPatternElement(int row, int channel, PatternElement patternElement)
+	public void setPatternElement(final int row, int channel, final PatternElement patternElement)
 	{
 		this.patternRows[row].setPatternElement(channel, patternElement);
+	}
+	public int getRowsPerBeat()
+	{
+		if (rowsPerBeat<=0) return parentMod.getRowsPerBeat();
+		return rowsPerBeat;
+	}
+	public int getRowsPerMeasure()
+	{
+		if (rowsPerMeasure<=0) return parentMod.getRowsPerMeasure();
+		return rowsPerMeasure;
+	}
+	public double [] getTempoSwing()
+	{
+		if (tempoSwing==null) return parentMod.getTempoSwing();
+		return tempoSwing;
+	}
+	public String getPatternName()
+	{
+		return patternName;
+	}
+	public void setPatternName(final String newPatternName)
+	{
+		patternName = newPatternName;
 	}
 }

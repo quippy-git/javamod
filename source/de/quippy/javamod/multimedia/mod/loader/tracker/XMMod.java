@@ -28,15 +28,13 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.ModuleFactory;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
+import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope.EnvelopeType;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.InstrumentsContainer;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
-import de.quippy.javamod.multimedia.mod.loader.pattern.Pattern;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternContainer;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
-import de.quippy.javamod.multimedia.mod.loader.pattern.PatternRow;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -137,50 +135,124 @@ public class XMMod extends ProTrackerMod
 	 * @param inputStream
 	 * @throws IOException
 	 */
-	private void setIntoPatternElement(PatternElement currentElement, ModfileInputStream inputStream) throws IOException
+	private void setIntoPatternElement(ModfileInputStream inputStream, PatternElement currentElement) throws IOException
 	{
-		long pos = inputStream.getFilePointer();
-		int lookahead = inputStream.read();
-		inputStream.seek(pos);
-		int flags = ((lookahead&0x80)!=0)? inputStream.read() : 0x1F; // Packed or not packed...
-		if( (flags&0x01)!=0)
+		int flags = inputStream.read();
+		if ((flags&0x80) == 0) // is not packed
 		{
-			int period = 0;
-			int noteIndex = inputStream.read();
-			if (noteIndex==97) // Key Off!
+			flags = 0xFF; // read all
+			inputStream.skipBack(1); // and push back the note
+		}
+		int noteIndex	= ((flags&0x01)!=0)?inputStream.read():0;
+		int instrument	= ((flags&0x02)!=0)?inputStream.read():0;
+		int volume		= ((flags&0x04)!=0)?inputStream.read():0;
+		int effect		= ((flags&0x08)!=0)?inputStream.read():0;
+		int effectOp	= ((flags&0x10)!=0)?inputStream.read():0;
+
+		// sanitize all
+		if (noteIndex==97) // Key Off!
+			noteIndex = ModConstants.KEY_OFF;
+		else
+		if (noteIndex<0 || noteIndex>97)
+			noteIndex = ModConstants.NO_NOTE;
+		currentElement.setNoteIndex(noteIndex);
+		currentElement.setPeriod((noteIndex==ModConstants.NO_NOTE)?0:
+									(noteIndex==ModConstants.KEY_OFF)?ModConstants.KEY_OFF:
+										ModConstants.noteValues[noteIndex - 1]);
+
+		if (instrument==0xFF) instrument = 0;
+		currentElement.setInstrument(instrument);
+
+		if (volume!=0)
+		{
+			if (volume>=0x10 && volume<=0x50)
 			{
-				noteIndex = period = ModConstants.KEY_OFF;
+				currentElement.setVolumeEffekt(1);
+				currentElement.setVolumeEffektOp(volume-0x10);
 			}
 			else
-			if (noteIndex!=0)
 			{
-				if (noteIndex<97) noteIndex +=12;
-				noteIndex -= 12;
-				period = ModConstants.noteValues[noteIndex - 1];
+				currentElement.setVolumeEffekt((volume>>4)-0x4);
+				currentElement.setVolumeEffektOp(volume&0x0F);
 			}
-			currentElement.setNoteIndex(noteIndex);
-			currentElement.setPeriod(period);
 		}
-		if( (flags&0x02)!=0 ) currentElement.setInstrument(inputStream.read()); // Inst
-		if( (flags&0x04)!=0 )
+		
+		currentElement.setEffekt(effect);
+		currentElement.setEffektOp(effectOp);
+	}
+	/**
+	 * To support Versions below 0104 we need a separate method to load at a
+	 * different place.
+	 * @since 23.01.2024
+	 * @param inputStream
+	 * @throws IOException
+	 */
+	private void readXMPattern(final ModfileInputStream inputStream) throws IOException
+	{
+		PatternContainer patternContainer = new PatternContainer(this, getNPattern());
+		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
-			int volume = inputStream.read();
-			if (volume!=0)
+			final long LSEEK = inputStream.getFilePointer();
+			final int patternHeaderSize = inputStream.readIntelDWord();
+	
+//			We ignore the packing type - as everybody does...
+			inputStream.skip(1);
+	
+			int rows = (version==0x0102)?inputStream.read()+1:inputStream.readIntelUnsignedWord();
+			if (rows==0) rows=64; else if (rows>ModConstants.MAX_PATTERN_SIZE) rows = ModConstants.MAX_PATTERN_SIZE; 
+	
+			final int packedPatternDataSize = inputStream.readIntelUnsignedWord();
+			if (packedPatternDataSize==0)
 			{
-				if (volume<=0x50)
+				patternContainer.createPattern(pattNum, rows);
+				continue;
+			}
+			
+			inputStream.seek(LSEEK + patternHeaderSize);
+			
+			// Stop reading, if either end of file or packed pattern size is reached
+			long endPos = inputStream.getFilePointer() +  packedPatternDataSize;
+			if (endPos > inputStream.length()) endPos = inputStream.length();
+
+			patternContainer.createPattern(pattNum, rows);
+			for (int row=0; row<rows; row++)
+			{
+				patternContainer.createPatternRow(pattNum, row, getNChannels());
+				for (int channel=0; channel<getNChannels(); channel++)
 				{
-					currentElement.setVolumeEffekt(1);
-					currentElement.setVolumeEffektOp(volume-0x10);
-				}
-				else
-				{
-					currentElement.setVolumeEffekt((volume>>4)-0x4);
-					currentElement.setVolumeEffektOp(volume&0x0F);
+					final PatternElement currentElement = patternContainer.createPatternElement(pattNum, row, channel);
+					if (inputStream.getFilePointer()<endPos) setIntoPatternElement(inputStream, currentElement);
 				}
 			}
+			// With some corrupted XMs with flipped bits we will not load all pattern data.
+			// Most XM loaders load the compressed pattern data into a separate buffer, we don't
+			// so we need to seek...
+			if (inputStream.getFilePointer()!=endPos)
+			{
+//				final long dif = endPos - inputStream.getFilePointer();
+//				Log.info("Read not enough bytes (" + dif + ") in pattern " + pattNum);
+				setTrackerName(getTrackerName() + " (corrupt!)");
+				inputStream.seek(endPos);
+			}
 		}
-		if( (flags&0x08)!=0 ) currentElement.setEffekt(inputStream.read()); // FX
-		if( (flags&0x10)!=0 ) currentElement.setEffektOp(inputStream.read()); // FXP
+		setPatternContainer(patternContainer);
+	}
+	/**
+	 * @since 23.01.2024
+	 * @param inputStream
+	 * @param instrumentContainer
+	 * @param anzSamples
+	 * @param sampleOffsetIndex
+	 * @param sampleLoadingFlags
+	 * @throws IOException
+	 */
+	private void readXMSampleData(final ModfileInputStream inputStream, final InstrumentsContainer instrumentContainer, final int anzSamples, final int sampleOffsetIndex) throws IOException
+	{
+		for (int samIndex=0; samIndex<anzSamples; samIndex++)
+		{
+			Sample current = instrumentContainer.getSample(samIndex + sampleOffsetIndex); 
+			readSampleData(current, inputStream);
+		}
 	}
 	/**
 	 * Get the ModType
@@ -223,9 +295,8 @@ public class XMMod extends ProTrackerMod
 	@Override
 	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
-		setModType(ModConstants.MODTYPE_XM);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
-		setMixingPreAmp(ModConstants.DEFAULT_MIXING_PREAMP);
+		setMixingPreAmp(ModConstants.MIN_MIXING_PREAMP);
 
 		// XM-ID:
 		setModID(inputStream.readString(17));
@@ -237,17 +308,41 @@ public class XMMod extends ProTrackerMod
 		inputStream.skip(1);
 
 		// Trackername
-		String trackerName = inputStream.readString(20); 
-		setTrackerName(trackerName.trim());
+		final String trackerName = inputStream.readString(20); 
 		
 		// Version
 		version = inputStream.readIntelUnsignedWord();
-		if (version<0x0104) Log.info("XM-Version is below 0x0104... ");
 		
 		long LSEEK = inputStream.getFilePointer();
 		// Header Size
 		headerSize = inputStream.readIntelDWord();
 		
+		// lets start with some version / tracker guessing
+		setModType(ModConstants.MODTYPE_XM);
+		setTrackerName(trackerName.trim());
+		if (trackerName.startsWith("FastTracker v2.00") && headerSize==276)
+		{
+			setTrackerName("FastTracker II V" + ModConstants.getAsHex((version>>8)&0xFF, 2) + "." + ModConstants.getAsHex(version&0xFF, 2)); 
+			if (!trackerName.endsWith("   "))
+				setTrackerName(getTrackerName() + " (generic)");
+		}
+		else
+		if (trackerName.equals("FastTracker v 2.00  "))
+		{
+			setTrackerName("ModPlug Tracker V1.0");
+			setModType(getModType() | ModConstants.MODTYPE_MPT);
+		}
+		else
+		if (trackerName.startsWith("OpenMPT"))
+		{
+			setModType(getModType() | ModConstants.MODTYPE_OMPT);
+		}
+		else
+		if (trackerName.startsWith("*Converted "))
+		{
+			setTrackerName("DigiTracker");
+		}
+
 		// OrderNum:
 		setSongLength(inputStream.readIntelUnsignedWord());
 		
@@ -277,41 +372,20 @@ public class XMMod extends ProTrackerMod
 		setBPMSpeed(inputStream.readIntelUnsignedWord());
 		
 		// always space for 256 pattern...
+		// ModPlug used to allow marker pattern like in IT
+		//  255 = "---", End of song marker
+		//  254 = "+++", Skip to next order
 		allocArrangement(256);
-		for (int i=0; i<256; i++) getArrangement()[i]=inputStream.read();
+		final int[] arrangement = getArrangement();
+		for (int i=0; i<256; i++) arrangement[i]=inputStream.read();
 		
 		inputStream.seek(LSEEK + headerSize);
 		
 		// Read the patternData
-		PatternContainer patternContainer = new PatternContainer(getNPattern());
-		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
-		{
-			LSEEK = inputStream.getFilePointer();
-			final int patternHeaderSize = inputStream.readIntelDWord();
-			final int packingType = inputStream.read();
-			if (packingType!=0) throw new IOException("Unknown pattern packing type: " + packingType);
-			final int rows = inputStream.readIntelUnsignedWord();
-			final int packedPatternDataSize = inputStream.readIntelUnsignedWord();
-			inputStream.seek(LSEEK + patternHeaderSize);
-			
-			Pattern currentPattern = new Pattern(rows);
-			for (int row=0; row<rows; row++)
-			{
-				PatternRow currentRow = new PatternRow(getNChannels());
-				for (int channel=0; channel<getNChannels(); channel++)
-				{
-					PatternElement currentElement = new PatternElement(pattNum, row, channel);
-					if (packedPatternDataSize>0) setIntoPatternElement(currentElement, inputStream);
-					currentRow.setPatternElement(channel, currentElement);
-				}
-				currentPattern.setPatternRow(row, currentRow);
-			}
-			patternContainer.setPattern(pattNum, currentPattern);
-		}
-		setPatternContainer(patternContainer);
+		if (version>=0x0104) readXMPattern(inputStream);
 		
 		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, getNInstruments(), 0);
-		this.setInstrumentContainer(instrumentContainer);
+		setInstrumentContainer(instrumentContainer);
 
 		int sampleOffsetIndex = 0;
 		// Read the instrument data
@@ -328,7 +402,8 @@ public class XMMod extends ProTrackerMod
 
 			 // Default for values from IT
 			currentIns.setGlobalVolume(128);
-			currentIns.setDefaultPan(-1);
+			currentIns.setPanning(false);
+			currentIns.setDefaultPan(128);
 			currentIns.setPitchPanSeparation(-1);
 			currentIns.setNNA(-1);
 			currentIns.setInitialFilterCutoff(-1);
@@ -337,7 +412,7 @@ public class XMMod extends ProTrackerMod
 
 			final int instrumentHeaderSize = inputStream.readIntelDWord();
 			currentIns.setName(inputStream.readString(22));
-			/*int insType = */inputStream.read();
+			/*final int insType = */inputStream.read();
 			final int anzSamples = inputStream.readIntelWord();
 			
 			final int [] sampleIndex = new int[96];
@@ -370,7 +445,7 @@ public class XMMod extends ProTrackerMod
 					volumeEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
 					volumeEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
 				}
-				final Envelope volumeEnvelope = new Envelope();
+				final Envelope volumeEnvelope = new Envelope(EnvelopeType.volume);
 				volumeEnvelope.setPositions(volumeEnvelopePosition);
 				volumeEnvelope.setValue(volumeEnvelopeValue);
 				currentIns.setVolumeEnvelope(volumeEnvelope);
@@ -382,7 +457,7 @@ public class XMMod extends ProTrackerMod
 					panningEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
 					panningEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
 				}
-				final Envelope panningEnvelope = new Envelope();
+				final Envelope panningEnvelope = new Envelope(EnvelopeType.panning);
 				panningEnvelope.setPositions(panningEnvelopePosition);
 				panningEnvelope.setValue(panningEnvelopeValue);
 				currentIns.setPanningEnvelope(panningEnvelope);
@@ -411,13 +486,12 @@ public class XMMod extends ProTrackerMod
 				
 				currentIns.setVolumeFadeOut(inputStream.readIntelUnsignedWord());
 				
-				// Reserved
+				// Reserved TODO: read Midi Data instead
 				inputStream.skip(2);
 			}
 			inputStream.seek(LSEEK+instrumentHeaderSize);
 			
 			instrumentContainer.reallocSampleSpace(getNSamples());
-			int sampleLoadingFlags = ModConstants.SM_PCMD; // XM save in deltas
 			for (int samIndex=0; samIndex<anzSamples; samIndex++)
 			{
 				Sample current = new Sample();
@@ -452,6 +526,7 @@ public class XMMod extends ProTrackerMod
 				if ((current.flags&0x02)!=0) loopType |= ModConstants.LOOP_IS_PINGPONG;
 				current.setLoopType(loopType);
 				
+				int sampleLoadingFlags = 0; 
 				if ((current.flags&0x10)!=0)
 				{
 					sampleLoadingFlags |= ModConstants.SM_16BIT;
@@ -478,58 +553,112 @@ public class XMMod extends ProTrackerMod
 				current.setSustainLoopLength(0);
 
 				// Panning 0..255
-				current.setPanning(inputStream.read());
+				current.setPanning(true);
+				current.setDefaultPanning(inputStream.read());
 				
 				// Transpose -128..127
 				int transpose = inputStream.read();
 				current.setTranspose((transpose>0x7F)?transpose-0x100:transpose);
 				
 				// Reserved
-				current.XM_reserved = inputStream.readByte();
+				current.XM_reserved = inputStream.read();
 				
+				// Interpreting the loaded flags
+				if (current.XM_reserved == 0xAD && (current.flags & (0x10 | 0x20))==0) // ModPlug ADPCM compression
+				{
+					sampleLoadingFlags |= ModConstants.SM_ADPCM;
+					setTrackerName(getTrackerName()+" (ADPCM packed)");
+				}
+				else
+					sampleLoadingFlags |= ModConstants.SM_PCMD; // XM save in deltas
+
+				current.setSampleType(sampleLoadingFlags);
+
 				// Samplename
 				current.setName(inputStream.readString(22));
 				
 				instrumentContainer.setSample(samIndex + sampleOffsetIndex, current);
 			}
-			
-			for (int samIndex=0; samIndex<anzSamples; samIndex++)
-			{
-				Sample current = instrumentContainer.getSample(samIndex + sampleOffsetIndex); 
-				if (current.XM_reserved == 0xAD && (current.flags&0x30)==0) // OpenMPT ADPVM4 compression 
-				{
-//					sampleLoadingFlags = ModConstants.SM_ADPCM4;
-//					current.length = ((current.length + 1)>>1) + 16;
-					throw new IOException("ADPCM not supported");
-				}
-				current.setSampleType(sampleLoadingFlags);
-				readSampleData(current, inputStream);
-			}
+
+			if (version>=0x0104) readXMSampleData(inputStream, instrumentContainer, anzSamples, sampleOffsetIndex);
 			instrumentContainer.setInstrument(ins, currentIns);
+
 			sampleOffsetIndex += anzSamples;
 		}
+		
+		if (version<0x0104)
+		{
+			readXMPattern(inputStream);
+			readXMSampleData(inputStream, instrumentContainer, sampleOffsetIndex, 0);
+		}
+
+		// Remove marker pattern (supported with OpenModPlug in some versions)
 		cleanUpArrangement();
 		
+		midiMacros = new MidiMacros();
+		boolean hasMidiConfig = false;
+		boolean hasExtraInstrumentInfos = false;
+		boolean hasExtraSongProperties = false;
 		while (inputStream.getFilePointer() + 8 < inputStream.length())
 		{
-			final int marker = inputStream.readMotorolaDWord();
-			final int len = inputStream.readIntelDWord();
-			if (marker == 0x74657874) // 'text'
+			final int marker = inputStream.readIntelDWord();
+			if (marker == 0x4D505458) // MPTX - ModPlugExtraInstrumentInfo
 			{
-				if (len < inputStream.getLength()) songMessage = inputStream.readString(len);
+				inputStream.skipBack(4);
+				hasExtraInstrumentInfos = loadExtendedInstrumentProperties(inputStream);
 			}
 			else
-			if (marker == 0x4D494449) // 'MIDI'
+			if (marker == 0x4D505453) // MPTS - ModPlugExtraSongInfo
 			{
-				midiMacros = new MidiMacros();
-				// read the MidiMacros
-				if (len==MidiMacros.SIZE_OF_SCTUCT && len < inputStream.getLength()) midiMacros.loadFrom(inputStream);
+				inputStream.skipBack(4);
+				hasExtraSongProperties = loadExtendedSongProperties(inputStream, true);
 			}
 			else
 			{
-				// Skip it
-				inputStream.skip(len);
+				final int len = inputStream.readIntelDWord();
+				if (marker == 0x74786574) // 'text'
+				{
+					if (len < inputStream.getLength()) songMessage = inputStream.readString(len);
+				}
+				else
+				if (marker == 0x4944494D) // 'MIDI'
+				{
+					// read the MidiMacros
+					if (len==MidiMacros.SIZE_OF_SCTUCT && len < inputStream.getLength())
+					{
+						midiMacros.loadFrom(inputStream);
+						hasMidiConfig = true;
+					}
+				}
+				else
+				{
+					// Skip it
+					if (len < inputStream.getLength()) 
+						inputStream.skip(len);
+					else
+						break; // somthing bad happend...
+				}
 			}
 		}
+
+		boolean isMPT = (getModType()&(ModConstants.MODTYPE_MPT|ModConstants.MODTYPE_OMPT))!=0; 
+		if (hasExtraInstrumentInfos || hasExtraSongProperties)
+		{
+			if (!isMPT)
+			{
+				setModType(getModType() | ModConstants.MODTYPE_OMPT);
+				isMPT = true;
+			}
+			if (getPatternContainer().getChannelColors()==null) getPatternContainer().createMPTMDefaultRainbowColors();
+		}
+		if (isMPT && !hasExtraInstrumentInfos && !hasExtraSongProperties)
+		{
+			setModType(getModType()& ~(ModConstants.MODTYPE_MPT|ModConstants.MODTYPE_OMPT));
+			isMPT = false;
+			setTrackerName(getTrackerName() + ModConstants.COMPAT_MODE);
+		}
+		// Classic FT2: delete midi macros, Zxx effects are illegal there
+		if (!hasMidiConfig && !isMPT) 
+			midiMacros.clearZxxMacros();
 	}
 }

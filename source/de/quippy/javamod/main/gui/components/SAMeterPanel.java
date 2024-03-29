@@ -23,7 +23,7 @@ package de.quippy.javamod.main.gui.components;
 
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
@@ -208,7 +208,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
 		drawMeter(g, newTop, newLeft, newWidth, newHeight, true);
 	}
@@ -222,18 +222,16 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @param doClear
 	 * @since 06.05.2011
 	 */
-	protected void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
 	{
-		if (g!=null)
+		switch (drawWhat)
 		{
-			switch (drawWhat)
-			{
-				default:
-				case DRAW_SA_METER: drawSAMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
-				case DRAW_WAVE_METER: drawWaveMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
-				case DRAW_SK_METER: drawSKMeter(g, newTop, newLeft, newWidth, newHeight); break; 
-			}
+			default:
+			case DRAW_SA_METER: drawSAMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
+			case DRAW_WAVE_METER: drawWaveMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
+			case DRAW_SK_METER: drawSKMeter(g, newTop, newLeft, newWidth, newHeight); break; 
 		}
+		
 		for (int i=0; i<bands; i++)
 		{
 			fftLevels[i]-=rampDownValue;
@@ -250,7 +248,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param g
 	 */
-	private void drawWaveMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	private void drawWaveMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
 	{
 		if (doClear)
 		{
@@ -288,7 +286,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param g
 	 */
-	private void drawSAMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	private void drawSAMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
 	{
 		if (doClear)
 		{
@@ -323,7 +321,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 26.10.2007
 	 * @param g
 	 */
-	private void drawSKMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
+	private void drawSKMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
 		if (switched)
 		{

@@ -30,7 +30,6 @@ import javax.swing.JPanel;
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
-import de.quippy.javamod.system.Log;
 import de.quippy.jmac.decoder.IAPEDecompress;
 import de.quippy.jmac.info.APETag;
 import de.quippy.jmac.tools.File;
@@ -45,8 +44,7 @@ public class APEContainer extends MultimediaContainer
  	{
  		"ape", "apl", "mac"
  	};
-//	private JPanel apeConfigPanel;
-	private JPanel apeInfoPanel;
+	private APEInfoPanel apeInfoPanel;
 
 	private APETag idTag;
 	
@@ -88,14 +86,14 @@ public class APEContainer extends MultimediaContainer
 			apeFile = File.createFile(url, "r");
 			IAPEDecompress spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
 			idTag = spAPEDecompress.getApeInfoTag();
-			((APEInfoPanel)getInfoPanel()).fillInfoPanelWith(spAPEDecompress, getPrintableFileUrl(), getSongName());
+			if (!MultimediaContainerManager.isHeadlessMode()) ((APEInfoPanel)getInfoPanel()).fillInfoPanelWith(spAPEDecompress, getPrintableFileUrl(), getSongName());
 		}
 		catch (IOException ex)
 		{
 		}
 		finally
 		{
-			if (apeFile!=null) try { apeFile.close(); } catch (IOException e) { Log.error("IGNORED", e); }
+			if (apeFile!=null) try { apeFile.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -179,11 +177,6 @@ public class APEContainer extends MultimediaContainer
 	public JPanel getConfigPanel()
 	{
 		return null;
-//		if (apeConfigPanel==null)
-//		{
-//			apeConfigPanel = new JPanel();
-//		}
-//		return apeConfigPanel;
 	}
 	/**
 	 * @return
@@ -195,6 +188,7 @@ public class APEContainer extends MultimediaContainer
 		if (apeInfoPanel==null)
 		{
 			apeInfoPanel = new APEInfoPanel();
+			apeInfoPanel.setParentContainer(this);
 		}
 		return apeInfoPanel;
 	}

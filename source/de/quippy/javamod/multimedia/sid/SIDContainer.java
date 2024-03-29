@@ -33,7 +33,6 @@ import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerEvent;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
-import de.quippy.javamod.system.Log;
 import de.quippy.sidplay.libsidplay.components.sidtune.SidTune;
 import de.quippy.sidplay.libsidplay.components.sidtune.SidTuneInfo;
 
@@ -80,10 +79,12 @@ public class SIDContainer extends MultimediaContainer
 		"best", "SID 6581 (old model)", "SID 8580 (new model)"
 	};
 
+	private Properties currentProps = null;
+
 	private SidTune sidTune;
 	private SIDMixer currentMixer;
-	private SidConfigPanel sidConfigPanel;
-	private JPanel sidInfoPanel;
+	private SIDConfigPanel sidConfigPanel;
+	private SIDInfoPanel sidInfoPanel;
 
 	/**
 	 * Will be executed during class load
@@ -107,8 +108,9 @@ public class SIDContainer extends MultimediaContainer
 	@Override
 	public MultimediaContainer getInstance(URL sidFileUrl)
 	{
-		MultimediaContainer result = super.getInstance(sidFileUrl); 
+		MultimediaContainer result = super.getInstance(sidFileUrl);
 		sidTune = loadSidTune(sidFileUrl);
+		if (!MultimediaContainerManager.isHeadlessMode()) ((SIDInfoPanel)getInfoPanel()).fillInfoPanelWith(getFileURL(), sidTune);
 		return result; 
 	}
 	@Override
@@ -145,6 +147,7 @@ public class SIDContainer extends MultimediaContainer
 	}
 	public void nameChanged()
 	{
+		if (!MultimediaContainerManager.isHeadlessMode()) ((SIDInfoPanel)getInfoPanel()).fillInfoPanelWith(getFileURL(), sidTune);
 		fireMultimediaContainerEvent(new MultimediaContainerEvent(this, MultimediaContainerEvent.SONG_NAME_CHANGED_OLD_INVALID, getSongName()));
 	}
 	/**
@@ -190,7 +193,7 @@ public class SIDContainer extends MultimediaContainer
 		}
 		finally
 		{
-			if (in!=null) try { in.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (in!=null) try { in.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 	/**
@@ -211,14 +214,13 @@ public class SIDContainer extends MultimediaContainer
 	@Override
 	public Mixer createNewMixer()
 	{
-		Properties props = new Properties();
-		configurationSave(props);
+		configurationSave(currentProps); // fill with default values
 		
-		int frequency = Integer.parseInt(props.getProperty(PROPERTY_SID_FREQUENCY, DEFAULT_SAMPLERATE));
-		int sidModel = Integer.parseInt(props.getProperty(PROPERTY_SID_MODEL, DEFAULT_SIDMODEL));
-		int optimization = Integer.parseInt(props.getProperty(PROPERTY_SID_OPTIMIZATION, DEFAULT_OPTIMIZATION));
-		boolean useSIDFilter = Boolean.parseBoolean(props.getProperty(PROPERTY_SID_USEFILTER, DEFAULT_USEFILTER));
-		boolean isStereo = Boolean.parseBoolean(props.getProperty(PROPERTY_SID_VIRTUALSTEREO, DEFAULT_VIRTUALSTEREO));
+		int frequency = Integer.parseInt(currentProps.getProperty(PROPERTY_SID_FREQUENCY, DEFAULT_SAMPLERATE));
+		int sidModel = Integer.parseInt(currentProps.getProperty(PROPERTY_SID_MODEL, DEFAULT_SIDMODEL));
+		int optimization = Integer.parseInt(currentProps.getProperty(PROPERTY_SID_OPTIMIZATION, DEFAULT_OPTIMIZATION));
+		boolean useSIDFilter = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_SID_USEFILTER, DEFAULT_USEFILTER));
+		boolean isStereo = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_SID_VIRTUALSTEREO, DEFAULT_VIRTUALSTEREO));
 		
 		currentMixer = new SIDMixer(sidTune, this, frequency, sidModel, optimization, useSIDFilter, isStereo);
 		return currentMixer;
@@ -232,32 +234,41 @@ public class SIDContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
-		SidConfigPanel configPanel = (SidConfigPanel)getConfigPanel();
-		configPanel.getPlayerSetUp_SampleRate().setSelectedItem(newProps.getProperty(PROPERTY_SID_FREQUENCY, DEFAULT_SAMPLERATE));
-		configPanel.getPlayerSetUp_SIDModel().setSelectedIndex(Integer.parseInt(newProps.getProperty(PROPERTY_SID_MODEL, DEFAULT_SIDMODEL)));
-		configPanel.getPlayerSetUp_UseSIDFilter().setSelected(Boolean.parseBoolean(newProps.getProperty(PROPERTY_SID_USEFILTER, DEFAULT_USEFILTER)));
-		configPanel.getPlayerSetUp_VirtualStereo().setSelected(Boolean.parseBoolean(newProps.getProperty(PROPERTY_SID_VIRTUALSTEREO, DEFAULT_VIRTUALSTEREO)));
-		int optimization = Integer.parseInt(newProps.getProperty(PROPERTY_SID_OPTIMIZATION, DEFAULT_OPTIMIZATION));
-		if (optimization<=1) 
-			configPanel.getPlayerSetUp_Optimization_Level1().setSelected(true);
-		else
-			configPanel.getPlayerSetUp_Optimization_Level2().setSelected(true);
+		if (currentProps==null) currentProps = new Properties();
+		currentProps.setProperty(PROPERTY_SID_FREQUENCY, newProps.getProperty(PROPERTY_SID_FREQUENCY, DEFAULT_SAMPLERATE));
+		currentProps.setProperty(PROPERTY_SID_MODEL, newProps.getProperty(PROPERTY_SID_MODEL, DEFAULT_SIDMODEL));
+		currentProps.setProperty(PROPERTY_SID_USEFILTER, newProps.getProperty(PROPERTY_SID_USEFILTER, DEFAULT_USEFILTER));
+		currentProps.setProperty(PROPERTY_SID_VIRTUALSTEREO, newProps.getProperty(PROPERTY_SID_VIRTUALSTEREO, DEFAULT_VIRTUALSTEREO));
+		
+		if (!MultimediaContainerManager.isHeadlessMode())
+		{
+			final SIDConfigPanel configPanel = (SIDConfigPanel)getConfigPanel();
+			configPanel.configurationChanged(newProps);
+		}
 	}
 	/**
 	 * @param props
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationSave(java.util.Properties)
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
-		SidConfigPanel configPanel = (SidConfigPanel)getConfigPanel();
-		props.setProperty(PROPERTY_SID_FREQUENCY, configPanel.getPlayerSetUp_SampleRate().getSelectedItem().toString());
-		props.setProperty(PROPERTY_SID_MODEL, Integer.toString(configPanel.getPlayerSetUp_SIDModel().getSelectedIndex()));
-		props.setProperty(PROPERTY_SID_USEFILTER, Boolean.toString(configPanel.getPlayerSetUp_UseSIDFilter().isSelected()));
-		props.setProperty(PROPERTY_SID_VIRTUALSTEREO, Boolean.toString(configPanel.getPlayerSetUp_VirtualStereo().isSelected()));
-		props.setProperty(PROPERTY_SID_OPTIMIZATION, (configPanel.getPlayerSetUp_Optimization_Level1().isSelected())?"1":"2");
+		if (currentProps==null) currentProps = new Properties();
+		if (!MultimediaContainerManager.isHeadlessMode())
+		{
+			SIDConfigPanel configPanel = (SIDConfigPanel)getConfigPanel();
+			configPanel.configurationSave(currentProps);
+		}
+
+		if (props!=null)
+		{
+			props.setProperty(PROPERTY_SID_FREQUENCY, (currentProps!=null)?currentProps.getProperty(PROPERTY_SID_FREQUENCY, DEFAULT_SAMPLERATE):DEFAULT_SAMPLERATE);
+			props.setProperty(PROPERTY_SID_MODEL, (currentProps!=null)?currentProps.getProperty(PROPERTY_SID_MODEL, DEFAULT_SIDMODEL):DEFAULT_SIDMODEL);
+			props.setProperty(PROPERTY_SID_USEFILTER, (currentProps!=null)?currentProps.getProperty(PROPERTY_SID_USEFILTER, DEFAULT_USEFILTER):DEFAULT_USEFILTER);
+			props.setProperty(PROPERTY_SID_VIRTUALSTEREO, (currentProps!=null)?currentProps.getProperty(PROPERTY_SID_VIRTUALSTEREO, DEFAULT_VIRTUALSTEREO):DEFAULT_VIRTUALSTEREO);
+		}
 	}
 	/**
 	 * @return
@@ -268,7 +279,8 @@ public class SIDContainer extends MultimediaContainer
 	{
 		if (sidInfoPanel==null)
 		{
-			sidInfoPanel = new JPanel();
+			sidInfoPanel = new SIDInfoPanel();
+			sidInfoPanel.setParentContainer(this);
 		}
 		return sidInfoPanel;
 	}
@@ -281,7 +293,7 @@ public class SIDContainer extends MultimediaContainer
 	{
 		if (sidConfigPanel==null)
 		{
-			sidConfigPanel = new SidConfigPanel();
+			sidConfigPanel = new SIDConfigPanel();
 			sidConfigPanel.setParentContainer(this);
 		}
 		return sidConfigPanel;

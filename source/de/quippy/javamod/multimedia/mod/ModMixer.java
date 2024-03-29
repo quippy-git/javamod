@@ -88,7 +88,7 @@ public class ModMixer extends BasicMixer
 		this.ditherType = ditherType;
 		this.ditherByPass = ditherByPass;
 		this.maxNNAChannels = maxNNAChannels;
-		modMixer = this.mod.getModMixer(sampleRate, doISP, doNoLoops, maxNNAChannels);
+		this.modMixer = this.mod.getModMixer(sampleRate, doISP, doNoLoops, maxNNAChannels);
 	}
 	private void initialize()
 	{
@@ -463,7 +463,7 @@ public class ModMixer extends BasicMixer
 			if (!isInitialized()) return;
 			
 			// If we do export to wave and do not want to play during that, do not fire any updates
-			if (exportFile==null || playDuringExport) modMixer.setFireUpdates(true);
+			modMixer.setFireUpdates(exportFile==null || playDuringExport);
 			
 			int count;
 			do
@@ -512,7 +512,7 @@ public class ModMixer extends BasicMixer
 						{
 							for (int i=0; i<rounds; i++)
 							{
-								output[ox] = (byte)samples[0];
+								output[ox] 		  = (byte)samples[0];
 								output[ox+rounds] = (byte)samples[1];
 								ox++;
 								samples[0]>>=8;

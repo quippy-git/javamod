@@ -88,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.8";
+	public static final String VERSION = "V3.9";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -1019,8 +1019,8 @@ public class Helpers
 	public static java.awt.Point getPointFromString(final String point)
 	{
 		final int xIndex = point.indexOf('x');
-		String x = point.substring(0, xIndex);
-		String y = point.substring(xIndex+1);
+		final String x = point.substring(0, xIndex);
+		final String y = point.substring(xIndex+1);
 		return new java.awt.Point(Integer.parseInt(x), Integer.parseInt(y));
 	}
 	/**
@@ -1040,8 +1040,8 @@ public class Helpers
 	public static java.awt.Dimension getDimensionFromString(final String dimension)
 	{
 		final int xIndex = dimension.indexOf('x');
-		String width = dimension.substring(0, xIndex);
-		String height = dimension.substring(xIndex+1);
+		final String width = dimension.substring(0, xIndex);
+		final String height = dimension.substring(xIndex+1);
 		return new java.awt.Dimension(Integer.parseInt(width), Integer.parseInt(height));
 	}
 	/**
@@ -1052,10 +1052,10 @@ public class Helpers
 	public static java.awt.Insets getInsetsFromString(final String insets)
 	{
 		final StringTokenizer tok = new StringTokenizer(insets, ",");
-		int left = Integer.parseInt(tok.nextToken().trim());
-		int top = Integer.parseInt(tok.nextToken().trim());
-		int right = Integer.parseInt(tok.nextToken().trim());
-		int bottom = Integer.parseInt(tok.nextToken().trim());
+		final int left = Integer.parseInt(tok.nextToken().trim());
+		final int top = Integer.parseInt(tok.nextToken().trim());
+		final int right = Integer.parseInt(tok.nextToken().trim());
+		final int bottom = Integer.parseInt(tok.nextToken().trim());
 		return new Insets(top, left, bottom, right);
 	}
 	/**
@@ -1066,9 +1066,9 @@ public class Helpers
 	public static java.awt.Color getColorFromString(final String color)
 	{
 		final StringTokenizer tok = new StringTokenizer(color, ",");
-		int r = Integer.parseInt(tok.nextToken().trim());
-		int g = Integer.parseInt(tok.nextToken().trim());
-		int b = Integer.parseInt(tok.nextToken().trim());
+		final int r = Integer.parseInt(tok.nextToken().trim());
+		final int g = Integer.parseInt(tok.nextToken().trim());
+		final int b = Integer.parseInt(tok.nextToken().trim());
 		return new Color(r,g,b);
 	}
 	/**
@@ -1077,7 +1077,7 @@ public class Helpers
 	 * @param dbValue
 	 * @return
 	 */
-	public static double getDecimalValueFrom(double dbValue)
+	public static double getDecimalValueFrom(final double dbValue)
 	{
 		return Math.pow(10, dbValue / 20.0d);
 	}
@@ -1098,9 +1098,14 @@ public class Helpers
 	 */
 	public static String getTimeStringFromMilliseconds(final long millis)
 	{
-		int sec = (int)((millis/1000L)%60L);
-		int min = (int)(millis/60000L);
-		return ((min<10)?"  ":"") + Integer.toString(min) + ':' + ((sec<10)?"0":"") + Integer.toString(sec);
+		final int sec = (int)((millis/1000L)%60L);
+		final int min = (int)(millis/60000L);
+		final StringBuilder sb = new StringBuilder();
+		if (min<10) sb.append(' ');
+		sb.append(min).append(':');
+		if (sec<10) sb.append('0');
+		sb.append(sec);
+		return sb.toString();
 	}
 	/**
 	 * @since 03.04.2011
@@ -1109,12 +1114,12 @@ public class Helpers
 	 */
 	public static long getMillisecondsFromTimeString(final String timeString)
 	{
-		int minIndex = timeString.indexOf(':');
-		int min = Integer.parseInt(timeString.substring(0, minIndex).trim());
-		String secString = timeString.substring(minIndex + 1);
+		final int minIndex = timeString.indexOf(':');
+		final int min = Integer.parseInt(timeString.substring(0, minIndex).trim());
+		final String secString = timeString.substring(minIndex + 1);
 		int secIndex = secString.indexOf(':');
 		if (secIndex == -1) secIndex = secString.length();
-		int sec = Integer.parseInt(secString.substring(0, secIndex).trim());
+		final int sec = Integer.parseInt(secString.substring(0, secIndex).trim());
 		return (min*60+sec) * 1000L;
 	}
 	/**
@@ -1205,36 +1210,37 @@ public class Helpers
 	public static void registerAllClasses()
 	{
 		// Just load these in advance
-		try { Class.forName("de.quippy.javamod.system.Log"); } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.system.Helpers"); } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.system.Log");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.system.Helpers");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		
-		// Interpolation Routines - doing pre-calculations
-		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		// Interpolation Routines - doing pre-calculations through class loading
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.Kaiser");  		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		
 		// The following are essential for registration at the ModuleFactory
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");  } catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");				} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 
 		// The following are essential for registration at the MultimediaContainerManager
 		// ModContainer uses the ModFactory!!
-		try { Class.forName("de.quippy.javamod.multimedia.mod.ModContainer"); } catch (ClassNotFoundException ex) { Log.info("No MOD file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.wav.WavContainer"); } catch (ClassNotFoundException ex) { Log.info("No WAV file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container"); } catch (ClassNotFoundException ex) { Log.info("No MP3 file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer"); } catch (ClassNotFoundException ex) { Log.info("No OGG file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.ape.APEContainer"); } catch (ClassNotFoundException ex) { Log.info("No APE file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer"); } catch (ClassNotFoundException ex) { Log.info("No FLAC file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer"); } catch (ClassNotFoundException ex) { Log.info("No MIDI file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container"); } catch (ClassNotFoundException ex) { Log.info("No OPL file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.ModContainer");	} catch (ClassNotFoundException ex) { Log.info("No MOD file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.wav.WavContainer");	} catch (ClassNotFoundException ex) { Log.info("No WAV file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container");	} catch (ClassNotFoundException ex) { Log.info("No MP3 file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer");	} catch (ClassNotFoundException ex) { Log.info("No OGG file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ape.APEContainer");	} catch (ClassNotFoundException ex) { Log.info("No APE file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer");	} catch (ClassNotFoundException ex) { Log.info("No FLAC file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer");	} catch (ClassNotFoundException ex) { Log.info("No MIDI file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container");	} catch (ClassNotFoundException ex) { Log.info("No OPL file support!"); }
 		
-		// SID and SID WAVE Loading - moved to separate project javamod_sid - SID support is added there
-		try { Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer"); } catch (ClassNotFoundException ex) { Log.info("No SID file support!"); }
-		try { Class.forName("de.quippy.sidplay.resid_builder.resid.Wave"); } catch (ClassNotFoundException ex) { Log.info("No SID WAVE support!"); }
+		// SID and SID WAVE Loading
+		try { Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer");	} catch (ClassNotFoundException ex) { Log.info("No SID file support!"); }
+		try { Class.forName("de.quippy.sidplay.resid_builder.resid.Wave");		} catch (ClassNotFoundException ex) { Log.info("No SID WAVE support!"); }
 	}
 	/**
 	 * Opens a txt-File on the server containing the current populated
@@ -1248,7 +1254,7 @@ public class Helpers
 		BufferedReader reader = null;
 		try
 		{
-			URL version_url = createURLfromString(Helpers.VERSION_URL);
+			final URL version_url = createURLfromString(Helpers.VERSION_URL);
 			reader = new BufferedReader(new InputStreamReader(version_url.openStream(), Helpers.CODING_HTTP));
 			String version = reader.readLine();
 			reader.close();
@@ -1261,7 +1267,7 @@ public class Helpers
 		}
 		finally
 		{
-			if (reader!=null) try { reader.close(); } catch (Exception ex) { Log.error("IGNORED", ex); }
+			if (reader!=null) try { reader.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return null;
 	}
@@ -1301,7 +1307,7 @@ public class Helpers
 	{
 		try
 		{
-			URL javamod_url = createURLfromString(JAVAMOD_URL);
+			final URL javamod_url = createURLfromString(JAVAMOD_URL);
 			return copyFromURL(javamod_url, destination, bar);
 		}
 		catch (Throwable ex)
@@ -1370,37 +1376,4 @@ public class Helpers
 	{
 		return (value>maxValue)?maxValue:value;
 	}
-//	/**
-//	 * Create a copy of an Object by serialization
-//	 * This is needed by NNAs
-//	 * Not fast enough - by far!!!! 
-//	 * @since 10.06.2020
-//	 * @return
-//	 */
-//	public static Object deepCopy(final Serializable fromMe)
-//	{
-//		ObjectOutputStream oos = null;
-//		ObjectInputStream ois = null;
-//		try
-//		{
-//			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//			oos = new ObjectOutputStream(bos);
-//			oos.writeObject(fromMe);
-//			oos.flush();
-//			ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
-//			ois = new ObjectInputStream(bin);
-//			// return the new object
-//			return ois.readObject();
-//		}
-//		catch (Throwable ex)
-//		{
-//			Log.error("Cloning failed", ex);
-//		}
-//		finally
-//		{
-//			if (oos!=null) try { oos.close(); } catch (IOException ex) { /*NOOP*/}
-//			if (ois!=null) try { ois.close(); } catch (IOException ex) { /*NOOP*/}
-//		}
-//		return null;
-//	}
 }

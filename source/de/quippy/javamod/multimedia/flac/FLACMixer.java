@@ -67,7 +67,7 @@ public class FLACMixer extends BasicMixer
 	{
 		try
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			inputStream = new FileOrPackedInputStream(flacFileUrl);
 			decoder = new FLACDecoder(inputStream);
 			decoder.readMetadata();
@@ -81,7 +81,7 @@ public class FLACMixer extends BasicMixer
 		}
 		catch (Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[FLACMixer]", ex);
 		}
 	}
@@ -172,7 +172,7 @@ public class FLACMixer extends BasicMixer
 			final long currentSamples = getMillisecondPosition() * (long)sampleRate / 1000L;
 			if (currentSamples>seekToSamples || decoder.getSeekTable()!=null)
 			{
-				if (inputStream!=null) try { inputStream.close(); } catch (IOException e) { Log.error("IGNORED", e); }
+				if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 				inputStream = flacFileUrl.openStream();
 				decoder = new FLACDecoder(inputStream);
 				decoder.readMetadata();
@@ -272,7 +272,7 @@ public class FLACMixer extends BasicMixer
 		{
 			setIsStopped();
 			closeAudioDevice();
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

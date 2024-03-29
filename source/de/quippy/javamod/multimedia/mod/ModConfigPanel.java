@@ -24,6 +24,7 @@ package de.quippy.javamod.multimedia.mod;
 import java.awt.LayoutManager;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Properties;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -41,8 +42,6 @@ import de.quippy.javamod.system.Helpers;
 public class ModConfigPanel extends JPanel
 {
 	private static final long serialVersionUID = -3417460833901933361L;
-
-	private ModContainer parentContainer;
 	
 	private JCheckBox playerSetUp_WideStereoMix = null;
 	private JCheckBox playerSetUp_NoiseReduction = null;
@@ -68,6 +67,8 @@ public class ModConfigPanel extends JPanel
 	private JLabel playerSetUp_L_DitherType = null;
 	private JComboBox<String> playerSetUp_DitherType = null;
 	private JCheckBox playerSetUp_ByPassDither = null;
+
+	private ModContainer parentContainer = null;
 	
 	/**
 	 * Constructor for ModConfigPanel
@@ -124,23 +125,23 @@ public class ModConfigPanel extends JPanel
 		this.setName("ModConfigPane");
 		this.setLayout(new java.awt.GridBagLayout());
 		
-		this.add(getPlayerSetUp_WideStereoMix(),	Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_NoiseReduction(),	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_MegaBass(),			Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_DCRemoval(),		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_fadeOutLoops(),		Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_WideStereoMix(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_NoiseReduction(),		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_MegaBass(),				Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_DCRemoval(),			Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_fadeOutLoops(),			Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
-		this.add(getPlayerSetUp_L_SampleRate(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_L_Channels(),		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_L_BitsPerSample(),	Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_L_BufferSize(),		Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_ignoreLoops(),		Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_SampleRate(),			Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_Channels(),			Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_BitsPerSample(),		Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_BufferSize(),			Helpers.getGridBagConstraint(3, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_ignoreLoops(),			Helpers.getGridBagConstraint(4, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
-		this.add(getPlayerSetUp_SampleRate(),		Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_Channels(),			Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_BitsPerSample(),	Helpers.getGridBagConstraint(2, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_BufferSize(),		Helpers.getGridBagConstraint(3, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_loopSong(),			Helpers.getGridBagConstraint(4, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_SampleRate(),			Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_Channels(),				Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_BitsPerSample(),		Helpers.getGridBagConstraint(2, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_BufferSize(),			Helpers.getGridBagConstraint(3, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_loopSong(),				Helpers.getGridBagConstraint(4, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
 		this.add(getPlayerSetUp_L_DitherType(),			Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_DitherFilterType(),	Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -153,13 +154,13 @@ public class ModConfigPanel extends JPanel
 		this.add(getPlayerSetUp_MaxNNAChannels(),		Helpers.getGridBagConstraint(3, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_Interpolation(),		Helpers.getGridBagConstraint(4, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 	}
-	public JCheckBox getPlayerSetUp_WideStereoMix()
+	private JCheckBox getPlayerSetUp_WideStereoMix()
 	{
 		if (playerSetUp_WideStereoMix == null)
 		{
 			playerSetUp_WideStereoMix = new JCheckBox();
 			playerSetUp_WideStereoMix.setName("playerSetUp_WideStereoMix");
-			playerSetUp_WideStereoMix.setText("Wide Stereo Mix");
+			playerSetUp_WideStereoMix.setText("Surround Mix");
 			playerSetUp_WideStereoMix.setFont(Helpers.getDialogFont());
 			playerSetUp_WideStereoMix.addItemListener(new ItemListener()
 			{
@@ -180,7 +181,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_WideStereoMix;
 	}
-	public JCheckBox getPlayerSetUp_NoiseReduction()
+	private JCheckBox getPlayerSetUp_NoiseReduction()
 	{
 		if (playerSetUp_NoiseReduction==null)
 		{
@@ -207,7 +208,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_NoiseReduction;
 	}
-	public JCheckBox getPlayerSetUp_MegaBass()
+	private JCheckBox getPlayerSetUp_MegaBass()
 	{
 		if (playerSetUp_MegaBass==null)
 		{
@@ -237,7 +238,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_MegaBass;
 	}
-	public JCheckBox getPlayerSetUp_DCRemoval()
+	private JCheckBox getPlayerSetUp_DCRemoval()
 	{
 		if (playerSetUp_DCRemoval==null)
 		{
@@ -264,7 +265,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_DCRemoval;
 	}
-	public int getLoopValue()
+	private int getLoopValue()
 	{
 		int value = ModConstants.PLAYER_LOOP_DEACTIVATED;
 		if (getPlayerSetUp_fadeOutLoops().isSelected()) value |= ModConstants.PLAYER_LOOP_FADEOUT;
@@ -278,7 +279,7 @@ public class ModConfigPanel extends JPanel
 	 * @param newLoopValue
 	 * @since 11.01.2012
 	 */
-	public void setLoopValue(int newLoopValue)
+	private void setLoopValue(int newLoopValue)
 	{
 		if (newLoopValue == ModConstants.PLAYER_LOOP_DEACTIVATED)
 		{
@@ -304,16 +305,16 @@ public class ModConfigPanel extends JPanel
 	}
 	private void configMixerWithLoopValue()
 	{
-		ModContainer parent = getParentContainer();
+		final ModContainer parent = getParentContainer();
 		if (parent!=null)
 		{
-			ModMixer currentMixer = parent.getCurrentMixer();
+			final ModMixer currentMixer = parent.getCurrentMixer();
 			if (currentMixer!=null)
 				currentMixer.setDoNoLoops(getLoopValue());
 		}
 			
 	}
-	public JCheckBox getPlayerSetUp_fadeOutLoops()
+	private JCheckBox getPlayerSetUp_fadeOutLoops()
 	{
 		if (playerSetUp_fadeOutLoops==null)
 		{
@@ -336,7 +337,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_fadeOutLoops;
 	}
-	public JCheckBox getPlayerSetUp_ignoreLoops()
+	private JCheckBox getPlayerSetUp_ignoreLoops()
 	{
 		if (playerSetUp_ignoreLoops==null)
 		{
@@ -359,7 +360,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_ignoreLoops;
 	}
-	public JCheckBox getPlayerSetUp_loopSong()
+	private JCheckBox getPlayerSetUp_loopSong()
 	{
 		if (playerSetUp_loopSong==null)
 		{
@@ -380,7 +381,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_loopSong;
 	}
-	public JLabel getPlayerSetUp_L_BitsPerSample()
+	private JLabel getPlayerSetUp_L_BitsPerSample()
 	{
 		if (playerSetUp_L_BitsPerSample==null)
 		{
@@ -391,7 +392,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_BitsPerSample;
 	}
-	public JComboBox<String> getPlayerSetUp_BitsPerSample()
+	private JComboBox<String> getPlayerSetUp_BitsPerSample()
 	{
 		if (playerSetUp_BitsPerSample == null)
 		{
@@ -421,7 +422,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_BitsPerSample;
 	}
-	public JLabel getPlayerSetUp_L_Channels()
+	private JLabel getPlayerSetUp_L_Channels()
 	{
 		if (playerSetUp_L_Channels==null)
 		{
@@ -432,7 +433,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_Channels;
 	}
-	public JComboBox<String> getPlayerSetUp_Channels()
+	private JComboBox<String> getPlayerSetUp_Channels()
 	{
 		if (playerSetUp_Channels==null)
 		{
@@ -462,7 +463,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_Channels;
 	}
-	public JLabel getPlayerSetUp_L_SampleRate()
+	private JLabel getPlayerSetUp_L_SampleRate()
 	{
 		if (playerSetUp_L_SampleRate==null)
 		{
@@ -473,7 +474,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_SampleRate;
 	}
-	public JComboBox<String> getPlayerSetUp_SampleRate()
+	private JComboBox<String> getPlayerSetUp_SampleRate()
 	{
 		if (playerSetUp_SampleRate==null)
 		{
@@ -503,7 +504,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_SampleRate;
 	}
-	public JLabel getPlayerSetUp_L_BufferSize()
+	private JLabel getPlayerSetUp_L_BufferSize()
 	{
 		if (playerSetUp_L_BufferSize==null)
 		{
@@ -514,7 +515,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_BufferSize;
 	}
-	public JComboBox<String> getPlayerSetUp_BufferSize()
+	private JComboBox<String> getPlayerSetUp_BufferSize()
 	{
 		if (playerSetUp_BufferSize==null)
 		{
@@ -544,7 +545,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_BufferSize;
 	}
-	public JLabel getPlayerSetUp_L_Interpolation()
+	private JLabel getPlayerSetUp_L_Interpolation()
 	{
 		if (playerSetUp_L_Interpolation==null)
 		{
@@ -555,7 +556,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_Interpolation;
 	}
-	public JComboBox<String> getPlayerSetUp_Interpolation()
+	private JComboBox<String> getPlayerSetUp_Interpolation()
 	{
 		if (playerSetUp_Interpolation==null)
 		{
@@ -585,7 +586,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_Interpolation;
 	}
-	public JLabel getPlayerSetUp_L_MaxNNAChannels()
+	private JLabel getPlayerSetUp_L_MaxNNAChannels()
 	{
 		if (playerSetUp_L_MaxNNAChannels==null)
 		{
@@ -596,7 +597,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_MaxNNAChannels;
 	}
-	public JComboBox<String> getPlayerSetUp_MaxNNAChannels()
+	private JComboBox<String> getPlayerSetUp_MaxNNAChannels()
 	{
 		if (playerSetUp_MaxNNAChannels==null)
 		{
@@ -626,7 +627,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_MaxNNAChannels;
 	}
-	public JLabel getPlayerSetUp_L_DitherType()
+	private JLabel getPlayerSetUp_L_DitherType()
 	{
 		if (playerSetUp_L_DitherType==null)
 		{
@@ -637,7 +638,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_DitherType;
 	}
-	public JComboBox<String> getPlayerSetUp_DitherType()
+	private JComboBox<String> getPlayerSetUp_DitherType()
 	{
 		if (playerSetUp_DitherType==null)
 		{
@@ -667,7 +668,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_DitherType;
 	}
-	public JLabel getPlayerSetUp_L_DitherFilterType()
+	private JLabel getPlayerSetUp_L_DitherFilterType()
 	{
 		if (playerSetUp_L_DitherFilterType==null)
 		{
@@ -678,7 +679,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_L_DitherFilterType;
 	}
-	public JComboBox<String> getPlayerSetUp_DitherFilterType()
+	private JComboBox<String> getPlayerSetUp_DitherFilterType()
 	{
 		if (playerSetUp_DitherFilterType==null)
 		{
@@ -708,7 +709,7 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_DitherFilterType;
 	}
-	public JCheckBox getPlayerSetUp_ByPassDither()
+	private JCheckBox getPlayerSetUp_ByPassDither()
 	{
 		if (playerSetUp_ByPassDither == null)
 		{
@@ -734,5 +735,39 @@ public class ModConfigPanel extends JPanel
 			});
 		}
 		return playerSetUp_ByPassDither;
+	}
+	public void configurationChanged(final Properties props)
+	{
+		getPlayerSetUp_SampleRate().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, ModContainer.DEFAULT_SAMPLERATE));
+		getPlayerSetUp_BufferSize().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, ModContainer.DEFAULT_MSBUFFERSIZE));
+		getPlayerSetUp_BitsPerSample().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, ModContainer.DEFAULT_BITSPERSAMPLE)); 
+		getPlayerSetUp_Channels().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_STEREO, ModContainer.DEFAULT_CHANNEL)); 
+		getPlayerSetUp_Interpolation().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_ISP, ModContainer.DEFAULT_INTERPOLATION_INDEX)));
+		getPlayerSetUp_WideStereoMix().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_WIDESTEREOMIX, ModContainer.DEFAULT_WIDESTEREOMIX)));
+		getPlayerSetUp_NoiseReduction().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_NOISEREDUCTION, ModContainer.DEFAULT_NOISEREDUCTION)));
+		getPlayerSetUp_MegaBass().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_MEGABASS, ModContainer.DEFAULT_MEGABASS)));
+		getPlayerSetUp_DCRemoval().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_DCREMOVAL, ModContainer.DEFAULT_DCREMOVAL)));
+		setLoopValue(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_NOLOOPS, ModContainer.DEFAULT_NOLOOPS)));
+		getPlayerSetUp_MaxNNAChannels().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_MAXNNACHANNELS, ModContainer.DEFAULT_MAXNNACHANNELS));
+		getPlayerSetUp_DitherFilterType().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_DITHERFILTER, ModContainer.DEFAULT_DITHERFILTER)));
+		getPlayerSetUp_DitherType().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_DITHERTYPE, ModContainer.DEFAULT_DITHERTYPE)));
+		getPlayerSetUp_ByPassDither().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_DITHERBYPASS, ModContainer.DEFAULT_DITHERBYPASS)));
+	}
+	public void configurationSave(final Properties props)
+	{
+		props.setProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, getPlayerSetUp_SampleRate().getSelectedItem().toString());
+		props.setProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, getPlayerSetUp_BufferSize().getSelectedItem().toString());
+		props.setProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, getPlayerSetUp_BitsPerSample().getSelectedItem().toString());
+		props.setProperty(ModContainer.PROPERTY_PLAYER_STEREO, getPlayerSetUp_Channels().getSelectedItem().toString());
+		props.setProperty(ModContainer.PROPERTY_PLAYER_ISP, Integer.toString(getPlayerSetUp_Interpolation().getSelectedIndex()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_WIDESTEREOMIX, Boolean.toString(getPlayerSetUp_WideStereoMix().isSelected()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_NOISEREDUCTION, Boolean.toString(getPlayerSetUp_NoiseReduction().isSelected()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_MEGABASS, Boolean.toString(getPlayerSetUp_MegaBass().isSelected()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_DCREMOVAL, Boolean.toString(getPlayerSetUp_DCRemoval().isSelected()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_NOLOOPS, Integer.toString(getLoopValue()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_MAXNNACHANNELS, getPlayerSetUp_MaxNNAChannels().getSelectedItem().toString());
+		props.setProperty(ModContainer.PROPERTY_PLAYER_DITHERFILTER, Integer.toString(getPlayerSetUp_DitherFilterType().getSelectedIndex()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_DITHERTYPE, Integer.toString(getPlayerSetUp_DitherType().getSelectedIndex()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_DITHERBYPASS, Boolean.toString(getPlayerSetUp_ByPassDither().isSelected()));
 	}
 }

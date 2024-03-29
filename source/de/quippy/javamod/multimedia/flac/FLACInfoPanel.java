@@ -74,7 +74,9 @@ public class FLACInfoPanel extends JPanel
 	private JLabel v1_L_Comment = null;
 	private JScrollPane scrollPane_comment = null;
 	private JTextArea v1_Comment = null;
-	
+
+	private FLACContainer parentContainer;
+
 	/**
 	 * Constructor for FLACInfoPanel
 	 */
@@ -110,6 +112,20 @@ public class FLACInfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public FLACContainer getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(FLACContainer parent)
+	{
+		this.parentContainer = parent;
 	}
 	private void initialize()
 	{

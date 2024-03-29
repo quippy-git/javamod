@@ -23,8 +23,10 @@ package de.quippy.javamod.multimedia.midi;
 
 import java.awt.LayoutManager;
 import java.io.File;
+import java.util.Properties;
 
 import javax.sound.midi.MidiDevice;
+import javax.sound.sampled.AudioSystem;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -54,7 +56,7 @@ public class MidiConfigPanel extends JPanel
 	private JLabel mixerInputDeviceLabel = null; 
 	private JComboBox<javax.sound.sampled.Mixer.Info> mixerInputDevice = null;
 
-	private MidiContainer parentContainer;
+	private MidiContainer parentContainer = null;
 	
 	/**
 	 * Constructor for MidiConfigPanel
@@ -106,6 +108,20 @@ public class MidiConfigPanel extends JPanel
 	{
 		this.parentContainer = parent;
 	}
+	/**
+	 * @since 28.11.2010
+	 * @param fromName
+	 * @return
+	 */
+	private static javax.sound.sampled.Mixer.Info getMixerInfo(String fromName)
+	{
+		javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+		for (int i=0; i<mixerInfos.length; i++)
+		{
+			if (mixerInfos[i].getName().equalsIgnoreCase(fromName)) return mixerInfos[i];
+		}
+		return null;
+	}
 	private void initialize()
 	{
 		this.setName("MidiConfigPane");
@@ -119,7 +135,7 @@ public class MidiConfigPanel extends JPanel
 		this.add(getMixerInputDeviceLabel(), 	Helpers.getGridBagConstraint(1, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getMixerInputDevice(), 		Helpers.getGridBagConstraint(1, 3, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 	}
-	public JCheckBox getCapture()
+	private JCheckBox getCapture()
 	{
 		if (capture==null)
 		{
@@ -128,8 +144,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return capture;
 	}
-
-	public javax.swing.JLabel getMidiOutputDeviceLabel()
+	private javax.swing.JLabel getMidiOutputDeviceLabel()
 	{
 		if (midiOutputDeviceLabel==null)
 		{
@@ -138,7 +153,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return midiOutputDeviceLabel;
 	}
-	public javax.swing.JLabel getMidiSoundBankLabel()
+	private javax.swing.JLabel getMidiSoundBankLabel()
 	{
 		if (midiSoundBankLabel==null)
 		{
@@ -147,7 +162,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return midiSoundBankLabel;
 	}
-	public javax.swing.JLabel getMixerInputDeviceLabel()
+	private javax.swing.JLabel getMixerInputDeviceLabel()
 	{
 		if (mixerInputDeviceLabel==null)
 		{
@@ -156,7 +171,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return mixerInputDeviceLabel;
 	}
-	public JComboBox<MidiDevice.Info> getMidiOutputDevice()
+	private JComboBox<MidiDevice.Info> getMidiOutputDevice()
 	{
 		if (midiOutputDevice==null)
 		{
@@ -193,7 +208,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return midiOutputDevice;
 	}
-	public JTextField getMidiSoundBankURL()
+	private JTextField getMidiSoundBankURL()
 	{
 		if (midiSoundBankUrl==null)
 		{
@@ -213,7 +228,7 @@ public class MidiConfigPanel extends JPanel
 			getMidiSoundBankURL().setText(select.toString());
 		}
 	}
-	public JButton getSearchButton()
+	private JButton getSearchButton()
 	{
 		if (searchButton==null)
 		{
@@ -232,7 +247,7 @@ public class MidiConfigPanel extends JPanel
 		}
 		return searchButton;
 	}
-	public JComboBox<javax.sound.sampled.Mixer.Info> getMixerInputDevice()
+	private JComboBox<javax.sound.sampled.Mixer.Info> getMixerInputDevice()
 	{
 		if (mixerInputDevice==null)
 		{
@@ -248,5 +263,31 @@ public class MidiConfigPanel extends JPanel
 			mixerInputDevice.setEnabled(true);
 		}
 		return mixerInputDevice;
+	}
+	public void configurationChanged(Properties newProps)
+	{
+		getMidiOutputDevice().setSelectedItem(MidiContainer.getMidiOutDeviceByName(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_OUTPUTDEVICE, MidiContainer.DEFAULT_OUTPUTDEVICE)));
+		getMidiSoundBankURL().setText(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_SOUNDBANK, MidiContainer.DEFAULT_SOUNDBANKURL));
+		getCapture().setSelected((Boolean.valueOf(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_CAPTURE, MidiContainer.DEFAULT_CAPUTRE)).booleanValue()));
+		javax.sound.sampled.Mixer.Info mixerInfo = getMixerInfo(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_MIXERNAME, MidiContainer.DEFAULT_MIXERNAME));
+		if (mixerInfo!=null)
+		{
+			for (int i=0; i<MidiContainer.MIXERDEVICEINFOS.length; i++)
+			{
+				if (MidiContainer.MIXERDEVICEINFOS[i].toString().equals(mixerInfo.toString()))
+				{
+					getMixerInputDevice().setSelectedIndex(i);
+				}
+			}
+		}
+	}
+	public void configurationSave(final Properties props)
+	{
+		MidiDevice.Info outputDevice = (MidiDevice.Info)getMidiOutputDevice().getSelectedItem();
+		if (outputDevice!=null) props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_OUTPUTDEVICE, outputDevice.getName());
+		props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_SOUNDBANK, getMidiSoundBankURL().getText());
+		props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_CAPTURE, Boolean.toString(getCapture().isSelected()));
+		javax.sound.sampled.Mixer.Info mixerInfo = (javax.sound.sampled.Mixer.Info)getMixerInputDevice().getSelectedItem();
+		if (mixerInfo!=null) props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_MIXERNAME, mixerInfo.getName());
 	}
 }

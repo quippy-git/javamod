@@ -23,11 +23,10 @@ package de.quippy.javamod.main.gui.components;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
-import java.awt.Image;
 import java.awt.Transparency;
+import java.awt.image.BufferedImage;
 import java.util.Random;
 
 import javax.swing.ImageIcon;
@@ -61,7 +60,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 
 	private ImageIcon[] bulbs;
 	private int[] useIndex;
-	private Image imageBuffer;
+	private BufferedImage imageBuffer;
 	
 	private Random rand;
 	
@@ -155,7 +154,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#getDoubleBuffer()
 	 */
 	@Override
-	protected synchronized Image getDoubleBuffer(final int myWidth, final int myHeight)
+	protected synchronized BufferedImage getDoubleBuffer(final int myWidth, final int myHeight)
 	{
     	if (imageBuffer==null && myWidth>0 && myHeight>0)
 		{
@@ -163,11 +162,12 @@ public class XmasDecorationPanel extends MeterPanelBase
 			if (graConf!=null)
 			{
 				imageBuffer = graConf.createCompatibleImage(myWidth, myHeight, Transparency.TRANSLUCENT);
-				Graphics2D g2d = (Graphics2D)imageBuffer.getGraphics();
+				final Graphics2D g2d = (Graphics2D)imageBuffer.getGraphics();
 				g2d.setColor(new Color(0, true));
 				g2d.setComposite(AlphaComposite.Clear);
 				g2d.fillRect(0, 0, myWidth, myHeight);
 				//g2d.clearRect(0, 0, myWidth, myHeight);
+				g2d.dispose();
 			}
 		}
 		return imageBuffer;
@@ -194,89 +194,81 @@ public class XmasDecorationPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics, int, int, int, int)
 	 */
 	@Override
-	protected void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
-		try
+		syncToFPScounter += syncToFPSAdd;
+		if (syncToFPScounter >= SYNC2FPS_FRAC)
 		{
-			syncToFPScounter += syncToFPSAdd;
-			if (syncToFPScounter >= SYNC2FPS_FRAC)
+			syncToFPScounter &= SYNC2FPS_MASK;
+			if (bulbs!=null && bulbs.length!=0 && useIndex!=null && useIndex.length!=0 && dontDraw==0)
 			{
-				syncToFPScounter &= SYNC2FPS_MASK;
-				if (g!=null && bulbs!=null && bulbs.length!=0 && useIndex!=null && useIndex.length!=0 && dontDraw==0)
+				inDraw = true;
+				int x = 0;
+				for (int index=0; index<useIndex.length; index++)
 				{
-					inDraw = true;
-					Graphics2D g2d = (Graphics2D)g;
-					int x = 0;
-					for (int index=0; index<useIndex.length; index++)
+					int bulbIndex = useIndex[index];
+					if (bulbIndex!=0) // 0 is the hanger
 					{
-						int bulbIndex = useIndex[index];
-						if (bulbIndex!=0) // 0 is the hanger
+						final boolean isLit = (bulbIndex%2)==0;
+						if (bulbIndex>0)
 						{
-							final boolean isLit = (bulbIndex%2)==0;
-							if (bulbIndex>0)
+							switch (flickerType)
 							{
-								switch (flickerType)
-								{
-									case FLICKERTYPE_ALL_OFF: 
-										useIndex[index] = (isLit)?--bulbIndex:bulbIndex;
-										break;
-									case FLICKERTYPE_ALL_ON: 
-										useIndex[index] = (isLit)?bulbIndex:++bulbIndex;
-										break;
-									case FLICKERTYPE_ALTERNATE:
-									case FLICKERTYPE_ALL_FLASH: //same as 2, but initially all bulbs are off - so all alternate between on/off
-										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-										break;
-									case FLICKERTYPE_CHASE:
-										if (isLit)
+								case FLICKERTYPE_ALL_OFF: 
+									useIndex[index] = (isLit)?--bulbIndex:bulbIndex;
+									break;
+								case FLICKERTYPE_ALL_ON: 
+									useIndex[index] = (isLit)?bulbIndex:++bulbIndex;
+									break;
+								case FLICKERTYPE_ALTERNATE:
+								case FLICKERTYPE_ALL_FLASH: //same as 2, but initially all bulbs are off - so all alternate between on/off
+									useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+									break;
+								case FLICKERTYPE_CHASE:
+									if (isLit)
+									{
+										useIndex[index] = --bulbIndex;
+										x += drawBulbAt(g, x, bulbIndex);
+										index++;
+										if (index>=useIndex.length) x = index = 0;
+										if (withSpace)
 										{
-											useIndex[index] = --bulbIndex;
-											x += drawBulbAt(g2d, x, bulbIndex);
+											x += bulbs[useIndex[index]].getIconWidth();
 											index++;
-											if (index>=useIndex.length) x = index = 0;
-											if (withSpace)
+											if (index>=useIndex.length)
 											{
-												x += bulbs[useIndex[index]].getIconWidth();
-												index++;
-												if (index>=useIndex.length)
-												{
-													index = 0;
-													x += bulbs[useIndex[index++]].getIconWidth();
-												}
-											}
-											bulbIndex = useIndex[index];
-											if ((bulbIndex%2)!=0) useIndex[index] = ++bulbIndex;
-											if ((!withSpace && index==0) || (withSpace && index==1))
-											{
-												drawBulbAt(g2d, x, bulbIndex);
-												index = useIndex.length;
+												index = 0;
+												x += bulbs[useIndex[index++]].getIconWidth();
 											}
 										}
-										break; //??
-									case FLICKERTYPE_RANDOM: 
-										if (rand.nextBoolean())
-											useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-										break;
-									case FLICKERTYPE_SOME:
-										if (rand.nextInt(100)<10)
-											useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-										break;
-									case FLICKERTYPE_SOME_FLICKER: 
-										if (!isLit && rand.nextInt(100)<10) bulbIndex++;
-										break;
-									default:
-										break;
-								}
+										bulbIndex = useIndex[index];
+										if ((bulbIndex%2)!=0) useIndex[index] = ++bulbIndex;
+										if ((!withSpace && index==0) || (withSpace && index==1))
+										{
+											drawBulbAt(g, x, bulbIndex);
+											index = useIndex.length;
+										}
+									}
+									break; //??
+								case FLICKERTYPE_RANDOM: 
+									if (rand.nextBoolean())
+										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+									break;
+								case FLICKERTYPE_SOME:
+									if (rand.nextInt(100)<10)
+										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+									break;
+								case FLICKERTYPE_SOME_FLICKER: 
+									if (!isLit && rand.nextInt(100)<10) bulbIndex++;
+									break;
+								default:
+									break;
 							}
 						}
-						x += drawBulbAt(g2d, x, bulbIndex);
 					}
+					x += drawBulbAt(g, x, bulbIndex);
 				}
 			}
-		}
-		finally
-		{
-			inDraw = false;
 		}
 	}
 	/**

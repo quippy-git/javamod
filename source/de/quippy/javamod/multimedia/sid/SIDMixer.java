@@ -327,6 +327,11 @@ public class SIDMixer extends BasicMixer
 	public void startPlayback()
 	{
 		initialize();
+		final int bufferSize = sampleRate;
+		final short[] shortBuffer = new short[bufferSize];
+		final int byteBufferSize = (isStereo) ? bufferSize : bufferSize << 1;
+		setSourceLineBufferSize(byteBufferSize);
+
 		parentSIDContainer.nameChanged();
 		setIsPlaying();
 
@@ -340,14 +345,11 @@ public class SIDMixer extends BasicMixer
 
 			boolean finished = false;
 
-			final int bufferSize = sampleRate;
-			final short[] shortBuffer = new short[bufferSize];
 			do
 			{
 				sidPlayer.play(shortBuffer, bufferSize);
 
 				// convert short buffer to byte array
-				int byteBufferSize = (isStereo) ? bufferSize : bufferSize << 1;
 				byte[] b = getOutputBuffer(byteBufferSize);
 				int idx = byteBufferSize;
 				int pos = bufferSize;

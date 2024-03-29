@@ -44,18 +44,14 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 public class WindowedFIR
 {
 	// quantizer scale of window coefs
-	private static final int	WFIR_QUANTBITS		=	15;
+	public  static final int	WFIR_QUANTBITS		=	15;
 	private static final int	WFIR_QUANTSCALE		=	1<<WFIR_QUANTBITS;
-	public  static final int	WFIR_8BITSHIFT		=	(WFIR_QUANTBITS - 8); // shift 8bit source samples for 16 Bit result
-	public  static final int	WFIR_16BITSHIFT		=	(WFIR_QUANTBITS);
 	// log2(number)-1 of precalculated taps range is [4..12]
 	private static final int	WFIR_FRACBITS		=	10;
 	private static final int	WFIR_LUTLEN			=	(1<<(WFIR_FRACBITS+1))+1;
 	// number of samples in window
 	private static final int	WFIR_LOG2WIDTH		=	3;
 	private static final int	WFIR_WIDTH			=	1<<WFIR_LOG2WIDTH;
-	// cutoff (1.0 == pi/2)
-	private static final float	WFIR_CUTOFF			=	0.90f;
 	// wfir types plus default:
 	private static final int	WFIR_HANN			=	0;
 	private static final int	WFIR_HAMMING		=	1;
@@ -65,17 +61,20 @@ public class WindowedFIR
 	private static final int	WFIR_BLACKMAN4T92	=	5;
 	private static final int	WFIR_BLACKMAN4T74	=	6;
 	private static final int	WFIR_KAISER4T		=	7;
-	private static final int	WFIR_TYPE			=	WFIR_BLACKMANEXACT;	
+	// Default settings:
+//	private static final float	WFIR_CUTOFF			=	0.90f; // cutoff (1.0 == pi/2)
+//	private static final int	WFIR_TYPE			=	WFIR_BLACKMANEXACT;
+	private static final float	WFIR_CUTOFF			=	0.97f;
+	private static final int	WFIR_TYPE			=	WFIR_KAISER4T;
 
 	private static final double	M_zEPS				=	1e-8;
 
-	public  static final int	WFIR_POSFRACMASK	=	(1<<ModConstants.SHIFT)-1;
 	// shifting of calculated samples:
 	public  static final int	WFIR_FRACSHIFT		=	ModConstants.SHIFT - (WFIR_FRACBITS + 1 + WFIR_LOG2WIDTH);
-	public  static final int	WFIR_FRACMASK		=	(((1<<((ModConstants.SHIFT + 1) - WFIR_FRACSHIFT)) - 1) & ~ ((1<<WFIR_LOG2WIDTH)-1));
+	public  static final int	WFIR_FRACMASK		=	(((1<<((ModConstants.SHIFT + 1) - WFIR_FRACSHIFT)) - 1) & ~((1<<WFIR_LOG2WIDTH)-1));
 	public  static final int	WFIR_FRACHALVE		=	1<<(ModConstants.SHIFT-(WFIR_FRACBITS+2));
 	
-	public static final short [] lut = new short [WFIR_LUTLEN*WFIR_WIDTH];
+	public static final int [] lut = new int [WFIR_LUTLEN*WFIR_WIDTH];
 	
 	static
 	{
@@ -93,62 +92,63 @@ public class WindowedFIR
 	/**
 	 * Get a coeff.
 	 * @since 15.06.2006
-	 * @param _PCnr
-	 * @param _POfs
-	 * @param _PCut
-	 * @param _PWidth
-	 * @param _PType
+	 * @param cnr
+	 * @param ofs
+	 * @param cut
+	 * @param width
+	 * @param type
 	 * @return
 	 */
-	private static double coef(int _PCnr, double _POfs, double _PCut, int _PWidth, int _PType) // float _PPos, float _PFc, int _PLen )
+	private static double coef(final int cnr, final double ofs, final double cut, final int width, final int type)
 	{
-		double _LWidthM1 = _PWidth - 1;
-		double _LWidthM1Half = 0.5d * _LWidthM1;
-		double _LPosU = ((double) _PCnr) - _POfs;
-		double _LPos = _LPosU - _LWidthM1Half;
-		double _LPIdl = 2.0d * Math.PI / _LWidthM1;
-		double _LWc, _LSi;
-		if (Math.abs(_LPos) < M_zEPS)
+		final double widthM1 = width - 1;
+		final double widthM1Half = 0.5d * widthM1;
+		final double posU = ((double) cnr) - ofs;
+		final double idl = 2.0d * Math.PI / widthM1;
+
+		double pos = posU - widthM1Half;
+		double wc, si;
+		if (Math.abs(pos) < M_zEPS)
 		{
-			_LWc = 1.0;
-			_LSi = _PCut;
+			wc = 1.0;
+			si = cut;
 		}
 		else
 		{
-			switch (_PType)
+			switch (type)
 			{
 				case WFIR_HANN:
-					_LWc = 0.50 - 0.50 * Math.cos(_LPIdl * _LPosU);
+					wc = 0.50 - 0.50 * Math.cos(idl * posU);
 					break;
 				case WFIR_HAMMING:
-					_LWc = 0.54 - 0.46 * Math.cos(_LPIdl * _LPosU);
+					wc = 0.54 - 0.46 * Math.cos(idl * posU);
 					break;
 				case WFIR_BLACKMANEXACT:
-					_LWc = 0.42 - 0.50 * Math.cos(_LPIdl * _LPosU) + 0.08 * Math.cos(2.0 * _LPIdl * _LPosU);
+					wc = 0.42 - 0.50 * Math.cos(idl * posU) + 0.08 * Math.cos(2.0 * idl * posU);
 					break;
 				case WFIR_BLACKMAN3T61:
-					_LWc = 0.44959 - 0.49364 * Math.cos(_LPIdl * _LPosU) + 0.05677 * Math.cos(2.0 * _LPIdl * _LPosU);
+					wc = 0.44959 - 0.49364 * Math.cos(idl * posU) + 0.05677 * Math.cos(2.0 * idl * posU);
 					break;
 				case WFIR_BLACKMAN3T67:
-					_LWc = 0.42323 - 0.49755 * Math.cos(_LPIdl * _LPosU) + 0.07922 * Math.cos(2.0 * _LPIdl * _LPosU);
+					wc = 0.42323 - 0.49755 * Math.cos(idl * posU) + 0.07922 * Math.cos(2.0 * idl * posU);
 					break;
 				case WFIR_BLACKMAN4T92:
-					_LWc = 0.35875 - 0.48829 * Math.cos(_LPIdl * _LPosU) + 0.14128 * Math.cos(2.0 * _LPIdl * _LPosU) - 0.01168 * Math.cos(3.0 * _LPIdl * _LPosU);
+					wc = 0.35875 - 0.48829 * Math.cos(idl * posU) + 0.14128 * Math.cos(2.0 * idl * posU) - 0.01168 * Math.cos(3.0 * idl * posU);
 					break;
 				case WFIR_BLACKMAN4T74:
-					_LWc = 0.40217 - 0.49703 * Math.cos(_LPIdl * _LPosU) + 0.09392 * Math.cos(2.0 * _LPIdl * _LPosU) - 0.00183 * Math.cos(3.0 * _LPIdl * _LPosU);
+					wc = 0.40217 - 0.49703 * Math.cos(idl * posU) + 0.09392 * Math.cos(2.0 * idl * posU) - 0.00183 * Math.cos(3.0 * idl * posU);
 					break;
 				case WFIR_KAISER4T:
-					_LWc = 0.40243 - 0.49804 * Math.cos(_LPIdl * _LPosU) + 0.09831 * Math.cos(2.0 * _LPIdl * _LPosU) - 0.00122 * Math.cos(3.0 * _LPIdl * _LPosU);
+					wc = 0.40243 - 0.49804 * Math.cos(idl * posU) + 0.09831 * Math.cos(2.0 * idl * posU) - 0.00122 * Math.cos(3.0 * idl * posU);
 					break;
 				default:
-					_LWc = 1.0;
+					wc = 1.0;
 					break;
 			}
-			_LPos *= Math.PI;
-			_LSi = Math.sin(_PCut * _LPos) / _LPos;
+			pos *= Math.PI;
+			si = Math.sin(cut * pos) / pos;
 		}
-		return _LWc * _LSi;
+		return wc * si;
 	}
 	/**
 	 * Init the static params
@@ -156,25 +156,26 @@ public class WindowedFIR
 	 */
 	private static void initialize()
 	{
-		double _LPcllen	= (double)(1L<<WFIR_FRACBITS);	// number of precalculated lines for 0..1 (-1..0)
-		double _LNorm	= 1.0d / (double)(2.0d * _LPcllen);
-		double _LCut	= WFIR_CUTOFF;
-		double _LScale	= (double)WFIR_QUANTSCALE;
-		for (int _LPcl=0; _LPcl<WFIR_LUTLEN; _LPcl++)
+		final double cllen	= (double)(1L<<WFIR_FRACBITS);	// number of precalculated lines for 0..1 (-1..0)
+		final double norm	= 1.0d / (double)(2.0d * cllen);
+		final double cut	= WFIR_CUTOFF;
+		final double scale	= (double)WFIR_QUANTSCALE;
+		
+		for (int cl=0; cl<WFIR_LUTLEN; cl++)
 		{	
-			double [] _LCoefs	= new double [WFIR_WIDTH];
-			double _LOfs		= ((double)_LPcl-_LPcllen)*_LNorm;
-			int _LIdx			= _LPcl<<WFIR_LOG2WIDTH;
+			final double [] coefs	= new double [WFIR_WIDTH];
+			final double ofs		= ((double)cl-cllen)*norm;
+			final int idx			= cl<<WFIR_LOG2WIDTH;
 			
-			double _LGain = 0.0d;
-			for (int _LCc=0; _LCc<WFIR_WIDTH; _LCc++)
-				_LGain	+= (_LCoefs[_LCc] = coef(_LCc, _LOfs, _LCut, WFIR_WIDTH, WFIR_TYPE));
+			double gain = 0.0d;
+			for (int c=0; c<WFIR_WIDTH; c++)
+				gain += (coefs[c] = coef(c, ofs, cut, WFIR_WIDTH, WFIR_TYPE));
 			
-			_LGain = 1.0d / _LGain;
-			for (int _LCc=0; _LCc<WFIR_WIDTH; _LCc++)
+			gain = 1.0d / gain;
+			for (int c=0; c<WFIR_WIDTH; c++)
 			{	
-				double _LCoef = Math.floor( 0.5d + _LScale*_LCoefs[_LCc]*_LGain );
-				lut[_LIdx+_LCc] = (short)( (_LCoef<-_LScale)?-_LScale:((_LCoef>_LScale)?_LScale:_LCoef) );
+				final double coef = Math.floor( 0.5d + scale*coefs[c]*gain );
+				lut[idx+c] = (int)( (coef<-scale)?-scale:((coef>scale)?scale:coef) );
 			}
 		}
 	}

@@ -76,13 +76,13 @@ public class RoundSlider extends JComponent
 			public void mousePressed(MouseEvent me)
 			{
 				lastAngle = getAngle(me);
-				requestFocus();
+				RoundSlider.this.requestFocusInWindow();
 			}
 
 			public void mouseClicked(MouseEvent me)
 			{
 				double ang = getAngle(me);
-				setValue((float)((START_ANG - ang) / LENGTH_ANG));
+				RoundSlider.this.setValue((float)((START_ANG - ang) / LENGTH_ANG));
 			}
 		});
 
@@ -156,7 +156,7 @@ public class RoundSlider extends JComponent
 		final int xpos = me.getX() - middle;
 		final int ypos = me.getY() - middle;
 		double ang = Math.atan2(xpos, ypos);
-		if (xpos<0) ang += PI_2; // Values: y>0: 0.0� - 180� y<0: 0.0� -  -180�
+		if (xpos<0) ang += PI_2; // Values: y>0: 0.0° - 180° y<0: 0.0° -  -180°
 		return ang;
 	}
 	/**
@@ -168,36 +168,40 @@ public class RoundSlider extends JComponent
 	{
 		int size = getMaxSize();
 		int middle = size>>1;
-
-		if (g instanceof Graphics2D)
+		
+		Graphics2D gfx = (Graphics2D)g.create(); 
+		try
 		{
-			Graphics2D g2d = (Graphics2D) g;
-			g2d.setBackground(getParent().getBackground());
-			g2d.setRenderingHints(AALIAS);
+			gfx.setBackground(getParent().getBackground());
+			gfx.setRenderingHints(AALIAS);
+	
+			size-=2;
+			middle--;
+			int startColor = 64;
+			final int colorStep = (255 - startColor) / size;
+			for (int i=size; i>=0; i--)
+			{
+				gfx.setColor(new Color(startColor, startColor, startColor));
+				int x = 1+middle-(i>>1);
+				gfx.fillOval(x, x, i, i);
+				startColor += colorStep;
+			}
+	
+			gfx.setColor(Color.RED);
+			final double sin = Math.sin(currentAngle);
+			final double cos = Math.cos(currentAngle);
+			final int x = middle + (int) (middle * sin);
+			final int y = middle + (int) (middle * cos);
+			gfx.drawLine(middle, middle, x, y);
+	
+	//		final int dx = (int) (2 * sin);
+	//		final int dy = (int) (2 * cos);
+	//		gfx.drawLine(middle + dx, middle + dy, x, y);
+	//		gfx.drawLine(middle - dx, middle - dy, x, y);
 		}
-
-		size-=2;
-		middle--;
-		int startColor = 64;
-		final int colorStep = (255 - startColor) / size;
-		for (int i=size; i>=0; i--)
+		finally
 		{
-			g.setColor(new Color(startColor, startColor, startColor));
-			int x = 1+middle-(i>>1);
-			g.fillOval(x, x, i, i);
-			startColor += colorStep;
+			gfx.dispose();
 		}
-
-		g.setColor(Color.RED);
-		final double sin = Math.sin(currentAngle);
-		final double cos = Math.cos(currentAngle);
-		final int x = middle + (int) (middle * sin);
-		final int y = middle + (int) (middle * cos);
-		g.drawLine(middle, middle, x, y);
-
-//		final int dx = (int) (2 * sin);
-//		final int dy = (int) (2 * cos);
-//		g.drawLine(middle + dx, middle + dy, x, y);
-//		g.drawLine(middle - dx, middle - dy, x, y);
 	}
 }

@@ -31,8 +31,8 @@ import java.awt.dnd.DropTargetContext;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -361,10 +361,9 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			textArea.setName("textArea");
 			textArea.setEditable(false);
 			textArea.setCaret(new InvisiableCaret());
-			textArea.addKeyListener(new KeyListener()
+			textArea.addKeyListener(new KeyAdapter()
 			{
-				public void keyTyped(KeyEvent e) {}
-				public void keyReleased(KeyEvent e) {}
+				@Override
 				public void keyPressed(KeyEvent e)
 				{
 					if (e.isConsumed() || playList==null) return;
@@ -450,6 +449,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			});
 			textArea.addMouseListener(new MouseAdapter()
 			{
+				@Override
 				public void mousePressed(MouseEvent e) 
 				{
 					if (e.isConsumed() || playList==null) return;
@@ -495,6 +495,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 			        }
 					e.consume();
 				}
+				@Override
 				public void mouseClicked(MouseEvent e)
 				{
 					if (e.isConsumed() || playList==null) return;
@@ -1176,22 +1177,12 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	}
 	private String getFormattedSongName(final PlayListEntry entry, boolean quick)
 	{
-		final int digits = (int)(Math.log10(playList.size())) + 1;
-		final String formatString = "%0"+digits+"d. %s";
-		String songName = entry.getQuickSongName();
-		if (!quick)
-		{
-			try
-			{
-				songName = entry.getFormattedName();
-			}
-			catch (Throwable ex)
-			{
-				songName += " [" + ex.getMessage() + "]";
-			}
-		}
-		return String.format(formatString, Integer.valueOf(entry.getIndexInPlaylist()+1), songName);
-		
+		final int digits = Integer.toString(playList.size()).length();
+		final String songName = (quick)?entry.getQuickSongName():entry.getFormattedName();
+		final String index = Integer.toString(entry.getIndexInPlaylist() + 1);
+		final StringBuilder sb = new StringBuilder();
+		for (int indexDigits = index.length(); indexDigits<digits; indexDigits++) sb.append('0');
+		return sb.append(index).append(". ").append(songName).toString();
 	}
 	private String getHTMLString(PlayListEntry entry, int index, String songname, String duration)
 	{

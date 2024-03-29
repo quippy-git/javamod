@@ -39,7 +39,8 @@ import de.quippy.javamod.system.Helpers;
 public abstract class MultimediaContainer
 {
 	private ArrayList<MultimediaContainerEventListener> listeners = new ArrayList<MultimediaContainerEventListener>();
-	private URL fileURL;
+	private URL fileURL = null;
+	
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -53,7 +54,7 @@ public abstract class MultimediaContainer
 	 * @since 13.10.2007
 	 * @return
 	 */
-	public MultimediaContainer getInstance(URL url)
+	public MultimediaContainer getInstance(final URL url)
 	{
 		setFileURL(url);
 		return this;
@@ -70,7 +71,7 @@ public abstract class MultimediaContainer
 	 * @since 19.12.2022
 	 * @param url
 	 */
-	public void setFileURL(URL url)
+	public void setFileURL(final URL url)
 	{
 		this.fileURL = url;
 	}
@@ -82,7 +83,7 @@ public abstract class MultimediaContainer
 	{
 		return getPrintableFileUrl(getFileURL());
 	}
-	public String getPrintableFileUrl(URL urlName)
+	public String getPrintableFileUrl(final URL urlName)
 	{
 		if (urlName==null) return Helpers.EMPTY_STING;
 		try
@@ -109,15 +110,15 @@ public abstract class MultimediaContainer
 		if (infoPanel!=null) SwingUtilities.updateComponentTreeUI(infoPanel); 
 		if (configPanel!=null) SwingUtilities.updateComponentTreeUI(configPanel); 
 	}
-	public void addListener(MultimediaContainerEventListener listener)
+	public void addListener(final MultimediaContainerEventListener listener)
 	{
 		listeners.add(listener);
 	}
-	public void removeListener(MultimediaContainerEventListener listener)
+	public void removeListener(final MultimediaContainerEventListener listener)
 	{
 		listeners.remove(listener);
 	}
-	protected void fireMultimediaContainerEvent(MultimediaContainerEvent event)
+	protected void fireMultimediaContainerEvent(final MultimediaContainerEvent event)
 	{
 		for (int i=0; i<listeners.size(); i++)
 			listeners.get(i).multimediaContainerEventOccured(event);
@@ -138,7 +139,7 @@ public abstract class MultimediaContainer
 	 * @param url
 	 * @return Object [] { String SongName, Long duration }
 	 */
-	public abstract Object [] getSongInfosFor(URL url);
+	public abstract Object [] getSongInfosFor(final URL url);
 	/**
 	 * Returns true if this mixers supports the export function
 	 * @since 26.10.2007
@@ -164,7 +165,7 @@ public abstract class MultimediaContainer
 	 */
 	public abstract String [] getFileExtensionList();
 	/**
-	 * A describtive Name for e.g. a FileChooser
+	 * A descriptive Name for e.g. a FileChooser
 	 * @since 05.01.2008
 	 * @return
 	 */
@@ -173,19 +174,19 @@ public abstract class MultimediaContainer
 	 * @since 13.10.2007
 	 * @param newProps
 	 */
-	public abstract void configurationChanged(Properties newProps);
+	public abstract void configurationChanged(final Properties newProps);
 	/**
 	 * @since 14.10.2007
 	 * @param props
 	 */
-	public abstract void configurationSave(Properties props);
+	public abstract void configurationSave(final Properties props);
 	/**
 	 * Clean up
 	 * @since 11.11.2023
 	 */
 	public abstract void cleanUp();
 	/**
-	 * Get the ModMixer of this container
+	 * Get the mixer of this container
 	 * @since: 12.10.2007
 	 * @return
 	 */

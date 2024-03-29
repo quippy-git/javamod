@@ -109,9 +109,9 @@ public class ScreamTrackerOldMod extends Module
 	public int getPanningValue(int channel)
 	{
 		if ((channel%3)!=0)
-			return 256;
+			return ModConstants.OLD_PANNING_RIGHT;
 		else
-			return 0;
+			return ModConstants.OLD_PANNING_LEFT;
 	}
 	/**
 	 * @param channel
@@ -198,9 +198,9 @@ public class ScreamTrackerOldMod extends Module
 	 * @param note
 	 * @return
 	 */
-	private PatternElement createNewPatternElement(int pattNum, int row, int channel, int note)
+	private void createNewPatternElement(final PatternContainer patternContainer, final int pattNum, final int row, final int channel, final int note)
 	{
-		PatternElement pe = new PatternElement(pattNum, row, channel);
+		PatternElement pe = patternContainer.createPatternElement(pattNum, row, channel);
 		
 		pe.setInstrument((note&0xF80000)>>19);
 
@@ -232,8 +232,6 @@ public class ScreamTrackerOldMod extends Module
 			pe.setVolumeEffekt(1);
 			pe.setVolumeEffektOp(volume);
 		}
-		
-		return pe;
 	}
 	/**
 	 * @param inputStream
@@ -291,6 +289,8 @@ public class ScreamTrackerOldMod extends Module
 		
 		// is always stereo
 		songFlags |= ModConstants.SONG_ISSTEREO;
+		// default, so we do not need to check for IT
+		songFlags |= ModConstants.SONG_ITOLDEFFECTS;
 
 		// PlaybackTemp (???)
 		playBackTempo = inputStream.read();
@@ -305,7 +305,9 @@ public class ScreamTrackerOldMod extends Module
 		
 		// Base volume
 		setBaseVolume(inputStream.read()<<1);
-		setMixingPreAmp(ModConstants.DEFAULT_MIXING_PREAMP);
+//		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
+//		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
+		setMixingPreAmp(ModConstants.MIN_MIXING_PREAMP);
 		
 		// Skip these reserved bytes
 		inputStream.skip(13);
@@ -360,7 +362,9 @@ public class ScreamTrackerOldMod extends Module
 			// reserved
 			inputStream.skip(1);
 
-			current.setPanning(-1);
+			// Defaults!
+			current.setPanning(false);
+			current.setDefaultPanning(128);
 			
 			// Base Frequency
 			current.setFineTune(0);
@@ -387,7 +391,7 @@ public class ScreamTrackerOldMod extends Module
 		while (getArrangement()[currentSongLenth-1]>=getNPattern()) currentSongLenth--;
 		setSongLength(currentSongLenth);
 
-		PatternContainer patternContainer = new PatternContainer(getNPattern(), 64, getNChannels());
+		PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -396,7 +400,7 @@ public class ScreamTrackerOldMod extends Module
 				for (int channel=0; channel<getNChannels(); channel++)
 				{
 					int value = inputStream.readMotorolaDWord();
-					patternContainer.setPatternElement(createNewPatternElement(pattNum, row, channel, value));
+					createNewPatternElement(patternContainer, pattNum, row, channel, value);
 				}
 			}
 		}

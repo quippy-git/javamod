@@ -22,6 +22,7 @@
 package de.quippy.javamod.multimedia.mod.gui;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.system.Helpers;
 
 /**
  * @author Daniel Becker
@@ -45,13 +46,13 @@ public interface ModUpdateListener
 			return "Timer: " + samplesMixed + "/" + timeCode;
 		}
 	}
-	public class PositionInformation extends TimedInformation
+	public class PatternPositionInformation extends TimedInformation
 	{
 		public boolean active;
 		public int patternIndex;
 		public int patternRow;
 
-		public PositionInformation(final int sampleRate, final long samplesMixed, final long position)
+		public PatternPositionInformation(final int sampleRate, final long samplesMixed, final long position)
 		{
 			super(sampleRate, samplesMixed);
 			this.patternIndex = (int)((position >> 48)&0xFFFF);
@@ -70,20 +71,17 @@ public interface ModUpdateListener
 		public int actPeekRight;
 		public boolean isSurround;
 		
-		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final long actPeekLeft, final long actPeekRight, final boolean isSurround)
+		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final int actPeekLeft, final int actPeekRight, final boolean isSurround)
 		{
 			super(sampleRate, samplesMixed);
 			this.channel = channel;
-			
-			this.actPeekLeft = (int)(actPeekLeft / 0xFFFFFFF);
-			if (this.actPeekLeft==0 && actPeekLeft>0) this.actPeekLeft = 1;
-			this.actPeekRight = (int)(actPeekRight / 0xFFFFFFF);
-			if (this.actPeekRight==0 && actPeekRight>0) this.actPeekRight = 1;
+			this.actPeekLeft = actPeekLeft;
+			this.actPeekRight = actPeekRight;
 			this.isSurround = isSurround;
 		}
 		public String toString()
 		{
-			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":"");
+			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":Helpers.EMPTY_STING);
 		}
 	}
 	public class StatusInformation
@@ -100,7 +98,7 @@ public interface ModUpdateListener
 		}
 	}
 	/**
-	 * This method is called during a row change (new row).
+	 * This method is called during a row change (new row).<br>
 	 * As it is blocking the mixing, it <b>must</b> finish very shortly!
 	 * Complex things like displaying the next pattern should not be done
 	 * here. Simply memorize the position and its time stamp - either
@@ -109,7 +107,25 @@ public interface ModUpdateListener
 	 * @since 13.11.2023
 	 * @param infoObject
 	 */
-	public void getPositionInformation(final PositionInformation infoObject);
+	public void getPatternPositionInformation(final PatternPositionInformation infoObject);
+	/**
+	 * This method is called to inform listeners about peek informations on
+	 * a specific channel.<br>
+	 * As it is blocking the mixing, it <b>must</b> finish very shortly!
+	 * Complex things like displaying the next pattern should not be done
+	 * here. Simply memorize the position and its time stamp - either
+	 * use the samples mixed till this event occurred or the timeCode in
+	 * milliseconds.
+	 * @since 13.11.2023
+	 * @param infoObject
+	 */
 	public void getPeekInformation(final PeekInformation infoObject);
+	/**
+	 * This method will inform any listener, that status informations will
+	 * be send (status==true) - or not (status==false). This is somewhat equal
+	 * to the playback was stopped or finished - or we are seeking
+	 * @since 13.11.2023
+	 * @param infoObject
+	 */
 	public void getStatusInformation(final StatusInformation infoObject);
 }

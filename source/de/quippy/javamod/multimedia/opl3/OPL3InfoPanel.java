@@ -49,6 +49,9 @@ public class OPL3InfoPanel extends JPanel
 	private JLabel opl3DescriptionLabel = null;
 	private JScrollPane opl3DescriptionScrollPane = null;
 	private JTextArea opl3Description = null;
+
+	OPL3Container parentContainer = null;
+	
 	/**
 	 * Constructor for OPL3InfoPanel
 	 */
@@ -84,6 +87,20 @@ public class OPL3InfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public OPL3Container getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(OPL3Container parent)
+	{
+		parentContainer = parent;
 	}
 	private void initialize()
 	{

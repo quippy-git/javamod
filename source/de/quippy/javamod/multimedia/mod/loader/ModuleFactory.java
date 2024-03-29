@@ -30,7 +30,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 import de.quippy.javamod.io.ModfileInputStream;
-import de.quippy.javamod.system.Log;
 
 /**
  * Returns the appropiate ModuleClass for the desired ModFile
@@ -187,14 +186,13 @@ public class ModuleFactory
 					throw new IOException("Unsupported MOD-Type: " + inputStream.getFileName());
 			}
 		}
-		catch (Exception ex)
+		catch (Throwable ex)
 		{
-			Log.error("[ModuleFactory] Failed with loading " + url.toString(), ex);
-			return null;
+			throw new IOException("[ModuleFactory] Failed with loading of " + url.toString(), ex);
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

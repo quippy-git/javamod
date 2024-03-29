@@ -73,6 +73,8 @@ public class APEInfoPanel extends JPanel
 	private JLabel v1_L_Track = null;
 	private JTextField v1_Track = null;
 
+	private APEContainer parentContainer = null;
+	
 	/**
 	 * Constructor for APEInfoPanel
 	 */
@@ -108,6 +110,20 @@ public class APEInfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public APEContainer getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(APEContainer parent)
+	{
+		this.parentContainer = parent;
 	}
 	private void initialize()
 	{

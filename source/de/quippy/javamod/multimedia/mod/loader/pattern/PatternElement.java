@@ -22,33 +22,47 @@
 package de.quippy.javamod.multimedia.mod.loader.pattern;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.loader.Module;
 
 /**
  * @author Daniel Becker
  * @since 28.04.2006
  */
-public class PatternElement
+public abstract class PatternElement
 {
-	private int patternIndex;
-	private int row;
-	private int channel;
-	private int period;
-	private int noteIndex;
-	private int instrument;
-	private int effekt;
-	private int effektOp;
-	private int volumeEffekt;
-	private int volumeEffektOp;
+	public static final int EFFECT_NORMAL	= 0;
+	public static final int EFFECT_VOLUME	= 1;
+	public static final int EFFECT_PANNING	= 2;
+	public static final int EFFECT_PITCH	= 3;
+	public static final int EFFECT_GLOBAL	= 4;
+	public static final int EFFECT_UNKNOWN	= 5;
+	public static final int EFFECT_NONE		= 6;
+	
+	protected Module parentMod;
+	protected PatternRow parentPatternRow;
+	
+	protected int patternIndex;
+	protected int row;
+	protected int channel;
+	protected int period;
+	protected int noteIndex;
+	protected int instrument;
+	protected int effekt;
+	protected int effektOp;
+	protected int volumeEffekt;
+	protected int volumeEffektOp;
 	
 	/**
 	 * Constructor for PatternElement
 	 */
-	public PatternElement(final int patternIndex, final int patternRow, final int channel)
+	public PatternElement(final Module parentMod, final PatternRow parentPatternRow, final int patternIndex, final int patternRow, final int channel)
 	{
 		super();
 		this.patternIndex = patternIndex;
 		this.row = patternRow;
 		this.channel = channel;
+		this.parentMod = parentMod;
+		this.parentPatternRow = parentPatternRow;
 		this.period = 0;
 		this.noteIndex = 0;
 		this.instrument = 0;
@@ -58,24 +72,44 @@ public class PatternElement
 		this.effektOp = 0;
 	}
 	/**
+	 * @since 09.01.2024
+	 * @return the char representation of the current effect op
+	 */
+	public abstract char getEffektChar();
+	/**
+	 * @since 09.01.2024
+	 * @return the name of the effect op
+	 */
+	public abstract String getEffectName();
+	/**
+	 * @since 09.01.2024
+	 * @return a category for the effect op (see EFFECT_* constants)
+	 */
+	public abstract int getEffectCategory();
+	/**
+	 * @since 09.01.2024
+	 * @return the char representation of the current volume effect op
+	 */
+	public abstract char getVolumeColumEffektChar();
+	/**
+	 * @since 09.01.2024
+	 * @return the name of the volume effect op 
+	 */
+	public abstract String getVolEffectName();
+	/**
+	 * @since 09.01.2024
+	 * @return a category for the volume effect op (see EFFECT_* constants)
+	 */
+	public abstract int getVolEffectCategory();
+	/**
 	 * @return
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString()
 	{
-		return toString(false);
-	}
-	/**
-	 * toString - however regarding if ImpulseTracker family or not
-	 * @since 22.12.2023
-	 * @param isIT
-	 * @return
-	 */
-	public String toString(final boolean isIT)
-	{
 		final StringBuilder sb = new StringBuilder();
-		addToStringBuilder(sb, isIT);
+		addToStringBuilder(sb);
 		return sb.toString();
 	}
 	/**
@@ -84,59 +118,44 @@ public class PatternElement
 	 * @param sb
 	 * @param isIT
 	 */
-	public void addToStringBuilder(final StringBuilder sb, final boolean isIT)
+	public void addToStringBuilder(final StringBuilder sb)
 	{
-		sb.append(' ').append(ModConstants.getNoteNameForIndex(noteIndex)).append(' ');
-		if (instrument!=0) sb.append(ModConstants.getAsHex(instrument, 2)); else sb.append("..");
-		if (volumeEffekt!=0)
+		sb.append(ModConstants.getNoteNameForIndex(noteIndex)).append(' ');
+		if (instrument==0) 
+			sb.append("..");
+		else 
+			sb.append(ModConstants.getAsHex(instrument, 2)); 
+		
+		if (volumeEffekt==0)
+			sb.append(" ..");
+		else
 		{
-			switch (volumeEffekt)
-			{
-				case 0x01: sb.append('v'); break;
-				case 0x02: sb.append('d'); break;
-				case 0x03: sb.append('c'); break;
-				case 0x04: sb.append('b'); break;
-				case 0x05: sb.append('a'); break;
-				case 0x06: sb.append('u'); break;
-				case 0x07: sb.append('h'); break;
-				case 0x08: sb.append('p'); break;
-				case 0x09: sb.append('l'); break;
-				case 0x0A: sb.append('r'); break;
-				case 0x0B: sb.append('g'); break;
-				case 0x0C: sb.append('e'); break;
-				case 0x0D: sb.append('f'); break;
-				case 0x0E: sb.append('o'); break;
-				case 0x0F: sb.append('?'); break;
-			}
+			sb.append(getVolumeColumEffektChar());
 			sb.append(ModConstants.getAsHex(volumeEffektOp, 2));
 		}
-		else 
-			sb.append(" ..");
 		
 		sb.append(' ');
-		if (effekt!=0 || (effekt==0 && effektOp!=0))
+		if (effekt==0 && effektOp==0)
+			sb.append("...");
+		else
 		{
-			if (isIT)
-			{
-				sb.append((effekt==0x1B)?'#':(char)('A' + effekt - 1));
-			}
-			else
-			{
-				if (effekt<=0x0F)
-					sb.append(ModConstants.numbers[effekt]);
-				else
-				if (effekt==0x24)
-					sb.append('\\');
-				else
-				if (effekt==0x26)
-					sb.append('#');
-				else
-					sb.append((char)('G' + effekt - 0x10));
-			}
+			sb.append(getEffektChar());
 			sb.append(ModConstants.getAsHex(effektOp, 2));
 		}
-		else 
-			sb.append("...");
+	}
+	/**
+	 * @return the parentMod
+	 */
+	public Module getParentMod()
+	{
+		return parentMod;
+	}
+	/**
+	 * @return the parentPatternRow
+	 */
+	public PatternRow getParentPatternRow()
+	{
+		return parentPatternRow;
 	}
 	/**
 	 * @return Returns the channel.
@@ -148,7 +167,7 @@ public class PatternElement
 	/**
 	 * @param channel The channel to set.
 	 */
-	public void setChannel(int channel)
+	public void setChannel(final int channel)
 	{
 		this.channel = channel;
 	}
@@ -162,7 +181,7 @@ public class PatternElement
 	/**
 	 * @param effekt The effekt to set.
 	 */
-	public void setEffekt(int effekt)
+	public void setEffekt(final int effekt)
 	{
 		this.effekt = effekt;
 	}
@@ -176,7 +195,7 @@ public class PatternElement
 	/**
 	 * @param effektOp The effektOp to set.
 	 */
-	public void setEffektOp(int effektOp)
+	public void setEffektOp(final int effektOp)
 	{
 		this.effektOp = effektOp;
 	}
@@ -190,7 +209,7 @@ public class PatternElement
 	/**
 	 * @param instrument The instrument to set.
 	 */
-	public void setInstrument(int instrument)
+	public void setInstrument(final int instrument)
 	{
 		this.instrument = instrument;
 	}
@@ -204,7 +223,7 @@ public class PatternElement
 	/**
 	 * @param noteIndex The noteIndex to set.
 	 */
-	public void setNoteIndex(int noteIndex)
+	public void setNoteIndex(final int noteIndex)
 	{
 		this.noteIndex = noteIndex;
 	}
@@ -218,7 +237,7 @@ public class PatternElement
 	/**
 	 * @param patternIndex The patternIndex to set.
 	 */
-	public void setPatternIndex(int patternIndex)
+	public void setPatternIndex(final int patternIndex)
 	{
 		this.patternIndex = patternIndex;
 	}
@@ -232,7 +251,7 @@ public class PatternElement
 	/**
 	 * @param period The period to set.
 	 */
-	public void setPeriod(int period)
+	public void setPeriod(final int period)
 	{
 		this.period = period;
 	}
@@ -246,7 +265,7 @@ public class PatternElement
 	/**
 	 * @param row The row to set.
 	 */
-	public void setRow(int row)
+	public void setRow(final int row)
 	{
 		this.row = row;
 	}
@@ -260,21 +279,21 @@ public class PatternElement
 	/**
 	 * @param volume The volume to set.
 	 */
-	public void setVolumeEffekt(int volumeEffekt)
+	public void setVolumeEffekt(final int volumeEffekt)
 	{
 		this.volumeEffekt = volumeEffekt;
 	}
 	/**
-	 * @return Returns the volumeEffektOp.
+	 * @return Returns the assignedVolumeEffektOp.
 	 */
 	public int getVolumeEffektOp()
 	{
 		return volumeEffektOp;
 	}
 	/**
-	 * @param volumeEffektOp The volumeEffektOp to set.
+	 * @param assignedVolumeEffektOp The assignedVolumeEffektOp to set.
 	 */
-	public void setVolumeEffektOp(int volumeEffektOp)
+	public void setVolumeEffektOp(final int volumeEffektOp)
 	{
 		this.volumeEffektOp = volumeEffektOp;
 	}

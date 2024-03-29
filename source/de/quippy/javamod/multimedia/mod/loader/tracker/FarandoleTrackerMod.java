@@ -29,10 +29,8 @@ import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.ModuleFactory;
 import de.quippy.javamod.multimedia.mod.loader.instrument.InstrumentsContainer;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
-import de.quippy.javamod.multimedia.mod.loader.pattern.Pattern;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternContainer;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
-import de.quippy.javamod.multimedia.mod.loader.pattern.PatternRow;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
 import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
@@ -198,16 +196,15 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			breakRow++;
 		else 
 			breakRow = BREAK_ROW_INVALID;
-		patternContainer.setPattern(pattNum, new Pattern(rows));
+		patternContainer.createPattern(pattNum, rows);
 		for (int row=0; row<rows; row++)
 		{
 			// create the PatternRow
-			patternContainer.setPatternRow(pattNum, row, new PatternRow(getNChannels()));
+			patternContainer.createPatternRow(pattNum, row, getNChannels());
 			// now read the data and set the pattern row:
 			for (int channel=0; channel<getNChannels(); channel++)
 			{
-				PatternElement currentElement = new PatternElement(pattNum, row, channel);
-				patternContainer.setPatternElement(currentElement);
+				PatternElement currentElement = patternContainer.createPatternElement(pattNum, row, channel);
 				
 				// now read in:
 				final int note = inputStream.read(); // 0 - 72
@@ -350,7 +347,8 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		current.setStereo(false);
 		current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
 		current.setTranspose(0);
-		current.setPanning(-1);
+		current.setPanning(false);
+		current.setDefaultPanning(128);
 		
 		// SampleData
 		int flags = ModConstants.SM_PCMS;
@@ -372,7 +370,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		setNChannels(16);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
 		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
-		setMixingPreAmp((preAmp<ModConstants.DEFAULT_MIXING_PREAMP)?ModConstants.DEFAULT_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
+		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
 		songFlags = ModConstants.SONG_ISSTEREO;
 		
 		// ModID
@@ -441,26 +439,27 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		// now for the pattern order
 		allocArrangement(256);
 		for (int i=0; i<256; i++) getArrangement()[i]=inputStream.read();
-		/*final int numPatterns = */inputStream.read(); // obviously this is a lie - so we allocate always all 256 and skip loading of unused
-		setNPattern(256);
+		int numPatterns = inputStream.read(); // obviously this is a lie - so we allocate always all 256 and skip loading of unused
+		numPatterns = 256;
+		setNPattern(numPatterns);
 		final int numOrders = inputStream.read();
 		final int restartPos = inputStream.read();
 		final int [] patternSizes = new int[256];
-		for (int i=0; i<256; i++) patternSizes[i] = inputStream.readIntelUnsignedWord();
+		for (int i=0; i<patternSizes.length; i++) patternSizes[i] = inputStream.readIntelUnsignedWord();
 		setSongRestart(restartPos);
 		setSongLength(numOrders);
 		
 		// now skip to patterns
 		inputStream.seek(headerLength);
 
-		PatternContainer patternContainer = new PatternContainer(getNPattern());
+		PatternContainer patternContainer = new PatternContainer(this, getNPattern());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
 			if (patternSizes[pattNum]==0)
 			{
 				// We need an empty pattern - player is not supporting "NULL" patterns...
-				patternContainer.setPattern(pattNum, new Pattern(0));
+				patternContainer.createPattern(pattNum, 0);
 				continue; // Empty pattern, nothing to do
 			}
 			// Create the Pattern

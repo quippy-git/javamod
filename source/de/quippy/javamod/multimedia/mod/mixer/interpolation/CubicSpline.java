@@ -73,16 +73,16 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 public class CubicSpline
 {
 	// number of bits used to scale spline coefs
-	public  static final int	SPLINE_QUANTBITS	=	14;
-	private static final int	SPLINE_QUANTSCALE	=	1<<SPLINE_QUANTBITS;
+	public  static final int SPLINE_QUANTBITS	= 14;
+	private static final int SPLINE_QUANTSCALE	= 1<<SPLINE_QUANTBITS;
 	// log2(number) of precalculated splines (range is [4..14])	
-	private static final int	SPLINE_FRACBITS 	=	10;
-	private static final int	SPLINE_LUTLEN		=	1<<SPLINE_FRACBITS;
+	private static final int SPLINE_FRACBITS 	= 10;
+	private static final int SPLINE_LUTLEN		= 1<<SPLINE_FRACBITS;
 	// Shifting of calculated Samples:
-	public  static final int	SPLINE_FRACSHIFT	=	(ModConstants.SHIFT-SPLINE_FRACBITS)-2;
-	public  static final int	SPLINE_FRACMASK		=	((1<<(ModConstants.SHIFT-SPLINE_FRACSHIFT))-1)&~3;
+	public  static final int SPLINE_FRACSHIFT	= (ModConstants.SHIFT-SPLINE_FRACBITS)-2;
+	public  static final int SPLINE_FRACMASK	= ((1<<(ModConstants.SHIFT-SPLINE_FRACSHIFT))-1) & ~3;
 	
-	public static final short [] lut = new short [4*SPLINE_LUTLEN]; // prevent a 2 dimensional array...
+	public static final int [] lut = new int [4*SPLINE_LUTLEN]; // prevent a 2 dimensional array...
 	
 	static
 	{
@@ -102,31 +102,31 @@ public class CubicSpline
 	 */
 	private static void initialize()
 	{
-		double lFlen		= 1.0d / (double)SPLINE_LUTLEN;
-		double lScale	= (double)SPLINE_QUANTSCALE;
+		final double len	= 1.0d / (double)SPLINE_LUTLEN;
+		final double scale	= (double)SPLINE_QUANTSCALE;
 		
 		for(int i=0; i<SPLINE_LUTLEN; i++)
 		{	
-			double	lX		= ((double)i)*lFlen;
-			int 	lIdx	= i<<2;
-			double	lCm1	= Math.floor(0.5 + lScale * (-0.5*lX*lX*lX + 1.0 * lX*lX - 0.5 * lX       ));
-			double	lC0		= Math.floor(0.5 + lScale * ( 1.5*lX*lX*lX - 2.5 * lX*lX             + 1.0));
-			double	lC1		= Math.floor(0.5 + lScale * (-1.5*lX*lX*lX + 2.0 * lX*lX + 0.5 * lX       ));
-			double	lC2		= Math.floor(0.5 + lScale * ( 0.5*lX*lX*lX - 0.5 * lX*lX                  ));
-			lut[lIdx  ]		= (short)((lCm1 < -lScale) ? -lScale : ((lCm1 > lScale) ? lScale : lCm1));
-			lut[lIdx+1]		= (short)((lC0  < -lScale) ? -lScale : ((lC0  > lScale) ? lScale : lC0 ));
-			lut[lIdx+2]		= (short)((lC1  < -lScale) ? -lScale : ((lC1  > lScale) ? lScale : lC1 ));
-			lut[lIdx+3]		= (short)((lC2  < -lScale) ? -lScale : ((lC2  > lScale) ? lScale : lC2 ));
+			final double	x		= ((double)i)*len;
+			final int 		idx	= i<<2;
+			final double	cm1	= Math.floor(0.5 + scale * (-0.5*x*x*x + 1.0 * x*x - 0.5 * x      ));
+			final double	c0	= Math.floor(0.5 + scale * ( 1.5*x*x*x - 2.5 * x*x           + 1.0));
+			final double	c1	= Math.floor(0.5 + scale * (-1.5*x*x*x + 2.0 * x*x + 0.5 * x      ));
+			final double	c2	= Math.floor(0.5 + scale * ( 0.5*x*x*x - 0.5 * x*x                ));
+			lut[idx  ]		= (int)((cm1 < -scale) ? -scale : ((cm1 > scale) ? scale : cm1));
+			lut[idx+1]		= (int)((c0  < -scale) ? -scale : ((c0  > scale) ? scale : c0 ));
+			lut[idx+2]		= (int)((c1  < -scale) ? -scale : ((c1  > scale) ? scale : c1 ));
+			lut[idx+3]		= (int)((c2  < -scale) ? -scale : ((c2  > scale) ? scale : c2 ));
 			
 			// forces coefs-set to unity gain:
-			int lSum		= lut[lIdx+0] + lut[lIdx+1] + lut[lIdx+2] + lut[lIdx+3];
-			if (lSum != SPLINE_QUANTSCALE)
+			final int sum	= lut[idx] + lut[idx+1] + lut[idx+2] + lut[idx+3];
+			if (sum != SPLINE_QUANTSCALE)
 			{	
-				int lMax = lIdx;
-				if (lut[lIdx+1] > lut[lMax]) lMax = lIdx+1;
-				if (lut[lIdx+2] > lut[lMax]) lMax = lIdx+2;
-				if (lut[lIdx+3] > lut[lMax]) lMax = lIdx+3;
-				lut[lMax] += (SPLINE_QUANTSCALE-lSum);
+				int max = idx;
+				if (lut[idx+1] > lut[max]) max = idx+1;
+				if (lut[idx+2] > lut[max]) max = idx+2;
+				if (lut[idx+3] > lut[max]) max = idx+3;
+				lut[max] += SPLINE_QUANTSCALE - sum;
 			}
 		}
 	}

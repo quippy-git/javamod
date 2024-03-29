@@ -64,6 +64,8 @@ public class OGGInfoPanel extends JPanel
 	private JScrollPane scrollPane_comment = null;
 	private JTextArea v1_Comment = null;
 
+	private OGGContainer parentContainer = null;
+
 	/**
 	 * Constructor for OGGInfoPanel
 	 */
@@ -99,6 +101,20 @@ public class OGGInfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public OGGContainer getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(OGGContainer parent)
+	{
+		this.parentContainer = parent;
 	}
 	private void initialize()
 	{

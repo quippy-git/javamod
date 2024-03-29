@@ -36,7 +36,6 @@ import de.quippy.javamod.io.FileOrPackedInputStream;
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -46,8 +45,7 @@ public class WavContainer extends MultimediaContainer
 {
 	private static final String[] wavefile_Extensions;
 
-//	private JPanel wavConfigPanel;
-	private JPanel wavInfoPanel;
+	private WavInfoPanel wavInfoPanel;
 	private WavMixer currentMixer;
 	
 	/**
@@ -81,7 +79,7 @@ public class WavContainer extends MultimediaContainer
 		try
 		{
 			audioInputStream = AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
-			((WavInfoPanel)getInfoPanel()).fillInfoPanelWith(audioInputStream, getSongName());
+			if (!MultimediaContainerManager.isHeadlessMode()) ((WavInfoPanel)getInfoPanel()).fillInfoPanelWith(audioInputStream, getSongName());
 		}
 		catch (Exception ex)
 		{
@@ -89,7 +87,7 @@ public class WavContainer extends MultimediaContainer
 		}
 		finally
 		{
-			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -145,6 +143,7 @@ public class WavContainer extends MultimediaContainer
 		if (wavInfoPanel==null)
 		{
 			wavInfoPanel = new WavInfoPanel();
+			wavInfoPanel.setParentContainer(this);
 		}
 		return wavInfoPanel;
 	}
@@ -156,11 +155,6 @@ public class WavContainer extends MultimediaContainer
 	public JPanel getConfigPanel()
 	{
 		return null;
-//		if (wavConfigPanel==null)
-//		{
-//			wavConfigPanel = new JPanel();
-//		}
-//		return wavConfigPanel;
 	}
 	/**
 	 * @return

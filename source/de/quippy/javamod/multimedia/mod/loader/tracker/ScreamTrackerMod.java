@@ -58,7 +58,7 @@ public class ScreamTrackerMod extends Module
 	protected int samplesType;
 	protected boolean usePanningValues;
 	protected int [] channelSettings;
-	protected int [] panningValue;
+
 	// Due to deactivated Channels, we need to remap:
 	private int[] channelMap;
 
@@ -355,13 +355,24 @@ public class ScreamTrackerMod extends Module
 		
 		if ((flags&0x40)!=0 || version < 0x1300) songFlags |= ModConstants.SONG_FASTVOLSLIDES;
 		if ((flags&0x80)!=0) songFlags |= ModConstants.SONG_AMIGALIMITS;
+		songFlags |= ModConstants.SONG_ITOLDEFFECTS; // default, so we do not need to check for IT
 
 		// Samples Type (version)
 		samplesType = inputStream.readIntelUnsignedWord();
 
 		// ModID
 		setModID(inputStream.readString(4));
-		setTrackerName("ScreamTracker V" + ((version>>8)&0x0F) + '.' + (version&0xFF));
+		if ((version&0xF000)==0x5000)
+		{
+			setModType(getModType() | ModConstants.MODTYPE_OMPT);
+			setTrackerName("Open ModPlug Tracker V");
+		}
+		else
+		if ((version&0xF000)==0x1000)
+			setTrackerName("ScreamTracker V");
+		else
+			setTrackerName("Unknown Tracker (ID: "+((version&0xF000)>>12)+") V");
+		setTrackerName(getTrackerName() +  + ((version>>8)&0x0F) + '.' + (version&0xFF));
 
 		// Global Volume
 		int globalVolume = inputStream.read()<<1;
@@ -512,7 +523,7 @@ public class ScreamTrackerMod extends Module
 			
 			// Reserved (Sample Beginning Offset?!)
 			inputStream.skip(1);
-			/*byte packingScheme = */inputStream.readByte(); // 0: unpacked, 1: DP30ADPCM packing - but s3m are never packed...
+			byte packingScheme = inputStream.readByte(); // 0: unpacked, 1: DP30ADPCM packing
 
 			// Flags: 1:Loop 2:Stereo 4:16Bit-Sample...
 			current.setFlags(inputStream.read());
@@ -535,14 +546,22 @@ public class ScreamTrackerMod extends Module
 			// Key
 			inputStream.skip(4); // should be "SCRS" (sample) or "SCRI" (adlib instrument) - we ignore that, because of already known "instrumentType"
 			
-			current.setPanning(-1);
+			// Defaults!
+			current.setPanning(false);
+			current.setDefaultPanning(128);
 			
 			if (instrumentType==1)
 			{
 				// SampleData
-				int flags = (samplesType==2)?ModConstants.SM_PCMU:ModConstants.SM_PCMS;
-				if ((current.flags&0x02)!=0) flags|=ModConstants.SM_STEREO;
-				if ((current.flags&0x04)!=0) flags|=ModConstants.SM_16BIT;
+				int flags = 0;
+				if (packingScheme!=0 && (current.flags & (0x02 | 0x04)) == 0)  // ModPlug ADPCM compression
+					flags = ModConstants.SM_ADPCM; 
+				else
+				{
+					flags = (samplesType==2)?ModConstants.SM_PCMU:ModConstants.SM_PCMS;
+					if ((current.flags&0x02)!=0) flags|=ModConstants.SM_STEREO;
+					if ((current.flags&0x04)!=0) flags|=ModConstants.SM_16BIT;
+				}
 
 				current.setStereo((flags&ModConstants.SM_STEREO)!=0); 
 				inputStream.seek(sampleOffset);
@@ -554,7 +573,7 @@ public class ScreamTrackerMod extends Module
 		}
 		
 		// Pattern data
-		PatternContainer patternContainer = new PatternContainer(getNPattern(), 64, getNChannels());
+		PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -563,8 +582,7 @@ public class ScreamTrackerMod extends Module
 			{
 				for (int channel=0; channel<getNChannels(); channel++)
 				{
-					PatternElement currentElement = new PatternElement(pattNum, row, channel);
-					patternContainer.setPatternElement(currentElement);
+					patternContainer.createPatternElement(pattNum, row, channel);
 				}
 			}
 

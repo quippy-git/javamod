@@ -47,6 +47,7 @@ public interface RandomAccessInputStream
 	public void seek(long pos) throws IOException;
 	public byte readByte() throws IOException;
 	public long getLength() throws IOException;
+	public int skipBack(int n) throws IOException;
 	// RandomAccessFile functions
 	public int skipBytes(int n) throws IOException;
 	public long length() throws IOException;

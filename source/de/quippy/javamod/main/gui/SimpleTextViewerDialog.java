@@ -182,7 +182,7 @@ public class SimpleTextViewerDialog extends JDialog
 			}
 			finally
 			{
-				if (reader!=null) try { reader.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+				if (reader!=null) try { reader.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 	}

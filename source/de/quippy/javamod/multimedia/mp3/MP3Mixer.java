@@ -121,7 +121,7 @@ public class MP3Mixer extends BasicMixer
 		}
 		catch (Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", ex); */ }
 			Log.error("[MP3Mixer]", ex);
 		}
 	}
@@ -199,7 +199,7 @@ public class MP3Mixer extends BasicMixer
 			}
 			catch (Throwable ex)
 			{
-				Log.error("IGNORED", ex);
+				//Log.error("IGNORED", ex);
 			}
 		}
 		return 0;
@@ -210,9 +210,9 @@ public class MP3Mixer extends BasicMixer
 	 */
 	private void closeAllInputStreams()
 	{
-		if (bitStream!=null) try { bitStream.close(); bitStream = null; } catch (BitstreamException e) { Log.error("IGNORED", e); }
-		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
-		if (httpResource!=null) try { httpResource.close(); httpResource = null; } catch (IOException e) { Log.error("IGNORED", e); }
+		if (bitStream!=null) try { bitStream.close(); bitStream = null; } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+		if (httpResource!=null) try { httpResource.close(); httpResource = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		isStreaming = null;
 	}
 	/**

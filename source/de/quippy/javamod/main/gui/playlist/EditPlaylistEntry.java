@@ -240,7 +240,7 @@ public class EditPlaylistEntry extends JDialog
 //			}
 //			catch (Exception ex)
 //			{
-//				Log.error("IGNORED", ex);
+//				//Log.error("IGNORED", ex);
 //			}
 		}
     }

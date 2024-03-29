@@ -95,7 +95,7 @@ public class OGGMixer extends BasicMixer
 	{
 		try
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			
 			inputStream = new FileOrPackedInputStream(oggFileUrl);
 			
@@ -107,7 +107,7 @@ public class OGGMixer extends BasicMixer
 		}
 		catch (Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[OGGMixer]", ex);
 		}
 	}
@@ -278,8 +278,6 @@ public class OGGMixer extends BasicMixer
 					if (value > 32767) value = 32767;
 					else
 					if (value < -32768) value = -32768;
-
-					if (value < 0) value |= 0x8000;
 
 					output[sampleIndex] = (byte) (value&0xFF);
 					output[sampleIndex + 1] = (byte)((value >> 8)&0xFF);
@@ -459,7 +457,8 @@ public class OGGMixer extends BasicMixer
 		// Now for the bits (linebuffer):
 		bufferSize<<=1;
 		output = new byte[bufferSize];
-
+		setSourceLineBufferSize(bufferSize);
+		
 		AudioFormat audioFormat = new AudioFormat((float)vorbisInfo.rate, 16, vorbisInfo.channels, true, false);  
 		setAudioFormat(audioFormat);
 
@@ -474,7 +473,7 @@ public class OGGMixer extends BasicMixer
 		if (vorbisDSPState!=null) { vorbisDSPState.clear(); vorbisDSPState = null; }
 		if (vorbisInfo!=null) { vorbisInfo.clear(); vorbisInfo = null; }
 		if (oggSyncState!=null) { oggSyncState.clear(); oggSyncState = null; }
-		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { Log.error("IGNORED", e); }
+		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 	}
 	/**
 	 * 

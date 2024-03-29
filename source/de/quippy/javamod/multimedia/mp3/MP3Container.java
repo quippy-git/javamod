@@ -33,10 +33,10 @@ import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerEvent;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.mp3.id3.MP3FileID3Controller;
+import de.quippy.javamod.multimedia.mp3.streaming.IcyTag;
 import de.quippy.javamod.multimedia.mp3.streaming.TagParseEvent;
 import de.quippy.javamod.multimedia.mp3.streaming.TagParseListener;
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 import de.quippy.mp3.decoder.Bitstream;
 import de.quippy.mp3.decoder.BitstreamException;
 import de.quippy.mp3.decoder.Header;
@@ -88,7 +88,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		{
 			Header h = getHeaderFrom(mp3FileUrl);
 			mp3FileIDTags = new MP3FileID3Controller(mp3FileUrl);
-			((MP3InfoPanel)getInfoPanel()).fillInfoPanelWith(h, mp3FileIDTags);
+			if (!MultimediaContainerManager.isHeadlessMode()) ((MP3InfoPanel)getInfoPanel()).fillInfoPanelWith(h, mp3FileIDTags);
 		}
 		else
 		{
@@ -102,6 +102,9 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	{
 		if (mp3FileIDTags!=null)
 			return mp3FileIDTags.getShortDescription();
+		else
+		if (isStreaming)
+			return "Streaming";
 		else
 			return super.getSongName();
 	}
@@ -124,8 +127,8 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		}
 		finally
 		{
-			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { Log.error("IGNORED", ex); }
-			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -158,8 +161,8 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		}
 		finally
 		{
-			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { Log.error("IGNORED", ex); }
-			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return new Object[] { songName, duration };
 	}
@@ -180,11 +183,6 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	public JPanel getConfigPanel()
 	{
 		return null;
-//		if (mp3ConfigPanel==null)
-//		{
-//			mp3ConfigPanel = new JPanel();
-//		}
-//		return mp3ConfigPanel;
 	}
 	/**
 	 * @return
@@ -195,12 +193,20 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	{
 		if (isStreaming)
 		{
-			if (mp3StreamInfoPanel==null) mp3StreamInfoPanel = new MP3StreamInfoPanel();
+			if (mp3StreamInfoPanel==null)
+			{
+				mp3StreamInfoPanel = new MP3StreamInfoPanel();
+				mp3StreamInfoPanel.setParentContainer(this);
+			}
 			return mp3StreamInfoPanel;
 		}
 		else
 		{
-			if (mp3InfoPanel==null) mp3InfoPanel = new MP3InfoPanel();
+			if (mp3InfoPanel==null)
+			{
+				mp3InfoPanel = new MP3InfoPanel();
+				mp3InfoPanel.setParentContainer(this);
+			}
 			return mp3InfoPanel;
 		}
 	}
@@ -253,15 +259,20 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @param tpe
 	 * @see de.quippy.javamod.multimedia.mp3.streaming.TagParseListener#tagParsed(de.quippy.javamod.multimedia.mp3.streaming.TagParseEvent)
 	 */
-	public void tagParsed(TagParseEvent tpe)
+	public void tagParsed(final TagParseEvent tpe)
 	{
-		JPanel panel = getInfoPanel();
-		if (panel instanceof MP3StreamInfoPanel)
+		final IcyTag tag = tpe.getIcyTag();
+		if (tag!=null)
 		{
-			((MP3StreamInfoPanel)panel).fillInfoPanelWith(tpe.getIcyTag());
-			String currentSongName = ((MP3StreamInfoPanel)panel).getCurrentSongName();
-			if (currentSongName!=null && currentSongName.length()!=0)
-				fireMultimediaContainerEvent(new MultimediaContainerEvent(this, MultimediaContainerEvent.SONG_NAME_CHANGED, currentSongName));
+			if (!MultimediaContainerManager.isHeadlessMode())
+				((MP3StreamInfoPanel)getInfoPanel()).fillInfoPanelWith(tag);
+
+			if (tag.getName().equalsIgnoreCase(MP3StreamInfoPanel.SONGNAME))
+			{
+				final String currentSongName = tag.getValue();
+				if (currentSongName!=null && currentSongName.length()!=0)
+					fireMultimediaContainerEvent(new MultimediaContainerEvent(this, MultimediaContainerEvent.SONG_NAME_CHANGED, currentSongName.trim()));
+			}
 		}
 	}
 	/**

@@ -79,6 +79,7 @@ public class OPL3Mixer extends BasicMixer
 		bufferSize = (int)((MS_BUFFER_SIZE * ANZ_CHANNELS * sampleRate + 500) / 1000);
 		while ((bufferSize%4)!=0) bufferSize++;
 		buffer = new byte[bufferSize];
+		setSourceLineBufferSize(bufferSize);
 		rampDownVolume = RAMP_DOWN_START;
 
 		// initialize the wide stereo mix

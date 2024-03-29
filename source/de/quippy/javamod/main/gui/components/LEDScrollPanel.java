@@ -22,7 +22,7 @@
 package de.quippy.javamod.main.gui.components;
 
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.HashMap;
 
 import de.quippy.javamod.system.Log;
@@ -512,10 +512,15 @@ public class LEDScrollPanel extends MeterPanelBase
 				62, 73, 85, 85, 62
 		})));
 	}
+	
+	private static final int BYTES_PER_CHAR = 5;
+	private static final int DISPLAY_BYTES_PER_CHAR = 6;
 
 	private String scrollText;
 	private int brickWidth;
 	private int brickHeight;
+	private int smallBrickWidth;
+	private int smallBrickHeight;
 	private int anzChars;
 	private int fullWidth;
 	private int fullHeight;
@@ -539,23 +544,25 @@ public class LEDScrollPanel extends MeterPanelBase
 	/**
 	 * Constructor for LEDScrollPanel
 	 */
-	public LEDScrollPanel(final int updateRate, final String scrollText, final int anzChars, final Color lightColor, final Color darkColor)
+	public LEDScrollPanel(final int updateRate, final String theScrollText, final int displayChars, final Color displayLightColor, final Color displayDarkColor)
 	{
 		super(updateRate);
-		this.appendIndexMarker = -1;
-		this.scrollText = scrollText;
-		this.anzChars = anzChars;
-		this.brickWidth = 1;
-		this.brickHeight = 1;
+		appendIndexMarker = -1;
+		scrollText = theScrollText;
+		anzChars = displayChars;
+		brickWidth = 1;
+		brickHeight = 1;
+		smallBrickWidth = 0;
+		smallBrickHeight = 0;
 		// Each char is 6 dots wide (inc empty space between chars)
-		this.fullWidth = anzChars * 6;
+		fullWidth = anzChars * DISPLAY_BYTES_PER_CHAR;
 		// Each char is 8 dots in height
-		this.fullHeight = 8;
-		this.scrollBufferIndex = 0;
-		this.scrollTextIndex = -1;
-		this.currentScrollLayer = new byte[this.anzChars + 1][];
-		this.darkColor = darkColor;
-		this.lightColor = lightColor;
+		fullHeight = 8;
+		scrollBufferIndex = 0;
+		scrollTextIndex = -1;
+		currentScrollLayer = new byte[anzChars + 1][];
+		darkColor = displayDarkColor;
+		lightColor = displayLightColor;
 		
 		syncToFPScounter = 0;
 		syncToFPSAdd = (DEFAULT_FPS<<SYNC2FPS_BITS) / updateRate;
@@ -565,10 +572,10 @@ public class LEDScrollPanel extends MeterPanelBase
 	public synchronized void setScrollTextTo(String newScrollText)
 	{
 		for (int i=0; i<=anzChars; i++) currentScrollLayer[i] = null;
-		this.appendIndexMarker = -1;
-		this.scrollBufferIndex = 0;
-		this.scrollTextIndex = -1;
-		this.scrollText = newScrollText;
+		appendIndexMarker = -1;
+		scrollBufferIndex = 0;
+		scrollTextIndex = -1;
+		scrollText = newScrollText;
 	}
 	public synchronized void addScrollText(String appender)
 	{
@@ -598,40 +605,34 @@ public class LEDScrollPanel extends MeterPanelBase
 		brickHeight = newHeight / fullHeight;
 		if (brickWidth==0) brickWidth = 1;
 		if (brickHeight==0) brickHeight = 1;
-		int newAnzChars = (int)((newWidth / (6.0 * brickWidth))+0.5) + 1;
+		smallBrickWidth = brickWidth - 1;
+		smallBrickHeight = brickHeight - 1;
+
+		final int newAnzChars = (int)(((float)newWidth / ((float)DISPLAY_BYTES_PER_CHAR * (float)brickWidth))+0.5f) + 1;
 		if (newAnzChars != anzChars)
 		{
-			this.anzChars = newAnzChars;
-			this.currentScrollLayer = new byte[this.anzChars + 1][];
-			this.setScrollTextTo(this.scrollText);
+			anzChars = newAnzChars;
+			currentScrollLayer = new byte[anzChars + 1][];
+			setScrollTextTo(scrollText);
 		}
 	}
-	private int drawDots(Graphics g, int startIndex, int width, int x, byte[] charBuffer, int compWidth, int compHeight)
+	private int drawDots(Graphics2D g, int startIndex, int x, byte[] charBuffer, int compWidth, int compHeight)
 	{
-		for (; startIndex<width; startIndex++)
+		for (; startIndex<DISPLAY_BYTES_PER_CHAR; startIndex++)
 		{
-			byte line = (startIndex<5)?((charBuffer==null)?0:charBuffer[startIndex]):0;
-			int x2 = x + brickWidth - 2;
-			if (x2<x) x2 = x;
+			byte line = (startIndex<BYTES_PER_CHAR)?((charBuffer==null)?0:charBuffer[startIndex]):0;
 			for (int y=0; y<8; y++)
 			{
 				int c = line & (1<<y);
 				
 				g.setColor((c==0)?darkColor:lightColor);
-				
-				int y1 = y * brickHeight;
-				int y2 = y1 + brickHeight - 2;
-				if (y2<y1) y2 = y1;
-				for (; y1<=y2; y1++)
-					g.drawLine(x, y1, x2, y1);
+				g.fillRect(x, y * brickHeight, smallBrickWidth, smallBrickHeight);
 			}
+			g.setColor(darkColor);
+			g.fillRect(x, 8*brickHeight, smallBrickWidth, compHeight);
 			x+=brickWidth;
 		}
 		
-		g.setColor(darkColor);
-		for (int y = 8*brickHeight; y<compHeight; y++)
-			g.drawLine(0, y, compWidth, y);
-
 		return x;
 	}
 	/**
@@ -639,7 +640,7 @@ public class LEDScrollPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected synchronized void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected synchronized void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
 		syncToFPScounter += syncToFPSAdd;
 		if (syncToFPScounter >= SYNC2FPS_FRAC)
@@ -647,10 +648,10 @@ public class LEDScrollPanel extends MeterPanelBase
 			scrollBufferIndex++;
 			syncToFPScounter &= SYNC2FPS_MASK;
 			
-			if (scrollBufferIndex>=6)
+			if (scrollBufferIndex>=DISPLAY_BYTES_PER_CHAR)
 			{
-				scrollTextIndex += scrollBufferIndex / 6;
-				scrollBufferIndex %= 6;
+				scrollTextIndex += scrollBufferIndex / DISPLAY_BYTES_PER_CHAR;
+				scrollBufferIndex %= DISPLAY_BYTES_PER_CHAR;
 
 				if (scrollTextIndex>=scrollText.length()) scrollTextIndex = 0;
 				
@@ -675,13 +676,13 @@ public class LEDScrollPanel extends MeterPanelBase
 	
 			if (g==null) return;
 			
-			final int startIndex = scrollBufferIndex % 6;
+			final int startIndex = scrollBufferIndex % DISPLAY_BYTES_PER_CHAR;
 			int x=0;
 			for (int i=0; i<anzChars; i++)
 			{
 				byte[] display = currentScrollLayer[i];
 				int start = (i==0)?startIndex:0;
-				x = drawDots(g, start, 6, x, display, newWidth, newHeight);
+				x = drawDots(g, start, x, display, newWidth, newHeight);
 			}
 		}
 	}

@@ -179,7 +179,7 @@ public class MultiTrackerMod extends ProTrackerMod
 	{
 		songFlags = ModConstants.SONG_AMIGALIMITS;
 		songFlags |= ModConstants.SONG_ISSTEREO;
-		setModType(ModConstants.MODTYPE_MOD); // Farandole is converted internally to s3m
+		setModType(ModConstants.MODTYPE_MOD); // MultiTracker mods are converted to ProTracker
 		setTempo(6);
 		setBPMSpeed(125);
 		
@@ -226,7 +226,7 @@ public class MultiTrackerMod extends ProTrackerMod
 		
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
 		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
-		setMixingPreAmp((preAmp<ModConstants.DEFAULT_MIXING_PREAMP)?ModConstants.DEFAULT_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
+		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
 		
 		setTrackerName("MultiTrackerMod V" + ((version>>4)&0x0F) + '.' + (version&0xF));
 
@@ -290,8 +290,8 @@ public class MultiTrackerMod extends ProTrackerMod
 			current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
 
 			// Defaults!
-			current.setStereo(false);
-			current.setPanning(-1);
+			current.setPanning(false);
+			current.setDefaultPanning(128);
 
 			// SampleData
 			int flags = ModConstants.SM_PCMU;
@@ -311,7 +311,7 @@ public class MultiTrackerMod extends ProTrackerMod
 		// and skip to pattern data:
 		inputStream.skip(192 * numTracks);
 		
-		PatternContainer patternContainer = new PatternContainer(getNPattern(), beatsPerTrack, getNChannels());
+		PatternContainer patternContainer = new PatternContainer(this, getNPattern(), beatsPerTrack, getNChannels());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -324,7 +324,7 @@ public class MultiTrackerMod extends ProTrackerMod
 					{
 						for (int row=0; row<beatsPerTrack; row++)
 						{
-							patternContainer.setPatternElement(new PatternElement(pattNum, row, chn));
+							patternContainer.createPatternElement(pattNum, row, chn);
 						}
 					}
 				}
@@ -334,7 +334,7 @@ public class MultiTrackerMod extends ProTrackerMod
 					inputStream.seek(tracksStart + (192 * (track - 1)));
 					for (int row=0; row<beatsPerTrack; row++)
 					{
-						PatternElement pe = new PatternElement(pattNum, row, chn);
+						PatternElement pe = patternContainer.createPatternElement(pattNum, row, chn);
 	
 						int readArray = (inputStream.readByte()&0xFF)<<16 | (inputStream.readByte()&0xFF)<<8 | (inputStream.readByte()&0xFF);
 						final int note     = (readArray & 0xFC0000)>>18;

@@ -34,7 +34,6 @@ import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 import de.quippy.jflac.FLACDecoder;
 import de.quippy.jflac.metadata.VorbisComment;
 
@@ -48,8 +47,7 @@ public class FLACContainer extends MultimediaContainer
  	{
  		"flac"
  	};
-// 	private JPanel flacConfigPanel;
- 	private JPanel flacInfoPanel;
+ 	private FLACInfoPanel flacInfoPanel;
  	
  	private VorbisComment vorbisComment;
  	private long duration;
@@ -96,7 +94,7 @@ public class FLACContainer extends MultimediaContainer
 			final AudioFormat audioFormat = decoder.getStreamInfo().getAudioFormat();
 			final long sampleRate = (long)audioFormat.getSampleRate();
 			duration = (long)decoder.getStreamInfo().getTotalSamples() * 1000L / sampleRate;
-			((FLACInfoPanel)getInfoPanel()).fillInfoPanelWith(audioFormat, duration, Helpers.getFileNameFromURL(url), getSongName(), decoder.getVorbisComment());
+			if (!MultimediaContainerManager.isHeadlessMode()) ((FLACInfoPanel)getInfoPanel()).fillInfoPanelWith(audioFormat, duration, Helpers.getFileNameFromURL(url), getSongName(), decoder.getVorbisComment());
 		}
 		catch (Exception ex)
 		{
@@ -104,7 +102,7 @@ public class FLACContainer extends MultimediaContainer
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -184,7 +182,7 @@ public class FLACContainer extends MultimediaContainer
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return new Object[] { songName, duration };
 	}
@@ -214,11 +212,6 @@ public class FLACContainer extends MultimediaContainer
 	public JPanel getConfigPanel()
 	{
 		return null;
-//		if (flacConfigPanel==null)
-//		{
-//			flacConfigPanel = new JPanel();
-//		}
-//		return flacConfigPanel;
 	}
 	/**
 	 * @return
@@ -230,6 +223,7 @@ public class FLACContainer extends MultimediaContainer
 		if (flacInfoPanel==null)
 		{
 			flacInfoPanel = new FLACInfoPanel();
+			flacInfoPanel.setParentContainer(this);
 		}
 		return flacInfoPanel;
 	}

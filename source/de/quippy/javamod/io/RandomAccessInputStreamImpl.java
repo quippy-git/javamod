@@ -121,7 +121,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 			try
 			{
 				tmpFile = copyFullStream(inputStream);
-				try { inputStream.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+				try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 				openRandomAccessStream(localFile = tmpFile);
 			}
 			catch (Throwable ex)
@@ -132,7 +132,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 				
 				copyFullStream(inputStream, out);
 				
-				inputStream.close();
+				try { inputStream.close(); } catch (IOException e) { /* Log.error("IGNORED", e); */ }
 				out.close();
 				
 				fullFileCache = out.toByteArray();
@@ -379,6 +379,19 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 			fullFileCache_readPointer = newpos;
 			return skipped;
 		}
+	}
+	/**
+	 * @param n
+	 * @return
+	 * @throws IOException
+	 * @see de.quippy.javamod.io.RandomAccessInputStream#skipBack(int)
+	 */
+	@Override
+	public int skipBack(int n) throws IOException
+	{
+		final long currentPos = getFilePointer();
+		seek(currentPos - n);
+		return (int)(currentPos - getFilePointer());
 	}
 	/**
 	 * @param n
@@ -806,8 +819,63 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	 * @return
 	 * @throws IOException
 	 */
+	public long readMotorolaLong() throws IOException
+	{
+		return (((long)readMotorolaDWord())<<32) | (((long)readMotorolaDWord())&0xFFFFFFFF);
+	}
+	/**
+	 * @since 05.08.2020
+	 * @return
+	 * @throws IOException
+	 */
 	public long readIntelLong() throws IOException
 	{
 		return (((long)readIntelDWord())&0xFFFFFFFF) | (((long)readIntelDWord())<<32);
+	}
+	/**
+	 * Will read size bytes from a stream and convert that to an integer value of
+	 * type byte (1), short (2), int (4), long(8).
+	 * Sizes bigger than 8 will be ignored, but "size" bytes will be skipped.
+	 * @since 03.02.2024
+	 * @param size
+	 * @return
+	 * @throws IOException
+	 */
+	public long readMotorolaBytes(final int size) throws IOException
+	{
+		long result = 0;
+		if (size!=0)
+		{
+			final int readBytes = (size>8)?8:size;
+			for (int i=0; i<readBytes; i++)
+				result = (result<<8) | (read()&0xFF);
+			skip(size-readBytes);
+		}
+		return result;
+	}
+	/**
+	 * Will read size bytes from a stream and convert that to an integer value of
+	 * type byte (1), short (2), int (4), long(8).
+	 * Sizes bigger than 8 will be ignored, but "size" bytes will be skipped.
+	 * @since 03.02.2024
+	 * @param size
+	 * @return
+	 * @throws IOException
+	 */
+	public long readIntelBytes(final int size) throws IOException
+	{
+		long result = 0;
+		if (size!=0)
+		{
+			final int readBytes = (size>8)?8:size;
+			int shift = 0;
+			for (int i=0; i<readBytes; i++)
+			{
+				result |= (read()<<shift);
+				shift+=8;
+			}
+			skip(size-readBytes);
+		}
+		return result;
 	}
 }

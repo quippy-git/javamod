@@ -42,7 +42,6 @@ import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -69,24 +68,89 @@ public class MidiContainer extends MultimediaContainer
 	public static MidiDevice.Info[] MIDIOUTDEVICEINFOS;
 	public static javax.sound.sampled.Mixer.Info[] MIXERDEVICEINFOS;
 	
-	private MidiConfigPanel midiConfigPanel;
-	private JPanel midiInfoPanel;
-	
+	private Properties currentProps = null;
+
 	private MidiMixer currentMixer;
-	
 	private Sequence currentSequence;
+	private MidiConfigPanel midiConfigPanel;
+	private MidiInfoPanel midiInfoPanel;
 
 	/**
 	 * Will be executed during class load
 	 */
 	static
 	{
-		// This can sometimes take a long time
-		// on Linux we can get a whole bunch of devices here!
+		// This can sometimes take a while
 		MIDIOUTDEVICEINFOS = getMidiOutDevices();
 		MIXERDEVICEINFOS = getInputMixerNames();
 		MultimediaContainerManager.registerContainer(new MidiContainer());
 	}
+	/**
+	 * @since 24.10.2010
+	 * @return
+	 */
+	private static MidiDevice.Info[] getMidiOutDevices()
+	{
+		ArrayList<MidiDevice.Info> midiOuts = new ArrayList<MidiDevice.Info>();
+		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+		for (int i=0; i<infos.length; i++)
+		{
+			try
+			{
+				MidiDevice device = MidiSystem.getMidiDevice(infos[i]);
+				if (device.getMaxReceivers() != 0) midiOuts.add(infos[i]);
+			}
+			catch (MidiUnavailableException e)
+			{
+			}
+		}
+		MidiDevice.Info[] result = new MidiDevice.Info[midiOuts.size()];
+		midiOuts.toArray(result);
+		return result;
+	}
+	/**
+	 * @since 28.11.2010
+	 * @param midiDeviceName
+	 * @return
+	 */
+	protected static MidiDevice.Info getMidiOutDeviceByName(String midiDeviceName)
+	{
+		for (int i=0; i<MidiContainer.MIDIOUTDEVICEINFOS.length; i++)
+		{
+			if (MidiContainer.MIDIOUTDEVICEINFOS[i].getName().equalsIgnoreCase(midiDeviceName)) 
+				return MidiContainer.MIDIOUTDEVICEINFOS[i];
+		}
+		return null;
+	}
+	/**
+	 * @since 27.11.2010
+	 * @return
+	 */
+	private static javax.sound.sampled.Mixer.Info[] getInputMixerNames()
+	{
+		ArrayList<javax.sound.sampled.Mixer.Info> mixers = new ArrayList<javax.sound.sampled.Mixer.Info>();
+		javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+		final Line.Info lineInfo = new Line.Info(TargetDataLine.class);
+		for (int i=0; i<mixerInfos.length; i++)
+		{
+			javax.sound.sampled.Mixer mixer = AudioSystem.getMixer(mixerInfos[i]);
+			if (mixer.isLineSupported(lineInfo))
+			{
+				mixers.add(mixerInfos[i]);
+			}
+		}
+		return mixers.toArray(new javax.sound.sampled.Mixer.Info[mixers.size()]);
+	}
+	protected static javax.sound.sampled.Mixer.Info getInputMixerByName(String inputMixerDeviceName)
+	{
+		for (int i=0; i<MidiContainer.MIXERDEVICEINFOS.length; i++)
+		{
+			if (MidiContainer.MIXERDEVICEINFOS[i].getName().equalsIgnoreCase(inputMixerDeviceName)) 
+				return MidiContainer.MIXERDEVICEINFOS[i];
+		}
+		return null;
+	}
+
 	/**
 	 * Constructor for MidiContainer
 	 */
@@ -104,7 +168,7 @@ public class MidiContainer extends MultimediaContainer
 	{
 		MultimediaContainer result = super.getInstance(midiFileUrl);
 		currentSequence = getSequenceFromURL(midiFileUrl);
-		((MidiInfoPanel)getInfoPanel()).fillInfoPanelWith(currentSequence, getSongName());
+		if (!MultimediaContainerManager.isHeadlessMode()) ((MidiInfoPanel)getInfoPanel()).fillInfoPanelWith(currentSequence, getSongName());
 		return result;
 	}
 	/**
@@ -130,7 +194,7 @@ public class MidiContainer extends MultimediaContainer
 				}
 				finally
 				{
-					if (input!=null) try { input.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+					if (input!=null) try { input.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 				}
 			}
 		}
@@ -138,6 +202,24 @@ public class MidiContainer extends MultimediaContainer
 		{
 			throw new RuntimeException(ex);
 		}
+	}
+	private boolean getCapture()
+	{
+		return Boolean.valueOf((currentProps!=null)?currentProps.getProperty(PROPERTY_MIDIPLAYER_CAPTURE, DEFAULT_CAPUTRE):DEFAULT_CAPUTRE).booleanValue();
+	}
+	private File getSoundBankFile()
+	{
+		final String soundBankFile = (currentProps!=null)?currentProps.getProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL):DEFAULT_SOUNDBANKURL;
+		if (soundBankFile==null || soundBankFile.length()==0) return null;
+		return new File(soundBankFile);
+	}
+	private MidiDevice.Info getMidiInfo()
+	{
+		return MidiContainer.getMidiOutDeviceByName((currentProps!=null)?currentProps.getProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, DEFAULT_OUTPUTDEVICE):DEFAULT_OUTPUTDEVICE);
+	}
+	private javax.sound.sampled.Mixer.Info getMixerInfo()
+	{
+		return MidiContainer.getInputMixerByName((currentProps!=null)?currentProps.getProperty(PROPERTY_MIDIPLAYER_MIXERNAME, DEFAULT_MIXERNAME):DEFAULT_MIXERNAME);
 	}
 	/**
 	 * @param url
@@ -193,7 +275,21 @@ public class MidiContainer extends MultimediaContainer
 	@Override
 	public boolean canExport()
 	{
-		return ((MidiConfigPanel)getConfigPanel()).getCapture().isSelected();
+		return getCapture();
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInfoPanel()
+	 */
+	@Override
+	public JPanel getInfoPanel()
+	{
+		if (midiInfoPanel==null)
+		{
+			midiInfoPanel = new MidiInfoPanel();
+			midiInfoPanel.setParentContainer(this);
+		}
+		return midiInfoPanel;
 	}
 	/**
 	 * @return
@@ -211,35 +307,19 @@ public class MidiContainer extends MultimediaContainer
 	}
 	/**
 	 * @return
-	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInfoPanel()
-	 */
-	@Override
-	public JPanel getInfoPanel()
-	{
-		if (midiInfoPanel==null)
-		{
-			midiInfoPanel = new MidiInfoPanel();
-		}
-		return midiInfoPanel;
-	}
-	private File getSoundBankFile()
-	{
-		String soundBankFile = ((MidiConfigPanel)getConfigPanel()).getMidiSoundBankURL().getText();
-		return new File(soundBankFile);
-	}
-	/**
-	 * @return
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#createNewMixer()
 	 */
 	@Override
 	public Mixer createNewMixer()
 	{
-		MidiConfigPanel configPanel = (MidiConfigPanel)getConfigPanel();
-		MidiDevice.Info info = MIDIOUTDEVICEINFOS[configPanel.getMidiOutputDevice().getSelectedIndex()];
-		boolean capture = configPanel.getCapture().isSelected();
-		int mixerIndex = configPanel.getMixerInputDevice().getSelectedIndex();
-		javax.sound.sampled.Mixer.Info mixerInfo = (mixerIndex!=-1)?MIXERDEVICEINFOS[mixerIndex]:null;
+		configurationSave(currentProps);
+		
+		final MidiDevice.Info info = getMidiInfo();
+
+		final javax.sound.sampled.Mixer.Info mixerInfo = getMixerInfo();
+		boolean capture = getCapture();
 		if (capture && mixerInfo==null) capture = false;
+		
 		currentMixer = new MidiMixer(currentSequence, info, getSoundBankFile(), capture, mixerInfo);
 		return currentMixer;
 	}
@@ -250,20 +330,16 @@ public class MidiContainer extends MultimediaContainer
 	@Override
 	public void configurationChanged(Properties newProps)
 	{
-		MidiConfigPanel configPanel = (MidiConfigPanel)getConfigPanel();
-		configPanel.getMidiOutputDevice().setSelectedItem(getMidiOutDevice(newProps.getProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, DEFAULT_OUTPUTDEVICE)));
-		configPanel.getMidiSoundBankURL().setText(newProps.getProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
-		configPanel.getCapture().setSelected((Boolean.valueOf(newProps.getProperty(PROPERTY_MIDIPLAYER_CAPTURE, DEFAULT_CAPUTRE)).booleanValue()));
-		javax.sound.sampled.Mixer.Info mixerInfo = getMixerInfo(newProps.getProperty(PROPERTY_MIDIPLAYER_MIXERNAME, DEFAULT_MIXERNAME));
-		if (mixerInfo!=null)
+		if (currentProps==null) currentProps = new Properties();
+		currentProps.setProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, newProps.getProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, DEFAULT_OUTPUTDEVICE));
+		currentProps.setProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, newProps.getProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
+		currentProps.setProperty(PROPERTY_MIDIPLAYER_CAPTURE, newProps.getProperty(PROPERTY_MIDIPLAYER_CAPTURE, DEFAULT_CAPUTRE));
+		currentProps.setProperty(PROPERTY_MIDIPLAYER_MIXERNAME, newProps.getProperty(PROPERTY_MIDIPLAYER_MIXERNAME, DEFAULT_MIXERNAME));
+
+		if (!MultimediaContainerManager.isHeadlessMode())
 		{
-			for (int i=0; i<MIXERDEVICEINFOS.length; i++)
-			{
-				if (MIXERDEVICEINFOS[i].toString().equals(mixerInfo.toString()))
-				{
-					configPanel.getMixerInputDevice().setSelectedIndex(i);
-				}
-			}
+			MidiConfigPanel configPanel = (MidiConfigPanel)getConfigPanel();
+			configPanel.configurationChanged(newProps);
 		}
 	}
 	/**
@@ -273,91 +349,20 @@ public class MidiContainer extends MultimediaContainer
 	@Override
 	public void configurationSave(Properties props)
 	{
-		MidiConfigPanel configPanel = (MidiConfigPanel)getConfigPanel();
-		MidiDevice.Info outputDevice = (MidiDevice.Info)configPanel.getMidiOutputDevice().getSelectedItem();
-		if (outputDevice!=null) props.setProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, outputDevice.getName());
-		props.setProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, configPanel.getMidiSoundBankURL().getText());
-		props.setProperty(PROPERTY_MIDIPLAYER_CAPTURE, Boolean.toString(configPanel.getCapture().isSelected()));
-		javax.sound.sampled.Mixer.Info mixerInfo = (javax.sound.sampled.Mixer.Info)configPanel.getMixerInputDevice().getSelectedItem();
-		if (mixerInfo!=null) props.setProperty(PROPERTY_MIDIPLAYER_MIXERNAME, mixerInfo.getName());
-	}
-	/**
-	 * @since 24.10.2010
-	 * @return
-	 */
-	private static MidiDevice.Info[] getMidiOutDevices()
-	{
-		ArrayList<MidiDevice.Info> midiOuts = new ArrayList<MidiDevice.Info>();
-		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
-		for (int i=0; i<infos.length; i++)
+		if (currentProps==null) currentProps = new Properties();
+		if (!MultimediaContainerManager.isHeadlessMode())
 		{
-			try
-			{
-				MidiDevice device = MidiSystem.getMidiDevice(infos[i]);
-				if (device.getMaxReceivers() != 0) midiOuts.add(infos[i]);
-			}
-			catch (MidiUnavailableException e)
-			{
-			}
+			MidiConfigPanel configPanel = (MidiConfigPanel)getConfigPanel();
+			configPanel.configurationSave(currentProps);
 		}
-		MidiDevice.Info[] result = new MidiDevice.Info[midiOuts.size()];
-		midiOuts.toArray(result);
-		return result;
-	}
-	/**
-	 * @since 28.11.2010
-	 * @param midiDeviceName
-	 * @return
-	 */
-	private static MidiDevice.Info getMidiOutDevice(String midiDeviceName)
-	{
-		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
-		for (int i=0; i<infos.length; i++)
+
+		if (props!=null)
 		{
-			if (infos[i].getName().equalsIgnoreCase(midiDeviceName)) return infos[i];
+			props.setProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, currentProps.getProperty(PROPERTY_MIDIPLAYER_OUTPUTDEVICE, DEFAULT_OUTPUTDEVICE));
+			props.setProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, currentProps.getProperty(PROPERTY_MIDIPLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
+			props.setProperty(PROPERTY_MIDIPLAYER_CAPTURE, currentProps.getProperty(PROPERTY_MIDIPLAYER_CAPTURE, DEFAULT_CAPUTRE));
+			props.setProperty(PROPERTY_MIDIPLAYER_MIXERNAME, currentProps.getProperty(PROPERTY_MIDIPLAYER_MIXERNAME, DEFAULT_MIXERNAME));
 		}
-		return null;
-	}
-	/**
-	 * @since 27.11.2010
-	 * @return
-	 */
-	private static javax.sound.sampled.Mixer.Info[] getInputMixerNames()
-	{
-		ArrayList<javax.sound.sampled.Mixer.Info> mixers = new ArrayList<javax.sound.sampled.Mixer.Info>();
-		javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		final Line.Info lineInfo = new Line.Info(TargetDataLine.class);
-		for (int i=0; i<mixerInfos.length; i++)
-		{
-			javax.sound.sampled.Mixer mixer = AudioSystem.getMixer(mixerInfos[i]);
-			if (mixer.isLineSupported(lineInfo))
-			{
-				mixers.add(mixerInfos[i]);
-			}
-		}
-		return mixers.toArray(new javax.sound.sampled.Mixer.Info[mixers.size()]);
-	}
-	/**
-	 * @since 28.11.2010
-	 * @param fromName
-	 * @return
-	 */
-	private static javax.sound.sampled.Mixer.Info getMixerInfo(String fromName)
-	{
-		javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		for (int i=0; i<mixerInfos.length; i++)
-		{
-			if (mixerInfos[i].getName().equalsIgnoreCase(fromName)) return mixerInfos[i];
-		}
-		return null;
-	}
-	/**
-	 * @since 14.10.2007
-	 * @return
-	 */
-	public MidiMixer getCurrentMixer()
-	{
-		return currentMixer;
 	}
 	/**
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#cleanUp()

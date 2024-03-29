@@ -29,7 +29,6 @@ import de.quippy.javamod.io.RandomAccessInputStreamImpl;
 import de.quippy.javamod.multimedia.opl3.emu.EmuOPL;
 import de.quippy.javamod.multimedia.opl3.emu.EmuOPL.oplType;
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -84,7 +83,7 @@ public abstract class OPL3Sequence
 			}
 			finally
 			{
-				if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { Log.error("IGNORED", ex); }
+				if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 		else

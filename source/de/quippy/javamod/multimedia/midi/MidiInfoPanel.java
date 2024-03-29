@@ -50,6 +50,8 @@ public class MidiInfoPanel extends JPanel
 	private javax.swing.JScrollPane scrollPane_midiInfo = null;
 	private javax.swing.JTextArea midiInfo = null;
 
+	private MidiContainer parentContainer = null;
+	
 	/**
 	 * Constructor for MidiInfoPanel
 	 */
@@ -85,6 +87,20 @@ public class MidiInfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public MidiContainer getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(MidiContainer parent)
+	{
+		this.parentContainer = parent;
 	}
 	private void initialize()
 	{

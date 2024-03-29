@@ -57,6 +57,7 @@ public interface SoundOutputStream
 	public void setKeepSilent(final boolean keepSilent);
 	public void changeAudioFormatTo(final AudioFormat newFormat);
 	public void changeAudioFormatTo(final AudioFormat newFormat, final int newSourceLineBufferSize);
+	public void setSourceLineBufferSize(final int newSourceLineBufferSize);
 	public AudioFormat getAudioFormat();
 	public boolean matches(final SoundOutputStream otherStream);
 }

@@ -112,7 +112,6 @@ import de.quippy.javamod.mixer.dsp.iir.GraphicEQ;
 import de.quippy.javamod.mixer.dsp.iir.GraphicEqGUI;
 import de.quippy.javamod.mixer.dsp.pitchshift.PitchShift;
 import de.quippy.javamod.mixer.dsp.pitchshift.PitchShiftGUI;
-import de.quippy.javamod.multimedia.HasParentDialog;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerEvent;
 import de.quippy.javamod.multimedia.MultimediaContainerEventListener;
@@ -194,6 +193,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private static final String WINDOW_TITLE = Helpers.FULLVERSION;
 	private static final String WINDOW_NAME = "JavaMod";
 	
+	private static final int DEFAULT_REFRESH_RATE = 60;
+	
 	private transient final MakeMainWindowVisible makeMainWindowVisiable = new MakeMainWindowVisible();
 
 	private static FileFilter fileFilterExport[];
@@ -233,13 +234,13 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private JPanel playerDataPane = null;
 	
 	private ArrayList<Image> windowIcons = null;
-	private JDialog modInfoDialog = null;
+	private JDialog multimediaInfoDialog = null;
 	private JDialog playerSetUpDialog = null;
 	private JDialog playlistDialog = null;
 	private JDialog equalizerDialog = null;
 	private JDialog xmasConfigDialog = null;
 	private PlayerConfigPanel playerConfigPanel = null; 
-	private JPanel modInfoPane = null;
+	private JPanel multimediaInfoPane = null;
 	private JPanel playerSetUpPane = null;
 	private JPanel playlistPane = null;
 	private JPanel effectPane = null;
@@ -247,9 +248,9 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	
 	private Point mainDialogLocation = null;
 	private Dimension mainDialogSize = null;
-	private Point modInfoDialogLocation = null;
-	private Dimension modInfoDialogSize = null;
-	private boolean modInfoDialogVisable = false;
+	private Point multimediaInfoDialogLocation = null;
+	private Dimension multimediaInfoDialogSize = null;
+	private boolean multimediaInfoDialogVisable = false;
 	private Point playerSetUpDialogLocation = null;
 	private Dimension playerSetUpDialogSize = null;
 	private boolean playerSetUpDialogVisable = false;
@@ -339,17 +340,17 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private boolean automaticUpdateCheck = true;
 	private float currentVolume; /* 0.0 - 1.0 */
 	private float currentBalance; /* -1.0 - 1.0 */
+	
 	private LocalDate lastUpdateCheck;
 	private static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final LocalDate today = LocalDate.now();
 
-	
 	private ArrayList<URL> lastLoaded;
 	private ArrayList<Window> windows;
 	private boolean[] windowsVisibleState;
 	
-	private boolean inExportMode;
-	
+	private JPanel oInfoPanel = null;
+
 	private boolean useGaplessAudio;
 	
 	private final class LookAndFeelChanger implements ActionListener
@@ -423,7 +424,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	    audioProcessor.addListener(this);
 	    audioProcessor.addEffectListener(currentEqualizer);
 	    audioProcessor.addEffectListener(currentPitchShift);
-		inExportMode = false;
 		initialize();
 	}
 	/**
@@ -446,7 +446,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	        	}
 	        	finally
 	        	{
-	        		if (fis!=null) try { fis.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+	        		if (fis!=null) try { fis.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 	        	}
 	        }
 
@@ -473,9 +473,9 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			playerSetUpDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_SETUPDIALOG_POS, "-1x-1"));
 			playerSetUpDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_SETUPDIALOG_SIZE, "720x230"));
 			playerSetUpDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_SETUPDIALOG_VISABLE, "false"));
-			modInfoDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_PROPERTIESDIALOG_POS, "-1x-1"));
-			modInfoDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_PROPERTIESDIALOG_SIZE, "520x630"));
-			modInfoDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_PROPERTIESDIALOG_VISABLE, "false"));
+			multimediaInfoDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_PROPERTIESDIALOG_POS, "-1x-1"));
+			multimediaInfoDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_PROPERTIESDIALOG_SIZE, "520x630"));
+			multimediaInfoDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_PROPERTIESDIALOG_VISABLE, "false"));
 			playlistDialogLocation = Helpers.getPointFromString(props.getProperty(PROPERTY_PLAYLISTDIALOG_POS, "-1x-1"));
 			playlistDialogSize = Helpers.getDimensionFromString(props.getProperty(PROPERTY_PLAYLISTDIALOG_SIZE, "400x400"));
 			playlistDialogVisable = Boolean.parseBoolean(props.getProperty(PROPERTY_PLAYLIST_VISABLE, "false"));
@@ -559,9 +559,9 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			props.setProperty(PROPERTY_SETUPDIALOG_POS, Helpers.getStringFromPoint(getPlayerSetUpDialog().getLocation()));
 			props.setProperty(PROPERTY_SETUPDIALOG_SIZE, Helpers.getStringFromDimension(getPlayerSetUpDialog().getSize()));
 			props.setProperty(PROPERTY_SETUPDIALOG_VISABLE, Boolean.toString(getPlayerSetUpDialog().isVisible()));
-			props.setProperty(PROPERTY_PROPERTIESDIALOG_POS, Helpers.getStringFromPoint(getModInfoDialog().getLocation()));
-			props.setProperty(PROPERTY_PROPERTIESDIALOG_SIZE, Helpers.getStringFromDimension(getModInfoDialog().getSize()));
-			props.setProperty(PROPERTY_PROPERTIESDIALOG_VISABLE, Boolean.toString(getModInfoDialog().isVisible()));
+			props.setProperty(PROPERTY_PROPERTIESDIALOG_POS, Helpers.getStringFromPoint(getMultimediaInfoDialog().getLocation()));
+			props.setProperty(PROPERTY_PROPERTIESDIALOG_SIZE, Helpers.getStringFromDimension(getMultimediaInfoDialog().getSize()));
+			props.setProperty(PROPERTY_PROPERTIESDIALOG_VISABLE, Boolean.toString(getMultimediaInfoDialog().isVisible()));
 			props.setProperty(PROPERTY_PLAYLISTDIALOG_POS, Helpers.getStringFromPoint(getPlaylistDialog().getLocation()));
 			props.setProperty(PROPERTY_PLAYLISTDIALOG_SIZE, Helpers.getStringFromDimension(getPlaylistDialog().getSize()));
 			props.setProperty(PROPERTY_PLAYLIST_VISABLE, Boolean.toString(getPlaylistDialog().isVisible()));
@@ -608,7 +608,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	        }
 	        finally
 	        {
-	        	if (fos!=null) try { fos.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+	        	if (fos!=null) try { fos.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 	        }
 	    }
 	    catch (Throwable ex)
@@ -682,6 +682,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	 */
 	private void initialize()
 	{
+		MultimediaContainerManager.setIsHeadlessMode(false);
+		
 		Log.addLogListener(new LogMessageCallBack()
 		{
 			@Override
@@ -760,7 +762,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (mainDialogLocation == null || (mainDialogLocation.getX()==-1 || mainDialogLocation.getY()==-1))
 			mainDialogLocation = Helpers.getFrameCenteredLocation(this, null); 
 	    setLocation(mainDialogLocation);
-	    getModInfoDialog().setVisible(modInfoDialogVisable);
+	    getMultimediaInfoDialog().setVisible(multimediaInfoDialogVisable);
 		getPlaylistDialog().setVisible(playlistDialogVisable);
 		getEffectDialog().setVisible(effectDialogVisable);
 		getXmasConfigDialog().setVisible(xmasConfigDialogVisable);
@@ -784,7 +786,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 		windows = new ArrayList<Window>();
 		windows.add(getJavaModAbout());
-		windows.add(getModInfoDialog());
+		windows.add(getMultimediaInfoDialog());
 		windows.add(getPlayerSetUpDialog());
 		windows.add(getURLDialog());
 		windows.add(getSimpleTextViewerDialog());
@@ -874,7 +876,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			window.pack();
 	    }
 	}
-	private JPanel oInfoPanel = null;
 	/**
 	 * Change the info panel in the ModInfoPane to the new panel according
 	 * to loading of a file.
@@ -884,16 +885,13 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private void changeInfoPane()
 	{
 		final JPanel infoPanel = getCurrentContainer().getInfoPanel();
-		if (oInfoPanel!=infoPanel)
+		if (oInfoPanel==null || !oInfoPanel.equals(infoPanel))
 		{
 			oInfoPanel = infoPanel;
-			if (infoPanel instanceof HasParentDialog)
-				((HasParentDialog)infoPanel).setParentDialog(getModInfoDialog());
-	
-			getModInfoPane().removeAll();
-			getModInfoPane().add(infoPanel, BorderLayout.CENTER);
-			getModInfoDialog().pack();
-			getModInfoDialog().repaint();
+			getMultimediaInfoPane().removeAll();
+			if (infoPanel!=null) getMultimediaInfoPane().add(infoPanel, BorderLayout.CENTER);
+			getMultimediaInfoDialog().pack();
+			getMultimediaInfoDialog().repaint();
 		}
 	}
 	private void changeConfigPane()
@@ -1237,7 +1235,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			{
 				public void actionPerformed(ActionEvent e)
 				{
-					getModInfoDialog().setVisible(true);
+					getMultimediaInfoDialog().setVisible(true);
 				}
 			});
 		}
@@ -1822,34 +1820,34 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		}
 		return playerSetUpDialog;
 	}
-	public JDialog getModInfoDialog()
+	public JDialog getMultimediaInfoDialog()
 	{
-		if (modInfoDialog==null)
+		if (multimediaInfoDialog==null)
 		{
-			modInfoDialog = new JDialog(this, "File properties", false);
-			modInfoDialog.setName("modInfoDialog");
-			modInfoDialog.setSize(modInfoDialogSize);
-			modInfoDialog.setPreferredSize(modInfoDialogSize);
-			if (modInfoDialogLocation == null || (modInfoDialogLocation.getX()==-1 || modInfoDialogLocation.getY()==-1))
-				modInfoDialogLocation = Helpers.getFrameCenteredLocation(modInfoDialog, null); 
-		    modInfoDialog.setLocation(modInfoDialogLocation);
-		    modInfoDialog.addWindowFocusListener(makeMainWindowVisiable);
+			multimediaInfoDialog = new JDialog(this, "File properties", false);
+			multimediaInfoDialog.setName("multimediaInfoDialog");
+			multimediaInfoDialog.setSize(multimediaInfoDialogSize);
+			multimediaInfoDialog.setPreferredSize(multimediaInfoDialogSize);
+			if (multimediaInfoDialogLocation == null || (multimediaInfoDialogLocation.getX()==-1 || multimediaInfoDialogLocation.getY()==-1))
+				multimediaInfoDialogLocation = Helpers.getFrameCenteredLocation(multimediaInfoDialog, null); 
+		    multimediaInfoDialog.setLocation(multimediaInfoDialogLocation);
+		    multimediaInfoDialog.addWindowFocusListener(makeMainWindowVisiable);
 			
-		    modInfoDialog.setContentPane(getModInfoPane());
+		    multimediaInfoDialog.setContentPane(getMultimediaInfoPane());
 		}
-		return modInfoDialog;
+		return multimediaInfoDialog;
 	}
-	public JPanel getModInfoPane()
+	public JPanel getMultimediaInfoPane()
 	{
-		if (modInfoPane==null)
+		if (multimediaInfoPane==null)
 		{
-			modInfoPane = new JPanel();
-			modInfoPane.setName("ModInfoPane");
-			modInfoPane.setLayout(new BorderLayout());
-			modInfoPane.setBorder(new TitledBorder(null, "Multimedia File Info", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			multimediaInfoPane = new JPanel();
+			multimediaInfoPane.setName("multimediaInfoPane");
+			multimediaInfoPane.setLayout(new BorderLayout());
+			multimediaInfoPane.setBorder(new TitledBorder(null, "Multimedia File Info", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
 			changeInfoPane();
 		}
-		return modInfoPane;
+		return multimediaInfoPane;
 	}
 	public JDialog getPlaylistDialog()
 	{
@@ -1905,7 +1903,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (xmasConfigPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			xmasConfigPanel = new XmasConfigPanel(refreshRate);
 			xmasConfigPanel.setName("xmasConfigPane");
 		}
@@ -1992,7 +1990,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (saLMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			saLMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saLMeterPanel.setSize(d);
@@ -2009,7 +2007,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (saRMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			saRMeterPanel = new SAMeterPanel(refreshRate, 25);
 			Dimension d = new Dimension(104, 60);
 			saRMeterPanel.setSize(d);
@@ -2026,7 +2024,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (vuLMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			vuLMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuLMeterPanel.setSize(d);
@@ -2042,7 +2040,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (vuRMeterPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			vuRMeterPanel = new VUMeterPanel(refreshRate);
 			Dimension d = new Dimension(20, 100);
 			vuRMeterPanel.setSize(d);
@@ -2073,7 +2071,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (ledScrollPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			ledScrollPanel = new LEDScrollPanel(refreshRate, Helpers.FULLVERSION + ' ' + Helpers.COPYRIGHT + "                  ", chars, Color.GREEN, Color.GRAY);
 			Dimension d = new Dimension((chars*brick*6)+4, (brick*8)+4);
 			ledScrollPanel.setSize(d);
@@ -2127,7 +2125,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (seekBarPanel==null)
 		{
 			DisplayMode mode = Helpers.getScreenInfoOf(this);
-			final int refreshRate = (mode!=null)?mode.getRefreshRate():60;
+			final int refreshRate = (mode!=null && mode.getRefreshRate()!=DisplayMode.REFRESH_RATE_UNKNOWN)?mode.getRefreshRate():DEFAULT_REFRESH_RATE;
 			seekBarPanel = new SeekBarPanel(refreshRate, false);
 			seekBarPanel.setName("SeekBarPanel");
 			seekBarPanel.addListener(new SeekBarPanelListener()
@@ -2446,17 +2444,17 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		final int mainDialogWidth = getWidth();
 		final int mainDialogHight = getHeight();
 		final int playerSetUpDialogHight = getPlayerSetUpDialog().getHeight();
-		final int modInfoDialogWidth = getModInfoDialog().getWidth();
+		final int modInfoDialogWidth = getMultimediaInfoDialog().getWidth();
 		final int playlistDialogWidth = getPlaylistDialog().getWidth();
 		final int playerSetUpDialogWidth = (mainDialogWidth - getInsets().right + 1) + playlistDialogWidth - getPlaylistDialog().getInsets().left + 1;
 		final int modInfoDialogHight = (mainDialogHight - getInsets().bottom + 1) + playerSetUpDialogHight - 1;
 		
-		getModInfoDialog().setSize(modInfoDialogWidth, modInfoDialogHight);
+		getMultimediaInfoDialog().setSize(modInfoDialogWidth, modInfoDialogHight);
 		getPlayerSetUpDialog().setSize(playerSetUpDialogWidth, playerSetUpDialogHight);
 		getPlaylistDialog().setSize(playlistDialogWidth, mainDialogHight + 1);
 
 		getPlayerSetUpDialog().setLocation(getX() - 1,getY() + mainDialogHight - getInsets().bottom);
-		getModInfoDialog().setLocation(getX() - modInfoDialogWidth + getInsets().left + getModInfoDialog().getInsets().right - 1, getY());
+		getMultimediaInfoDialog().setLocation(getX() - modInfoDialogWidth + getInsets().left + getMultimediaInfoDialog().getInsets().right - 1, getY());
 		getPlaylistDialog().setLocation(getX() +  mainDialogWidth - getInsets().right - getPlaylistDialog().getInsets().left + 1, getY());
 	}
 	/**
@@ -2569,7 +2567,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		
 		if (currentContainer==null)
 	    {
-	    	JOptionPane.showMessageDialog(this, "You need to load a file first!", "Ups!", JOptionPane.ERROR_MESSAGE);
+	    	JOptionPane.showMessageDialog(this, "You need to load a file first!", "Error", JOptionPane.ERROR_MESSAGE);
 	    }
 	    else
 	    {
@@ -2610,8 +2608,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 				    	mixer.setExportFile(f);
 				    	playerThread = new PlayThread(mixer, this);
 				    	playerThread.start();
-				    	
-				    	inExportMode = true; // Signal, that we are exporting right now...
 				    }
 				}
 		    	return;
@@ -2787,25 +2783,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (automaticUpdateCheck && today.minusDays(30).isAfter(lastUpdateCheck))
 		{
 			doCheckUpdate(true);
-//			new Thread(new Runnable()
-//			{
-//				public void run()
-//				{
-//					try
-//					{
-//						lastUpdateCheck = LocalDate.now();
-//						String serverVersion = Helpers.getCurrentServerVersion();
-//						if (Helpers.compareVersions(Helpers.VERSION, serverVersion)<0)
-//						{
-//							getLEDScrollPanel().setScrollTextTo(Helpers.FULLVERSION + " - new Version ("+serverVersion+") available." + Helpers.SCROLLY_BLANKS);
-//						}
-//					}
-//					catch (Throwable ex) 
-//					{
-//						/* NOOP */
-//					}
-//				}
-//			}).run();
 		}
 	}
 	private void doCheckUpdate(final boolean beSilent)
@@ -2921,8 +2898,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 					playerThread = null;
 					removeMixer();
 				}
-				
-				if (inExportMode) inExportMode = false;
 				
 				if (playerThread == null)
 				{

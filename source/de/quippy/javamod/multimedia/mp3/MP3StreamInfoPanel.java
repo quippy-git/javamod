@@ -40,6 +40,17 @@ public class MP3StreamInfoPanel extends JPanel
 {
 	private static final long serialVersionUID = 2105268194816135760L;
 
+	public static final String SONGNAME = "streamtitle";
+	public static final String SHORT_DESCIPTION = "icy-notice2";
+	public static final String SERVER = "server";
+	public static final String SERVER_NAME = "icy-name";
+	public static final String SERVER_DESCRIPTION = "icy-description";
+	public static final String SERVER_GENRE = "icy-genre";
+	public static final String CONTENT_TYPE = "content-type";
+	public static final String META_DATA_INT = "icy-metaint";
+	public static final String BANDWIDTH = "icy-br";
+	public static final String URL = "icy-url";
+
 	private JLabel mp3Info_L_ServerType = null;
 	private JTextField mp3Info_ServerType = null;
 	private JLabel mp3Info_L_ServerName = null;
@@ -58,8 +69,11 @@ public class MP3StreamInfoPanel extends JPanel
 	private JTextField mp3Info_URL = null;
 	private JLabel mp3Info_L_ShortDescription = null;
 	private JTextField mp3Info_ShortDescription = null;
-	
+
 	private HashMap<String, JTextField> fields;
+	
+	private MP3Container parentContainer = null;
+
 	/**
 	 * Constructor for MP3StreamInfoPanel
 	 */
@@ -96,6 +110,20 @@ public class MP3StreamInfoPanel extends JPanel
 		super(layout, isDoubleBuffered);
 		initialize();
 	}
+	/**
+	 * @return the parent
+	 */
+	public MP3Container getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(MP3Container parent)
+	{
+		this.parentContainer = parent;
+	}
 	private void initialize()
 	{
 		this.setName("MP3StreamInfoPane");
@@ -122,16 +150,16 @@ public class MP3StreamInfoPanel extends JPanel
 		this.add(new JPanel(),						Helpers.getGridBagConstraint(0, 9, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.EAST, 1.0, 1.0));
 
 		this.fields = new HashMap<String, JTextField>();
-		fields.put("streamtitle", getMP3Info_ShortDescription()); 
-		fields.put("icy-notice2", getMP3Info_ServerType());
-		fields.put("server", getMP3Info_ServerType());
-		fields.put("icy-name", getMP3Info_ServerName()); 
-		fields.put("icy-description", getMP3Info_ServerDesc()); 
-		fields.put("icy-genre", getMP3Info_ServerGenre()); 
-		fields.put("content-type", getMP3Info_ContentType()); 
-		fields.put("icy-metaint", getMP3Info_MetaDataInt()); 
-		fields.put("icy-br", getMP3Info_BandWidth()); 
-		fields.put("icy-url", getMP3Info_URL()); 
+		fields.put(SONGNAME, getMP3Info_ShortDescription()); 
+		fields.put(SHORT_DESCIPTION, getMP3Info_ServerType());
+		fields.put(SERVER, getMP3Info_ServerType());
+		fields.put(SERVER_NAME, getMP3Info_ServerName()); 
+		fields.put(SERVER_DESCRIPTION, getMP3Info_ServerDesc()); 
+		fields.put(SERVER_GENRE, getMP3Info_ServerGenre()); 
+		fields.put(CONTENT_TYPE, getMP3Info_ContentType()); 
+		fields.put(META_DATA_INT, getMP3Info_MetaDataInt()); 
+		fields.put(BANDWIDTH, getMP3Info_BandWidth()); 
+		fields.put(URL, getMP3Info_URL()); 
 	}
 	private javax.swing.JLabel getMP3Info_L_ServerType()
 	{
@@ -333,26 +361,27 @@ public class MP3StreamInfoPanel extends JPanel
 	}
 	public void clearFields()
 	{
-		Collection<JTextField> textFields = fields.values();
-		for (JTextField textField : textFields) textField.setText("");
+		final Collection<JTextField> textFields = fields.values();
+		for (JTextField textField : textFields) textField.setText(Helpers.EMPTY_STING);
 	}
 	public void fillInfoPanelWith(IcyTag icyTag)
 	{
-		JTextField field = fields.get(icyTag.getName().toLowerCase());
+		if (icyTag==null) return;
+		final JTextField field = fields.get(icyTag.getName().toLowerCase());
 		if (field!=null)
 		{
-			String value = icyTag.getValue();
+			final String value = icyTag.getValue();
 			if (value!=null) field.setText(value.trim());
 		}
 	}
-	public String getCurrentSongName()
-	{
-		StringBuilder b = new StringBuilder();
-		String songName = fields.get("streamtitle").getText();
-		if (songName!=null && songName.length()!=0) b.append(songName).append(' ');
-		
-		String serverName = fields.get("icy-name").getText();
-		if (serverName!=null && serverName.length()!=0) b.append('(').append(serverName).append(')');
-		return b.toString();
-	}
+//	public String getCurrentSongName()
+//	{
+//		StringBuilder b = new StringBuilder();
+//		String songName = fields.get(SONGNAME).getText();
+//		if (songName!=null && songName.length()!=0) b.append(songName);
+//		
+//		String serverName = fields.get(SERVER_NAME).getText();
+//		if (serverName!=null && serverName.length()!=0) b.append(" (").append(serverName).append(')');
+//		return b.toString();
+//	}
 }

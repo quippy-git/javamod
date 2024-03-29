@@ -24,16 +24,19 @@ package de.quippy.javamod.multimedia.mod.gui;
 import java.awt.Color;
 import java.awt.Graphics;
 
+import javax.swing.JComponent;
+
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
 
 /**
  * @author Daniel Becker
  * @since 31.07.2020
  */
-public class EnvelopeImagePanel extends ImagePanel
+public class EnvelopeImagePanel extends JComponent
 {
 	private static final long serialVersionUID = 2409671172691613794L;
-    private static final Color GRID_COLOR = Color.lightGray;
+    
+	private static final Color GRID_COLOR = Color.lightGray;
     private static final Color GRIDSUB1_COLOR = Color.gray;
     private static final Color GRIDSUB2_COLOR = Color.darkGray;
     private static final Color ENVELOPE_COLOR = Color.red;
@@ -41,6 +44,7 @@ public class EnvelopeImagePanel extends ImagePanel
     private static final Color RECT_COLOR = Color.white;
     private static final Color LOOP_COLOR = Color.yellow;
     private static final Color SUSTAINLOOP_COLOR = Color.green;
+
     private static final int MAX_WIDTH = 512;
     private static final int SMALLESTGRID = 4;
     private static final int BOXWIDTH = 2;
@@ -53,6 +57,7 @@ public class EnvelopeImagePanel extends ImagePanel
 	public EnvelopeImagePanel()
 	{
 		super();
+		setDoubleBuffered(true);
 	}
 
 	private void drawGrid(Graphics g, int top, int left, int width, int height)
@@ -84,21 +89,27 @@ public class EnvelopeImagePanel extends ImagePanel
 			}
 		}
 	}
-	/**
-	 * @param g
-	 * @param top
-	 * @param left
-	 * @param width
-	 * @param height
-	 * @see de.quippy.javamod.multimedia.mod.gui.ImagePanel#drawImage(java.awt.Graphics, int, int, int, int)
-	 */
-	@Override
-	protected void drawImage(Graphics g, int top, int left, int width, int height)
+	private int getX(final int xPos)
 	{
+		return (xPos * getWidth()) / MAX_WIDTH;
+	}
+	private int getY(final int yPos)
+	{
+		return getHeight() - ((yPos  * getHeight()) >> 6);
+	}
+	/**
+	 * @since 07.01.2024
+	 * @param gfx
+	 */
+	private void drawEnvelope(Graphics g)
+	{
+		final int width = getWidth();
+		final int height = getHeight();
+
 		g.setColor(BACKGROUND_COLOR);
-		g.fillRect(left, top, width, height);
+		g.fillRect(0, 0, width, height);
 		
-		drawGrid(g, top, left, width, height);
+		drawGrid(g, 0, 0, width, height);
 		
 		if (envelope!=null)
 		{
@@ -106,16 +117,16 @@ public class EnvelopeImagePanel extends ImagePanel
 			int oldy = 0;
 			for (int i=0; i<envelope.nPoints; i++)
 			{
-				int x = (envelope.positions[i] * width) / MAX_WIDTH;
+				int x = getX(envelope.positions[i]);
 				if (x<0) x=0; else if (x>width) x=width;
 			
-				int y = height - ((envelope.value[i] * height) >> 6);
+				int y = getY(envelope.value[i]);
 				if (y<0) y=0; else if (y>height) y=height;
 				
 				g.setColor(ENVELOPE_COLOR);
-				if (i>0) g.drawLine(left + oldx, top + oldy, left + x, top + y);
+				if (i>0) g.drawLine(oldx, oldy, x, y);
 				g.setColor(RECT_COLOR);
-				g.drawRect(left + x-BOXWIDTH, top + y-BOXWIDTH, left+(BOXWIDTH*2+1), top+(BOXWIDTH*2+1));
+				g.drawRect(x-BOXWIDTH, y-BOXWIDTH, (BOXWIDTH<<1)+1, (BOXWIDTH<<1)+1);
 				
 				oldx = x;
 				oldy = y;
@@ -123,23 +134,41 @@ public class EnvelopeImagePanel extends ImagePanel
 			if (envelope.loop)
 			{
 				g.setColor(LOOP_COLOR);
-				int x = ((envelope.positions[envelope.loopStartPoint] * width) / MAX_WIDTH) - BOXWIDTH;
+				int x = getX(envelope.positions[envelope.loopStartPoint]) - BOXWIDTH;
 				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(left + x, top, left + x, top + height);
-				x = ((envelope.positions[envelope.loopEndPoint] * width) / MAX_WIDTH) + BOXWIDTH + 1;
+				g.drawLine(x, 0, x, height);
+				x = getX(envelope.positions[envelope.loopEndPoint]) + BOXWIDTH + 1;
 				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(left + x, top, left + x, top + height);
+				g.drawLine(x, 0, x, height);
 			}
 			if (envelope.sustain)
 			{
 				g.setColor(SUSTAINLOOP_COLOR);
-				int x = ((envelope.positions[envelope.sustainStartPoint] * width) / MAX_WIDTH) - BOXWIDTH;
+				int x = getX(envelope.positions[envelope.sustainStartPoint]) - BOXWIDTH;
 				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(left + x, top, left + x, top + height);
-				x = ((envelope.positions[envelope.sustainEndPoint] * width) / MAX_WIDTH) + BOXWIDTH + 1;
+				g.drawLine(x, 0, x, height);
+				x = getY(envelope.positions[envelope.sustainEndPoint]) + BOXWIDTH + 1;
 				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(left + x, top, left + x, top + height);
+				g.drawLine(x, 0, x, height);
 			}
+		}
+	}
+	/**
+	 * @param g
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 */
+	@Override
+	public void paintComponent(Graphics g)
+	{
+		super.paintComponent(g);
+		Graphics gfx = g.create();
+		try
+		{
+			drawEnvelope(gfx);
+		}
+		finally
+		{
+			g.dispose();
 		}
 	}
 	public void setEnvelope(Envelope envelope)

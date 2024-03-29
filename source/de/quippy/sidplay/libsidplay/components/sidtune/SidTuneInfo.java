@@ -149,12 +149,12 @@ public class SidTuneInfo {
 	/**
 	 * --- not yet supported ---
 	 */
-	int /* uint_least16_t */numberOfCommentStrings;
+	public int /* uint_least16_t */numberOfCommentStrings;
 
 	/**
 	 * --- not yet supported ---
 	 */
-	String[] commentString;
+	public String[] commentString;
 
 	/**
 	 * length of single-file sidtune file

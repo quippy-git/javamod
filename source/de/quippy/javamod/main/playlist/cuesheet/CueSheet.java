@@ -218,7 +218,7 @@ public class CueSheet
 		}
 		finally
 		{
-			if (bw!=null) try { bw.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (bw!=null) try { bw.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 	public static CueSheet createCueSheet(String file)
@@ -340,7 +340,7 @@ public class CueSheet
 		}
 		finally
 		{
-			if (br!=null) try { br.close(); } catch (IOException ex) { Log.error("IGNORED", ex); }
+			if (br!=null) try { br.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
 			if (tok!=null) tok.close();
 		}
 	}

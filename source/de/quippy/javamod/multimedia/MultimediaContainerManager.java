@@ -33,7 +33,6 @@ import java.util.Set;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author: Daniel Becker
@@ -43,12 +42,27 @@ public class MultimediaContainerManager
 {
 	private static HashMap<String, MultimediaContainer> fileExtensionMap;
 	private static ArrayList<MultimediaContainer> containerArray;
+	private static boolean headlessMode = true;
+	
 	/**
 	 * @since: 12.10.2007
 	 */
 	private MultimediaContainerManager()
 	{
 		super();
+	}
+	/**
+	 * To avoid instantiating any dialogs if on command line
+	 * @since 15.01.2024
+	 * @param isHeadless
+	 */
+	public static void setIsHeadlessMode(final boolean isHeadless)
+	{
+		headlessMode = isHeadless;
+	}
+	public static boolean isHeadlessMode()
+	{
+		return headlessMode;
 	}
 	public static HashMap<String, MultimediaContainer> getFileExtensionMap()
 	{
@@ -63,19 +77,19 @@ public class MultimediaContainerManager
 			containerArray = new ArrayList<MultimediaContainer>();
 		return containerArray;
 	}
-	public static void getContainerConfigs(Properties intoProps)
+	public static void getContainerConfigs(final Properties intoProps)
 	{
 		ArrayList<MultimediaContainer> listeners = getContainerArray();
 		for (int i=0; i<listeners.size(); i++)
 			listeners.get(i).configurationSave(intoProps);
 	}
-	public static void configureContainer(Properties fromProps)
+	public static void configureContainer(final Properties fromProps)
 	{
 		ArrayList<MultimediaContainer> listeners = getContainerArray();
 		for (int i=0; i<listeners.size(); i++)
 			listeners.get(i).configurationChanged(fromProps);
 	}
-	public static void registerContainer(MultimediaContainer container)
+	public static void registerContainer(final MultimediaContainer container)
 	{
 		if (container!=null)
 		{
@@ -85,7 +99,7 @@ public class MultimediaContainerManager
 				getFileExtensionMap().put(extensions[i], container);
 		}
 	}
-	public static void deregisterContainer(MultimediaContainer container)
+	public static void deregisterContainer(final MultimediaContainer container)
 	{
 		if (container!=null)
 		{
@@ -125,7 +139,7 @@ public class MultimediaContainerManager
 			result.put(listeners.get(i).getName(), listeners.get(i).getFileExtensionList());
 		return result;
 	}
-	public static MultimediaContainer getMultimediaContainerForType(String type) throws UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainerForType(final String type) throws UnsupportedAudioFileException
 	{
 		MultimediaContainer container = getFileExtensionMap().get(type.toLowerCase());
 		if (container==null) 
@@ -133,7 +147,7 @@ public class MultimediaContainerManager
 		else
 			return container;
 	}
-	public static MultimediaContainer getMultimediaContainerSingleton(URL url) throws UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainerSingleton(final URL url) throws UnsupportedAudioFileException
 	{
 		String fileName = url.getPath();
 
@@ -153,13 +167,14 @@ public class MultimediaContainerManager
 	/**
 	 * Will use getMultimediaContainerSingleton to retrieve the basic singleton
 	 * and then create an instance by getInstance on that singleton
-	 * This will also update the Info-Panels, if getInstance is overridden
-	 * @since 19.12.2022
-	 * @param url
+	 * This will also update the info panels, if getInstance is overridden.
+	 * @since 15.01.2024
+	 * @param url The URL of the file to load
+	 * @param theParentWindow the parent window - if one exists - or null
 	 * @return
 	 * @throws UnsupportedAudioFileException
 	 */
-	public static MultimediaContainer getMultimediaContainer(URL url) throws UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainer(final URL url) throws UnsupportedAudioFileException
 	{
 		MultimediaContainer baseContainer = getMultimediaContainerSingleton(url);
 		MultimediaContainer container = baseContainer.getInstance(url);
@@ -168,41 +183,41 @@ public class MultimediaContainerManager
 		else
 			return container;
 	}
-	public static MultimediaContainer getMultimediaContainer(URI uri) throws MalformedURLException, UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainer(final URI uri) throws MalformedURLException, UnsupportedAudioFileException
 	{
-		return getMultimediaContainer(uri.toURL()); 
+		return getMultimediaContainer(uri.toURL());
 	}
-	public static MultimediaContainer getMultimediaContainer(File file) throws MalformedURLException, UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainer(final File file) throws MalformedURLException, UnsupportedAudioFileException
 	{
-		return getMultimediaContainer(file.toURI()); 
+		return getMultimediaContainer(file.toURI());
 	}
-	public static MultimediaContainer getMultimediaContainer(String fileName) throws MalformedURLException, UnsupportedAudioFileException
+	public static MultimediaContainer getMultimediaContainer(final String fileName) throws MalformedURLException, UnsupportedAudioFileException
 	{
 		return getMultimediaContainer(new File(fileName));
 	}
-	public static void addMultimediaContainerEventListener(MultimediaContainerEventListener listener)
+	public static void addMultimediaContainerEventListener(final MultimediaContainerEventListener listener)
 	{
 		ArrayList<MultimediaContainer> containers = getContainerArray();
 		for (int i=0; i<containers.size(); i++)
 			containers.get(i).addListener(listener);
 	}
-	public static void removeMultimediaContainerEventListener(MultimediaContainerEventListener listener)
+	public static void removeMultimediaContainerEventListener(final MultimediaContainerEventListener listener)
 	{
 		ArrayList<MultimediaContainer> containers = getContainerArray();
 		for (int i=0; i<containers.size(); i++)
 			containers.get(i).removeListener(listener);
 	}
-	public static String getSongNameFromURL(URL url)
+	public static String getSongNameFromURL(final URL url)
 	{
 		if (url==null) return Helpers.EMPTY_STING;
 
-		String result = Helpers.createStringFomURL(url);
+		final String result = Helpers.createStringFomURL(url);
 		final int lastSlash = result.lastIndexOf('/');
 		int dot = result.lastIndexOf('.');
 		if (dot == -1 || dot<lastSlash) dot = result.length();
 		return result.substring(lastSlash + 1, dot); 
 	}
-	public static String getSongNameFromFile(File fileName)
+	public static String getSongNameFromFile(final File fileName)
 	{
 		if (fileName==null) return Helpers.EMPTY_STING;
 
@@ -219,7 +234,7 @@ public class MultimediaContainerManager
 	 * @return
 	 * @since 12.02.2011
 	 */
-	public static Object [] getSongInfosFor(URL url)
+	public static Object [] getSongInfosFor(final URL url)
 	{
 		try
 		{
@@ -228,7 +243,7 @@ public class MultimediaContainerManager
 		}
 		catch (UnsupportedAudioFileException ex)
 		{
-			Log.error("IGNORED", ex);
+			//Log.error("IGNORED", ex);
 		}
 		return new Object[] { getSongNameFromURL(url) + " UNSUPPORTED FILE", Long.valueOf(-1) };
 	}

@@ -31,7 +31,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import de.quippy.javamod.system.Helpers;
-import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -53,6 +52,9 @@ public class WavInfoPanel extends JPanel
 	private JTextField wavChannels = null;
 	private JLabel wavEncodingLabel = null;
 	private JTextField wavEncoding = null;
+
+	private WavContainer parentContainer = null;
+
 	/**
 	 * Constructor for WavInfoPanel
 	 */
@@ -88,6 +90,20 @@ public class WavInfoPanel extends JPanel
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
+	}
+	/**
+	 * @return the parent
+	 */
+	public WavContainer getParentContainer()
+	{
+		return parentContainer;
+	}
+	/**
+	 * @param parent the parent to set
+	 */
+	public void setParentContainer(WavContainer parent)
+	{
+		this.parentContainer = parent;
 	}
 	private void initialize()
 	{
@@ -244,7 +260,7 @@ public class WavInfoPanel extends JPanel
 		}
 		catch (IOException ex)
 		{
-			Log.error("IGNORED", ex);
+			//Log.error("IGNORED", ex);
 		}
 		getWavDuration().setText(Helpers.getTimeStringFromMilliseconds(lengthInMilliseconds));
 	}

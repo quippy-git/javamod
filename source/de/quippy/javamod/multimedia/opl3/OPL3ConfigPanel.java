@@ -26,7 +26,7 @@ import java.awt.LayoutManager;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.net.URL;
+import java.util.Properties;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -59,6 +59,7 @@ public class OPL3ConfigPanel extends JPanel
 	private JButton searchButton = null;
 
 	OPL3Container parentContainer = null;
+
 	/**
 	 * Constructor for OPL3ConfigPanel
 	 */
@@ -133,7 +134,7 @@ public class OPL3ConfigPanel extends JPanel
 		}
 		return checkboxConfigPanel;
 	}
-	public JCheckBox getVirtualStereo()
+	private JCheckBox getVirtualStereo()
 	{
 		if (virtualStereo == null)
 		{
@@ -160,7 +161,7 @@ public class OPL3ConfigPanel extends JPanel
 		}
 		return virtualStereo;
 	}
-	public JLabel getOplVersionLabel()
+	private JLabel getOplVersionLabel()
 	{
 		if (oplVersionLabel==null)
 		{
@@ -171,7 +172,7 @@ public class OPL3ConfigPanel extends JPanel
 		}
 		return oplVersionLabel;
 	}
-	public JComboBox<String> getOplVersion()
+	private JComboBox<String> getOplVersion()
 	{
 		if (oplVersion==null)
 		{
@@ -194,7 +195,7 @@ public class OPL3ConfigPanel extends JPanel
 		}
 		return rolSoundBankLabel;
 	}
-	public JTextField getRolSoundBankURL()
+	private JTextField getRolSoundBankURL()
 	{
 		if (rolSoundBankUrl==null)
 		{
@@ -233,19 +234,28 @@ public class OPL3ConfigPanel extends JPanel
 		}
 		return searchButton;
 	}
-	public URL getSoundBankURL()
-	{
-		return Helpers.createURLfromString(getRolSoundBankURL().getText());
-	}
-	public EmuOPL.version getOPLVersion()
+	private EmuOPL.version getOPLVersion()
 	{
 		final int index = getOplVersion().getSelectedIndex();
 		return EmuOPL.getVersionForIndex(index);
 	}
-	public void setOPLVersion(final EmuOPL.version version)
+	private void setOPLVersion(final EmuOPL.version version)
 	{
 		int index = EmuOPL.getIndexForVersion(version);
 		if (index==-1) index = EmuOPL.getIndexForVersion(Enum.valueOf(EmuOPL.version.class, OPL3Container.DEFAULT_OPLVERSION));
 		getOplVersion().setSelectedIndex(index);
+	}
+	public void configurationChanged(final Properties newProps)
+	{
+		getRolSoundBankURL().setText(newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_SOUNDBANK, OPL3Container.DEFAULT_SOUNDBANKURL));
+		getVirtualStereo().setSelected(Boolean.parseBoolean(newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, OPL3Container.DEFAULT_VIRTUAL_STEREO)));
+		EmuOPL.version version = Enum.valueOf(EmuOPL.version.class, newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_OPLVERSION, OPL3Container.DEFAULT_OPLVERSION));
+		setOPLVersion(version);
+	}
+	public void configurationSave(final Properties props)
+	{
+		props.setProperty(OPL3Container.PROPERTY_OPL3PLAYER_SOUNDBANK, getRolSoundBankURL().getText());
+		props.setProperty(OPL3Container.PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, Boolean.toString(getVirtualStereo().isSelected()));
+		props.setProperty(OPL3Container.PROPERTY_OPL3PLAYER_OPLVERSION, getOPLVersion().toString());
 	}
 }

@@ -22,7 +22,7 @@
 package de.quippy.javamod.main.gui.components;
 
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 /**
  * @author Daniel Becker
@@ -117,19 +117,16 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected void drawMeter(Graphics g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
 	{
-		if (g!=null)
+		final int level = (int)(myAnzLines*currentLevel);
+		final int maxPeakLevel = (int)(myAnzLines*currentMaxPeakLevel);
+		
+		for (int i=0; i<myAnzLines; i++)
 		{
-			final int level = (int)(myAnzLines*currentLevel);
-			final int maxPeakLevel = (int)(myAnzLines*currentMaxPeakLevel);
-			
-			for (int i=0; i<myAnzLines; i++)
-			{
-				g.setColor((i>=level && i!=maxPeakLevel)?colorLow[i]:color[i]);
-				int ly = newHeight - (i<<1);
-				g.drawLine(newLeft, newTop + ly, newLeft + newWidth, newTop + ly);
-			}
+			g.setColor((i>=level && i!=maxPeakLevel)?colorLow[i]:color[i]);
+			final int ly = newHeight - (i<<1);
+			g.drawLine(newLeft, newTop + ly, newLeft + newWidth, newTop + ly);
 		}
 
 		currentLevel-=rampDownValue;

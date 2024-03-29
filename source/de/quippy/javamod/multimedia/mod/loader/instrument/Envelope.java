@@ -29,6 +29,8 @@ import de.quippy.javamod.system.Helpers;
  */
 public class Envelope
 {
+	public enum EnvelopeType { volume, panning, pitch }
+	
 	public int [] positions;
 	public int [] value;
 	public int nPoints;
@@ -37,6 +39,7 @@ public class Envelope
 	public int loopStartPoint;
 	public int loopEndPoint;
 	public int endPoint;
+	public EnvelopeType envelopeType;
 	public boolean on, sustain, loop, carry, filter, xm_style;
 	public byte[] oldITVolumeEnvelope;
 	
@@ -47,9 +50,10 @@ public class Envelope
 	/**
 	 * Constructor for Envelope
 	 */
-	public Envelope()
+	public Envelope(final EnvelopeType envType)
 	{
 		super();
+		envelopeType=envType;
 		on=sustain=loop=carry=filter=xm_style=false;
 	}
 	/**
@@ -69,7 +73,11 @@ public class Envelope
 		{
 			if (sustain && !keyOff && pos>=positions[sustainEndPoint]) pos = positions[sustainStartPoint]; 
 			else 
-			if (loop && pos>=positions[loopEndPoint]) pos = positions[loopStartPoint];
+			if (loop)
+			{
+				final boolean escapeLoop = loopEndPoint==sustainEndPoint && sustain && keyOff;
+				if (pos>=positions[loopEndPoint] && !escapeLoop) pos = positions[loopStartPoint];
+			}
 		}
 		else
 		{
@@ -82,6 +90,54 @@ public class Envelope
 		
 		return pos;
 	}
+//	public int updatePosition(final int position, final boolean keyOff)
+//	{
+//		if (positions==null || positions.length==0 || envelopeFinished(position)) return position;
+//		
+//		if (xm_style)
+//		{
+//			int pos = position + 1;
+//			if (loop)
+//			{
+//				final boolean escapeLoop = loopEndPoint==sustainEndPoint && sustain && keyOff;
+//				if (pos>positions[loopEndPoint] && !escapeLoop) pos = positions[loopStartPoint];
+//			}
+//			else
+//			if (sustain && !keyOff)
+//			{
+//				 if (pos>positions[sustainEndPoint]) pos = positions[sustainStartPoint];
+//			}
+//			else
+//			if (pos>=positions[endPoint]) pos = positions[endPoint]+1;
+//			
+//			return pos;
+//		}
+//		else
+//		{
+//			int pos = position;
+//			int start, end;
+//			
+//			if (sustain && !keyOff)
+//			{
+//				start = positions[sustainStartPoint];
+//				end = positions[sustainEndPoint] + 1;
+//			}
+//			else
+//			if (loop)
+//			{
+//				start = positions[loopStartPoint];
+//				end = positions[loopEndPoint] + 1;
+//			}
+//			else
+//			{
+//				start = end = positions[endPoint];
+//				if (pos>end)  return positions[endPoint]+1;
+//			}
+//			if (position>=end) pos = start;
+//			return ++pos;
+//		}
+//	
+//	}
 	/**
 	 * return true, if the positions is beyond end point
 	 * @since 12.06.2020
@@ -90,7 +146,16 @@ public class Envelope
 	 */
 	public boolean envelopeFinished(final int position)
 	{
-		return (position>positions[endPoint]);
+		return position>positions[endPoint];
+	}
+	/**
+	 * @since 15.03.2024
+	 * @param position
+	 * @return
+	 */
+	public boolean envelopeFinishedInSilence(final int position)
+	{
+		return envelopeFinished(position) && value[endPoint]==0;
 	}
 	/**
 	 * get the value at the positions
@@ -178,8 +243,7 @@ public class Envelope
 		{
 			// limit endPoint to the smallest possible array index
 			// and consider arrays of different length
-			nPoints = (nPoints>positions.length)?positions.length:(nPoints>value.length)?value.length:nPoints;
-			endPoint = nPoints - 1;
+			setNPoints((nPoints>positions.length)?positions.length:(nPoints>value.length)?value.length:nPoints);
 
 			// sanitize the values and positions
 			positions[0]=0;
@@ -229,8 +293,7 @@ public class Envelope
 	 */
 	public void setNPoints(final int points)
 	{
-		nPoints = points;
-		endPoint = nPoints - 1;
+		endPoint = (nPoints = points) - 1;
 	}
 	/**
 	 * @param positions The positions to set.
@@ -268,6 +331,24 @@ public class Envelope
 		this.sustainStartPoint = sustainStartPoint;
 	}
 	/**
+	 * @param envelopeType the envelopeType to set
+	 */
+	public void setEnvelopeType(final EnvelopeType envelopeType)
+	{
+		this.envelopeType = envelopeType;
+	}
+	/**
+	 * @return the envelopeType
+	 */
+	public EnvelopeType getEnvelopeType()
+	{
+		return envelopeType;
+	}
+	/**
+	 * This is probably a pre-calculation of the volume envelope
+	 * however, we read it, but do not use it (yet...)
+	 * neither Schism nor ModPlug use it, do life calculations instead
+	 * we are in good company :)
 	 * @param oldITVolumeEnvelope the oldITVolumeEnvelope to set
 	 */
 	public void setOldITVolumeEnvelope(final byte[] oldITVolumeEnvelope)

@@ -129,7 +129,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 						props.setProperty(ModContainer.PROPERTY_PLAYER_NOLOOPS, Integer.toString(Integer.parseInt(op.substring(0,1))));
 						break;
 					case 't':
-						props.setProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, Integer.toString(Integer.parseInt(op.substring(0,1))));
+						props.setProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, Integer.toString(Integer.parseInt(op)));
 						break;
 					case 'h':
 						shuffle = op.charAt(0)=='+';
