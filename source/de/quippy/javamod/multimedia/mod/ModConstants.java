@@ -940,7 +940,8 @@ public class ModConstants
 	// Table for Invert Loop and Funk Repeat effects (EFx, .MOD only)
 	public static final int modEFxTable[] =
 	{
-		 0,  5,  6,  7,  8, 10, 11, 13, 16, 19, 22, 26, 32, 43, 64, 128
+		0x00, 0x05, 0x06, 0x07, 0x08, 0x0A, 0x0B, 0x0D,
+		0x10, 0x13, 0x16, 0x1A, 0x20, 0x2B, 0x40, 0x80
 	};
 
 	/**

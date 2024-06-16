@@ -1,4 +1,4 @@
-# JavaMod V3.8
+# JavaMod V3.9.1
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -16,6 +16,13 @@ To start the command line version enter:
 
 On Linux consider starting with OpenGL render pipeline activated:
    java -Dsun.java2d.opengl=true -jar ./javamod.jar
+
+## Remarks to 3.9.x version updates
+With JavaMod versions 4.0 to 5.0 I want to integrate Midi and AdLib support.
+However, before starting that I want to have all test mods of Schism and
+Open ModPlug Tracker to work. We finished MOD and most of XM with this version
+and a whole lot of other stuff as well. So I decided to release new version 
+with minor version number updates to have you participate in these changes!
 
 ## Download of compiled version and source code
 * https://javamod.de/javamod.php
@@ -53,17 +60,113 @@ JavaMod incorporates modified versions of the following libraries:
 ## Known issues:
 * With PulseAudio: 
   * gapless audio streams do not work if SourceLine Buffers drain out
-  * scrambled sound
+  * scrambled sound (especially with PipeWire)
 * With KDE:
   * JDialogs, when set visible, will not come to front
-  * X-Mas Decoration does not work as intended
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
 
 ## Planned:
-* WavPack and MusePack support
-* MO3 support
-* Midi and AdLib/OPL with Mods
-* read 7z archives
+* finish loading of OMPT extended instrument / song data / mixer data
+* optimize recognition of different trackers - for whatever that is worth it
+* reading at least Midi Config with XMs / ITs
+* VSTiVolume, SamplePreAmp, MixLevels - look, what OMPT has to say
+* check for further missing MPTM Effects like Reverb and Surround commands
+* Quad Speaker mixing (rear speakers)
++ LongList:
+  * Midi and AdLib/OPL with Mods
+  * WavPack and MusePack support
+  * MO3 support
+  * read from 7z archives
+
+## New in Version 3.9.1
+* NEW: Colorful pattern display with previous and next pattern displayed in dim
+       colors. Following pattern optimized, drawn completely manually and with
+       full clipping of unseen parts to gain speed.
+       Effects are displayed in different colors per category, like MPT does it
+       During playback, you can select a pattern for seeking into the piece
+* NEW: Moved the UpdateThread of ModPatternDialog into a separate class and
+       moved wiring into ModContainer
+* NEW: added also an editor bar to the pattern display to move with cursor keys
+       and page up/down, home/end, ... plus modifier keys.
+       Press ESC to leave editor mode. (The editor mode is not a real editor!)
+* NEW: A double click on the instrument column will open instrument/sample
+       dialog for display
+* NEw: Zoom for instrument and sample display
+* NEW: Overhaul of most of the graphical implementations
+* NEW: removed test classes from project
+* NEW: Added a headless mode for command line usage. That way no GUI elements
+       are created.
+       (Explanation: So far we used the ConfigPanels to store the current config
+       of a mixer. Now this is done locally and only transported to/from the
+       GUIs, if they are present)
+* NEW: Added ModPlug Tracker MPTM-Files for loading. However, not all MPTM-
+       effects are yet supported (there are not that many missing though)
+       See next list:
+* NEW: added support for OMPT special "Extension Effect" feature
+* NEW: added OMPT extended song properties (not all yet!)
+* NEW: added OMPT extended instrument properties (by far not all yet!)
+* NEW: added OMPT cue points
+* NEW: added OMPT tempo modes CLASSIC, ALTERNATIVE and MODERN plus TempSwing
+* NEW: added OMPT pattern names / channel names / channel coloring
+* NEW: added OMPT 127 Channel support
+* NEW: added OMPT Kaiser interpolation and WindowedFIR with low pass filter
+* NEW: (BETA, UNTESTED) added support for XM version <0x0104, but could not test
+       as I am missing old FT2 XMs for that
+* NEW: more sanity checks in XM loading. Had found some very corrupted ones
+* NEW: Added ADPCM decoding for MODs, XMs, S3M and ITs - however, I am very sure
+       that nobody is using this encoder anymore
+* NEW: added a simulation of the E00/E01 filter effect with MODs and XMs (we re-
+       use the resonance low pass filter of ITs here...). If I ever implement
+       an A500/A1200 Paula filter we would use that one to get a more realistic
+       emulation
+* NEW: added FunkIt! (EFx effect) for mod files. Is that really used?!
+* NEW: added an info dialog for SID tunes (and fixed NULL-Pointer exception with
+       non existent info panels as well - there are none now however...)
+* NEW: added support for ITs in sample mode only (flags bit 2 not set)
+* FIX: setting FineTune via effect now works also in MOD/XM
+* FIX: XM: reading periods from tables instead of on the fly calculations
+* FIX: Enhanced ProTracker 1/2 compatibility by fixing everything to make these
+       test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/MOD
+       (many, many changes...! Let's just say tempo and sample setting is very
+       different now - and many other things)
+* FIX: Enhanced FastTracker 2 compatibility by fixing everything to make these
+       test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/XM
+       (many, many changes...!)
+* FIX: Vibrato, Panbrello, Tremolo fixed for MOD, XM, S3M and IT
+* FIX: Overhaul of automatic volume ramping for new instruments. Is now only
+       done when a new tick starts (only on new row did not do the trick!) and
+       considers now the target mixing buffer size.
+       I don't do that like 8bitbubsy: add a new channel with a volume ramp
+       down for the "leaving" sample and do a ramp up with the new one. Did not
+       work for me with synthesis.mod from Rymix - still clicks...
+* FIX: As now volume ramping does work and we also have the smooth OMPT ramping
+       over one whole tick, we *must* deactivate that, if a volume is set
+* FIX: no silence at beginning of play back anymore - starts instantly now 
+* FIX: added tempo memory for IT tempo slides
+* FIX: S3M ignores illegal pattern break commands
+* FIX: (Smooth) Midi Macros for XMs fixed
+* FIX: Smooth midi macros initial value (lastZxxParam) must be 0x7F not 0
+* FIX: Effects Parameter Extension and smooth midi macros are swapped between 
+       XMs and ITs
+* FIX: PatternFrameDelays add up. After PatternDelay, PatternFrameDelays must be 
+       restored for ITs / S3M. With XMs we also need to process tick effects, 
+       not row effects. But fine effects (played on tick zero) must be played as
+       well. Fixed for all XMs, ITs, S3M, MPT
+* FIX: NoteDelay need to do row effects with EFG memory
+* FIX: Registering the Mixers at the ModPatternDialog resulted in an exception
+       when JavaMod was started on the command line. Also fixed with Headless
+* FIX: Renamed "Wide Stereo Mix" to "Surround Mix", as that is what is really
+       done
+* FIX: Loading and displaying of a play list is now much faster
+* FIX: CommandLine did not read parameter "buffer size" correctly
+* FIX: remove effect names when play back stopped
+* FIX: muting a channel will not stop its rendering anymore
+* FIX: Playback in Pattern- and SampleDialog must respect finetune settings
+* FIX: APE files in 8Bit were set to signed samples - which is wrong
+* FIX: MP3 ICY Streams with no song name meta tag yet send will identify as
+       "Streaming" and not pick a default name from the URL
+* FIX: On MacOS "mode.getRefreshRate" will return "REFRESHRATE_UNKNOWN" - which
+       is 0. Thanks to MasterFlomaster1 for finding this.
 
 ## New in Version 3.8
 * NEW: Implemented an automatic update check every 30 days. *Disable* it in the
@@ -303,7 +406,7 @@ JavaMod incorporates modified versions of the following libraries:
 * FIX: Log.debug (instead of Log.info) for missing effects
 * FIX: When a MOD was playing, changing MOD sample rate, channels, bits also
        changed current audio line, even though e.g. mp3 is playing. Not healthy
-       for playback if the global line is cut away during playing
+       for play back if the global line is cut away during playing
        (BTW: same for SIDs)
 * FIX: Instrument set, but no note - with XMs/ITs lookup in mapping resulted in
        Exception

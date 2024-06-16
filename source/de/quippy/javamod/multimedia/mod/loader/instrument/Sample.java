@@ -537,7 +537,7 @@ public class Sample
 	public void getInterpolatedSample(final long result[], final int doISP, final int currentIncrement, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards, final int interpolationMagic)
 	{
 		// Shit happens... indeed! Test is <=length because for XM PingPong we run into our added sample data (ridiculous, but that's how it is...)
-		if (hasSampleData()/* && currentSamplePos<=length*/)
+		if (currentIncrement>0 && hasSampleData()/* && currentSamplePos<=length*/)
 		{
 			final int sampleIndex = currentSamplePos + ((interpolationMagic==0)?INTERPOLATION_LOOK_AHEAD:interpolationMagic);
 			// Now return correct sample

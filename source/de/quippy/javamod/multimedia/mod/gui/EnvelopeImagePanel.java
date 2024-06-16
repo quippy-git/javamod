@@ -60,7 +60,15 @@ public class EnvelopeImagePanel extends JComponent
 		setDoubleBuffered(true);
 	}
 
-	private void drawGrid(Graphics g, int top, int left, int width, int height)
+	private int getX(final int xPos)
+	{
+		return (xPos * getWidth()) / MAX_WIDTH;
+	}
+	private int getY(final int yPos)
+	{
+		return getHeight() - ((yPos  * getHeight()) >> 6);
+	}
+	private void drawGrid(final Graphics g, final int top, final int left, final int width, final int height)
 	{
 		final int halfHeight = height>>1;
 
@@ -69,7 +77,7 @@ public class EnvelopeImagePanel extends JComponent
 		
 		for (int i=0; i<MAX_WIDTH; i++)
 		{
-			int x = (i * width) / MAX_WIDTH;
+			int x = getX(i);
 			if ((i % (SMALLESTGRID*4*4))==0)
 			{
 				g.setColor(GRID_COLOR);
@@ -89,19 +97,21 @@ public class EnvelopeImagePanel extends JComponent
 			}
 		}
 	}
-	private int getX(final int xPos)
+	private void drawLoopLine(final Graphics g, final int startPoint, final int endPoint, final int width, final int height, final Color col)
 	{
-		return (xPos * getWidth()) / MAX_WIDTH;
-	}
-	private int getY(final int yPos)
-	{
-		return getHeight() - ((yPos  * getHeight()) >> 6);
+		g.setColor(col);
+		int x = getX(envelope.positions[startPoint]) - BOXWIDTH;
+		if (x<0) x=0; else if (x>width) x=width;
+		g.drawLine(x, 0, x, height);
+		x = getX(envelope.positions[endPoint]) + BOXWIDTH + 1;
+		if (x<0) x=0; else if (x>width) x=width;
+		g.drawLine(x, 0, x, height);
 	}
 	/**
 	 * @since 07.01.2024
 	 * @param gfx
 	 */
-	private void drawEnvelope(Graphics g)
+	private void drawEnvelope(final Graphics g)
 	{
 		final int width = getWidth();
 		final int height = getHeight();
@@ -131,26 +141,8 @@ public class EnvelopeImagePanel extends JComponent
 				oldx = x;
 				oldy = y;
 			}
-			if (envelope.loop)
-			{
-				g.setColor(LOOP_COLOR);
-				int x = getX(envelope.positions[envelope.loopStartPoint]) - BOXWIDTH;
-				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(x, 0, x, height);
-				x = getX(envelope.positions[envelope.loopEndPoint]) + BOXWIDTH + 1;
-				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(x, 0, x, height);
-			}
-			if (envelope.sustain)
-			{
-				g.setColor(SUSTAINLOOP_COLOR);
-				int x = getX(envelope.positions[envelope.sustainStartPoint]) - BOXWIDTH;
-				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(x, 0, x, height);
-				x = getY(envelope.positions[envelope.sustainEndPoint]) + BOXWIDTH + 1;
-				if (x<0) x=0; else if (x>width) x=width;
-				g.drawLine(x, 0, x, height);
-			}
+			if (envelope.loop) drawLoopLine(g, envelope.loopStartPoint, envelope.loopEndPoint, width, height, LOOP_COLOR);
+			if (envelope.sustain) drawLoopLine(g, envelope.sustainStartPoint, envelope.sustainEndPoint, width, height, SUSTAINLOOP_COLOR);
 		}
 	}
 	/**
@@ -175,5 +167,12 @@ public class EnvelopeImagePanel extends JComponent
 	{
 		this.envelope = envelope;
 		repaint();
+	}
+	/**
+	 * @return the envelope
+	 */
+	public Envelope getEnvelope()
+	{
+		return envelope;
 	}
 }

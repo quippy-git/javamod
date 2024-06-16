@@ -189,8 +189,13 @@ public class SampleInstrumentPlayer
 		{
 			// Process envelopes
 			currentMixer.processEnvelopes(aktMemo);
+			
+			// Force a hard stop of any finished instrument (XM will not stop the instrument in this condition...)
+			if (aktMemo.noteFade && (aktMemo.fadeOutVolume<=0 || (aktMemo.actVolumeLeft<=0 && aktMemo.actRampVolRight<=0))) aktMemo.instrumentFinished=true;
+
 			//and then render one tick of sample data
 			currentMixer.mixChannelIntoBuffers(leftBuffer, rightBuffer, 0, samplesPerTick, aktMemo);
+			
 			// copy those to the render buffer
 			for (int s=0; s<samplesPerTick; s++)
 			{

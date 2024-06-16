@@ -21,10 +21,17 @@
  */
 package de.quippy.javamod.multimedia.mod.gui;
 
+import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
@@ -38,6 +45,7 @@ import de.quippy.javamod.system.Helpers;
 public class EnvelopePanel extends JPanel
 {
 	private static final long serialVersionUID = 5511415780545189305L;
+	private static String [] ZOOM_TYPES = new String [] { "Auto", "2:1", "4:1", "8:1", "16:1", "32:1" };
 	
 	private EnvelopeImagePanel envelopeImagePanel = null;
 
@@ -46,6 +54,8 @@ public class EnvelopePanel extends JPanel
 	private FixedStateCheckBox isFilterEnabled = null;
 	private FixedStateCheckBox isLoopEnabled = null;
 	private FixedStateCheckBox isSustainEnabled = null;
+	private JComboBox<String> zoomSelector = null;
+	private JScrollPane imageBufferScrollPane = null;
 
 	/**
 	 * Constructor for EnvelopePanel
@@ -91,7 +101,8 @@ public class EnvelopePanel extends JPanel
 		add(getIsFilterEnabled(), 		Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getIsLoopEnabled(), 		Helpers.getGridBagConstraint(3, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getIsSustainEnabled(), 		Helpers.getGridBagConstraint(4, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getEnvelopeImagePanel(), 	Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
+		add(getZoomSelector(), 			Helpers.getGridBagConstraint(5, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getImageBufferScrollPane(), Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 	}
 	private FixedStateCheckBox getIsEnabled()
 	{
@@ -148,6 +159,40 @@ public class EnvelopePanel extends JPanel
 		}
 		return isSustainEnabled;
 	}
+	private JComboBox getZoomSelector()
+	{
+		if (zoomSelector==null)
+		{
+			zoomSelector = new JComboBox<String>();
+			zoomSelector.setName("zoomSelector");
+			zoomSelector.setFont(Helpers.getDialogFont());
+
+			for (int i=0; i<ZOOM_TYPES.length; i++) zoomSelector.addItem(ZOOM_TYPES[i]);
+			zoomSelector.addItemListener(new ItemListener()
+			{
+				@Override
+				public void itemStateChanged(ItemEvent e)
+				{
+					final Envelope theEnvelope = getEnvelopeImagePanel().getEnvelope();
+					if (theEnvelope==null) return;
+					changeZoom(getZoomSelector().getSelectedIndex());
+				}
+			});
+		}
+		
+		return zoomSelector;
+	}
+	private JScrollPane getImageBufferScrollPane()
+	{
+		if (imageBufferScrollPane==null)
+		{
+			imageBufferScrollPane = new javax.swing.JScrollPane();
+			imageBufferScrollPane.setName("imageBufferScrollPane");
+			imageBufferScrollPane.setViewportView(getEnvelopeImagePanel());
+			imageBufferScrollPane.setDoubleBuffered(true);
+		}
+		return imageBufferScrollPane;
+	}
 	private EnvelopeImagePanel getEnvelopeImagePanel()
 	{
 		if (envelopeImagePanel==null)
@@ -155,6 +200,35 @@ public class EnvelopePanel extends JPanel
 			envelopeImagePanel = new EnvelopeImagePanel();
 		}
 		return envelopeImagePanel;
+	}
+	private void changeZoom(final int newZoom)
+	{
+		final Dimension d = getEnvelopeImagePanel().getSize();
+		final Envelope theEnvelope = getEnvelopeImagePanel().getEnvelope();
+		if (theEnvelope!=null)
+		{
+			final int scrollBarHeight = getImageBufferScrollPane().getHorizontalScrollBar().getPreferredSize().height;
+			final Insets inset = getImageBufferScrollPane().getInsets();
+			d.height= getImageBufferScrollPane().getHeight() - inset.top - inset.bottom - (scrollBarHeight<<1);
+			d.width = (getImageBufferScrollPane().getWidth() - inset.left - inset.right) << newZoom;
+		}
+		EventQueue.invokeLater(new Runnable()
+		{
+			public void run()
+			{				
+				try
+				{
+					getEnvelopeImagePanel().setSize(d);
+					getEnvelopeImagePanel().setMinimumSize(d);
+					getEnvelopeImagePanel().setMaximumSize(d);
+					getEnvelopeImagePanel().setPreferredSize(d);
+				}
+				catch (Throwable ex)
+				{
+					// Keep it!
+				}
+			}
+		});
 	}
 	public void setEnvelope(final Envelope envelope)
 	{

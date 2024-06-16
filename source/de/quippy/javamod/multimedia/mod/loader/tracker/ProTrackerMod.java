@@ -54,14 +54,15 @@ public class ProTrackerMod extends Module
 		ModuleFactory.registerModule(new ProTrackerMod());
 	}
 
+	private boolean isAmigaLike;			// Protracker like AMIGA mods. Others are played in XM-Mode
 	private boolean isDeltaPacked;
 	private boolean isStarTrekker;
-	private boolean isNoiseTracker; // No pattern breaks with noise tracker
+	private boolean isNoiseTracker;			// No pattern breaks with noise tracker
 	private boolean isGenericMultiChannel;
 	private boolean isMdKd;
-	private boolean modSpeedIsTicks; // changes playing behavior to set always speed (ticks), never BPM
-//	private boolean swapBytes; // For .DTM files from Apocalypse Abyss, where the first 2108 bytes are swapped - we do not support that yet!
-	private boolean ft2Tremolos; // Tremolo Ramp Down Waveform behavior change for some mods (FT2 style)
+	private boolean modSpeedIsTicks;		// changes playing behavior to set always speed (ticks), never BPM
+//	private boolean swapBytes;				// For .DTM files from Apocalypse Abyss, where the first 2108 bytes are swapped - we do not support that yet!
+	private boolean ft2Tremolos;			// Tremolo Ramp Down Waveform behavior change for some mods (FT2 style)
 	
 	/**
 	 * Constructor for ProTrackerMod
@@ -77,6 +78,14 @@ public class ProTrackerMod extends Module
 	{
 		super(fileName);
 	}
+//	/**
+//	 * Not yet used - let's see, if we need that once...
+//	 * @return the isAmigaLike
+//	 */
+//	public boolean isAmigaLike()
+//	{
+//		return isAmigaLike;
+//	}
 	/**
 	 * @return the Fileextensions this loader is suitable for
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
@@ -135,7 +144,7 @@ public class ProTrackerMod extends Module
 	@Override
 	public int getFrequencyTable()
 	{
-		return ModConstants.AMIGA_TABLE;
+		return (isAmigaLike)?ModConstants.AMIGA_TABLE:ModConstants.XM_AMIGA_TABLE;
 	}
 	/**
 	 * @return
@@ -211,6 +220,7 @@ public class ProTrackerMod extends Module
 		songFlags = ModConstants.SONG_AMIGALIMITS;
 		songFlags |= ModConstants.SONG_ISSTEREO;
 		
+		isAmigaLike = false;
 		isDeltaPacked = false;
 		isNoiseTracker = false;
 		isStarTrekker = false;
@@ -224,12 +234,14 @@ public class ProTrackerMod extends Module
 			setNSamples(31);
 			if (modID.equals("M.K.") || modID.equals("M!K!")  || modID.equals("PATT") || modID.equals("NSMS") || modID.equals("LARD"))
 			{
+				isAmigaLike = true;
 				isMdKd = modID.equals("M.K.");
 				setNChannels(4);
 				return "ProTracker or compatible (" + modID + ")";
 			}
 			if (modID.equals("M&K!") || modID.equals("FEST") || modID.equals("N.T."))
 			{
+				isAmigaLike = true;
 				isNoiseTracker = true;
 				modSpeedIsTicks = true;
 				setNChannels(4);
@@ -301,6 +313,7 @@ public class ProTrackerMod extends Module
 		}
 
 		// Noise Tracker 15 samples 4 channels has no magic ID, so it's the rest...
+		isAmigaLike = true;
 		isNoiseTracker = true;
 		setNSamples(15);
 		setNChannels(4);
@@ -394,6 +407,7 @@ public class ProTrackerMod extends Module
 			// This mod has 8 channels! --> WOW
 			if (totalPatternBytes == spaceForPattern)
 			{
+				isAmigaLike = true;
 				setNChannels(8);
 				setTrackerName("Grave Composer (" + getModID() + ")");
 			}
@@ -509,13 +523,15 @@ public class ProTrackerMod extends Module
 		inputStream.seek(1080);
 		final int magicNumber = inputStream.readMotorolaDWord();
 		inputStream.seek(0);
-		setTrackerName(getModType(getModID(), magicNumber));
+		setTrackerName(getModType(getModID(), magicNumber)); // sets isAmigaLike
+		// if is not amiga like, playback is done as if this is an XM
+		// isMOD is only for Protracker like mods!!!
+		setModType((isAmigaLike)?ModConstants.MODTYPE_MOD:ModConstants.MODTYPE_XM);
 		
 		ft2Tremolos = (isGenericMultiChannel || isMdKd); // ProTracker and FastTracker do both have this bug
 		final boolean isFLT8 = isStarTrekker && getNChannels()==8;
 		final boolean isHMNT = getModID().equals("M&K!") || getModID().equals("FEST");
 		
-		setModType(ModConstants.MODTYPE_MOD);
 		setTempo(6);
 		setBPMSpeed(125);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
@@ -546,7 +562,7 @@ public class ProTrackerMod extends Module
 				// finetune Value is a two's complement based on four bits
 				fine = fine>7?fine-16:fine;
 			}
-			current.setFineTune(fine);
+			current.setFineTune((isAmigaLike)?fine:fine<<4); // if not amiga like, we use XM_AMIGA_TABLE - finetune is -128-+127 then
 			// BaseFrequenzy from Table: FineTune is -8...+7
 			current.setBaseFrequency(ModConstants.it_fineTuneTable[fine+8]);
 			current.setTranspose(0);

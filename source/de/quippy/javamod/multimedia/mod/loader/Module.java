@@ -1455,15 +1455,12 @@ public abstract class Module
 					break;
 				case 0x5350412E: //"SPA." - SamplePreAmp
 					mixingPreAmp = (int)inputStream.readIntelBytes(size);
-					if (mixingPreAmp > ModConstants.MAX_MIXING_PREAMP) mixingPreAmp = ModConstants.MAX_MIXING_PREAMP;
 					break;
 				case 0x56535456: //"VSTV" - VSTiVolume
 					synthMixingPreAmp = (int)inputStream.readIntelBytes(size);
-					if (synthMixingPreAmp > ModConstants.MAX_MIXING_PREAMP) synthMixingPreAmp = ModConstants.MAX_MIXING_PREAMP;
 					break;
 				case 0x4447562E: //"DGV." - defaultGlobalVolume
 					baseVolume = (int)inputStream.readIntelBytes(size);
-					if (baseVolume > ModConstants.MAXGLOBALVOLUME) baseVolume = ModConstants.MAXGLOBALVOLUME;
 					break;
 				case 0x52502E2E: //"RP.." - Song Restart
 					final int restartPosition = (int)inputStream.readIntelBytes(size);

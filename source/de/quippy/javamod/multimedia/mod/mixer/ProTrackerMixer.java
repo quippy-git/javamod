@@ -390,7 +390,8 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0xA:	// Fine VolSlide Up
 						if (FT2LikeVolSlides)
 						{
-							aktMemo.currentVolume += effektOp;
+							if (effektOp!=0) aktMemo.XMFineVolSlideUp = effektOp;
+							aktMemo.currentVolume += aktMemo.XMFineVolSlideUp;
 							if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
 							aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 							aktMemo.doFastVolRamp = true;
@@ -404,7 +405,8 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0xB:	// Fine VolSlide Down
 						if (FT2LikeVolSlides)
 						{
-							aktMemo.currentVolume -= effektOp;
+							if (effektOp!=0) aktMemo.XMFineVolSlideDown = effektOp;
+							aktMemo.currentVolume -= aktMemo.XMFineVolSlideDown;
 							if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
 							aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 							aktMemo.doFastVolRamp = true;
@@ -524,11 +526,22 @@ public class ProTrackerMixer extends BasicModMixer
 					case 0x1:	// Extra Fine Porta Up
 						if (effektOpEx!=0) aktMemo.finePortaUpEx = effektOpEx<<2;
 						aktMemo.currentNotePeriod -= aktMemo.finePortaUpEx;
+						if (isXM)
+						{
+							final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
+							if ((short)tmpPeriod<1) aktMemo.currentNotePeriod = 1<<(ModConstants.PERIOD_SHIFT-2);
+						}
 						setNewPlayerTuningFor(aktMemo);
 						break;
 					case 0x2:	// Extra Fine Porta Down
 						if (effektOpEx!=0) aktMemo.finePortaDownEx = effektOpEx<<2; 
 						aktMemo.currentNotePeriod += aktMemo.finePortaDownEx;
+						if (isXM)
+						{
+							// FT2 bug, should've been unsigned comparison
+							final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
+							if ((short)tmpPeriod>32000) aktMemo.currentNotePeriod = (32000-1)<<(ModConstants.PERIOD_SHIFT-2);
+						}
 						setNewPlayerTuningFor(aktMemo);
 						break;
 					case 0x5: 			// set PanBrello Waveform
@@ -782,7 +795,8 @@ public class ProTrackerMixer extends BasicModMixer
 		if (aktMemo.glissando)
 		{
 			if (isMOD)
-				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
+//				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
+				setNewPlayerTuningFor(aktMemo, adjustPTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
 			else
 				setNewPlayerTuningFor(aktMemo, adjustFTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
 		}
@@ -812,15 +826,8 @@ public class ProTrackerMixer extends BasicModMixer
 			final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
 			if ((short)tmpPeriod<1) aktMemo.currentNotePeriod = 1<<(ModConstants.PERIOD_SHIFT-2);
 		}
-		if (aktMemo.glissando)
-		{
-			if (isMOD)
-				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
-			else
-				setNewPlayerTuningFor(aktMemo, adjustFTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
-		}
-		else
-			setNewPlayerTuningFor(aktMemo);
+		
+		setNewPlayerTuningFor(aktMemo);
 	}
 	/**
 	 * Convenient Method for the Porta Down Effekt
@@ -842,15 +849,8 @@ public class ProTrackerMixer extends BasicModMixer
 			final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
 			if ((short)tmpPeriod>32000) aktMemo.currentNotePeriod = (32000-1)<<(ModConstants.PERIOD_SHIFT-2);
 		}
-		if (aktMemo.glissando)
-		{
-			if (isMOD)
-				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
-			else
-				setNewPlayerTuningFor(aktMemo, adjustFTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
-		}
-		else
-			setNewPlayerTuningFor(aktMemo);
+
+		setNewPlayerTuningFor(aktMemo);
 	}
 	/**
 	 * @param aktMemo
@@ -1212,14 +1212,16 @@ public class ProTrackerMixer extends BasicModMixer
 			return;
 		
 		aktMemo.EFxDelay += ModConstants.modEFxTable[aktMemo.EFxSpeed & 0x0F];
-		if (aktMemo.EFxDelay<0x80) return;
-		aktMemo.EFxDelay = 0;
-		
-		if (++aktMemo.EFxOffset >= sample.loopLength) aktMemo.EFxOffset = 0;
-
-		final int sampleIndex = sample.loopStart + aktMemo.EFxOffset + Sample.INTERPOLATION_LOOK_AHEAD;
-		sample.sampleL[sampleIndex] = ~sample.sampleL[sampleIndex];
-		//sample.addInterpolationLookAheadData();
+		if (aktMemo.EFxDelay>=0x80)
+		{
+			aktMemo.EFxDelay = 0;
+			
+			if (++aktMemo.EFxOffset >= sample.loopLength) aktMemo.EFxOffset = 0;
+	
+			final int sampleIndex = sample.loopStart + aktMemo.EFxOffset + Sample.INTERPOLATION_LOOK_AHEAD;
+			sample.sampleL[sampleIndex] = ~sample.sampleL[sampleIndex];
+			//sample.addInterpolationLookAheadData();
+		}
 	}
 	/**
 	 * 8bitbubsy says:

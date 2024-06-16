@@ -21,6 +21,7 @@
  */
 package de.quippy.javamod.multimedia.mod.loader.instrument;
 
+import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory;
 import de.quippy.javamod.system.Helpers;
 
 /**
@@ -59,122 +60,80 @@ public class Envelope
 	/**
 	 * Get the new positions
 	 * @since 19.06.2006
-	 * @param position
+	 * @param currentTick
 	 * @param keyOff
+	 * @param initKeyOff
+	 * @param aktMemo
 	 * @return
 	 */
-	public int updatePosition(final int position, final boolean keyOff)
+	public int updatePosition(final ChannelMemory aktMemo, final int currentTick, final boolean initKeyOff)
 	{
-		// we start at "-1" so first add one...
-		int pos = position + 1;
-		// difference between XM and IT is the way of comparison
-		// >= (==) a point or > a point...
-		if (xm_style) 
+		int tick = currentTick + 1;
+		
+		if (xm_style) // XM does this way more complicated + sustain is only one point (start==end) + FT not only has ticks but stores the position as well
 		{
-			if (sustain && !keyOff && pos>=positions[sustainEndPoint]) pos = positions[sustainStartPoint]; 
-			else 
-			if (loop)
+			if (loop && tick==positions[loopEndPoint] && (!sustain || tick!=positions[sustainStartPoint] || !aktMemo.keyOff))
 			{
-				final boolean escapeLoop = loopEndPoint==sustainEndPoint && sustain && keyOff;
-				if (pos>=positions[loopEndPoint] && !escapeLoop) pos = positions[loopStartPoint];
+				tick = positions[loopStartPoint];
+			}
+			
+			if (tick<=positions[endPoint])
+			{
+				if (sustain && !aktMemo.keyOff && tick>=positions[sustainStartPoint])
+				{
+					tick = positions[sustainStartPoint];
+				}
 			}
 		}
-		else
+		else // IT, OMPT, MPT...
 		{
-			if (sustain && !keyOff && pos>positions[sustainEndPoint]) pos = positions[sustainStartPoint]; 
+			int start=0; int end=0x7fffffff;
+			boolean fade_flag = initKeyOff;
+			if (sustain && !aktMemo.keyOff)
+			{
+				start = positions[sustainStartPoint];
+				end = positions[sustainEndPoint] + 1;
+				fade_flag = false;
+			}
 			else
-			if (loop && pos>positions[loopEndPoint]) pos = positions[loopStartPoint];
+			if (loop)
+			{
+				start = positions[loopStartPoint];
+				end = positions[loopEndPoint] + 1;
+				fade_flag = false;
+			}
+			else
+				start = end = positions[endPoint];
+			
+			if (tick>=end)
+			{
+				if (fade_flag && value[endPoint]==0)
+					aktMemo.fadeOutVolume = aktMemo.currentVolume = 0;
+				tick = start;
+				if (fade_flag) aktMemo.keyOff = true;
+			}
 		}
-		// End reached? We do reset behind positions[endpoint] to avoid overflow
-		if (pos>positions[endPoint]) pos = positions[endPoint]+1;
 		
-		return pos;
-	}
-//	public int updatePosition(final int position, final boolean keyOff)
-//	{
-//		if (positions==null || positions.length==0 || envelopeFinished(position)) return position;
-//		
-//		if (xm_style)
-//		{
-//			int pos = position + 1;
-//			if (loop)
-//			{
-//				final boolean escapeLoop = loopEndPoint==sustainEndPoint && sustain && keyOff;
-//				if (pos>positions[loopEndPoint] && !escapeLoop) pos = positions[loopStartPoint];
-//			}
-//			else
-//			if (sustain && !keyOff)
-//			{
-//				 if (pos>positions[sustainEndPoint]) pos = positions[sustainStartPoint];
-//			}
-//			else
-//			if (pos>=positions[endPoint]) pos = positions[endPoint]+1;
-//			
-//			return pos;
-//		}
-//		else
-//		{
-//			int pos = position;
-//			int start, end;
-//			
-//			if (sustain && !keyOff)
-//			{
-//				start = positions[sustainStartPoint];
-//				end = positions[sustainEndPoint] + 1;
-//			}
-//			else
-//			if (loop)
-//			{
-//				start = positions[loopStartPoint];
-//				end = positions[loopEndPoint] + 1;
-//			}
-//			else
-//			{
-//				start = end = positions[endPoint];
-//				if (pos>end)  return positions[endPoint]+1;
-//			}
-//			if (position>=end) pos = start;
-//			return ++pos;
-//		}
-//	
-//	}
-	/**
-	 * return true, if the positions is beyond end point
-	 * @since 12.06.2020
-	 * @param position
-	 * @return
-	 */
-	public boolean envelopeFinished(final int position)
-	{
-		return position>positions[endPoint];
-	}
-	/**
-	 * @since 15.03.2024
-	 * @param position
-	 * @return
-	 */
-	public boolean envelopeFinishedInSilence(final int position)
-	{
-		return envelopeFinished(position) && value[endPoint]==0;
+		return tick;
 	}
 	/**
 	 * get the value at the positions
 	 * Returns values between 0 and 512
 	 * @since 19.06.2006
-	 * @param position
+	 * @param tick
 	 * @return
 	 */
-	public int getValueForPosition(final int position)
+	public int getValueForPosition(final int tick)
 	{
 		int index = endPoint;
 		for (int i=0; i<index; i++)
-			if (positions[i]>position) index = i; // results in a break
+			if (positions[i]>tick) index = i; // results in a break
 
 		int x2 = positions[index];
 		int y1 = 0;
 
 		// if we land directly on an envelope point, do nothing
-		if (position>=x2) 
+		if (tick>=x2) 
 			y1 = value[index]<<SHIFT;
 		else
 		{
@@ -188,19 +147,33 @@ public class Envelope
 				x1 = positions[index - 1];
 			}
 
-			if(x2>x1 && position>x1)
+			if(x2>x1 && tick>x1)
 			{
 				int y2 = value[index]<<SHIFT;
-				y1 += ((y2 - y1) * (position - x1)) / (x2 - x1);
+				y1 += ((y2 - y1) * (tick - x1)) / (x2 - x1);
 			}
 		}
 
 		// Limit, just in case
-		if (y1<0) y1=0;
-		else if (y1>MAXVALUE) y1=MAXVALUE;
+		if (y1<0) y1=0; else if (y1>MAXVALUE) y1=MAXVALUE;
 
 		return y1>>BACKSHIFT;
 	}
+	/**
+	 * @since 12.06.2024
+	 * @return xm_style: -1, else 0
+	 */
+	public int getInitPosition()
+	{
+		return (xm_style)?-1:0;
+	}
+//	public int getXMResetPosition(final int tick)
+//	{
+//		int index = endPoint;
+//		for (int i=0; i<index; i++)
+//			if (positions[i]>=tick) index = i; // results in a break
+//		return positions[index] - 1;
+//	}
 	/**
 	 * Sets the boolean values corresponding to the flag value
 	 * XM-Version
@@ -217,7 +190,7 @@ public class Envelope
 	}
 	/**
 	 * Sets the boolean values corresponding to the flag value
-	 * IT-Version (why on earth needed this to be swaped?!)
+	 * IT-Version
 	 * @since 12.11.2006
 	 * @param flag
 	 */
@@ -347,8 +320,8 @@ public class Envelope
 	/**
 	 * This is probably a pre-calculation of the volume envelope
 	 * however, we read it, but do not use it (yet...)
-	 * neither Schism nor ModPlug use it, do life calculations instead
-	 * we are in good company :)
+	 * Neither Schism nor ModPlug use it, do life calculations instead,
+	 * so we are in good company :)
 	 * @param oldITVolumeEnvelope the oldITVolumeEnvelope to set
 	 */
 	public void setOldITVolumeEnvelope(final byte[] oldITVolumeEnvelope)

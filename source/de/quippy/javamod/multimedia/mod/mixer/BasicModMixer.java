@@ -102,6 +102,7 @@ public abstract class BasicModMixer
 		public int finePortaUp, finePortaDown, finePortaUpEx, finePortaDownEx; 
 		public int portaNoteStep, portaTargetNotePeriod, portamentoDirection_XM;
 		public int volumSlideValue, globalVolumSlideValue;
+		public int XMFineVolSlideUp, XMFineVolSlideDown;
 		public int panningSlideValue;
 		public int vibratoTablePos, vibratoStep, vibratoAmplitude, vibratoType;
 		public boolean vibratoOn, vibratoVolOn, vibratoNoRetrig;
@@ -151,7 +152,7 @@ public abstract class BasicModMixer
 			noteCut = keyOff = noteFade = false;
 			tempNNAAction = tempVolEnv = tempPanEnv = tempPitchEnv = -1;
 	
-			volEnvPos = panEnvPos = pitchEnvPos = -1;
+			volEnvPos = panEnvPos = pitchEnvPos = 0;
 			swingVolume = swingPanning = swingResonance = swingCutOff = 0;
 			
 			arpegioIndex = noteDelayCount = noteCutCount = -1;
@@ -161,6 +162,7 @@ public abstract class BasicModMixer
 			finePortaDown = finePortaUp = 0; 
 			finePortaDownEx = finePortaUpEx = 0; 
 			portaNoteStep = portamentoDirection_XM = volumSlideValue = globalVolumSlideValue = 0;
+			XMFineVolSlideUp = XMFineVolSlideDown = 0;
 			portaTargetNotePeriod = -1;
 			vibratoTablePos = vibratoStep = vibratoAmplitude = vibratoType = 0; 
 			vibratoOn = vibratoNoRetrig = false;
@@ -204,25 +206,8 @@ public abstract class BasicModMixer
 			channelNumber = fromMe.channelNumber;
 			muted = fromMe.muted;
 			muteWasITforced = fromMe.muteWasITforced;
-//			isNNA = fromMe.isNNA; // Effect memory - not for NNA
-//			currentElement = fromMe.currentElement; // Effect memory - not for NNA
-//			currentAssignedNotePeriod = fromMe.currentAssignedNotePeriod; // Effect memory - not for NNA
-//			currentAssignedNoteIndex = fromMe.currentAssignedNoteIndex; // Effect memory - not for NNA
-//			currentAssignedEffekt = fromMe.currentAssignedEffekt; // Effect memory - not for NNA
-//			currentAssignedEffektParam = fromMe.currentAssignedEffektParam; // Effect memory - not for NNA
-//			currentAssignedVolumeEffekt = fromMe.currentAssignedVolumeEffekt; // Effect memory - not for NNA
-//			currentAssignedVolumeEffektOp = fromMe.currentAssignedVolumeEffektOp; // Effect memory - not for NNA
-//			currentAssignedInstrumentIndex = fromMe.currentAssignedInstrumentIndex; // Effect memory - not for NNA
-//			currentAssignedInstrument = fromMe.currentAssignedInstrument; // Effect memory - not for NNA
-//			assignedNotePeriod = fromMe.assignedNotePeriod; // Effect memory - not for NNA
-//			assignedNoteIndex = fromMe.assignedNoteIndex; // Effect memory - not for NNA
-//			assignedEffekt = fromMe.assignedEffekt; // Effect memory - not for NNA
-//			assignedEffektParam = fromMe.assignedEffektParam; // Effect memory - not for NNA
-//			assignedVolumeEffekt = fromMe.assignedVolumeEffekt; // Effect memory - not for NNA
-//			assignedVolumeEffektOp = fromMe.assignedVolumeEffektOp; // Effect memory - not for NNA
 			assignedInstrumentIndex = fromMe.assignedInstrumentIndex;
 			assignedInstrument = fromMe.assignedInstrument;
-//			assignedSample = fromMe.assignedSample; // Effect memory - not for NNA
 			currentNotePeriod = fromMe.currentNotePeriod;
 			currentFinetuneFrequency = fromMe.currentFinetuneFrequency;
 			currentNotePeriodSet = fromMe.currentNotePeriodSet;
@@ -258,7 +243,6 @@ public abstract class BasicModMixer
 			actRampVolRight = fromMe.actRampVolRight;
 			deltaVolLeft = fromMe.deltaVolLeft;
 			deltaVolRight = fromMe.deltaVolRight;
-//			doFastVolRamp = fromMe.doFastVolRamp; // Effect memory - not for NNA
 			channelVolumSlideValue = fromMe.channelVolumSlideValue;
 			doSurround = fromMe.doSurround;
 			autoVibratoTablePos = fromMe.autoVibratoTablePos;
@@ -282,69 +266,6 @@ public abstract class BasicModMixer
 			filter_Y2 = fromMe.filter_Y2;
 			filter_Y3 = fromMe.filter_Y3;
 			filter_Y4 = fromMe.filter_Y4;
-//			glissando = fromMe.glissando; // Effect memory - not for NNA
-//			arpegioIndex = fromMe.arpegioIndex; // Effect memory - not for NNA
-//			for (int i=0; i<arpegioNote.length; i++) arpegioNote[i] = fromMe.arpegioNote[i]; // Effect memory - not for NNA
-//			arpegioParam = fromMe.arpegioParam; // Effect memory - not for NNA
-//			portaStepUp = fromMe.portaStepUp; // Effect memory - not for NNA
-//			portaStepUpEnd = fromMe.portaStepUpEnd; // Effect memory - not for NNA
-//			portaStepDown = fromMe.portaStepDown; // Effect memory - not for NNA
-//			portaStepDownEnd = fromMe.portaStepDownEnd; // Effect memory - not for NNA
-//			finePortaUp = fromMe.finePortaUp; // Effect memory - not for NNA
-//			finePortaDown = fromMe.finePortaDown; // Effect memory - not for NNA
-//			finePortaUpEx = fromMe.finePortaUpEx; // Effect memory - not for NNA
-//			finePortaDownEx = fromMe.finePortaDownEx; // Effect memory - not for NNA
-//			portaNoteStep = fromMe.portaNoteStep; // Effect memory - not for NNA
-//			portaTargetNotePeriod = fromMe.portaTargetNotePeriod; // Effect memory - not for NNA
-//			portamentoDirection_XM = fromMe.portamentoDirection_XM; // Effect memory - not for NNA
-//			volumSlideValue = fromMe.volumSlideValue; // Effect memory - not for NNA
-//			globalVolumSlideValue = fromMe.globalVolumSlideValue; // Effect memory - not for NNA
-//			panningSlideValue = fromMe.panningSlideValue; // Effect memory - not for NNA
-//			vibratoTablePos = fromMe.vibratoTablePos; // Effect memory - not for NNA
-//			vibratoStep = fromMe.vibratoStep; // Effect memory - not for NNA
-//			vibratoAmplitude = fromMe.vibratoAmplitude; // Effect memory - not for NNA
-//			vibratoType = fromMe.vibratoType; // Effect memory - not for NNA
-//			vibratoOn = fromMe.vibratoOn; // Effect memory - not for NNA
-//			vibratoVolOn = fromMe.vibratoVolOn; // Effect memory - not for NNA
-//			vibratoNoRetrig = fromMe.vibratoNoRetrig; // Effect memory - not for NNA
-//			tremoloTablePos = fromMe.tremoloTablePos; // Effect memory - not for NNA
-//			tremoloStep = fromMe.tremoloStep; // Effect memory - not for NNA
-//			tremoloAmplitude = fromMe.tremoloAmplitude; // Effect memory - not for NNA
-//			tremoloType = fromMe.tremoloType; // Effect memory - not for NNA
-//			tremoloOn = fromMe.tremoloOn; // Effect memory - not for NNA
-//			tremoloNoRetrig = fromMe.tremoloNoRetrig; // Effect memory - not for NNA
-//			panbrelloTablePos = fromMe.panbrelloTablePos; // Effect memory - not for NNA
-//			panbrelloStep = fromMe.panbrelloStep; // Effect memory - not for NNA
-//			panbrelloAmplitude = fromMe.panbrelloAmplitude; // Effect memory - not for NNA
-//			panbrelloType = fromMe.panbrelloType; // Effect memory - not for NNA
-//			panbrelloRandomMemory = fromMe.panbrelloRandomMemory; // Effect memory - not for NNA
-//			panbrelloOn = fromMe.panbrelloOn; // Effect memory - not for NNA
-//			panbrelloNoRetrig = fromMe.panbrelloNoRetrig; // Effect memory - not for NNA
-//			tremorOntime = fromMe.tremorOntime; // Effect memory - not for NNA
-//			tremorOfftime = fromMe.tremorOfftime; // Effect memory - not for NNA
-//			tremorOntimeSet = fromMe.tremorOntimeSet; // Effect memory - not for NNA
-//			tremorOfftimeSet = fromMe.tremorOfftimeSet; // Effect memory - not for NNA
-//			tremorWasActive = fromMe.tremorWasActive; // Effect memory - not for NNA
-//			retrigCount = fromMe.retrigCount; // Effect memory - not for NNA
-//			retrigMemo = fromMe.retrigMemo; // Effect memory - not for NNA
-//			retrigVolSlide = fromMe.retrigVolSlide; // Effect memory - not for NNA
-//			sampleOffset = fromMe.sampleOffset; // Effect memory - not for NNA
-//			highSampleOffset = fromMe.highSampleOffset; // Effect memory - not for NNA
-//			prevSampleOffset = fromMe.prevSampleOffset; // Effect memory - not for NNA
-//			oldTempoParameter = fromMe.oldTempoParameter; // Effect memory - not for NNA
-//			S_Effect_Memory = fromMe.S_Effect_Memory; // Effect memory - not for NNA
-//			IT_EFG = fromMe.IT_EFG; // Effect memory - not for NNA
-//			EFxSpeed = fromMe.EFxSpeed; // Effect memory - not for NNA
-//			EFxDelay = fromMe.EFxDelay; // Effect memory - not for NNA
-//			EFxOffset = fromMe.EFxOffset; // Effect memory - not for NNA
-//			jumpLoopPatternRow = fromMe.jumpLoopPatternRow; // Effect memory - not for NNA
-//			jumpLoopRepeatCount = fromMe.jumpLoopRepeatCount; // Effect memory - not for NNA
-//			lastJumpCounterRow = fromMe.lastJumpCounterRow; // Effect memory - not for NNA
-//			jumpLoopPositionSet = fromMe.jumpLoopPositionSet; // Effect memory - not for NNA
-//			noteDelayCount = fromMe.noteDelayCount; // Effect memory - not for NNA
-//			noteCutCount = fromMe.noteCutCount; // Effect memory - not for NNA
-//			bigSampleLeft = fromMe.bigSampleLeft; // Effect memory - not for NNA
-//			bigSampleRight = fromMe.bigSampleRight; // Effect memory - not for NNA
 		}
 		/**
 		 * @return some infos
@@ -928,8 +849,13 @@ public abstract class BasicModMixer
 				aktMemo.currentTuning = globalTuning / (aktMemo.currentNotePeriodSet = clampedPeriod);
 				return;
 			case ModConstants.XM_LINEAR_TABLE:
-				final int linear_period_value = newPeriod>>2;
-				final int newFrequency = ModConstants.lintab[linear_period_value % 768] >> (linear_period_value / 768);
+				// We have a different LUT table as original FT2 - to avoid the doubles used there
+				// So we need some adoption to the algorithm used in FT2 but stay as close as possible to the coding there:
+				final int period = (newPeriod>>(ModConstants.PERIOD_SHIFT-2)) & 0xFFFF;
+				final int invPeriod = ((12 * 192 * 4) + 767 - period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
+				final int quotient  = invPeriod / (12 * 16 * 4);
+				final int remainder = period % (12 * 16 * 4);
+				final int newFrequency = ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
 				aktMemo.currentTuning = (int)(((long)newFrequency<<ModConstants.SHIFT) / (long)sampleRate);
 				return;
 			case ModConstants.IT_LINEAR_TABLE:
@@ -1353,7 +1279,8 @@ public abstract class BasicModMixer
 
 		final Sample sample = aktMemo.currentSample;
 		int insVolume = (sample!=null)?sample.globalVolume<<1:ModConstants.MAXGLOBALVOLUME;	// max: 64, but make it equal to instrument volume (0..128)
-		Envelope volumeEnv = null;		
+		Envelope volumeEnv = null;
+		Envelope panningEnv = null;
 		final Instrument currentInstrument = aktMemo.assignedInstrument;
 		if (currentInstrument!=null)
 		{
@@ -1365,24 +1292,20 @@ public abstract class BasicModMixer
 				final boolean volEnvOn = (aktMemo.tempVolEnv!=-1)?aktMemo.tempVolEnv==1:volumeEnv.on;
 				if (volEnvOn)
 				{
-					aktMemo.volEnvPos = volumeEnv.updatePosition(aktMemo.volEnvPos, aktMemo.keyOff);
+					aktMemo.volEnvPos = volumeEnv.updatePosition(aktMemo, aktMemo.volEnvPos, true);
 					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvPos); // 0..512
 					currentVolume = (currentVolume * newVol) >> 9;
-					// With ITs: if Envelope is finished, activate note fade via keyOff - but keep last Volume Envelope Position
-					// With XMs: if envelope is finished and silent: same...
-					if ((isIT && volumeEnv.envelopeFinished(aktMemo.volEnvPos)) || (isXM && volumeEnv.envelopeFinishedInSilence(aktMemo.volEnvPos)))
-						aktMemo.keyOff = true;
 				}
 			}
 
 			// set the panning envelope
-			final Envelope panningEnv = currentInstrument.panningEnvelope;
+			panningEnv = currentInstrument.panningEnvelope;
 			if (panningEnv!=null)
 			{
 				final boolean panEnvOn = (aktMemo.tempPanEnv!=-1)?aktMemo.tempPanEnv==1:panningEnv.on;
 				if (panEnvOn)
 				{
-					aktMemo.panEnvPos = panningEnv.updatePosition(aktMemo.panEnvPos, aktMemo.keyOff);
+					aktMemo.panEnvPos = panningEnv.updatePosition(aktMemo, aktMemo.panEnvPos, false);
 					final int newPanValue = panningEnv.getValueForPosition(aktMemo.panEnvPos) - 256; // result -256..256
 					currentPanning += (newPanValue * ((currentPanning >= 128)?(256 - currentPanning):currentPanning)) >> 8;
 				}
@@ -1402,7 +1325,7 @@ public abstract class BasicModMixer
 				final boolean pitchEnvOn = (aktMemo.tempPitchEnv!=-1)?aktMemo.tempPitchEnv==1:pitchEnv.on;
 				if (pitchEnvOn) // only IT...
 				{
-					aktMemo.pitchEnvPos = pitchEnv.updatePosition(aktMemo.pitchEnvPos, aktMemo.keyOff);
+					aktMemo.pitchEnvPos = pitchEnv.updatePosition(aktMemo, aktMemo.pitchEnvPos, false);
 					int pitchValue = pitchEnv.getValueForPosition(aktMemo.pitchEnvPos) - 256; // result -256..256
 					if (pitchEnv.filter)
 						setupChannelFilter(aktMemo, !aktMemo.filterOn, pitchValue);
@@ -1429,33 +1352,41 @@ public abstract class BasicModMixer
 
 		if (aktMemo.keyOff) // Key Off without volume envelope or looping envelope:
 		{
-			// XMs do hard note cut, if no volumeEnv or not enabled
-			if (isXM && (volumeEnv==null || !volumeEnv.on))
+			if (isXM)
 			{
-				currentVolume = aktMemo.currentInstrumentVolume = aktMemo.currentVolume = aktMemo.fadeOutVolume = 0;
-				aktMemo.doFastVolRamp = aktMemo.instrumentFinished = true;
+				if (volumeEnv==null || !volumeEnv.on) // XMs do hard note cut, if no volumeEnv or not enabled
+				{
+					currentVolume = aktMemo.currentInstrumentVolume = aktMemo.currentVolume = aktMemo.fadeOutVolume = 0;
+					aktMemo.doFastVolRamp = aktMemo.instrumentFinished = true;
+				}
+//				else
+//				{
+//					aktMemo.volEnvPos = volumeEnv.getXMResetPosition(aktMemo.volEnvPos);
+//				}
+//				if (panningEnv!=null && panningEnv.on)
+//				{
+//					aktMemo.panEnvPos = panningEnv.getXMResetPosition(aktMemo.panEnvPos);
+//				}
 			}
-			else // otherwise activate note fade, if not yet done
-				initNoteFade(aktMemo);
+			
+			initNoteFade(aktMemo);
 		}
 
 		// Do the note fade
 		// we are either from IT, which have this effect directly
 		// or volume envelopes finished
-		if (aktMemo.noteFade)
+		if (aktMemo.noteFade && currentInstrument!=null)
 		{
-			if (currentInstrument!=null && currentInstrument.volumeFadeOut>-1)
+			aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
+			if (aktMemo.fadeOutVolume<0)
 			{
-				aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
-				if (aktMemo.fadeOutVolume<0) aktMemo.fadeOutVolume = 0;
-				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
+				aktMemo.fadeOutVolume = 0;
+				aktMemo.noteFade = false;
 			}
-			else
-				currentVolume = aktMemo.fadeOutVolume = 0;
-			aktMemo.doFastVolRamp = true;
+			currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
 
 			// With IT a finished noteFade also sets the instrument as finished
-			if (isIT && currentVolume <= 0 && isChannelActive(aktMemo))
+			if (isIT && aktMemo.fadeOutVolume<=0 && isChannelActive(aktMemo))
 			{
 				aktMemo.instrumentFinished = true;
 				if (aktMemo.isNNA) aktMemo.channelNumber = -1;
@@ -1482,7 +1413,6 @@ public abstract class BasicModMixer
 			if (currentVolume>ModConstants.MAXCHANNELVOLUME) currentVolume=ModConstants.MAXCHANNELVOLUME;
 			else
 			if (currentVolume<ModConstants.MINCHANNELVOLUME) currentVolume=ModConstants.MINCHANNELVOLUME;
-			aktMemo.doFastVolRamp = true;
 		}
 
 		currentPanning += aktMemo.swingPanning; // Random value -128..+128
@@ -1929,13 +1859,13 @@ public abstract class BasicModMixer
 		if (ins!=null)
 		{
 			final Envelope volumeEnvelope = ins.volumeEnvelope;
-			if (volumeEnvelope!=null && !volumeEnvelope.carry) aktMemo.volEnvPos = -1;
+			if (volumeEnvelope!=null && !volumeEnvelope.carry) aktMemo.volEnvPos = volumeEnvelope.getInitPosition();
 
 			final Envelope panningEnvelope = ins.panningEnvelope;
-			if (panningEnvelope!=null &&!panningEnvelope.carry) aktMemo.panEnvPos = -1;
+			if (panningEnvelope!=null &&!panningEnvelope.carry) aktMemo.panEnvPos = panningEnvelope.getInitPosition();
 
 			final Envelope pitchEnvelope = ins.pitchEnvelope;
-			if (pitchEnvelope!=null &&!pitchEnvelope.carry) aktMemo.pitchEnvPos = -1;
+			if (pitchEnvelope!=null &&!pitchEnvelope.carry) aktMemo.pitchEnvPos = pitchEnvelope.getInitPosition();
 		}
 	}
 	/**
@@ -2086,7 +2016,7 @@ public abstract class BasicModMixer
 		{
 			// With FastTracker, do not reset volumeColumn vibrato freq (VibratoOn is only set with effect column)
 			if ((!isXM && aktMemo.vibratoOn) || 
-				(isXM && aktMemo.vibratoOn && currentElement.getEffekt()!=4 && currentElement.getEffekt()!=6))
+				 (isXM && aktMemo.vibratoOn && currentElement.getEffekt()!=4 && currentElement.getEffekt()!=6))
 				setNewPlayerTuningFor(aktMemo);
 			aktMemo.vibratoOn = false;
 			aktMemo.vibratoVolOn = false; // only set with XMs
@@ -2160,7 +2090,6 @@ public abstract class BasicModMixer
 		// might get overwritten with XMs and NoteDelays
 		boolean isPortaToNoteEffect = isPortaToNoteEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam, aktMemo.currentAssignedVolumeEffekt, aktMemo.currentAssignedVolumeEffektOp, aktMemo.currentAssignedNotePeriod);
 		boolean isNewNote = hasNewNote(element);
-		boolean hasInstrument = element.getInstrument()>0;
 		
 		// Do Instrument default NNA
 		if (isNewNote && 
@@ -2181,9 +2110,11 @@ public abstract class BasicModMixer
 		aktMemo.assignedSample = (aktMemo.currentAssignedInstrument!=null)?
 		                            ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
 		        				       mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1))
-		        				       :null)
+		        				       :null) // Instrument set without a note - so no mapping to sample possible!
 		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
-
+		
+		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
+		
 		// At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
 		if (hasInstrument)
 		{
@@ -2207,11 +2138,14 @@ public abstract class BasicModMixer
 			{
 				if (isPortaToNoteEffect)
 				{
-					aktMemo.currentSample = aktMemo.assignedSample;
+					if (aktMemo.currentSample!=aktMemo.assignedSample)
+					{
+						aktMemo.currentSample = aktMemo.assignedSample;
+						resetForNewSample(aktMemo);
+					}
 					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-					resetForNewSample(aktMemo);
-					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-					aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
+//					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
+//					aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
 				}
 				else
 				if (isNewNote) // reset only volume and panning
@@ -2487,7 +2421,8 @@ public abstract class BasicModMixer
 				if (element.getInstrument()>0)
 				{
 					aktMemo.currentAssignedInstrumentIndex = element.getInstrument();
-					aktMemo.currentAssignedInstrument = mod.getInstrumentContainer().getInstrument(element.getInstrument()-1);
+					if (!isIT || (mod.getSongFlags()&ModConstants.SONG_USEINSTRUMENTS)!=0) // ITs know of a "sample only" mode - so do not look up instruments then
+						aktMemo.currentAssignedInstrument = mod.getInstrumentContainer().getInstrument(element.getInstrument()-1);
 				}
 
 				// so far for S00 effect memory - if FastTracker has that too, we will elaborate
@@ -2902,6 +2837,10 @@ public abstract class BasicModMixer
 			// Resonance Filters
 			if (aktMemo.filterOn) doResonance(aktMemo, samples);
 
+			// Testing, no Ramping
+//			int volL = aktMemo.actRampVolLeft = aktMemo.actVolumeLeft;
+//			int volR = aktMemo.actRampVolRight = aktMemo.actVolumeRight;
+
 			// Volume Ramping
 			int volL = aktMemo.actRampVolLeft;
 			if (aktMemo.deltaVolLeft!=0)
@@ -2916,7 +2855,6 @@ public abstract class BasicModMixer
 				else
 					aktMemo.actRampVolLeft += aktMemo.deltaVolLeft;
 			}
-
 			int volR = aktMemo.actRampVolRight;
 			if (aktMemo.deltaVolRight!=0)
 			{

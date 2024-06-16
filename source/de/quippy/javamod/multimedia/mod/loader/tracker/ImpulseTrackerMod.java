@@ -294,13 +294,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		//          Bit 7: Request embedded MIDI configuration
 		//                 (Coded this way to permit cross-version saving)
 		flags = inputStream.readIntelUnsignedWord();
-		if ((flags & 0x01)!=0)		songFlags |= ModConstants.SONG_ISSTEREO;
-		if ((flags & 0x04)!=0)		songFlags |= ModConstants.SONG_USEINSTRUMENTS;
-		if ((flags & 0x08)!=0) 		songFlags |= ModConstants.SONG_LINEARSLIDES;
-		if ((flags & 0x10)!=0) 		songFlags |= ModConstants.SONG_ITOLDEFFECTS;
-		if ((flags & 0x20)!=0) 		songFlags |= ModConstants.SONG_ITCOMPATMODE;
-		if ((flags & 0x80)!=0) 		songFlags |= ModConstants.SONG_EMBEDMIDICFG;
-		if ((flags & 0x1000)!=0) 	songFlags |= ModConstants.SONG_EXFILTERRANGE;
+		if ((flags & 0x01)!=0)	 songFlags |= ModConstants.SONG_ISSTEREO;
+		if ((flags & 0x04)!=0)	 songFlags |= ModConstants.SONG_USEINSTRUMENTS;
+		if ((flags & 0x08)!=0)	 songFlags |= ModConstants.SONG_LINEARSLIDES;
+		if ((flags & 0x10)!=0)	 songFlags |= ModConstants.SONG_ITOLDEFFECTS;
+		if ((flags & 0x20)!=0)	 songFlags |= ModConstants.SONG_ITCOMPATMODE;
+		if ((flags & 0x80)!=0)	 songFlags |= ModConstants.SONG_EMBEDMIDICFG;
+		if ((flags & 0x1000)!=0) songFlags |= ModConstants.SONG_EXFILTERRANGE;
 
 		//Special:  Bit 0: On = song message attached.
 		//                 Song message:
@@ -318,16 +318,16 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		special = inputStream.readIntelUnsignedWord();
 		final boolean hasSongMessage = ((special&0x01)!=0);
 		final boolean hasEditHistory = ((special&0x02)!=0);
-		final boolean hasHighlight = ((special&0x04)!=0); // was reserved, is now defining presence of rowHighlights 
-		final boolean hasMidiMacros = ((flags&0x80)!=0) || ((special&0x08)!=0);
+		final boolean hasHighlight   = ((special&0x04)!=0); // was reserved, is now defining presence of rowHighlights 
+		final boolean hasMidiMacros  = ((flags&0x80)!=0) || ((special&0x08)!=0);
 		
 		//GV:       Global volume. (0->128) All volumes are adjusted by this
 		int headerGlobalVolume = inputStream.read();
-		if (headerGlobalVolume==0 || headerGlobalVolume > ModConstants.MAXGLOBALVOLUME) headerGlobalVolume = ModConstants.MAXGLOBALVOLUME;
+		if (headerGlobalVolume==0 || headerGlobalVolume>ModConstants.MAXGLOBALVOLUME) headerGlobalVolume = ModConstants.MAXGLOBALVOLUME;
 		setBaseVolume(headerGlobalVolume);
-		//MV:       Mix volume (0->128) During mixing, this value controls the magnitude of the wave being mixed.
+		//MV:       Mix volume (0->127) During mixing, this value controls the magnitude of the wave being mixed.
 		int sampleMixVolume = inputStream.read()&0x7F;
-		if (sampleMixVolume==0 || sampleMixVolume > ModConstants.MAX_MIXING_PREAMP) sampleMixVolume = ModConstants.MAX_MIXING_PREAMP;
+		if (sampleMixVolume==0 || sampleMixVolume>127) sampleMixVolume = 127;
 		setMixingPreAmp(sampleMixVolume);
 		//IS:       Initial Speed of song.
 		setTempo(inputStream.read());
@@ -516,18 +516,19 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// now for some disguised MPTs
 		if (version==0x0217 && cmwt==0x200 && reserved==0)
 		{
-			if (hasModPlugExtensions || hasFFPanningValue)
+			if (hasModPlugExtensions || 
+				arrangement!=null && arrangement[arrangement.length-1]==0xFF ||
+				hasFFPanningValue)
 			{
 				lastSavedWithVersion = 0x01160000;
 				setTrackerName("ModPlug Tracker 1.09 - 1.16");
-				setModType(getModType() | ModConstants.MODTYPE_OMPT);
 			}
 			else
 			{
 				lastSavedWithVersion = 0x01170000;
 				setTrackerName("OpenMPT 1.17 " + ModConstants.COMPAT_MODE);
-				setModType(getModType() | ModConstants.MODTYPE_OMPT);
 			}
+			setModType(getModType() | ModConstants.MODTYPE_MPT);
 		}
 
 		// read the song Message
