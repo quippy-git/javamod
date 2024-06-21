@@ -70,7 +70,7 @@ public class Envelope
 	{
 		int tick = currentTick + 1;
 		
-		if (xm_style) // XM does this way more complicated + sustain is only one point (start==end) + FT not only has ticks but stores the position as well
+		if (xm_style) // XM does this way more complicated + sustain is only one point (start==end) + FT2 not only has ticks but stores the position as well
 		{
 			if (loop && tick==positions[loopEndPoint] && (!sustain || tick!=positions[sustainStartPoint] || !aktMemo.keyOff))
 			{
@@ -167,13 +167,31 @@ public class Envelope
 	{
 		return (xm_style)?-1:0;
 	}
-//	public int getXMResetPosition(final int tick)
-//	{
-//		int index = endPoint;
-//		for (int i=0; i<index; i++)
-//			if (positions[i]>=tick) index = i; // results in a break
-//		return positions[index] - 1;
-//	}
+	/**
+	 * XMs reset the envelope to the previous point position at
+	 * a key off event
+	 * As we do not store the current position, we need to derive
+	 * that from the current tick position
+	 * @since 20.06.2024
+	 * @param tick
+	 * @return
+	 */
+	public int getXMResetPosition(final int tick)
+	{
+		// This does not work as intended...
+//		if (endPoint!=-1)
+//		{
+//			int index = 0;
+//			while (index<endPoint && tick>=positions[index]) index++;
+//			if (tick<positions[index])
+//			{
+//				index--;
+//				if (index<0) index = 0;
+//			}
+//			return positions[index] - 1;
+//		}
+		return tick;
+	}
 	/**
 	 * Sets the boolean values corresponding to the flag value
 	 * XM-Version

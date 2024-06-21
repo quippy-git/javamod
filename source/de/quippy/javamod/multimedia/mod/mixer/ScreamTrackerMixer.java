@@ -1476,6 +1476,17 @@ public class ScreamTrackerMixer extends BasicModMixer
 		return effekt==0x0F;
 	}
 	/**
+	 * @param effekt
+	 * @param effektParam
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#isKeyOffEffekt(int, int)
+	 */
+	@Override
+	protected boolean isKeyOffEffekt(int effekt, int effektParam)
+	{
+		return false;
+	}
+	/**
 	 * @param aktMemo
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#isNNAEffekt(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)

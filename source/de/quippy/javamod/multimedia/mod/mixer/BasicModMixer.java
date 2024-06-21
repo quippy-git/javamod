@@ -1101,6 +1101,13 @@ public abstract class BasicModMixer
 	 */
 	protected abstract boolean isSampleOffsetEffekt(final int effekt);
 	/**
+	 * Returns true, if the Effekt and EffektOp indicate a Note Off effect
+	 * @param effekt
+	 * @param effektOp
+	 * @return
+	 */
+	protected abstract boolean isKeyOffEffekt(final int effekt, final int effektParam);
+	/**
 	 * Returns true, if an NNA-Effekt is set. Than, no default instrument NNA
 	 * should be processed.
 	 * @since 11.06.2020
@@ -1350,41 +1357,22 @@ public abstract class BasicModMixer
 			}
 		}
 
-		if (aktMemo.keyOff) // Key Off without volume envelope or looping envelope:
-		{
-			if (isXM)
-			{
-				if (volumeEnv==null || !volumeEnv.on) // XMs do hard note cut, if no volumeEnv or not enabled
-				{
-					currentVolume = aktMemo.currentInstrumentVolume = aktMemo.currentVolume = aktMemo.fadeOutVolume = 0;
-					aktMemo.doFastVolRamp = aktMemo.instrumentFinished = true;
-				}
-//				else
-//				{
-//					aktMemo.volEnvPos = volumeEnv.getXMResetPosition(aktMemo.volEnvPos);
-//				}
-//				if (panningEnv!=null && panningEnv.on)
-//				{
-//					aktMemo.panEnvPos = panningEnv.getXMResetPosition(aktMemo.panEnvPos);
-//				}
-			}
-			
-			initNoteFade(aktMemo);
-		}
+		if (aktMemo.keyOff) initNoteFade(aktMemo);
 
 		// Do the note fade
 		// we are either from IT, which have this effect directly
 		// or volume envelopes finished
-		if (aktMemo.noteFade && currentInstrument!=null)
+		if (aktMemo.noteFade)
 		{
-			aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
-			if (aktMemo.fadeOutVolume<0)
+			if (currentInstrument!=null/* && currentInstrument.volumeFadeOut>0*/)
 			{
-				aktMemo.fadeOutVolume = 0;
-				aktMemo.noteFade = false;
+				aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
+				if (aktMemo.fadeOutVolume<0) aktMemo.fadeOutVolume = 0;
+				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
 			}
-			currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
-
+			else
+				currentVolume = aktMemo.fadeOutVolume = 0;
+			
 			// With IT a finished noteFade also sets the instrument as finished
 			if (isIT && aktMemo.fadeOutVolume<=0 && isChannelActive(aktMemo))
 			{
@@ -1978,18 +1966,18 @@ public abstract class BasicModMixer
 	{
 		if (isXM)
 		{
-			if (sample.vibratoDepth > 0)
+			if (sample.vibratoDepth>0)
 			{
 				aktMemo.autoVibratoTablePos = 0;
 	
-				if (aktMemo.autoVibratoSweep > 0)
+				if (aktMemo.autoVibratoSweep>0)
 				{
-					aktMemo.autoVibratoAmplitude = 0;
-					aktMemo.autoVibratoSweep = (sample.vibratoDepth << 8) / sample.vibratoSweep;
+					aktMemo.autoVibratoAmplitude=0;
+					aktMemo.autoVibratoSweep = (sample.vibratoDepth<<8) / sample.vibratoSweep;
 				}
 				else
 				{
-					aktMemo.autoVibratoAmplitude = sample.vibratoDepth << 8;
+					aktMemo.autoVibratoAmplitude = sample.vibratoDepth<<8;
 					aktMemo.autoVibratoSweep = 0;
 				}
 			}
@@ -2079,6 +2067,34 @@ public abstract class BasicModMixer
 		return useFilter;
 	}
 	/**
+	 * @since 20.06.2024
+	 * @param aktMemo
+	 */
+	protected void doKeyOff(final ChannelMemory aktMemo)
+	{
+		aktMemo.keyOff = true;
+		if (isXM)
+		{
+			// XM has a certain tick reset with key off and existing envelopes - tick is reset to the previous start position
+			final Instrument currentInstrument = aktMemo.assignedInstrument;
+			final Envelope volumeEnv = (currentInstrument!=null)?currentInstrument.volumeEnvelope:null;
+			if (volumeEnv!=null && volumeEnv.on)
+			{
+				aktMemo.volEnvPos = volumeEnv.getXMResetPosition(aktMemo.volEnvPos);
+			}
+			else
+			{
+				aktMemo.currentVolume = 0;
+				aktMemo.doFastVolRamp = true;
+			}
+			final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
+			if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
+			{
+				aktMemo.panEnvPos = panningEnv.getXMResetPosition(aktMemo.panEnvPos);
+			}
+		}
+	}
+	/**
 	 * @since 11.06.2006
 	 * @param aktMemo
 	 */
@@ -2098,14 +2114,45 @@ public abstract class BasicModMixer
 		{
 			doNNAAutoInstrument(aktMemo);
 		}
-
-		// copy last seen values from pattern
-		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
-		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex; 
+		
+		// copy last seen values from pattern - only effect values first
 		aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
 		aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam; 
 		aktMemo.assignedVolumeEffekt = aktMemo.currentAssignedVolumeEffekt; 
 		aktMemo.assignedVolumeEffektOp = aktMemo.currentAssignedVolumeEffektOp;
+
+		// special K00/KeyOff handling of XMs - instrument and note are "invisible" with K00
+		final boolean isXMK00 = isKeyOffEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam) && aktMemo.currentAssignedEffektParam==0; 
+		if (isXM && (isKeyOff || isXMK00)
+		   )
+		{
+			aktMemo.currentAssignedNotePeriod = aktMemo.assignedNotePeriod; 
+			aktMemo.currentAssignedNoteIndex = aktMemo.assignedNoteIndex; 
+			aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
+			aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
+			
+			doKeyOff(aktMemo);
+
+			if (isNoteDelay)
+			{
+				if (element.getInstrument()>0)
+				{
+					resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
+					resetAutoVibrato(aktMemo, aktMemo.assignedSample);
+					resetTablePositions(aktMemo);
+				}
+				resetEnvelopes(aktMemo, aktMemo.currentAssignedInstrument);
+				aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
+			}
+			else
+			if (element.getInstrument()>0) resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
+
+			return;
+		}
+		
+		// copy last seen values from pattern - now note and instrument
+		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
+		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex; 
 		// what Sample would be assigned? Get the correct sample from the mapping table, if there is an instrument set
 		aktMemo.assignedSample = (aktMemo.currentAssignedInstrument!=null)?
 		                            ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
@@ -2115,12 +2162,11 @@ public abstract class BasicModMixer
 		
 		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
 		
-		// At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
-		if (hasInstrument)
+		if (hasInstrument) // At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
 		{
 			if (isXM)
 			{
-				if (isPortaToNoteEffect) // PortaToNote: ignore new instrument completely but reset old one
+				if (isPortaToNoteEffect || !isNewNote) // PortaToNote or no note: ignore new instrument completely but reset old one
 				{
 					aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
 					aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
@@ -2180,7 +2226,7 @@ public abstract class BasicModMixer
 			}
 		}
 
-		// Now safe those instruments for later re-use - except: XM ignores these samples completely
+		// Now safe those instruments for later re-use
 		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
 		aktMemo.assignedInstrument = aktMemo.currentAssignedInstrument;
 
@@ -2190,19 +2236,12 @@ public abstract class BasicModMixer
 		if (isXM && isNoteDelay)
 		{
 			isPortaToNoteEffect=!(hasInstrument=isNewNote=true);
-			// we could have a key_off here, which will make that fake above not work
-			// so we need to reset volume and envelope ourself here
-			if (isKeyOff)
-			{
-				resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.currentSample);
-				resetEnvelopes(aktMemo);
-			}
 		}
 
-		// Key Off, Note Cut or Period / noteIndex to set?
+		// Key Off, Note Cut, Note Fade or Period / noteIndex to set?
 		if (isKeyOff)
 		{
-			aktMemo.keyOff = true;
+			doKeyOff(aktMemo);
 		}
 		else
 		if (element.getPeriod()==ModConstants.NOTE_CUT || element.getNoteIndex()==ModConstants.NOTE_CUT)
@@ -2293,6 +2332,7 @@ public abstract class BasicModMixer
 					{
 						resetInstrumentPointers(aktMemo);
 						resetEnvelopes(aktMemo);
+						resetAutoVibrato(aktMemo, aktMemo.currentSample);
 						if (isMOD) resetTablePositions(aktMemo); // with MODs we reset vibrato/tremolo here
 					}
 					// With XMs reset the finetune with a new note. A finetune effect might change that later
@@ -2487,12 +2527,20 @@ public abstract class BasicModMixer
 					aktMemo.assignedEffektParam = retEffektOp;
 				}
 			}
+			// With FastTracker, globalVolume is applied when it occurs.
+			// That is, the envelopes are processed in this loop, not afterwards
+			// in a whole, as seen below with Non-FastTracker
+			if (isXM) processEnvelopes(channelMemory[c]);
 		}
 		// with Row Effects, first all rows effect parameter need to be
 		// processed - then we can do the envelopes and volume effects
-		// Otherwise global (volume) effects would not be considered...
-		for (int c=0; c<maxChannels; c++)
-			processEnvelopes(channelMemory[c]);
+		// Otherwise global (volume) effects would not be considered correctly.
+		// Except for FastTracker - there it is different (see above)
+		if (!isXM)
+		{
+			for (int c=0; c<maxChannels; c++)
+				processEnvelopes(channelMemory[c]);
+		}
 	}
 	/**
 	 * when stepping to a new Pattern - Position needs new set...

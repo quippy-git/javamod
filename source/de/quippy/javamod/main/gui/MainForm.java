@@ -2792,14 +2792,17 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		{
 			public void run()
 			{
-				String serverVersion = Helpers.getCurrentServerVersion();
-				int compareResult = Helpers.compareVersions(Helpers.VERSION, serverVersion);
+				// first update last check date...
+				lastUpdateCheck = LocalDate.now();
+
+				final String serverVersion = Helpers.getCurrentServerVersion();
+				final int compareResult = Helpers.compareVersions(Helpers.VERSION, serverVersion);
 				if (compareResult<0)
 				{
-					File f = new File(".");
-		    		String programmDestination = f.getAbsolutePath();
+					final File f = new File(".");
+		    		final String programmDestination = f.getAbsolutePath();
 		    		// Show Version History
-					int resultHistory = JOptionPane.showConfirmDialog(MainForm.this, "There is a new version available!\n\nYour version: "+Helpers.VERSION+" - online verison: " + serverVersion + "\n\nWatch version history?\n\n", "New Version", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					final int resultHistory = JOptionPane.showConfirmDialog(MainForm.this, "There is a new version available!\n\nYour version: "+Helpers.VERSION+" - online verison: " + serverVersion + "\n\nWatch version history?\n\n", "New Version", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 					if (resultHistory == JOptionPane.YES_OPTION)
 					{
 						SimpleTextViewerDialog dialog = getSimpleTextViewerDialog();
@@ -2807,7 +2810,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 						dialog.setVisible(true);
 					}
 		    		// Ask for download
-					int result = JOptionPane.showConfirmDialog(MainForm.this, "Your version: "+Helpers.VERSION+" - online verison: " + serverVersion + "\n\nShould I start the download?\n\n", "New Version", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					final int result = JOptionPane.showConfirmDialog(MainForm.this, "Your version: "+Helpers.VERSION+" - online verison: " + serverVersion + "\n\nShould I start the download?\n\n", "New Version", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		    		if (result == JOptionPane.YES_OPTION)
 		    		{
 		    			JFileChooser chooser = new JFileChooser(); 
@@ -2839,7 +2842,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 						    	getDownloadDialog().setLocation(Helpers.getFrameCenteredLocation(getDownloadDialog(), MainForm.this));
 						    	getDownloadDialog().setCurrentFileName(Helpers.JAVAMOD_URL);
 						    	getDownloadDialog().setVisible(true);
-						    	int copied = Helpers.downloadJavaMod(destination, getDownloadDialog());
+						    	final int copied = Helpers.downloadJavaMod(destination, getDownloadDialog());
 			        		    getDownloadDialog().setVisible(false);
 			        		    if (copied==-1)
 			        		    	JOptionPane.showMessageDialog(MainForm.this, "Download failed!\n"+destination, "Failed", JOptionPane.ERROR_MESSAGE);

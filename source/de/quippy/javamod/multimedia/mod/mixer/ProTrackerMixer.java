@@ -492,8 +492,8 @@ public class ProTrackerMixer extends BasicModMixer
 				aktMemo.keyOffCounter = aktMemo.assignedEffektParam;
 				break;
 			case 0x15:			// Set envelope position
-				aktMemo.volEnvPos = aktMemo.assignedEffektParam;
-				aktMemo.panEnvPos = aktMemo.assignedEffektParam;
+				aktMemo.volEnvPos = aktMemo.assignedEffektParam - 1;
+				aktMemo.panEnvPos = aktMemo.assignedEffektParam - 1;
 				break;
 			case 0x19:			// Panning slide
 				if ((aktMemo.assignedEffektParam>>4)!=0)
@@ -729,7 +729,7 @@ public class ProTrackerMixer extends BasicModMixer
 			final boolean isKeyOff = (element.getPeriod()==ModConstants.KEY_OFF || element.getNoteIndex()==ModConstants.KEY_OFF); 
 			if (isKeyOff)
 			{
-				aktMemo.keyOff = true;
+				doKeyOff(aktMemo);
 			}
 			else
 			if (hasNewNote(element)) // KeyOff is not a note...
@@ -895,7 +895,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 3:	periodAdd = ((0x40 - (aktMemo.autoVibratoTablePos>>1)) & 0x7F) - 0x40;	// Ramp Down
 					break;
 		}
-		periodAdd =	((periodAdd<<ModConstants.PERIOD_SHIFT) * autoVibAmp) >> (6+8); // copy from FT2 source code
+		periodAdd =	((periodAdd<<ModConstants.PERIOD_SHIFT) * autoVibAmp) >> (6+8+2); // copy from FT2 source code plus our PERIOD_SHIFT is 4, not 2
 
 		int newPeriod = currentPeriod + periodAdd;
 		if (newPeriod>=(32000<<ModConstants.PERIOD_SHIFT)) 
@@ -1340,7 +1340,7 @@ public class ProTrackerMixer extends BasicModMixer
 					if (aktMemo.keyOffCounter<=0)
 					{
 						aktMemo.keyOffCounter = -1;
-						aktMemo.keyOff = true;
+						doKeyOff(aktMemo);
 					}
 				}
 				break;
@@ -1560,6 +1560,17 @@ public class ProTrackerMixer extends BasicModMixer
 	protected boolean isSampleOffsetEffekt(final int effekt)
 	{
 		return effekt==0x09;
+	}
+	/**
+	 * @param effekt
+	 * @param effektParam
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#isKeyOffEffekt(int, int)
+	 */
+	@Override
+	protected boolean isKeyOffEffekt(int effekt, int effektParam)
+	{
+		return effekt==0x14;
 	}
 	/**
 	 * @param aktMemo
