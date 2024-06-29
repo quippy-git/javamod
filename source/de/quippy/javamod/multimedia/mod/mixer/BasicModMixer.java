@@ -774,37 +774,12 @@ public abstract class BasicModMixer
 	 * @param aktMemo
 	 * @param period or noteIndex
 	 * @return
+	 * @since 28.06.2024 moved to the respective Mixers (ProTrackerMixher and ScreamTrackerMixer)
 	 */
 	protected int getFineTunePeriod(final ChannelMemory aktMemo, final int period)
 	{
-		final int noteIndex = period - 1; // Period is only a note index now. No period - easier lookup
-		switch (frequencyTableType)
-		{
-			case ModConstants.STM_S3M_TABLE:
-			case ModConstants.IT_AMIGA_TABLE:
-				final int s3mNote=ModConstants.FreqS3MTable[noteIndex%12];
-				final int s3mOctave=noteIndex/12;
-				return (int)((long)ModConstants.BASEFREQUENCY * ((long)s3mNote<<7) / ((long)aktMemo.currentFinetuneFrequency<<s3mOctave));
-			
-			case ModConstants.IT_LINEAR_TABLE:
-				return (ModConstants.FreqS3MTable[noteIndex%12]<<7)>>(noteIndex/12);
-
-			case ModConstants.AMIGA_TABLE:
-				final int lookUpFineTune = (aktMemo.currentFineTune<0)?aktMemo.currentFineTune+16:aktMemo.currentFineTune;
-				final int proTrackerIndex = noteIndex - 36; // our lookup table has three more octaves
-				return ModConstants.periodTable[(lookUpFineTune*37) + proTrackerIndex]<<ModConstants.PERIOD_SHIFT;
-			
-			case ModConstants.XM_AMIGA_TABLE:
-				final int amigaIndex = (noteIndex<<4) + ((aktMemo.currentFineTune>>3) + 16); // 0..1920
-				return ModConstants.FT2_amigaPeriods[amigaIndex]<<(ModConstants.PERIOD_SHIFT-2);	// table values are already shifted by 2
-
-			case ModConstants.XM_LINEAR_TABLE:
-				final int linearIndex = (noteIndex<<4) + ((aktMemo.currentFineTune>>3) + 16); // 0..1920
-				return ModConstants.FT2_linearPeriods[linearIndex]<<(ModConstants.PERIOD_SHIFT-2);	// table values are already shifted by 2
-
-			default: // Period is not a noteindex - this will never happen, but I once used it with protracker mods
-				return (int)((long)ModConstants.BASEFREQUENCY * (long)period / (long)aktMemo.currentFinetuneFrequency);
-		}
+		// Period is not a noteindex - this will never happen, but I once used it with protracker mods
+		return (int)((long)ModConstants.BASEFREQUENCY * (long)period / (long)aktMemo.currentFinetuneFrequency);
 	}
 	/**
 	 * Calls getFineTunePeriod(ChannelMemory, int Period) with the actual Period assigned.
@@ -830,6 +805,7 @@ public abstract class BasicModMixer
 	 * MAKE SHURE that newPeriod is already the "getFineTunePeriod" value.
 	 * @param aktMemo
 	 * @param newPeriod
+	 * @since 28.06.2024 moved to the respective Mixers (ProTrackerMixher and ScreamTrackerMixer)
 	 */
 	protected void setNewPlayerTuningFor(final ChannelMemory aktMemo, final int newPeriod)
 	{
@@ -842,35 +818,7 @@ public abstract class BasicModMixer
 		}
 		
 		final int clampedPeriod = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
-
-		switch (frequencyTableType)
-		{
-			case ModConstants.AMIGA_TABLE:
-				aktMemo.currentTuning = globalTuning / (aktMemo.currentNotePeriodSet = clampedPeriod);
-				return;
-			case ModConstants.XM_LINEAR_TABLE:
-				// We have a different LUT table as original FT2 - to avoid the doubles used there
-				// So we need some adoption to the algorithm used in FT2 but stay as close as possible to the coding there:
-				final int period = (newPeriod>>(ModConstants.PERIOD_SHIFT-2)) & 0xFFFF;
-				final int invPeriod = ((12 * 192 * 4) + 767 - period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
-				final int quotient  = invPeriod / (12 * 16 * 4);
-				final int remainder = period % (12 * 16 * 4);
-				final int newFrequency = ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
-				aktMemo.currentTuning = (int)(((long)newFrequency<<ModConstants.SHIFT) / (long)sampleRate);
-				return;
-			case ModConstants.IT_LINEAR_TABLE:
-				final long itTuning = (((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * (long)aktMemo.currentFinetuneFrequency)<<ModConstants.SHIFT) / (long)sampleRate;
-				aktMemo.currentTuning = (int)(itTuning / (long)newPeriod); 
-				return;
-			case ModConstants.STM_S3M_TABLE:
-				aktMemo.currentTuning = globalTuning / clampedPeriod; // in globalTuning, all constant values are already calculated. (see above)
-				return;
-			case ModConstants.XM_AMIGA_TABLE:
-			case ModConstants.IT_AMIGA_TABLE:
-			default:
-				aktMemo.currentTuning = globalTuning / clampedPeriod; // in globalTuning, all constant values are already calculated. (see above)
-				return;
-		}
+		aktMemo.currentTuning = globalTuning / clampedPeriod;
 	}
 	/**
 	 * Set the current tuning for the player
@@ -1901,9 +1849,12 @@ public abstract class BasicModMixer
 	 */
 	protected void resetFineTune(final ChannelMemory aktMemo, final Sample currentSample)
 	{
-		aktMemo.currentFinetuneFrequency = currentSample.baseFrequency;
-		aktMemo.currentFineTune = currentSample.fineTune;
-		aktMemo.currentTranspose = currentSample.transpose;
+		if (currentSample!=null)
+		{
+			aktMemo.currentFinetuneFrequency = currentSample.baseFrequency;
+			aktMemo.currentFineTune = currentSample.fineTune;
+			aktMemo.currentTranspose = currentSample.transpose;
+		}
 		aktMemo.prevSampleOffset=0;
 	}
 	/**
@@ -1964,7 +1915,7 @@ public abstract class BasicModMixer
 	 */
 	protected void resetAutoVibrato(final ChannelMemory aktMemo, final Sample sample)
 	{
-		if (isXM)
+		if (isXM && sample!=null)
 		{
 			if (sample.vibratoDepth>0)
 			{
@@ -2161,6 +2112,22 @@ public abstract class BasicModMixer
 		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 		
 		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
+		// do certain range checks with XMs.
+		// With XMs the playback will skip some things when the noteIndex is out of range
+		// i.e. do not reset volume and panning, do not set finetune of instrument, do not set tuning
+		// we also do not set a sample offset (not implemented!) or retrigger the sample pointer
+		// but if the note is zero, we only do not set the tuning
+		// We simulate that here now - except for the sample offset...
+		boolean isXMIllegalNote = false;
+		boolean isXMZeroNote = false;
+		if (isXM)
+		{
+			int note = aktMemo.assignedNoteIndex; 
+			if (note>96) note = aktMemo.assignedNoteIndex = 96;
+			if (aktMemo.assignedSample!=null) note += aktMemo.assignedSample.transpose;
+			if (note<0 || note>=10*12) isXMIllegalNote = true; // this is an uint8 compare
+			if (note==0) isXMZeroNote = true;
+		}
 		
 		if (hasInstrument) // At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
 		{
@@ -2173,7 +2140,7 @@ public abstract class BasicModMixer
 					if (aktMemo.currentSample!=null) aktMemo.assignedSample = aktMemo.currentSample;
 				}
 				// reset for new Instrument
-				resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
+				if (!isXMIllegalNote) resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 				resetEnvelopes(aktMemo, aktMemo.currentAssignedInstrument);
 				resetAutoVibrato(aktMemo, aktMemo.assignedSample);
 				resetTablePositions(aktMemo);
@@ -2326,18 +2293,15 @@ public abstract class BasicModMixer
 				}
 				else // isFastTrackerFamily: reset to last known note period if instrument is set without note (or current, which is set anyways)
 				{
-					resetAllEffects(aktMemo, element); // Reset Tremolo and such things... Forced! because of a new note
-					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-					if (!(isXM && isNewNote && !hasInstrument)) // with XMs a single note without instrument set does not retrigger anything
-					{
-						resetInstrumentPointers(aktMemo);
-						resetEnvelopes(aktMemo);
-						resetAutoVibrato(aktMemo, aktMemo.currentSample);
-						if (isMOD) resetTablePositions(aktMemo); // with MODs we reset vibrato/tremolo here
-					}
+					resetAllEffects(aktMemo, element); // Reset Tremolo and such things...
+					//aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
+					if (!isXMIllegalNote) resetInstrumentPointers(aktMemo);
+					resetEnvelopes(aktMemo);
+					resetAutoVibrato(aktMemo, aktMemo.currentSample);
+					if (isMOD) resetTablePositions(aktMemo); // with MODs we reset vibrato/tremolo here
 					// With XMs reset the finetune with a new note. A finetune effect might change that later
-					if (isXM) resetFineTune(aktMemo, aktMemo.currentSample);
-					setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
+					if (isXM && !isXMIllegalNote) resetFineTune(aktMemo, aktMemo.currentSample);
+					if (!isXMIllegalNote && !isXMZeroNote) setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
 					// With XMs we are also here in a note delay, even if it is a porta2Note effect - so do not reset portaTarget in that case
 					if (!isMOD && !isNoteDelay) aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod; // do not reset with MODs
 				}
@@ -3019,7 +2983,7 @@ public abstract class BasicModMixer
 				for (int c=0; c<maxChannels; c++)
 				{
 					final ChannelMemory aktMemo = channelMemory[c];
-					if (!aktMemo.instrumentFinished) fillRampDataIntoBuffers(interweaveBufferLeft, interweaveBufferRight, aktMemo);
+					if (!aktMemo.instrumentFinished && aktMemo.currentSample!=null) fillRampDataIntoBuffers(interweaveBufferLeft, interweaveBufferRight, aktMemo);
 				}
 				interweaveStartIndex=0; interweave = true;
 				// now do the events

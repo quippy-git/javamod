@@ -95,6 +95,63 @@ public class ScreamTrackerMixer extends BasicModMixer
 	}
 	/**
 	 * @param aktMemo
+	 * @param period
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#getFineTunePeriod(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory, int)
+	 */
+	@Override
+	protected int getFineTunePeriod(final ChannelMemory aktMemo, final int period)
+	{
+		final int noteIndex = period - 1; // Period is only a note index now. No period - easier lookup
+		switch (frequencyTableType)
+		{
+			case ModConstants.STM_S3M_TABLE:
+			case ModConstants.IT_AMIGA_TABLE:
+				final int s3mNote=ModConstants.FreqS3MTable[noteIndex%12];
+				final int s3mOctave=noteIndex/12;
+				return (int)((long)ModConstants.BASEFREQUENCY * ((long)s3mNote<<7) / ((long)aktMemo.currentFinetuneFrequency<<s3mOctave));
+			
+			case ModConstants.IT_LINEAR_TABLE:
+				return (ModConstants.FreqS3MTable[noteIndex%12]<<7)>>(noteIndex/12);
+
+			default:
+				return super.getFineTunePeriod(aktMemo, period);
+		}
+	}
+	/**
+	 * @param aktMemo
+	 * @param newPeriod
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#setNewPlayerTuningFor(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory, int)
+	 */
+	@Override
+	protected void setNewPlayerTuningFor(ChannelMemory aktMemo, int newPeriod)
+	{
+		aktMemo.currentNotePeriodSet = newPeriod;
+		
+		if (newPeriod<=0)
+		{
+			aktMemo.currentTuning = 0;
+			return;
+		}
+
+		switch (frequencyTableType)
+		{
+			case ModConstants.IT_LINEAR_TABLE:
+				final long itTuning = (((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * (long)aktMemo.currentFinetuneFrequency)<<ModConstants.SHIFT) / (long)sampleRate;
+				aktMemo.currentTuning = (int)(itTuning / (long)newPeriod); 
+				return;
+			case ModConstants.STM_S3M_TABLE:
+			case ModConstants.IT_AMIGA_TABLE:
+				final int clampedPeriod = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
+				aktMemo.currentTuning = globalTuning / clampedPeriod;
+				return;
+			default:
+				super.setNewPlayerTuningFor(aktMemo, newPeriod);
+				return;
+		}
+	}
+	/**
+	 * @param aktMemo
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#calculateExtendedValue(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)
 	 */
@@ -760,6 +817,29 @@ public class ScreamTrackerMixer extends BasicModMixer
 		}
 	}
 	/**
+	 * returns values in the range of -64..64
+	 * @since 29.06.2020
+	 * @param type
+	 * @param position
+	 * @return
+	 */
+	private int getVibratoDelta(final int type, int position)
+	{
+		position &= 0xFF;
+		switch (type & 0x03)
+		{
+			default:
+			case 0: //Sinus
+				return ModConstants.ITSinusTable[position];
+			case 1: // Ramp Down / Sawtooth
+				return ModConstants.ITRampDownTable[position];
+			case 2: // Squarewave 
+				return ModConstants.ITSquareTable[position];
+			case 3: // random	
+				return (int)(128 * swinger.nextDouble() - 0x40);
+		}
+	}
+	/**
 	 * @param aktMemo
 	 * @param currentSample
 	 * @param currentPeriod
@@ -798,9 +878,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 
 		int slideIndex = (periodAdd<0)?-periodAdd:periodAdd;
 		if (slideIndex>(255<<2)) slideIndex = (255<<2);
-		final long period = aktMemo.currentNotePeriod;
+		final long period = currentPeriod;
+		
 		// Formula: ((period*table[index / 4])-period) + ((period*fineTable[index % 4])-period)
-		if (slideIndex<0)
+		if (periodAdd<0)
 		{
 			periodAdd = (int)(((period * ((long)ModConstants.LinearSlideUpTable[slideIndex>>2]))>>ModConstants.HALFTONE_SHIFT) - period);
 			if ((slideIndex&0x03)!=0) periodAdd += (int)(((period * ((long)ModConstants.FineLinearSlideUpTable[slideIndex&0x3]))>>ModConstants.HALFTONE_SHIFT) - period);
@@ -812,84 +893,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		}
 
 		setNewPlayerTuningFor(aktMemo, currentPeriod - periodAdd);
-	}
-	/**
-	 * returns values in the range of -64..64
-	 * @since 29.06.2020
-	 * @param type
-	 * @param position
-	 * @return
-	 */
-	private int getVibratoDelta(final int type, int position)
-	{
-		position &= 0xFF;
-		switch (type & 0x03)
-		{
-			default:
-			case 0: //Sinus
-				return ModConstants.ITSinusTable[position];
-			case 1: // Ramp Down / Sawtooth
-				return ModConstants.ITRampDownTable[position];
-			case 2: // Squarewave 
-				return ModConstants.ITSquareTable[position];
-			case 3: // random	
-				return (int)(128 * swinger.nextDouble() - 0x40);
-		}
-	}
-	/**
-	 * @since 03.07.2020
-	 * @param aktMemo
-	 * @param element
-	 */
-	protected void doSampleOffsetEffekt(final ChannelMemory aktMemo, final PatternElement element)
-	{
-		if (hasNoNote(element) || aktMemo.currentSample==null || aktMemo.sampleOffset==-1) return;
-		
-		final Sample sample = aktMemo.currentSample;
-		final boolean hasLoop = (sample.loopType & ModConstants.LOOP_ON)!=0;
-		final int length = hasLoop?sample.loopStop:sample.length;
-		
-		// IT compatibility: If this note is not mapped to a sample, ignore it.
-		// It is questionable, if this check is needed - aktMemo.currentSample should already be null...
-		// BTW: aktMemo.assignedSample is null then, too
-//		if (isIT)
-//		{
-//			if (aktMemo.currentAssignedInstrument!=null)
-//			{
-//				final int sampleIndex = aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1);
-//				if (sampleIndex<=0 || sampleIndex>mod.getNSamples()) return;
-//			}
-//		}
-		
-		aktMemo.currentSamplePos = aktMemo.sampleOffset; 
-
-		if (aktMemo.currentSamplePos >= length)
-		{
-			if (isS3M)
-			{
-				// ST3 Compatibility: Don't play note if offset is beyond sample length (non-looped samples only)
-				// else do offset wrap-around - does this in GUS mode, not in SoundBlaster mode	
-				if (!hasLoop)
-					setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
-				else
-					aktMemo.currentSamplePos = ((aktMemo.currentSamplePos - sample.loopStart) % sample.loopLength) + sample.loopStart;
-			}
-			else
-			if (isIT)
-			{
-				if ((mod.getSongFlags() & ModConstants.SONG_ITOLDEFFECTS)!=0) // Old Effects
-					aktMemo.currentSamplePos = sample.length-1;
-				else
-					aktMemo.currentSamplePos = 0; // reset to start
-			}
-			else
-			{
-				if (hasLoop)
-					aktMemo.currentSamplePos = sample.loopStart;
-				else
-					aktMemo.currentSamplePos = sample.length-1;
-			}
-		}
 	}
 	/**
 	 * Convenient Method for the vibrato effekt
@@ -1022,6 +1025,61 @@ public class ScreamTrackerMixer extends BasicModMixer
 			//if (aktMemo.tremorOfftime<=0) aktMemo.tremorOntime = aktMemo.tremorOntimeSet;
 			aktMemo.currentVolume = 0;
 			aktMemo.doFastVolRamp = true;
+		}
+	}
+	/**
+	 * @since 03.07.2020
+	 * @param aktMemo
+	 * @param element
+	 */
+	protected void doSampleOffsetEffekt(final ChannelMemory aktMemo, final PatternElement element)
+	{
+		if (hasNoNote(element) || aktMemo.currentSample==null || aktMemo.sampleOffset==-1) return;
+		
+		final Sample sample = aktMemo.currentSample;
+		final boolean hasLoop = (sample.loopType & ModConstants.LOOP_ON)!=0;
+		final int length = hasLoop?sample.loopStop:sample.length;
+		
+		// IT compatibility: If this note is not mapped to a sample, ignore it.
+		// It is questionable, if this check is needed - aktMemo.currentSample should already be null...
+		// BTW: aktMemo.assignedSample is null then, too
+//		if (isIT)
+//		{
+//			if (aktMemo.currentAssignedInstrument!=null)
+//			{
+//				final int sampleIndex = aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1);
+//				if (sampleIndex<=0 || sampleIndex>mod.getNSamples()) return;
+//			}
+//		}
+		
+		aktMemo.currentSamplePos = aktMemo.sampleOffset; 
+
+		if (aktMemo.currentSamplePos >= length)
+		{
+			if (isS3M)
+			{
+				// ST3 Compatibility: Don't play note if offset is beyond sample length (non-looped samples only)
+				// else do offset wrap-around - does this in GUS mode, not in SoundBlaster mode	
+				if (!hasLoop)
+					setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
+				else
+					aktMemo.currentSamplePos = ((aktMemo.currentSamplePos - sample.loopStart) % sample.loopLength) + sample.loopStart;
+			}
+			else
+			if (isIT)
+			{
+				if ((mod.getSongFlags() & ModConstants.SONG_ITOLDEFFECTS)!=0) // Old Effects
+					aktMemo.currentSamplePos = sample.length-1;
+				else
+					aktMemo.currentSamplePos = 0; // reset to start
+			}
+			else
+			{
+				if (hasLoop)
+					aktMemo.currentSamplePos = sample.loopStart;
+				else
+					aktMemo.currentSamplePos = sample.length-1;
+			}
 		}
 	}
 	/**

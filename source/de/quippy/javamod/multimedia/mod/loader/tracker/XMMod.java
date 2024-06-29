@@ -204,7 +204,14 @@ public class XMMod extends ProTrackerMod
 			final int packedPatternDataSize = inputStream.readIntelUnsignedWord();
 			if (packedPatternDataSize==0)
 			{
-				patternContainer.createPattern(pattNum, rows);
+				patternContainer.createPattern(pattNum, rows, getNChannels());
+				for (int row=0; row<rows; row++)
+				{
+					for (int channel=0; channel<getNChannels(); channel++)
+					{
+						patternContainer.createPatternElement(pattNum, row, channel);
+					}
+				}
 				continue;
 			}
 			
