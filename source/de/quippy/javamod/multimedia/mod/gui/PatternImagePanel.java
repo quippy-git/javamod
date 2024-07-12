@@ -626,7 +626,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			g.setColor(BUTTONS[colorIndex]);
 			g.fill3DRect(x, y, x + buttonLength - 1, y + charDim.height, true);
 			g.setColor(FOREGROUND[colorIndex]);
-			g.drawString(ModConstants.getAsHex(rowNumber, 2), x + charDim.width, y + charDim.height - 1);
+			if (rowNumber<0x100)
+				g.drawString(ModConstants.getAsHex(rowNumber, 2), x + charDim.width, y + charDim.height - 1);
+			else
+				g.drawString(ModConstants.getAsHex(rowNumber, 3), x + (charDim.width>>1), y + charDim.height - 1);
 		}
 		return x + buttonLength;
 	}

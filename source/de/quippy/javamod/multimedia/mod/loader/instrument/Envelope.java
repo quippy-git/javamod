@@ -64,25 +64,49 @@ public class Envelope
 	 * @param keyOff
 	 * @param initKeyOff
 	 * @param aktMemo
-	 * @return
+	 * @return Hi int: current position (XM) | Lo int: current tick
 	 */
-	public int updatePosition(final ChannelMemory aktMemo, final int currentTick, final boolean initKeyOff)
+	public long updatePosition(final ChannelMemory aktMemo, final int currentTick, final int currentXMPosition, final boolean initKeyOff)
 	{
 		int tick = currentTick + 1;
+		int envPos = currentXMPosition;
 		
-		if (xm_style) // XM does this way more complicated + sustain is only one point (start==end) + FT2 not only has ticks but stores the position as well
+		// XM does this way more complicated + sustain is only one point (start==end)
+		// + XM not only has ticks but stores the position as well - which leads to some quirks
+		if (xm_style)
 		{
-			if (loop && tick==positions[loopEndPoint] && (!sustain || tick!=positions[sustainStartPoint] || !aktMemo.keyOff))
+			boolean copyBack = false; //in FT2 code: envInterpolateFlag
+			if (tick == positions[envPos])
 			{
-				tick = positions[loopStartPoint];
-			}
-			
-			if (tick<=positions[endPoint])
-			{
-				if (sustain && !aktMemo.keyOff && tick>=positions[sustainStartPoint])
+				envPos++;
+				if (loop)
 				{
-					tick = positions[sustainStartPoint];
+					envPos--;
+					if (envPos==loopEndPoint)
+					{
+						if (!sustain || envPos!=sustainStartPoint || !aktMemo.keyOff)
+						{
+							envPos = loopStartPoint;
+							tick = positions[loopStartPoint];
+						}
+					}
+					envPos++;
 				}
+				
+				if (envPos < nPoints)
+				{
+					copyBack = true;
+					if (sustain && !aktMemo.keyOff)
+					{
+						if (envPos-1 == sustainStartPoint)
+						{
+							envPos--; // silly, as we do not copy back...
+							copyBack = false;
+						}
+					}
+				}
+				
+				if (!copyBack) envPos = currentXMPosition;
 			}
 		}
 		else // IT, OMPT, MPT...
@@ -114,7 +138,7 @@ public class Envelope
 			}
 		}
 		
-		return tick;
+		return (long)((((long)envPos)<<32) | (long)tick);
 	}
 	/**
 	 * get the value at the positions
@@ -123,8 +147,15 @@ public class Envelope
 	 * @param tick
 	 * @return
 	 */
-	public int getValueForPosition(final int tick)
+	public int getValueForPosition(final int tick, final int xmEnvPos)
 	{
+		// XM continues to update the ticks but sets "f???EnvDelta" to zero
+		// and stays on the envPos value.
+		// Releasing of sustain is then done with "getXMResetPosition"
+		// This is to simulate that "zero delta value"
+		if (xm_style && (sustain && tick>=positions[sustainStartPoint] && xmEnvPos==sustainStartPoint)) 
+			return value[sustainStartPoint]<<(SHIFT-BACKSHIFT);
+		
 		int index = endPoint;
 		for (int i=0; i<index; i++)
 			if (positions[i]>tick) index = i; // results in a break
@@ -169,28 +200,16 @@ public class Envelope
 	}
 	/**
 	 * XMs reset the envelope to the previous point position at
-	 * a key off event
-	 * As we do not store the current position, we need to derive
-	 * that from the current tick position
+	 * a key off event - that is to release a sustained envelope
+	 * Because of a bug in the panning envelope, it stays in sustain
 	 * @since 20.06.2024
 	 * @param tick
 	 * @return
 	 */
-	public int getXMResetPosition(final int tick)
+	public int getXMResetPosition(final int envTick, final int envPos)
 	{
-		// This does not work as intended...
-//		if (endPoint!=-1)
-//		{
-//			int index = 0;
-//			while (index<endPoint && tick>=positions[index]) index++;
-//			if (tick<positions[index])
-//			{
-//				index--;
-//				if (index<0) index = 0;
-//			}
-//			return positions[index] - 1;
-//		}
-		return tick;
+		// uint16 cast...
+		return (envTick>=(positions[envPos]&0xFFFF))?positions[envPos]-1:envTick;
 	}
 	/**
 	 * Sets the boolean values corresponding to the flag value

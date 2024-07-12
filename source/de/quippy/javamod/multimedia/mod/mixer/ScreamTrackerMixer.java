@@ -221,14 +221,17 @@ public class ScreamTrackerMixer extends BasicModMixer
 				currentTick = currentTempo = aktMemo.assignedEffektParam;
 				break;
 			case 0x02:			// Pattern position jump
-				patternBreakJumpPatternIndex = calculateExtendedValue(aktMemo, null);
+				patternBreakPatternIndex = calculateExtendedValue(aktMemo, null);
 				//patternBreakJumpPatternIndex = aktMemo.effektParam;
+				patternBreakRowIndex = 0;
+				patternBreakSet = true;
 				break;
 			case 0x03:			// Pattern break
 				if (!(isS3M && aktMemo.assignedEffektParam>64)) // ST3 ignores illegal pattern breaks
 				{
 					patternBreakRowIndex = calculateExtendedValue(aktMemo, null);
 					//patternBreakRowIndex = aktMemo.effektParam&0xFF;
+					patternBreakSet = true;
 				}
 				break;
 			case 0x04:			// Volume Slide
@@ -243,16 +246,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.portaStepDown = aktMemo.assignedEffektParam;
 					if ((mod.getSongFlags()&ModConstants.SONG_ITCOMPATMODE)==0) aktMemo.IT_EFG = aktMemo.portaStepDown; 
 				}
-
-				final int indicatorPortaDown = aktMemo.portaStepDown&0xF0;
-				if (indicatorPortaDown==0xE0 || indicatorPortaDown==0xF0)
-				{
-					if (indicatorPortaDown==0xE0) doExtraFineSlide(aktMemo, aktMemo.portaStepDown&0xF);
-					else
-					if (indicatorPortaDown==0xF0) doFineSlide(aktMemo, aktMemo.portaStepDown&0xF);
-					
-					setNewPlayerTuningFor(aktMemo);
-				}
+				doPortaDown(aktMemo, true, false);
 				break;
 			case 0x06:			// Porta Up
 				if (aktMemo.assignedEffektParam!=0)
@@ -260,16 +254,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.portaStepUp=aktMemo.assignedEffektParam;
 					if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) aktMemo.IT_EFG = aktMemo.portaStepUp;
 				}
-
-				final int indicatorPortaUp = aktMemo.portaStepUp&0xF0;
-				if (indicatorPortaUp==0xE0 || indicatorPortaUp==0xF0)
-				{
-					if (indicatorPortaUp==0xE0) doExtraFineSlide(aktMemo, -(aktMemo.portaStepUp&0xF));
-					else
-					if (indicatorPortaUp==0xF0) doFineSlide(aktMemo, -(aktMemo.portaStepUp&0xF));
-					
-					setNewPlayerTuningFor(aktMemo);
-				}
+				doPortaUp(aktMemo, true, false);
 				break;
 			case 0x07: 			// Porta To Note
 				if (hasNewNote(element)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
@@ -302,20 +287,20 @@ public class ScreamTrackerMixer extends BasicModMixer
 				doTremorEffekt(aktMemo);
 				break;
 			case 0x0A:			// Arpeggio
-				if (aktMemo.assignedEffektParam != 0) aktMemo.arpegioParam = aktMemo.assignedEffektParam;
-				if (aktMemo.assignedNotePeriod!=0)
+				if (aktMemo.assignedEffektParam != 0) aktMemo.arpeggioParam = aktMemo.assignedEffektParam;
+				if (aktMemo.assignedNoteIndex!=0)
 				{
 					if (!isIT) // s3m, stm ?!
 					{
 						final int currentIndex = aktMemo.assignedNoteIndex - 1; // Index into noteValues Table
-						aktMemo.arpegioNote[0] = getFineTunePeriod(aktMemo);
-						aktMemo.arpegioNote[1] = getFineTunePeriod(aktMemo, currentIndex+(aktMemo.arpegioParam >>4));
-						aktMemo.arpegioNote[2] = getFineTunePeriod(aktMemo, currentIndex+(aktMemo.arpegioParam&0xF));
+						aktMemo.arpeggioNote[0] = getFineTunePeriod(aktMemo);
+						aktMemo.arpeggioNote[1] = getFineTunePeriod(aktMemo, currentIndex+(aktMemo.arpeggioParam >>4));
+						aktMemo.arpeggioNote[2] = getFineTunePeriod(aktMemo, currentIndex+(aktMemo.arpeggioParam&0xF));
 					}
 					else
-						aktMemo.arpegioNote[0] = aktMemo.currentNotePeriod;
+						aktMemo.arpeggioNote[0] = aktMemo.currentNotePeriod;
 
-					aktMemo.arpegioIndex=0;
+					aktMemo.arpeggioIndex=0;
 				}
 				break;
 			case 0x0B:			// Vibrato + Volume Slide
@@ -386,8 +371,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 						aktMemo.glissando = effektOpEx!=0;
 						break;
 					case 0x2:	// Set FineTune
-						aktMemo.currentFineTune = ModConstants.it_fineTuneTable[effektOpEx];
-						aktMemo.currentFinetuneFrequency = ModConstants.it_fineTuneTable[effektOpEx];
+						aktMemo.currentFineTune = ModConstants.IT_fineTuneTable[effektOpEx];
+						aktMemo.currentFinetuneFrequency = ModConstants.IT_fineTuneTable[effektOpEx];
 						setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
 						break;
 					case 0x3:	// Set Vibrato Type
@@ -403,7 +388,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 						aktMemo.panbrelloNoRetrig = ((effektOpEx&0x04)!=0);
 						break;
 					case 0x6:	// Pattern Delay Frame
-						/*if (patternDelayCount<0)*/ patternTicksDelayCount += effektOpEx;
+						patternTicksDelayCount += effektOpEx; // those add up
 						break;
 					case 0x7:	// set NNA and others
 						switch (effektOpEx)
@@ -521,31 +506,19 @@ public class ScreamTrackerMixer extends BasicModMixer
 						if (effektOpEx==0) // Set a marker for loop
 						{
 							aktMemo.jumpLoopPatternRow = currentRow;
-							aktMemo.jumpLoopPositionSet = true;
 						}
 						else
+						if (aktMemo.jumpLoopRepeatCount == 0) // was not set && effektOp!=0
 						{
-							if (aktMemo.jumpLoopRepeatCount==-1) // was not set!
-							{
-								aktMemo.jumpLoopRepeatCount=effektOpEx;
-								if (!aktMemo.jumpLoopPositionSet) // if not set, pattern Start is default!
-								{
-									aktMemo.jumpLoopPatternRow = aktMemo.lastJumpCounterRow + 1;
-									aktMemo.jumpLoopPositionSet = true;
-								}
-							}
-							aktMemo.lastJumpCounterRow = currentRow;
-							
-							if (aktMemo.jumpLoopRepeatCount>0 && aktMemo.jumpLoopPositionSet)
-							{
-								aktMemo.jumpLoopRepeatCount--;
-								patternJumpPatternIndex = aktMemo.jumpLoopPatternRow;
-							}
-							else
-							{
-								aktMemo.jumpLoopPositionSet = false;
-								aktMemo.jumpLoopRepeatCount = -1;
-							}
+							aktMemo.jumpLoopRepeatCount = effektOpEx;
+							patternJumpRowIndex = aktMemo.jumpLoopPatternRow;
+							patternJumpSet = true;
+						}
+						else
+						if (--aktMemo.jumpLoopRepeatCount > 0)
+						{
+							patternJumpRowIndex = aktMemo.jumpLoopPatternRow;
+							patternJumpSet = true;
 						}
 						break;
 					case 0xC:	// Note Cut
@@ -580,7 +553,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 						// Note-Delays are handled centrally in "doRowAndTickEvents"
 						break;
 					case 0xE:	// Pattern Delay
-						/*if (patternDelayCount<0)*/ patternDelayCount=effektOpEx;
+						if (patternDelayCount<0) patternDelayCount=effektOpEx;
 						break;
 					case 0xF:	// Set Active Macro (s3m: Funk Repeat)
 						if (isIT) aktMemo.activeMidiMacro = aktMemo.assignedEffektParam&0x7F;
@@ -692,19 +665,22 @@ public class ScreamTrackerMixer extends BasicModMixer
 			final long oldPeriod = aktMemo.currentNotePeriod;
 			if (slide<0)
 			{
-				aktMemo.currentNotePeriod = (int)((oldPeriod * ((long)ModConstants.LinearSlideUpTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
+				aktMemo.currentNotePeriod = (int)((aktMemo.currentNotePeriod * ((long)ModConstants.LinearSlideUpTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
 				if (oldPeriod == aktMemo.currentNotePeriod) aktMemo.currentNotePeriod--;
 			}
 			else
 			{
-				aktMemo.currentNotePeriod = (int)((oldPeriod * ((long)ModConstants.LinearSlideDownTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
+				aktMemo.currentNotePeriod = (int)((aktMemo.currentNotePeriod * ((long)ModConstants.LinearSlideDownTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
 				if (oldPeriod == aktMemo.currentNotePeriod) aktMemo.currentNotePeriod++;
 			}
 		}
 		else
 			aktMemo.currentNotePeriod += slide<<ModConstants.PERIOD_SHIFT;
+
+		setNewPlayerTuningFor(aktMemo);
 	}
 	/**
+	 * Different 
 	 * @since 28.03.2024
 	 * @param aktMemo
 	 * @param slide
@@ -713,8 +689,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	{
 		if (frequencyTableType==ModConstants.IT_LINEAR_TABLE)
 		{
-			int slideIndex = (slide<0)?-slide:slide;
-			if (slideIndex>255) slideIndex = 255;
+			int slideIndex = ((slide<0)?-slide:slide)&0x0F;
 			if (slide<0)
 			{
 				aktMemo.currentNotePeriod = (int)((aktMemo.currentNotePeriod * ((long)ModConstants.FineLinearSlideUpTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
@@ -726,6 +701,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 		}
 		else
 			aktMemo.currentNotePeriod += slide<<(ModConstants.PERIOD_SHIFT-2);
+		
+		setNewPlayerTuningFor(aktMemo);
 	}
 	/**
 	 * @since 28.03.2024
@@ -736,8 +713,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	{
 		if (frequencyTableType==ModConstants.IT_LINEAR_TABLE)
 		{
-			int slideIndex = (slide<0)?-slide:slide;
-			if (slideIndex>255) slideIndex = 255;
+			int slideIndex = ((slide<0)?-slide:slide)&0x0F;
 			if (slide<0)
 			{
 				aktMemo.currentNotePeriod = (int)((aktMemo.currentNotePeriod * ((long)ModConstants.LinearSlideUpTable[slideIndex]))>>ModConstants.HALFTONE_SHIFT);
@@ -749,6 +725,60 @@ public class ScreamTrackerMixer extends BasicModMixer
 		}
 		else
 			aktMemo.currentNotePeriod += slide<<ModConstants.PERIOD_SHIFT;
+
+		setNewPlayerTuningFor(aktMemo);
+	}
+	/**
+	 * Convenient Method for the Porta Up Effekt
+	 * @since 08.06.2020
+	 * @param aktMemo
+	 */
+	private void doPortaUp(final ChannelMemory aktMemo, final boolean firstTick, final boolean inVolColum)
+	{
+		final int indicatorPortaUp = aktMemo.portaStepUp&0xF0;
+		if (inVolColum) 
+			doFreqSlide(aktMemo, -aktMemo.portaStepUp);
+		else
+		{
+			switch (indicatorPortaUp)
+			{
+				case 0xE0:
+					if (firstTick) doExtraFineSlide(aktMemo, -(aktMemo.portaStepUp&0x0F));
+					break;
+				case 0xF0:
+					if (firstTick) doFineSlide(aktMemo, -(aktMemo.portaStepUp&0x0F));
+					break;
+				default:
+					if (!firstTick) doFreqSlide(aktMemo, -aktMemo.portaStepUp);
+					break;
+			}
+		}
+	}
+	/**
+	 * Convenient Method for the Porta Down Effekt
+	 * @since 08.06.2020
+	 * @param aktMemo
+	 */
+	private void doPortaDown(final ChannelMemory aktMemo, final boolean firstTick, final boolean inVolColum)
+	{
+		final int indicatorPortaUp = aktMemo.portaStepDown&0xF0;
+		if (inVolColum) 
+			doFreqSlide(aktMemo, aktMemo.portaStepDown);
+		else
+		{
+			switch (indicatorPortaUp)
+			{
+				case 0xE0:
+					if (firstTick) doExtraFineSlide(aktMemo, aktMemo.portaStepDown&0x0F);
+					break;
+				case 0xF0:
+					if (firstTick) doFineSlide(aktMemo, aktMemo.portaStepDown&0x0F);
+					break;
+				default:
+					if (!firstTick) doFreqSlide(aktMemo, aktMemo.portaStepDown);
+					break;
+			}
+		}
 	}
 	/**
 	 * Convenient Method for the Porta to note Effekt
@@ -776,40 +806,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.portaTargetNotePeriod=-1;
 				}
 			}
-			if (aktMemo.glissando)
-				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
-			else
-				setNewPlayerTuningFor(aktMemo);
-		}
-	}
-	/**
-	 * Convenient Method for the Porta Up Effekt
-	 * @since 08.06.2020
-	 * @param aktMemo
-	 */
-	private void doPortaUp(final ChannelMemory aktMemo, final boolean inVolColum)
-	{
-		final int indicatorPortaUp = aktMemo.portaStepUp&0xF0;
-		if (inVolColum || (indicatorPortaUp!=0xE0 && indicatorPortaUp!=0xF0)) // NO Extra Fine Porta Up
-		{
-			doFreqSlide(aktMemo, -aktMemo.portaStepUp);
-			if (aktMemo.glissando)
-				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
-			else
-				setNewPlayerTuningFor(aktMemo);
-		}
-	}
-	/**
-	 * Convenient Method for the Porta Down Effekt
-	 * @since 08.06.2020
-	 * @param aktMemo
-	 */
-	private void doPortaDown(final ChannelMemory aktMemo, final boolean inVolColum)
-	{
-		final int indicatorPortaDown = aktMemo.portaStepDown&0xF0;
-		if (inVolColum || (indicatorPortaDown!=0xE0 && indicatorPortaDown!=0xF0)) // NO Extra Fine Porta Up
-		{
-			doFreqSlide(aktMemo, aktMemo.portaStepDown);
 			if (aktMemo.glissando)
 				setNewPlayerTuningFor(aktMemo, getRoundedPeriod(aktMemo, aktMemo.currentNotePeriod>>ModConstants.PERIOD_SHIFT)<<ModConstants.PERIOD_SHIFT);
 			else
@@ -848,51 +844,84 @@ public class ScreamTrackerMixer extends BasicModMixer
 	@Override
 	protected void doAutoVibratoEffekt(final ChannelMemory aktMemo, final Sample currentSample, final int currentPeriod)
 	{
-		// Schism / OpenMPT implementation adopted
 		if (currentSample.vibratoRate==0) return;
-		
-		int depth = aktMemo.autoVibratoAmplitude;
-		depth += currentSample.vibratoSweep;
-		if (depth>(currentSample.vibratoDepth<<7)) depth = currentSample.vibratoDepth<<7; 
-		aktMemo.autoVibratoAmplitude = depth;
-		depth >>= 6;
-		
-		final int position = aktMemo.autoVibratoTablePos & 0xFF;
-		aktMemo.autoVibratoTablePos += currentSample.vibratoRate;
-		int periodAdd;
-		switch (currentSample.vibratoType & 0x07)
-		{
-			default:
-			case 0:	periodAdd = ModConstants.ITSinusTable[position];		// Sine
-					break;
-			case 1:	periodAdd = position<128? 0x40:0;						// Square
-					break;
-			case 2:	periodAdd = ((position + 1)>>1) - 0x40;					// Ramp Up
-					break;
-			case 3:	periodAdd = 0x40 - ((position + 1)>>1);					// Ramp Down
-					break;
-			case 4:	periodAdd = (int)(128 * swinger.nextDouble() - 0x40);	// Random
-					break;
-		}
-		periodAdd = (periodAdd * depth) >> 7; // periodAdd 0..128
+		final int maxDepth = currentSample.vibratoDepth<<8;
+		int periodAdd = 0;
 
-		int slideIndex = (periodAdd<0)?-periodAdd:periodAdd;
-		if (slideIndex>(255<<2)) slideIndex = (255<<2);
-		final long period = currentPeriod;
-		
-		// Formula: ((period*table[index / 4])-period) + ((period*fineTable[index % 4])-period)
-		if (periodAdd<0)
-		{
-			periodAdd = (int)(((period * ((long)ModConstants.LinearSlideUpTable[slideIndex>>2]))>>ModConstants.HALFTONE_SHIFT) - period);
-			if ((slideIndex&0x03)!=0) periodAdd += (int)(((period * ((long)ModConstants.FineLinearSlideUpTable[slideIndex&0x3]))>>ModConstants.HALFTONE_SHIFT) - period);
-		}
-		else
-		{
-			periodAdd = (int)(((period * ((long)ModConstants.LinearSlideDownTable[slideIndex>>2]))>>ModConstants.HALFTONE_SHIFT) - period);
-			if ((slideIndex&0x03)!=0) periodAdd += (int)(((period * ((long)ModConstants.FineLinearSlideDownTable[slideIndex&0x3]))>>ModConstants.HALFTONE_SHIFT) - period);
-		}
+//		if (config.ITVibratoTremoloPanbrello)
+//		{
+			// Schism / OpenMPT implementation adopted
+			final int position = aktMemo.autoVibratoTablePos & 0xFF;
+			// sweep = rate<<2, rate = speed, depth = depth
+			int depth = aktMemo.autoVibratoAmplitude;
+			depth += currentSample.vibratoSweep&0xFF;
+			if (depth>maxDepth) depth = maxDepth; 
+			aktMemo.autoVibratoAmplitude = depth;
+			depth >>= 8;
+			
+			aktMemo.autoVibratoTablePos += currentSample.vibratoRate;
+			switch (currentSample.vibratoType & 0x07)
+			{
+				default:
+				case 0:	periodAdd = ModConstants.ITSinusTable[position];		// Sine
+						break;
+				case 1:	periodAdd = position<128? 0x40:0;						// Square
+						break;
+				case 2:	periodAdd = ((position + 1)>>1) - 0x40;					// Ramp Up
+						break;
+				case 3:	periodAdd = 0x40 - ((position + 1)>>1);					// Ramp Down
+						break;
+				case 4:	periodAdd = (int)(128 * swinger.nextDouble() - 0x40);	// Random
+						break;
+			}
+			periodAdd = (periodAdd * depth) >> 6;
+	
+			final int[] linearSlideTable = (periodAdd<0)?ModConstants.LinearSlideUpTable:ModConstants.LinearSlideDownTable;
+			final int[] fineLinearSlideTable = (periodAdd<0)?ModConstants.FineLinearSlideUpTable:ModConstants.FineLinearSlideDownTable;
+			final int slideIndex = (periodAdd<0)?-periodAdd:periodAdd;
+			if (slideIndex<16)
+				periodAdd = ((int)((currentPeriod * (long)fineLinearSlideTable[slideIndex])>>ModConstants.HALFTONE_SHIFT)) - currentPeriod;
+			else
+				periodAdd = ((int)((currentPeriod * (long)linearSlideTable[slideIndex>>2])>>ModConstants.HALFTONE_SHIFT)) - currentPeriod;
 
-		setNewPlayerTuningFor(aktMemo, currentPeriod - periodAdd);
+			setNewPlayerTuningFor(aktMemo, currentPeriod - periodAdd);
+//		}
+//		else // ModPlug does this quit differently, but is only used if set via config - we need to read that TODO: read config for this!
+//		{
+//			aktMemo.autoVibratoAmplitude += currentSample.vibratoSweep<<1;
+//			if (aktMemo.autoVibratoAmplitude>maxDepth) aktMemo.autoVibratoAmplitude = maxDepth;
+//			
+//			aktMemo.autoVibratoTablePos += currentSample.vibratoRate;
+//			switch (currentSample.vibratoType & 0x07)
+//			{
+//				default:
+//				case 0:	periodAdd = -ModConstants.ITSinusTable[aktMemo.autoVibratoTablePos & 0xFF];		// Sine
+//						break;
+//				case 1:	periodAdd = (aktMemo.autoVibratoTablePos&0x80)!=0? 0x40:-0x40;					// Square
+//						break;
+//				case 2:	periodAdd = ((0x40 + (aktMemo.autoVibratoTablePos>>1)) & 0x7F) - 0x40;			// Ramp Up
+//						break;
+//				case 3:	periodAdd = ((0x40 - (aktMemo.autoVibratoTablePos>>1)) & 0x7F) - 0x40;			// Ramp Down
+//						break;
+//				case 4:	periodAdd = ModConstants.ModRandomTable[aktMemo.autoVibratoTablePos & 0x3F];	// Random
+//						break;
+//			}
+//			int n = (periodAdd * aktMemo.autoVibratoAmplitude) >> 8;
+//			
+//			int[] linearSlideTable;
+//			if (n < 0)
+//			{
+//				n = -n;
+//				linearSlideTable = ModConstants.LinearSlideUpTable;
+//			}
+//			else
+//				linearSlideTable = ModConstants.LinearSlideDownTable;
+//			final int n1 = n>>8;
+//			final long df1 = linearSlideTable[n1];
+//			final long df2 = linearSlideTable[n1+1];
+//			n>>=2;
+//			setNewPlayerTuningFor(aktMemo, (int)((currentPeriod * (df1 + (((df2 - df1) * ((long)n & 0x3F)) >> 6)))>>ModConstants.HALFTONE_SHIFT));
+//		}
 	}
 	/**
 	 * Convenient Method for the vibrato effekt
@@ -1091,21 +1120,21 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	protected void doArpeggioEffekt(final ChannelMemory aktMemo)
 	{
-		aktMemo.arpegioIndex = (aktMemo.arpegioIndex+1)%3;
+		aktMemo.arpeggioIndex = (aktMemo.arpeggioIndex+1)%3;
 		int nextNotePeriod = 0;
 		if (isIT)
 		{
-			if (aktMemo.arpegioIndex==0)
+			if (aktMemo.arpeggioIndex==0)
 				nextNotePeriod = aktMemo.currentNotePeriod;
 			else
 			{
-				final long factor = (long)ModConstants.halfToneTab[(aktMemo.arpegioIndex==1)?(aktMemo.arpegioParam>>4):(aktMemo.arpegioParam&0xF)];
+				final long factor = (long)ModConstants.halfToneTab[(aktMemo.arpeggioIndex==1)?(aktMemo.arpeggioParam>>4):(aktMemo.arpeggioParam&0xF)];
 				nextNotePeriod = (int)((((long)aktMemo.currentNotePeriod) * factor)>>ModConstants.HALFTONE_SHIFT);
 			}
 		}
 		else
 		{
-			nextNotePeriod = aktMemo.arpegioNote[aktMemo.arpegioIndex];
+			nextNotePeriod = aktMemo.arpeggioNote[aktMemo.arpeggioIndex];
 		}
 		if (nextNotePeriod!=0) setNewPlayerTuningFor(aktMemo, nextNotePeriod);
 	}
@@ -1187,7 +1216,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		if (globalVolume<0) globalVolume = 0;
 	}
 	/**
-	 * Retriggers the note and does volume slide
+	 * Re-Triggers the note and does volume slide
 	 * @since 04.04.2020
 	 * @param aktMemo
 	 */
@@ -1257,14 +1286,14 @@ public class ScreamTrackerMixer extends BasicModMixer
 				if (patternDelayCount>0 && currentTick==currentTempo) doRowEffects(aktMemo);
 				else
 				{
-					doPortaDown(aktMemo, false);
+					doPortaDown(aktMemo, false, false);
 				}
 				break;
 			case 0x06: 			// Porta Up
 				if (patternDelayCount>0 && currentTick==currentTempo) doRowEffects(aktMemo);
 				else
 				{
-					doPortaUp(aktMemo, false);
+					doPortaUp(aktMemo, false, false);
 				}
 				break;
 			case 0x07 :			// Porta to Note
@@ -1418,7 +1447,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				if (aktMemo.assignedVolumeEffektOp!=0)
 				{
 					final int index = (aktMemo.assignedVolumeEffektOp>9)?9:aktMemo.assignedVolumeEffektOp&0x0F;
-					aktMemo.portaNoteStep = ModConstants.IT_VolColumnPortaNotSpeedTranslation[index];
+					aktMemo.portaNoteStep = ModConstants.IT_VolColumnPortaNoteSpeedTranslation[index];
 					if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) aktMemo.IT_EFG = aktMemo.portaNoteStep;
 				}
 				break;
@@ -1483,10 +1512,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 				doPortaToNoteEffekt(aktMemo);
 				break;
 			case 0x0C: // Porta Down
-				doPortaDown(aktMemo, true);
+				doPortaDown(aktMemo, false, true);
 				break;
 			case 0x0D: // Porta Up
-				doPortaUp(aktMemo, true);
+				doPortaUp(aktMemo, false, true);
 				break;
 		}
 	}
@@ -1568,14 +1597,42 @@ public class ScreamTrackerMixer extends BasicModMixer
 		return effektParam;
 	}
 	/**
+	 * Some effects in IT need to be done after the tick effects
+	 * @since 06.07.2024
+	 * @param effect
+	 * @return
+	 */
+	private boolean isAfterEffect(final int effect)
+	{
+		switch (effect)
+		{
+			case 0x08: // Vibrato
+			case 0x09: // Tremor
+			case 0x0A: // Arpeggio
+			case 0x0B: // Vibrato + VolSlide
+				return true;
+		}
+		return false;
+	}
+	/**
 	 * @param aktMemo
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#processTickEffekts(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)
 	 */
 	@Override
 	protected void processTickEffekts(final ChannelMemory aktMemo)
 	{
-		doTickEffekts(aktMemo);
-		doVolumeColumnTickEffekt(aktMemo);
+		if (isIT)
+		{
+			final boolean isAfterEffect = isAfterEffect(aktMemo.assignedEffekt);
+			if (!isAfterEffect) doTickEffekts(aktMemo);
+			doVolumeColumnTickEffekt(aktMemo);
+			if (isAfterEffect) doTickEffekts(aktMemo);
+		}
+		else
+		{
+			doTickEffekts(aktMemo);
+			doVolumeColumnTickEffekt(aktMemo);  // s3ms only know volume and panning...
+		}
 	}
 	/**
 	 * @param aktMemo
@@ -1589,8 +1646,18 @@ public class ScreamTrackerMixer extends BasicModMixer
 		// *** IT Compat Off means, old stm, s3m ... ***
 		if ((mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0) 
 			aktMemo.portaStepDown = aktMemo.portaStepUp = aktMemo.portaNoteStep = aktMemo.IT_EFG;
-		// IT: first Row, then column!
-		doRowEffects(aktMemo);
-		doVolumeColumnRowEffekt(aktMemo);
+
+		if (isIT)
+		{
+			final boolean isAfterEffect = isAfterEffect(aktMemo.assignedEffekt);
+			if (!isAfterEffect) doRowEffects(aktMemo);
+			doVolumeColumnRowEffekt(aktMemo);
+			if (isAfterEffect) doRowEffects(aktMemo);
+		}
+		else
+		{
+			doRowEffects(aktMemo);
+			doVolumeColumnRowEffekt(aktMemo); // s3ms only know volume and panning...
+		}
 	}
 }

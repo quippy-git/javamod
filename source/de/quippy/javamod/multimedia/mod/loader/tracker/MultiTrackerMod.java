@@ -282,7 +282,7 @@ public class MultiTrackerMod extends ProTrackerMod
 			// setFineTune
 			fine = (fine>0x7F)?fine-0x100:fine;
 			current.setFineTune(fine);
-			current.setBaseFrequency(ModConstants.it_fineTuneTable[(fine>>4)+8]);
+			current.setBaseFrequency(ModConstants.IT_fineTuneTable[(fine>>4)+8]);
 			current.setTranspose(0);
 
 			// Voplume 64 is maximum

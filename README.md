@@ -1,4 +1,4 @@
-# JavaMod V3.9.1
+# JavaMod V3.9.3
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -20,7 +20,7 @@ On Linux consider starting with OpenGL render pipeline activated:
 ## Remarks to 3.9.x version updates
 With JavaMod versions 4.0 to 5.0 I want to integrate Midi and AdLib support.
 However, before starting that I want to have all test mods of Schism and
-Open ModPlug Tracker to work. We finished MOD and most of XM with this version
+Open ModPlug Tracker to work. We finished MOD and XM with this version
 and a whole lot of other stuff as well. So I decided to release new version 
 with minor version number updates to have you participate in these changes!
 
@@ -44,7 +44,7 @@ with minor version number updates to have you participate in these changes!
 
 ## Technical info:
 Code Compliance Level: JDK 17
-Build with openJDK 17.0.2
+Build with openJDK 17.0.11
  
 ## Third-party libraries
 JavaMod incorporates modified versions of the following libraries:
@@ -67,16 +67,50 @@ JavaMod incorporates modified versions of the following libraries:
 
 ## Planned:
 * finish loading of OMPT extended instrument / song data / mixer data
-* optimize recognition of different trackers - for whatever that is worth it
 * reading at least Midi Config with XMs / ITs
 * VSTiVolume, SamplePreAmp, MixLevels - look, what OMPT has to say
 * check for further missing MPTM Effects like Reverb and Surround commands
+* optimize recognition of different trackers - for whatever that is worth it
 * Quad Speaker mixing (rear speakers)
-+ LongList:
+* + LongList:
   * Midi and AdLib/OPL with Mods
   * WavPack and MusePack support
   * MO3 support
   * read from 7z archives
+
+## New in Version 3.9.3
+* FIX: finished:
+       Enhanced FastTracker 2 compatibility by fixing everything to make these
+       test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/XM
+       (many, many changes...!)
+* FIX: When fixing (Fine) Volslides for XMs: MODs do not have effect memory with
+       fine volume slides
+* FIX: Note Delays with XMs did not work correctly anymore, due to other fixes.
+       Refixed...
+* FIX: XM: During Note Delays, tick effects (volume column) need to continue
+* FIX: Note delay overhaul as well for ProTracker, when we are at it.
+* FIX: S3Ms reset volume with only instrument given
+* FIX: Fixed IT ((Extra) Fine) porta up/down. Additionally moved some effects
+       to be processed after vol column effects (arpeggio / vibrato / Tremolo)
+* FIX: the information dialogs Pattern, Instrument and Sample stayed closed when
+       de-iconifying JavaMod. That is because we use "dispose" to hide JavaMod
+       in the task bar with Linux KDE when minimizing to system tray.
+       That is not a good idea, as the visible status of those is always false
+       then and cannot be restored
+* FIX: renamed effect "retrig note + volume slide" to "multi retrig note"
+* FIX: Show >0xFF rows in pattern display
+
+## New in Version 3.9.2
+* FIX: Continue:
+       Enhanced FastTracker 2 compatibility by fixing everything to make these
+       test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/XM
+       (many, many changes...!)
+* FIX: When loading XMs create empty patterns (the player can handle this, the
+       pattern display however does not like null rows or null elements
+* FIX: Fix of 3.9 to 3.9.1 introduced bug of envelope fade out
+* FIX: AutoVibrato with XMs was broken - also with IT (copy bug from vibrato)
+* FIX: Update check did not update the date of last check
+* FIX: VolumeSlides and FineVolSlides plus volume column volume slides
 
 ## New in Version 3.9.1
 * NEW: Colorful pattern display with previous and next pattern displayed in dim
@@ -91,7 +125,7 @@ JavaMod incorporates modified versions of the following libraries:
        Press ESC to leave editor mode. (The editor mode is not a real editor!)
 * NEW: A double click on the instrument column will open instrument/sample
        dialog for display
-* NEw: Zoom for instrument and sample display
+* NEW: Zoom for instrument and sample display
 * NEW: Overhaul of most of the graphical implementations
 * NEW: removed test classes from project
 * NEW: Added a headless mode for command line usage. That way no GUI elements

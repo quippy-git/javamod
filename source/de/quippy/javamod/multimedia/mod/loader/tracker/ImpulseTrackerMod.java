@@ -725,7 +725,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			
 			currentSample.setVibratoRate(inputStream.read());
 			currentSample.setVibratoDepth(inputStream.read() & 0x7F);
-			currentSample.setVibratoSweep((inputStream.read() + 3) >> 2);
+			currentSample.setVibratoSweep(inputStream.read()); // +3)>>2 was copied from old ModPlug - in autoVib than sweep<<3
 			currentSample.setVibratoType(autovibit2xm[inputStream.read() & 0x07]);
 
 			if (sampleOffset>0 && currentSample.length>0)

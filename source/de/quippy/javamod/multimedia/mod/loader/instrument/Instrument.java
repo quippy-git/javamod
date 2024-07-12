@@ -66,9 +66,9 @@ public class Instrument
 	public int plugin = 0;			// Plugin Number - we do not support MPT standard plugins yet
 
 	// OMPT
-	public int volRampUp = -1; // ys of volRamping up, -1 || 0 == use default
-	public int resampling = -1; // resampling - we support -1: default: 0:none, 1: linear, 2: cubic, 3&>:Windowed FIR
-	public boolean mute = false; // MPT seems to have supported the muting of instruments. Is not written anymore
+	public int volRampUp = -1;		// ys of volRamping up, -1 || 0 == use default
+	public int resampling = -1;		// resampling - we support -1: default: 0:none, 1: linear, 2: cubic, 3&>:Windowed FIR
+	public boolean mute = false;	// MPT seems to have supported the muting of instruments. Is not written anymore
 	
 	// MadTracker
 	public int filterMode = ModConstants.FLTMODE_UNCHANGED;

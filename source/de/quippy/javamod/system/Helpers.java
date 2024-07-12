@@ -88,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.9.2";
+	public static final String VERSION = "V3.9.3";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";

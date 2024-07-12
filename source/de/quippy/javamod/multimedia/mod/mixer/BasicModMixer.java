@@ -69,7 +69,8 @@ public abstract class BasicModMixer
 		public Sample currentSample;
 		public int currentTuning, currentTuningPos, currentSamplePos, interpolationMagic;
 		public boolean isForwardDirection;
-		public int volEnvPos, panEnvPos, pitchEnvPos;
+		public int volEnvTick, panEnvTick, pitchEnvTick;
+		public int volXMEnvPos, panXMEnvPos;
 		public boolean instrumentFinished, keyOff, noteCut, noteFade;
 		public int tempNNAAction, tempVolEnv, tempPanEnv, tempPitchEnv;
 		public int keyOffCounter;
@@ -97,10 +98,10 @@ public abstract class BasicModMixer
 		
 		// The effect memories
 		public boolean glissando;
-		public int arpegioIndex, arpegioNote[], arpegioParam;
+		public int arpeggioIndex, arpeggioNote[], arpeggioParam;
 		public int portaStepUp, portaStepUpEnd, portaStepDown, portaStepDownEnd;
 		public int finePortaUp, finePortaDown, finePortaUpEx, finePortaDownEx; 
-		public int portaNoteStep, portaTargetNotePeriod, portamentoDirection_XM;
+		public int portaNoteStep, portaTargetNotePeriod, portamentoDirection_PT_FT;
 		public int volumSlideValue, globalVolumSlideValue;
 		public int XMFineVolSlideUp, XMFineVolSlideDown;
 		public int panningSlideValue;
@@ -113,14 +114,14 @@ public abstract class BasicModMixer
 		public int tremorOntime, tremorOfftime, tremorOntimeSet, tremorOfftimeSet;
 		public boolean tremorWasActive;
 		public int retrigCount, retrigMemo, retrigVolSlide;
+		public boolean FT2AllowRetriggerQuirk;
 		public int sampleOffset, highSampleOffset, prevSampleOffset;
 		public int oldTempoParameter; // IT has Tempo memory
 		public int S_Effect_Memory; // IT specific S00 Memory
 		public int IT_EFG; // IT specific: linked memory
 		public int EFxSpeed, EFxDelay, EFxOffset; // MOD specific: invertLoop (trash the sample)
 		
-		public int jumpLoopPatternRow, jumpLoopRepeatCount, lastJumpCounterRow;
-		public boolean jumpLoopPositionSet;
+		public int jumpLoopPatternRow, jumpLoopRepeatCount;
 
 		public int noteDelayCount, noteCutCount;
 		
@@ -152,16 +153,17 @@ public abstract class BasicModMixer
 			noteCut = keyOff = noteFade = false;
 			tempNNAAction = tempVolEnv = tempPanEnv = tempPitchEnv = -1;
 	
-			volEnvPos = panEnvPos = pitchEnvPos = 0;
+			volEnvTick = panEnvTick = pitchEnvTick = 0;
+			volXMEnvPos = panXMEnvPos = 0;
 			swingVolume = swingPanning = swingResonance = swingCutOff = 0;
 			
-			arpegioIndex = noteDelayCount = noteCutCount = -1;
-			arpegioParam = 0;
-			arpegioNote = new int[3];
+			arpeggioIndex = noteDelayCount = noteCutCount = -1;
+			arpeggioParam = 0;
+			arpeggioNote = new int[3];
 			portaStepUp = portaStepDown = portaStepUpEnd = portaStepDownEnd = 0; 
 			finePortaDown = finePortaUp = 0; 
 			finePortaDownEx = finePortaUpEx = 0; 
-			portaNoteStep = portamentoDirection_XM = volumSlideValue = globalVolumSlideValue = 0;
+			portaNoteStep = portamentoDirection_PT_FT = volumSlideValue = globalVolumSlideValue = 0;
 			XMFineVolSlideUp = XMFineVolSlideDown = 0;
 			portaTargetNotePeriod = -1;
 			vibratoTablePos = vibratoStep = vibratoAmplitude = vibratoType = 0; 
@@ -190,8 +192,7 @@ public abstract class BasicModMixer
 			filter_A0 = filter_B0 = filter_B1 = filter_HP = 0;
 			filter_Y1 = filter_Y2 = filter_Y3 = filter_Y4 = 0;
 			
-			jumpLoopPositionSet = false;
-			patternJumpPatternIndex = jumpLoopPatternRow = jumpLoopRepeatCount = lastJumpCounterRow = -1;
+			jumpLoopPatternRow = jumpLoopRepeatCount = 0;
 		}
 		/**
 		 * Every possible way to create a 1:1 copy of ChannelMemory for NNA
@@ -219,9 +220,9 @@ public abstract class BasicModMixer
 			currentSamplePos = fromMe.currentSamplePos;
 			interpolationMagic = fromMe.interpolationMagic;
 			isForwardDirection = fromMe.isForwardDirection;
-			volEnvPos = fromMe.volEnvPos;
-			panEnvPos = fromMe.panEnvPos;
-			pitchEnvPos = fromMe.pitchEnvPos;
+			volEnvTick = fromMe.volEnvTick;
+			panEnvTick = fromMe.panEnvTick;
+			pitchEnvTick = fromMe.pitchEnvTick;
 			instrumentFinished = fromMe.instrumentFinished;
 			keyOff = fromMe.keyOff;
 			noteCut = fromMe.noteCut;
@@ -276,8 +277,8 @@ public abstract class BasicModMixer
 			return  "Channel: "+channelNumber+(isNNA?"(NNA) ":" ")+
 					"Note: "+ModConstants.getNoteNameForIndex(assignedNoteIndex)+
 					" Volume: "+currentInstrumentVolume+
-					" Instrument: "+((assignedInstrument!=null)?assignedInstrument.toString():"NONE"+
-					" Sample: " + ((assignedSample!=null)?assignedSample.toString():"NONE"));
+					" Instrument: \""+((assignedInstrument!=null)?assignedInstrument.toString():"NONE")+
+					"\" Sample: \"" + ((assignedSample!=null)?assignedSample.toString():"NONE")+'\"';
 		}
 	}
 
@@ -310,9 +311,11 @@ public abstract class BasicModMixer
 	protected int patternDelayCount, patternTicksDelayCount;
 	protected Pattern currentPattern;
 	
-	protected int patternBreakRowIndex; // -1== no pattern break, otherwise >=0
-	protected int patternBreakJumpPatternIndex; // -1== no pattern pos jump
-	protected int patternJumpPatternIndex;
+	protected int patternBreakRowIndex;		// Pattern break row index
+	protected int patternBreakPatternIndex; // Pattern break arrangement index
+	protected boolean patternBreakSet;		// do a patternBreak
+	protected int patternJumpRowIndex;		// Jump Loop row index
+	protected boolean patternJumpSet;		// do a jump
 	
 	protected final Module mod;
 	protected int sampleRate;
@@ -469,7 +472,8 @@ public abstract class BasicModMixer
 		currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
 		
 		patternDelayCount = patternTicksDelayCount = 
-		patternJumpPatternIndex = patternBreakRowIndex = patternBreakJumpPatternIndex = -1;
+		patternJumpRowIndex = patternBreakRowIndex = patternBreakPatternIndex = -1;
+		patternJumpSet = patternBreakSet = false;
 		
 		modSpeedSet = 0;
 		bufferDiff = 0;
@@ -829,8 +833,7 @@ public abstract class BasicModMixer
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod);
 		// save for IT Arpeggios. Must be done here, not above, as above
 		// service is used when not changed permanently through currentNotePeriod!
-		// TODO: Verify, as "doArpeggioEffekt" takes currentNotePeriod, not arpegioNote[0]
-		//if (isIT) aktMemo.arpegioNote[0] = aktMemo.currentNotePeriod;
+		if (isIT) aktMemo.arpeggioNote[0] = aktMemo.currentNotePeriod;
 	}
 	/**
 	 * Get the period of the nearest halftone
@@ -1099,6 +1102,49 @@ public abstract class BasicModMixer
 		}
 	}
 	/**
+	 * @since 20.06.2024
+	 * @param aktMemo
+	 */
+	protected void doKeyOff(final ChannelMemory aktMemo)
+	{
+		aktMemo.keyOff = true;
+		if (isXM)
+		{
+			// XM has a certain envelope tick reset with key off and existing envelopes - tick is reset to the previous start position
+			// That way a sustain release is managed - however, with panning because of a bug, that does not work
+			final Instrument currentInstrument = aktMemo.assignedInstrument;
+			final Envelope volumeEnv = (currentInstrument!=null)?currentInstrument.volumeEnvelope:null;
+			if (volumeEnv!=null && volumeEnv.on)
+			{
+				aktMemo.volEnvTick = volumeEnv.getXMResetPosition(aktMemo.volEnvTick, aktMemo.volXMEnvPos);
+			}
+			else
+			{
+				aktMemo.currentVolume = 0;
+				aktMemo.doFastVolRamp = true;
+			}
+			final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
+			if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
+			{
+				aktMemo.panEnvTick = panningEnv.getXMResetPosition(aktMemo.panEnvTick, aktMemo.panXMEnvPos);
+			}
+		}
+	}
+	/**
+	 * @since 10.07.2024
+	 * @param aktMemo
+	 */
+	protected void doNoteCut(final ChannelMemory aktMemo)
+	{
+		aktMemo.noteCut = true;
+		//currentVolume = 0;
+		// Schism sets tuning=0 and deletes the last period
+		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
+		// that would be our way:
+		//aktMemo.instrumentFinished = true;
+		aktMemo.doFastVolRamp = true;
+	}
+	/**
 	 * Check if effect is a fine slide - then only on first tick!
 	 * @since 04.04.2020
 	 * @param slideValue
@@ -1227,7 +1273,7 @@ public abstract class BasicModMixer
 		int currentPanning = aktMemo.panning;
 		int currentPeriod = aktMemo.currentNotePeriodSet;
 		
-		// The adjustments on the periods will change currentNotePeriodSet
+		// The adjustments on the periods will change currentNotePeriodSet when setting via "setNewPlayerTuningFor(..)"
 		// That's bad in envelopes, because we want to "add on" here
 		// and not on top of our self over and over again
 		final int resetPeriodAfterEnvelopes = currentPeriod;
@@ -1247,8 +1293,10 @@ public abstract class BasicModMixer
 				final boolean volEnvOn = (aktMemo.tempVolEnv!=-1)?aktMemo.tempVolEnv==1:volumeEnv.on;
 				if (volEnvOn)
 				{
-					aktMemo.volEnvPos = volumeEnv.updatePosition(aktMemo, aktMemo.volEnvPos, true);
-					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvPos); // 0..512
+					final long volPos = volumeEnv.updatePosition(aktMemo, aktMemo.volEnvTick, aktMemo.volXMEnvPos, true);
+					aktMemo.volEnvTick = (int)(volPos&0xFFFFFFFF);
+					aktMemo.volXMEnvPos = (int)(volPos>>32);
+					int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvTick, aktMemo.volXMEnvPos); // 0..512
 					currentVolume = (currentVolume * newVol) >> 9;
 				}
 			}
@@ -1260,8 +1308,10 @@ public abstract class BasicModMixer
 				final boolean panEnvOn = (aktMemo.tempPanEnv!=-1)?aktMemo.tempPanEnv==1:panningEnv.on;
 				if (panEnvOn)
 				{
-					aktMemo.panEnvPos = panningEnv.updatePosition(aktMemo, aktMemo.panEnvPos, false);
-					final int newPanValue = panningEnv.getValueForPosition(aktMemo.panEnvPos) - 256; // result -256..256
+					final long panPos = panningEnv.updatePosition(aktMemo, aktMemo.panEnvTick, aktMemo.panXMEnvPos, false);
+					aktMemo.panEnvTick = (int)(panPos&0xFFFFFFFF);
+					aktMemo.panXMEnvPos = (int)(panPos>>32);
+					final int newPanValue = panningEnv.getValueForPosition(aktMemo.panEnvTick, aktMemo.panXMEnvPos) - 256; // result -256..256
 					currentPanning += (newPanValue * ((currentPanning >= 128)?(256 - currentPanning):currentPanning)) >> 8;
 				}
 			}
@@ -1280,8 +1330,8 @@ public abstract class BasicModMixer
 				final boolean pitchEnvOn = (aktMemo.tempPitchEnv!=-1)?aktMemo.tempPitchEnv==1:pitchEnv.on;
 				if (pitchEnvOn) // only IT...
 				{
-					aktMemo.pitchEnvPos = pitchEnv.updatePosition(aktMemo, aktMemo.pitchEnvPos, false);
-					int pitchValue = pitchEnv.getValueForPosition(aktMemo.pitchEnvPos) - 256; // result -256..256
+					aktMemo.pitchEnvTick = (int)(pitchEnv.updatePosition(aktMemo, aktMemo.pitchEnvTick, 0, false)&0xFFFFFFFF);
+					int pitchValue = pitchEnv.getValueForPosition(aktMemo.pitchEnvTick, 0) - 256; // result -256..256
 					if (pitchEnv.filter)
 						setupChannelFilter(aktMemo, !aktMemo.filterOn, pitchValue);
 					else
@@ -1308,8 +1358,7 @@ public abstract class BasicModMixer
 		if (aktMemo.keyOff) initNoteFade(aktMemo);
 
 		// Do the note fade
-		// we are either from IT, which have this effect directly
-		// or volume envelopes finished
+		// With XMs, a note fade without an instrument results in a note off, which is already done in doKeyOff()
 		if (aktMemo.noteFade)
 		{
 			if (currentInstrument!=null/* && currentInstrument.volumeFadeOut>0*/)
@@ -1319,7 +1368,7 @@ public abstract class BasicModMixer
 				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
 			}
 			else
-				currentVolume = aktMemo.fadeOutVolume = 0;
+				aktMemo.noteFade = false; // no instrument, no fade out - stop this calculation...
 			
 			// With IT a finished noteFade also sets the instrument as finished
 			if (isIT && aktMemo.fadeOutVolume<=0 && isChannelActive(aktMemo))
@@ -1329,27 +1378,19 @@ public abstract class BasicModMixer
 			}
 		}
 
-		if (aktMemo.noteCut) // Only with IT - XM does not know this one
-		{
-			currentVolume = 0;
-			aktMemo.doFastVolRamp = true;
-		}
-		else
-		{
-			// VolSwing - only if not silent
-			if (currentVolume>0) currentVolume += aktMemo.swingVolume<<ModConstants.VOLUMESHIFT;
-			 // Fade out initiated by recognized endless loop
-			currentVolume = (currentVolume * loopingFadeOutValue) >> ModConstants.MAXFADEOUTVOLSHIFT;
-			// Global Volumes
-			currentVolume = (int)((((long)currentVolume * (long)globalVolume * (long)insVolume * (long)aktMemo.channelVolume) + (1<<(ModConstants.VOLUMESHIFT-1)) ) >> (7+7+6));
-			// now for MasterVolume - which is SamplePreAmp, changed because of legacy MPT:
-			currentVolume = (currentVolume * masterVolume) >> ((useGlobalPreAmp)?(ModConstants.PREAMP_SHIFT - 1):ModConstants.PREAMP_SHIFT);
+		// VolSwing - only if not silent
+		if (currentVolume>0) currentVolume += aktMemo.swingVolume<<ModConstants.VOLUMESHIFT;
+		 // Fade out initiated by recognized endless loop
+		currentVolume = (currentVolume * loopingFadeOutValue) >> ModConstants.MAXFADEOUTVOLSHIFT;
+		// Global Volumes
+		currentVolume = (int)((((long)currentVolume * (long)globalVolume * (long)insVolume * (long)aktMemo.channelVolume) + (1<<(ModConstants.VOLUMESHIFT-1)) ) >> (7+7+6));
+		// now for MasterVolume - which is SamplePreAmp, changed because of legacy MPT:
+		currentVolume = (currentVolume * masterVolume) >> ((useGlobalPreAmp)?(ModConstants.PREAMP_SHIFT - 1):ModConstants.PREAMP_SHIFT);
 
-			// Clipping Volume
-			if (currentVolume>ModConstants.MAXCHANNELVOLUME) currentVolume=ModConstants.MAXCHANNELVOLUME;
-			else
-			if (currentVolume<ModConstants.MINCHANNELVOLUME) currentVolume=ModConstants.MINCHANNELVOLUME;
-		}
+		// Clipping Volume
+		if (currentVolume>ModConstants.MAXCHANNELVOLUME) currentVolume=ModConstants.MAXCHANNELVOLUME;
+		else
+		if (currentVolume<ModConstants.MINCHANNELVOLUME) currentVolume=ModConstants.MINCHANNELVOLUME;
 
 		currentPanning += aktMemo.swingPanning; // Random value -128..+128
 		if (currentPanning<0) currentPanning=0;
@@ -1427,15 +1468,15 @@ public abstract class BasicModMixer
 		// Surround on two channels (Dolby Pro Logic: make left&right out of phase)
 		if (aktMemo.doSurround) aktMemo.actVolumeRight = -aktMemo.actVolumeRight; 
 
-		// now for ramping to target volume
-		calculateVolRampLen(aktMemo);
-
 		// AutoVibrato
 		if (aktMemo.currentSample!=null && aktMemo.currentSample.vibratoDepth>0 && currentPeriod>0)
 			doAutoVibratoEffekt(aktMemo, aktMemo.currentSample, currentPeriod);
 		
+		// now for ramping to target volume
+		calculateVolRampLen(aktMemo);
+
 		// Reset this. That way, envelope period changes are only temporary 
-		// addons but considers temporarily set vibrato and arpegio effects
+		// addons but considers temporarily set vibrato and arpeggio effects
 		aktMemo.currentNotePeriodSet = currentPeriod = resetPeriodAfterEnvelopes;
 	}
 	/**
@@ -1720,9 +1761,9 @@ public abstract class BasicModMixer
 			//  has space in the lower part)
 			// additionally we also consider channels being far beyond their endpoint
 			final int currentVolume = (memo.actVolumeLeft + memo.actVolumeRight) | memo.channelVolume;
-			if ((currentVolume < lowVol) || (currentVolume == lowVol && memo.volEnvPos > envPos)) 
+			if ((currentVolume < lowVol) || (currentVolume == lowVol && memo.volEnvTick > envPos)) 
 			{
-				envPos = memo.volEnvPos;
+				envPos = memo.volEnvTick;
 				lowVol = currentVolume;
 				newChannel = memo;
 			}
@@ -1769,7 +1810,7 @@ public abstract class BasicModMixer
 			// it off then.
 			if (currentInstrument.NNA != ModConstants.NNA_CUT)
 			{
-				final int nna;// = (currentNNAChannel.tempNNAAction!=-1)?currentNNAChannel.tempNNAAction:NNA;
+				final int nna;
 				if (aktMemo.tempNNAAction>-1)
 				{
 					nna = aktMemo.tempNNAAction;
@@ -1795,13 +1836,21 @@ public abstract class BasicModMixer
 		if (ins!=null)
 		{
 			final Envelope volumeEnvelope = ins.volumeEnvelope;
-			if (volumeEnvelope!=null && !volumeEnvelope.carry) aktMemo.volEnvPos = volumeEnvelope.getInitPosition();
+			if (volumeEnvelope!=null && !volumeEnvelope.carry)
+			{
+				aktMemo.volEnvTick = volumeEnvelope.getInitPosition();
+				aktMemo.volXMEnvPos = 0;
+			}
 
 			final Envelope panningEnvelope = ins.panningEnvelope;
-			if (panningEnvelope!=null &&!panningEnvelope.carry) aktMemo.panEnvPos = panningEnvelope.getInitPosition();
+			if (panningEnvelope!=null &&!panningEnvelope.carry)
+			{
+				aktMemo.panEnvTick = panningEnvelope.getInitPosition();
+				aktMemo.panXMEnvPos = 0;
+			}
 
 			final Envelope pitchEnvelope = ins.pitchEnvelope;
-			if (pitchEnvelope!=null &&!pitchEnvelope.carry) aktMemo.pitchEnvPos = pitchEnvelope.getInitPosition();
+			if (pitchEnvelope!=null &&!pitchEnvelope.carry) aktMemo.pitchEnvTick = pitchEnvelope.getInitPosition();
 		}
 	}
 	/**
@@ -1824,8 +1873,6 @@ public abstract class BasicModMixer
 	protected void resetInstrumentPointers(final ChannelMemory aktMemo)
 	{
 		aktMemo.EFxOffset =
-		aktMemo.autoVibratoTablePos =
-		aktMemo.autoVibratoAmplitude =
 		aktMemo.currentTuningPos = 
 		aktMemo.interpolationMagic = 0; 
 		aktMemo.isForwardDirection = true; 
@@ -1858,10 +1905,8 @@ public abstract class BasicModMixer
 		aktMemo.prevSampleOffset=0;
 	}
 	/**
-	 * Will only be called, if a new sample is set
-	 * has to call the method above too
-	 * Will additionally (so far) only reset finetuning 
-	 * and transpose
+	 * Is only called for ImpulseTracker now. Fast- and Pro-Tracker are handled
+	 * completely differently
 	 * @since 14.06.2020
 	 * @param aktMemo
 	 */
@@ -1869,6 +1914,9 @@ public abstract class BasicModMixer
 	{
 		resetInstrumentPointers(aktMemo);
 		resetFineTune(aktMemo, aktMemo.currentSample);
+		resetEnvelopes(aktMemo);
+		resetAutoVibrato(aktMemo, aktMemo.currentSample);
+		aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * Service method to reset Volume and Panning of current instrument / sample 
@@ -1882,6 +1930,7 @@ public abstract class BasicModMixer
 		if (newInstrument!=null && newInstrument.setPanning)
 		{
 			aktMemo.currentInstrumentPanning = aktMemo.panning = newInstrument.defaultPanning;
+			//aktMemo.muted = newInstrument.mute;
 		}
 		if (newSample!=null)
 		{
@@ -1901,7 +1950,7 @@ public abstract class BasicModMixer
 	 * @since 27.03.2024
 	 * @param aktMemo
 	 */
-	protected void resetTablePositions(final ChannelMemory aktMemo)
+	protected void reset_VibTremPan_TablePositions(final ChannelMemory aktMemo)
 	{
 		if (!aktMemo.vibratoNoRetrig) aktMemo.vibratoTablePos = 0;
 		if (!isScreamTrackerFamily && !aktMemo.tremoloNoRetrig) aktMemo.tremoloTablePos = 0;
@@ -1933,6 +1982,10 @@ public abstract class BasicModMixer
 				}
 			}
 		}
+		if (isScreamTrackerFamily)
+		{
+			aktMemo.autoVibratoTablePos = aktMemo.autoVibratoAmplitude = 0;
+		}
 	}
 	/**
 	 * Reset some effects that changed amplitude or volume or panning.
@@ -1942,15 +1995,23 @@ public abstract class BasicModMixer
 	 */
 	protected void resetAllEffects(final ChannelMemory aktMemo, final PatternElement currentElement)
 	{
-		if (aktMemo.arpegioIndex>=0)
+//		// From playVoice in PT code - obviously not necessary with us
+//		// because we have the same effect with the logic downwards
+//		if (isMOD && hasNoNote(currentElement) && currentElement.getEffekt()==0 && currentElement.getEffektOp()==0)
+//		{
+//			setNewPlayerTuningFor(aktMemo);
+//		}
+
+		if (aktMemo.arpeggioIndex>=0)
 		{
-			aktMemo.arpegioIndex=-1;
-			int nextNotePeriod = aktMemo.arpegioNote[0];
-			if (nextNotePeriod!=0)
+			aktMemo.arpeggioIndex=-1;
+			final int baseNotePeriod = aktMemo.arpeggioNote[0];
+			if (baseNotePeriod!=0)
 			{
-				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = nextNotePeriod);
+				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = baseNotePeriod);
 			}
 		}
+
 		if (aktMemo.vibratoOn || aktMemo.vibratoVolOn) // We have a vibrato for reset
 		{
 			// With FastTracker, do not reset volumeColumn vibrato freq (VibratoOn is only set with effect column)
@@ -1960,12 +2021,14 @@ public abstract class BasicModMixer
 			aktMemo.vibratoOn = false;
 			aktMemo.vibratoVolOn = false; // only set with XMs
 		}
+
 		if (aktMemo.tremoloOn) // We have a tremolo for reset
 		{
 			aktMemo.tremoloOn = false;
 			if (!isXM) aktMemo.currentVolume = aktMemo.currentInstrumentVolume;
 			aktMemo.doFastVolRamp = true;
 		}
+
 		if (aktMemo.panbrelloOn) // We have a panbrello for reset
 		{
 			aktMemo.panbrelloOn = false;
@@ -2018,45 +2081,17 @@ public abstract class BasicModMixer
 		return useFilter;
 	}
 	/**
-	 * @since 20.06.2024
-	 * @param aktMemo
-	 */
-	protected void doKeyOff(final ChannelMemory aktMemo)
-	{
-		aktMemo.keyOff = true;
-		if (isXM)
-		{
-			// XM has a certain tick reset with key off and existing envelopes - tick is reset to the previous start position
-			final Instrument currentInstrument = aktMemo.assignedInstrument;
-			final Envelope volumeEnv = (currentInstrument!=null)?currentInstrument.volumeEnvelope:null;
-			if (volumeEnv!=null && volumeEnv.on)
-			{
-				aktMemo.volEnvPos = volumeEnv.getXMResetPosition(aktMemo.volEnvPos);
-			}
-			else
-			{
-				aktMemo.currentVolume = 0;
-				aktMemo.doFastVolRamp = true;
-			}
-			final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
-			if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
-			{
-				aktMemo.panEnvPos = panningEnv.getXMResetPosition(aktMemo.panEnvPos);
-			}
-		}
-	}
-	/**
+	 * TODO: Clean up this mess - it is now only for STM, S3M, IT and MPTM
 	 * @since 11.06.2006
 	 * @param aktMemo
 	 */
 	protected void setNewInstrumentAndPeriod(final ChannelMemory aktMemo)
 	{
 		final PatternElement element = aktMemo.currentElement;
-		final boolean isNoteDelay = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
+//		final boolean isNoteDelay = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
 		final boolean isKeyOff = element.getPeriod()==ModConstants.KEY_OFF || element.getNoteIndex()==ModConstants.KEY_OFF;
-		// might get overwritten with XMs and NoteDelays
+		final boolean isNewNote = hasNewNote(element);
 		boolean isPortaToNoteEffect = isPortaToNoteEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam, aktMemo.currentAssignedVolumeEffekt, aktMemo.currentAssignedVolumeEffektOp, aktMemo.currentAssignedNotePeriod);
-		boolean isNewNote = hasNewNote(element);
 		
 		// Do Instrument default NNA
 		if (isNewNote && 
@@ -2071,40 +2106,8 @@ public abstract class BasicModMixer
 		aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam; 
 		aktMemo.assignedVolumeEffekt = aktMemo.currentAssignedVolumeEffekt; 
 		aktMemo.assignedVolumeEffektOp = aktMemo.currentAssignedVolumeEffektOp;
-
-		// special K00/KeyOff handling of XMs - instrument and note are "invisible" with K00
-		final boolean isXMK00 = isKeyOffEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam) && aktMemo.currentAssignedEffektParam==0; 
-		if (isXM && (isKeyOff || isXMK00)
-		   )
-		{
-			aktMemo.currentAssignedNotePeriod = aktMemo.assignedNotePeriod; 
-			aktMemo.currentAssignedNoteIndex = aktMemo.assignedNoteIndex; 
-			aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
-			aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
-			
-			doKeyOff(aktMemo);
-
-			if (isNoteDelay)
-			{
-				if (element.getInstrument()>0)
-				{
-					resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
-					resetAutoVibrato(aktMemo, aktMemo.assignedSample);
-					resetTablePositions(aktMemo);
-				}
-				resetEnvelopes(aktMemo, aktMemo.currentAssignedInstrument);
-				aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-			}
-			else
-			if (element.getInstrument()>0) resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
-
-			return;
-		}
-		
-		// copy last seen values from pattern - now note and instrument
 		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
-		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex; 
-		// what Sample would be assigned? Get the correct sample from the mapping table, if there is an instrument set
+		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex;
 		aktMemo.assignedSample = (aktMemo.currentAssignedInstrument!=null)?
 		                            ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
 		        				       mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1))
@@ -2112,41 +2115,8 @@ public abstract class BasicModMixer
 		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 		
 		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
-		// do certain range checks with XMs.
-		// With XMs the playback will skip some things when the noteIndex is out of range
-		// i.e. do not reset volume and panning, do not set finetune of instrument, do not set tuning
-		// we also do not set a sample offset (not implemented!) or retrigger the sample pointer
-		// but if the note is zero, we only do not set the tuning
-		// We simulate that here now - except for the sample offset...
-		boolean isXMIllegalNote = false;
-		boolean isXMZeroNote = false;
-		if (isXM)
-		{
-			int note = aktMemo.assignedNoteIndex; 
-			if (note>96) note = aktMemo.assignedNoteIndex = 96;
-			if (aktMemo.assignedSample!=null) note += aktMemo.assignedSample.transpose;
-			if (note<0 || note>=10*12) isXMIllegalNote = true; // this is an uint8 compare
-			if (note==0) isXMZeroNote = true;
-		}
-		
 		if (hasInstrument) // At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
 		{
-			if (isXM)
-			{
-				if (isPortaToNoteEffect || !isNewNote) // PortaToNote or no note: ignore new instrument completely but reset old one
-				{
-					aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
-					aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
-					if (aktMemo.currentSample!=null) aktMemo.assignedSample = aktMemo.currentSample;
-				}
-				// reset for new Instrument
-				if (!isXMIllegalNote) resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-				resetEnvelopes(aktMemo, aktMemo.currentAssignedInstrument);
-				resetAutoVibrato(aktMemo, aktMemo.assignedSample);
-				resetTablePositions(aktMemo);
-				aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-			}
-			else
 			if (isS3M)
 			{
 				if (isPortaToNoteEffect)
@@ -2156,15 +2126,15 @@ public abstract class BasicModMixer
 						aktMemo.currentSample = aktMemo.assignedSample;
 						resetForNewSample(aktMemo);
 					}
-					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
+//					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 //					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
 //					aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
 				}
-				else
-				if (isNewNote) // reset only volume and panning
-				{
+//				else
+//				if (isNewNote) // reset only volume and panning
+//				{
 					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-				}
+//				}
 			}
 			else
 			if (isIT)
@@ -2180,30 +2150,23 @@ public abstract class BasicModMixer
 					}
 				}
 				// no "else" - so the trick with a new sample works...
-				if (!isPortaToNoteEffect && isNewNote) // reset only volume and panning
+				if (!isPortaToNoteEffect/* && isNewNote*/) // reset only volume and panning
 				{
+					// With IT: re-activate volume and panning even without note
 					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 				}
 			}
 			else
-			if (!isMOD && !isPortaToNoteEffect)
+			if (!isMOD && !isPortaToNoteEffect) // don't do if is (isMOD || portaToNoteEffect)
 			{
 				resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 				// Envelopes et cet. are done later
 			}
 		}
-
+		
 		// Now safe those instruments for later re-use
 		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
 		aktMemo.assignedInstrument = aktMemo.currentAssignedInstrument;
-
-		// With XMs on a finished(!) note delay, even without a note, we !do! retrigger with the old note
-		// and with the old instrument, whatever is given...
-		// and even ignore a porta2note - XM sets this note, no matter what...
-		if (isXM && isNoteDelay)
-		{
-			isPortaToNoteEffect=!(hasInstrument=isNewNote=true);
-		}
 
 		// Key Off, Note Cut, Note Fade or Period / noteIndex to set?
 		if (isKeyOff)
@@ -2213,7 +2176,7 @@ public abstract class BasicModMixer
 		else
 		if (element.getPeriod()==ModConstants.NOTE_CUT || element.getNoteIndex()==ModConstants.NOTE_CUT)
 		{
-			aktMemo.noteCut = true;
+			doNoteCut(aktMemo);
 		}
 		else
 		if (element.getPeriod()==ModConstants.NOTE_FADE || element.getNoteIndex()==ModConstants.NOTE_FADE)
@@ -2221,9 +2184,9 @@ public abstract class BasicModMixer
 			initNoteFade(aktMemo);
 		}
 		else
-		if ((isNewNote ||													// if there is a note, we need to calc the new tuning and activate a previous set instrument
-			(isScreamTrackerFamily && hasInstrument)) &&					// but with scream tracker like mods, the old notevalue is used, if an instrument is set
-			(!isPortaToNoteEffect || (!isXM && aktMemo.instrumentFinished))	// but ignore this if porta to note, except when not FastTracker (FT always ignore instruments at Porta2Note) or the instrument finished 
+		if ((isNewNote ||											// if there is a note, we need to calc the new tuning and activate a previous set instrument
+			hasInstrument) &&										// but with scream tracker like mods, the old note value is used, if an instrument is set
+			(!isPortaToNoteEffect || aktMemo.instrumentFinished)	// but ignore this if porta to note, except when not FastTracker (FT always ignore instruments at Porta2Note) or the instrument finished 
 			)
 		{
 			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back then
@@ -2253,57 +2216,42 @@ public abstract class BasicModMixer
 						aktMemo.currentSample = aktMemo.assignedSample;
 						//aktMemo.assignedSample = null;
 						resetForNewSample(aktMemo);
-						resetEnvelopes(aktMemo);
-						aktMemo.doFastVolRamp = newInstrumentWasSet = true;
+						newInstrumentWasSet = true;
 					}
 					// With scream tracker this has to be checked! Always! 
 					// IT-MODS (and derivates) reset here, because a sample set is relevant (see below)
-					if (isScreamTrackerFamily && (aktMemo.instrumentFinished || isNewNote))
+					if (aktMemo.instrumentFinished || isNewNote)
 					{
-						resetAllEffects(aktMemo, element); // Reset Tremolo and such things... Forced! because of a new note
 						aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
 						aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
 						resetInstrumentPointers(aktMemo);
 						resetEnvelopes(aktMemo);
+						resetAutoVibrato(aktMemo, aktMemo.currentSample);
 					}
 				}
 			}
 			
 			if (!isPortaToNoteEffect ||
-				(isPortaToNoteEffect && isScreamTrackerFamily && newInstrumentWasSet)) // With IT, if a new sample is set, ignore porta to note-->set it					
+				(isPortaToNoteEffect && newInstrumentWasSet)) // With IT, if a new sample is set, ignore porta to note-->set it					
 			{
 				// Now set the player Tuning and reset some things in advance.
 				// normally we are here, because a note was set in the pattern.
 				// Except for IT-MODs - then we are here, because either note or
-				// instrument were set. If no notevalue was set, the old 
-				// notevalue is to be used.
+				// instrument were set. If no note value was set, the old 
+				// note value is to be used.
 				// However, we do not reset the instrument here - the reset was 
 				// already done above - so this is here for all sane players :)
-			
-				// With Impulsetracker, again we are here because of an instrument
-				// set - we should now only reset the tuning (like automatically with
-				// all others) when we have a note/period or a new instrument
 				if (isScreamTrackerFamily)
 				{
 					if (isNewNote || newInstrumentWasSet)
-						setNewPlayerTuningFor(aktMemo, aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
+					{
+						setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
+						// With S3Ms (STMs?) the port2target is the last seen note value
+						if (isS3M || isSTM) aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod;
+					}
 					// and set the resonance, settings were stored above in instr. value copy
 					if ((/*aktMemo.resonance>0 || */aktMemo.cutOff<0x7F) && useFilter) setupChannelFilter(aktMemo, true, 256);
-					if (isNewNote && !isPortaToNoteEffect) resetTablePositions(aktMemo); // IT resets vibrato table position with a new note (and only that position)
-				}
-				else // isFastTrackerFamily: reset to last known note period if instrument is set without note (or current, which is set anyways)
-				{
-					resetAllEffects(aktMemo, element); // Reset Tremolo and such things...
-					//aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-					if (!isXMIllegalNote) resetInstrumentPointers(aktMemo);
-					resetEnvelopes(aktMemo);
-					resetAutoVibrato(aktMemo, aktMemo.currentSample);
-					if (isMOD) resetTablePositions(aktMemo); // with MODs we reset vibrato/tremolo here
-					// With XMs reset the finetune with a new note. A finetune effect might change that later
-					if (isXM && !isXMIllegalNote) resetFineTune(aktMemo, aktMemo.currentSample);
-					if (!isXMIllegalNote && !isXMZeroNote) setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-					// With XMs we are also here in a note delay, even if it is a porta2Note effect - so do not reset portaTarget in that case
-					if (!isMOD && !isNoteDelay) aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod; // do not reset with MODs
+					if (isNewNote && !isPortaToNoteEffect) reset_VibTremPan_TablePositions(aktMemo); // IT resets vibrato table position with a new note (and only that position)
 				}
 			}
 			// write back, if noteIndex was changed by instrument note mapping
@@ -2322,11 +2270,19 @@ public abstract class BasicModMixer
 	{
 		if (!aktMemo.isNNA) // no effects for NNA Channel, only envelopes
 		{
-			if (aktMemo.noteDelayCount>0 /*&& isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam)*/)
+			// XM is weird: current Tick effects are performed during a note delay.
+			// First vol column, than effect column (that is then the note delay, which is evaluated there)
+			// if the note delay finishes, Note, Instrument and volume are set
+			// plus *again* the volume column is executed, if it is a "set volume" or a "set panning"
+			// So, what OMPT says to its test "VolColDelay.xm" is therefore not wrong, but also not
+			// the whole truth.
+			// For ProTracker and FastTracker, all is done in the tick effects, not centrally
+			// here, like it used to be.
+			if (!isFastTrackerFamily && aktMemo.noteDelayCount>0)
 			{
-				if (aktMemo.noteDelayCount>=currentTempo && (isScreamTrackerFamily || isXM))
+				if (aktMemo.noteDelayCount>=currentTempo && isScreamTrackerFamily)
 				{
-					// illegal Notedelay - ignore it, do not copy new values
+					// illegal note delay - ignore it, do not copy new values
 					// to do so, we replace with the values from assigned*
 					aktMemo.noteDelayCount = -1;
 					
@@ -2350,8 +2306,8 @@ public abstract class BasicModMixer
 					if (aktMemo.noteDelayCount<=0)
 					{
 						setNewInstrumentAndPeriod(aktMemo);
-						processEffekts(aktMemo);
-						// NoteDelay will be reset from above, so delete it here...
+						doVolumeColumnRowEffekt(aktMemo);
+						// finish NoteDelay
 						aktMemo.noteDelayCount = -1;
 					}
 				}
@@ -2392,25 +2348,8 @@ public abstract class BasicModMixer
 			if (!aktMemo.isNNA) // no NNA Channel
 			{
 				// get pattern and channel memory data for current channel
-				final PatternElement element = patternRow.getPatternElement(c);
-				
-				// With Protracker the illegal notedelay (longer than currentTempo) is set on tick 0
-				if (isMOD && aktMemo.noteDelayCount>0)
-				{
-					aktMemo.noteDelayCount = -1;
-					// but only if there is no note present
-					if (hasNoNote(element))
-					{
-						// copy last seen values from pattern
-						aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
-						aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex; 
-						setNewPlayerTuningFor(aktMemo, aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-					}
-				}
+				final PatternElement element = aktMemo.currentElement = patternRow.getPatternElement(c);
 
-				// Now copy the pattern data but remain old values for note and instrument
-				aktMemo.currentElement = element;
-				
 				// reset all effects on this channel
 				resetAllEffects(aktMemo, element);
 				
@@ -2426,7 +2365,7 @@ public abstract class BasicModMixer
 				{
 					aktMemo.currentAssignedInstrumentIndex = element.getInstrument();
 					if (!isIT || (mod.getSongFlags()&ModConstants.SONG_USEINSTRUMENTS)!=0) // ITs know of a "sample only" mode - so do not look up instruments then
-						aktMemo.currentAssignedInstrument = mod.getInstrumentContainer().getInstrument(element.getInstrument()-1);
+						aktMemo.currentAssignedInstrument = mod.getInstrumentContainer().getInstrument(aktMemo.currentAssignedInstrumentIndex-1);
 				}
 
 				// so far for S00 effect memory - if FastTracker has that too, we will elaborate
@@ -2436,59 +2375,38 @@ public abstract class BasicModMixer
 						aktMemo.currentAssignedEffektParam = getEffektOpMemory(aktMemo, aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
 				}
 
-				final boolean isNoteDelay = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
-				// With ProTracker 1/2, if a sample is presented, volume, fineTune and samplePointer
-				// are always set - regardless of NoteDelayEffect or Porta2Note...
-				if (isMOD)
-				{
-					final int sampleIndex = element.getInstrument();
-					if (sampleIndex>0)
-					{
-						aktMemo.assignedSample = mod.getInstrumentContainer().getSample(sampleIndex-1);
-						if (aktMemo.assignedSample!=null)
-						{
-							resetVolumeAndPanning(aktMemo, null, aktMemo.assignedSample);
-							resetFineTune(aktMemo, aktMemo.assignedSample);
-							// This is an exception: inplace instrument is activated, if with retrigger effect or
-							// previous was an empty one (instrumentFinished is not sufficient!)
-							// Otherwise, it will be set after loop
-							// Of course not, if notedelay effect
-							if ((hasNoNote(element) && !isNoteDelay) &&
-								((aktMemo.instrumentFinished && (aktMemo.currentSample==null || !aktMemo.currentSample.hasSampleData())) ||
-								 (element.getEffekt()==0x0E && (element.getEffektOp()&0xF0)==0x90))) // 0xE9x Retrigger command. We do not introduce "isRetrigger" for this one...
-							{
-								// Now activate new Instrument...
-								aktMemo.currentSample = aktMemo.assignedSample;
-								//aktMemo.assignedSample = null;
-								resetInstrumentPointers(aktMemo);
-								//resetForNewSample(aktMemo); // not needed, as finetune was prepared above
-								resetEnvelopes(aktMemo);
-								aktMemo.doFastVolRamp = true;
-							}
-						}
-					}
-				}
-
 				// Now check for noteDelay effect and handle it accordingly
-				if (!isNoteDelay) // If this is a noteDelay, we cannot call processEffekts
+				// With ProTracker, Note delay is handled easy
+				if (isMOD || !isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam)) // If this is a noteDelay, we cannot call processEffekts
 				{
 					setNewInstrumentAndPeriod(aktMemo);
 					processEffekts(aktMemo); // Tick 0
 				}
 				else
 				{
-					// In a NoteDelay things are special - we want to set the notedelay as trackers want it.
-					// But because setNewInstrumentAndPeriod was not yet called, no effects were copied as we are still on the old ones - and have to be!
-					// We cannot call processEffekts as that would also do VolumeColumnRowEffects - and those are for later.
-					// However, to avoid a double implementation and to call doRowEffekts then, we need to set the effekt/effektOp, call it,
-					// and set the effect back. That way we can use the Tracker-specific implementations
-					final int retEffekt = aktMemo.assignedEffekt;
-					final int retEffektOp = aktMemo.assignedEffektParam;
-					aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
-					aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam;
-					doRowEffects(aktMemo);
-					aktMemo.assignedEffekt = retEffekt;
-					aktMemo.assignedEffektParam = retEffektOp;
+					if (isFastTrackerFamily)
+					{
+						aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
+						aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam;
+						aktMemo.assignedVolumeEffekt = aktMemo.currentAssignedVolumeEffekt;
+						aktMemo.currentAssignedVolumeEffektOp = aktMemo.currentAssignedVolumeEffektOp;
+						doRowEffects(aktMemo);
+					}
+					else
+					{
+						// In a NoteDelay things are special - we want to set the note delay as trackers want it.
+						// But because setNewInstrumentAndPeriod was not yet called, no effects were copied as we are still on the old ones - and have to be!
+						// We cannot call processEffekts as that would also do VolumeColumnRowEffects - and those are for later.
+						// However, to avoid a double implementation and to call doRowEffekts then, we need to set the effekt/effektOp, call it,
+						// and set the effect back. That way we can use the Tracker-specific implementations
+						final int retEffekt = aktMemo.assignedEffekt;
+						final int retEffektOp = aktMemo.assignedEffektParam;
+						aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
+						aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam;
+						doRowEffects(aktMemo);
+						aktMemo.assignedEffekt = retEffekt;
+						aktMemo.assignedEffektParam = retEffektOp;
+					}
 				}
 			}
 			// With FastTracker, globalVolume is applied when it occurs.
@@ -2506,15 +2424,18 @@ public abstract class BasicModMixer
 				processEnvelopes(channelMemory[c]);
 		}
 	}
-	/**
-	 * when stepping to a new Pattern - Position needs new set...
-	 * @since 21.01.2014
-	 */
-	private void resetJumpPositionSet()
-	{
-		for (int c=0; c<maxChannels; c++)
-			channelMemory[c].jumpLoopPositionSet = false;
-	}
+//	/**
+//	 * when stepping to a new Pattern - Position needs new set...
+//	 * @since 21.01.2014
+//	 */
+//	private void resetJumpPositionSet()
+//	{
+//		if (isMOD)
+//		{
+//			for (int c=0; c<maxChannels; c++)
+//				channelMemory[c].jumpLoopPositionSet = false;
+//		}
+//	}
 	/**
 	 * Do the events during a Tick.
 	 * @return true, if finished! 
@@ -2552,21 +2473,20 @@ public abstract class BasicModMixer
 			if (currentTick<=0)
 			{
 				currentTick = currentTempo;
-	
+
 				// if PatternDelay, do it and return
 				if (patternDelayCount>0)
 				{
 					// Process effects
 					for (int c=0; c<maxChannels; c++)
-						processEffektsInTick(channelMemory[c]);
-
-					// for IT and S3M (not STM!) re-set note delays, but do not call doRowEvents (is for tick=0 only)
-					if (isIT || isS3M)
 					{
-						for (int c=0; c<maxChannels; c++)
+						final ChannelMemory aktMemo = channelMemory[c];
+
+						processEffektsInTick(aktMemo);
+
+						// for IT and S3M (not STM!) re-set note delays, but do not call doRowEvents (is for tick=0 only)
+						if (isIT || isS3M)
 						{
-							final ChannelMemory aktMemo = channelMemory[c];
-							
 							if (isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam) && aktMemo.noteDelayCount<0)
 							{
 								final int effektOpEx = aktMemo.currentAssignedEffektParam&0x0F;
@@ -2625,63 +2545,75 @@ public abstract class BasicModMixer
 						patternDelayCount = -1; // if patternDelayCount was "0", set it to uninitialized
 					}
 
-					if (patternJumpPatternIndex!=-1) // Do not check infinite Loops here, this is never infinite
+					if (patternJumpSet) // Perform the jump
 					{
-						currentRow = patternJumpPatternIndex;
-						patternJumpPatternIndex = -1;
+						patternJumpSet = false;
+						currentRow = patternJumpRowIndex;
+						// PT/FT uses pBreakPosition/pBreakPos for all: Jump Position set and Pattern breaks row set
+						// So with these we synch patternBreakRowIndex and patternJumpRowIndex
+						// However, PT resets patternJumpRowIndex to Zero - so we do that as well
+						if (isMOD) patternBreakRowIndex = patternJumpRowIndex = 0;
 					}
 				}
 				
 				// now check for end of pattern and perform patternJumps, if any
-				if (currentRow>=currentPattern.getRowCount() || 
-					patternBreakRowIndex!=-1 || patternBreakJumpPatternIndex!=-1)
+				if (currentRow>=currentPattern.getRowCount() || patternBreakSet)
 				{
+					patternBreakSet = false;
 					mod.setArrangementPositionPlayed(currentArrangement);
-					if (patternBreakJumpPatternIndex!=-1)
+
+					final boolean ignoreLoop = (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0;
+					final boolean fadeOutLoop = (doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0;
+					final boolean loopSong = (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0;
+					if (patternBreakPatternIndex!=-1)
 					{
-						final boolean infiniteLoop = isInfiniteLoop(patternBreakJumpPatternIndex, (patternBreakRowIndex!=-1)?patternBreakRowIndex:currentRow-1);
-						if (infiniteLoop && (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0)
+						final boolean infiniteLoop = isInfiniteLoop(patternBreakPatternIndex, (patternBreakRowIndex!=-1)?patternBreakRowIndex:currentRow-1);
+						if (infiniteLoop && ignoreLoop)
 						{
-							patternBreakRowIndex = patternBreakJumpPatternIndex = -1;
-							resetJumpPositionSet();
+							patternBreakRowIndex = patternBreakPatternIndex = -1;
 							currentArrangement++;
 						}
 						else
 						{
-							currentArrangement = patternBreakJumpPatternIndex;
+							currentArrangement = patternBreakPatternIndex;
 						}
-						patternBreakJumpPatternIndex = -1;
+						patternBreakPatternIndex = -1;
 						// and activate fadeout, if wished
-						if (infiniteLoop && (doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
+						if (infiniteLoop && fadeOutLoop)
 							doLoopingGlobalFadeout = true;
 					}
 					else
 					{
-						resetJumpPositionSet();
 						currentArrangement++;
 					}
 					
 					if (patternBreakRowIndex!=-1)
 					{
+						// With XMs patternBreakRowIndex might be set from 
+						// patternJumpRowIndex - FT2 uses only one var for this
 						currentRow = patternBreakRowIndex;
 						patternBreakRowIndex = -1;
-						// If pattern break to position is set and last pattern reached, loop song and restart at given position.
-						// !But if loop_ignore is checked OR loop_song is not checked, don't do this!
-						// So do it, if NOT ((doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0 || (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)==0)
-						if (currentArrangement>=mod.getSongLength() && (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)==0 && (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0)
+					}
+					else
+					{
+						currentRow = 0;
+					}
+					
+					// sanity check FT2.09 style
+					if (isXM && currentArrangement<mod.getSongLength())
+					{
+						final int patIndex = mod.getArrangement()[currentArrangement];
+						final Pattern pat = mod.getPatternContainer().getPattern(patIndex);
+						if (currentRow >= pat.getRowCount())
 						{
-							currentArrangement = mod.getSongRestart(); // can be -1 if not set
-							if (currentArrangement < 0) currentArrangement = 0;
-							currentPatternIndex = mod.getArrangement()[currentArrangement];
-							currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-							// as this is per definition an infinite loop, activate fadeout, if wished
-							if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
+							currentArrangement--;
+							currentRow=0;
+							// as this is the meaning of infinity:
+							if (fadeOutLoop)
 								doLoopingGlobalFadeout = true;
 						}
 					}
-					else
-						currentRow = 0;
-
+					
 					// End of song? Fetch new pattern if not...
 					if (currentArrangement<mod.getSongLength())
 					{
@@ -2690,8 +2622,22 @@ public abstract class BasicModMixer
 					}
 					else
 					{
-						currentPatternIndex = -1;
-						currentPattern = null;
+						if (!ignoreLoop && loopSong)
+						{
+							currentArrangement = mod.getSongRestart(); // can be -1 if not set
+							if (currentArrangement < 0) currentArrangement = 0;
+							currentPatternIndex = mod.getArrangement()[currentArrangement];
+							currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
+							// as this is per definition an infinite loop, activate fadeout, if wished
+							if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
+								doLoopingGlobalFadeout = true;
+							
+						}
+						else
+						{
+							currentPatternIndex = -1;
+							currentPattern = null;
+						}
 					}
 				}
 			}

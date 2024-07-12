@@ -77,7 +77,7 @@ public class PatternElementIT extends PatternElement
 			case 0x0E: return "Volume Slide";
 			case 0x0F: return "Sample Offset";
 			case 0x10: return "Panning Slide";
-			case 0x11: return "Retrig Note";
+			case 0x11: return "(Multi) Retrig Note";
 			case 0x12: return "Tremolo";
 			case 0x13 : 		// Extended
 				final int effektOpEx = effektOp&0x0F;

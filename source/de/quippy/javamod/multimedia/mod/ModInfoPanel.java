@@ -276,6 +276,69 @@ public class ModInfoPanel extends JPanel
 			return oldModInstrumentDialogVisibility!=0;
 	}
 	/**
+	 * @param patternDialogLocation the patternDialogLocation to set
+	 */
+	protected void setPatternDialogLocation(final Point newPatternDialogLocation)
+	{
+		patternDialogLocation = newPatternDialogLocation;
+	}
+	/**
+	 * @param patternDialogSize the patternDialogSize to set
+	 */
+	protected void setPatternDialogSize(final Dimension newPatternDialogSize)
+	{
+		patternDialogSize = newPatternDialogSize;
+	}
+	/**
+	 * @param patternDialogVisable the patternDialogVisable to set
+	 */
+	protected void setPatternDialogVisable(final boolean newPatternDialogVisable)
+	{
+		oldModPatternDialogVisibility = (newPatternDialogVisable)?1:0;
+	}
+	/**
+	 * @param sampleDialogLocation the sampleDialogLocation to set
+	 */
+	protected void setSampleDialogLocation(final Point newSampleDialogLocation)
+	{
+		sampleDialogLocation = newSampleDialogLocation;
+	}
+	/**
+	 * @param sampleDialogSize the sampleDialogSize to set
+	 */
+	protected void setSampleDialogSize(final Dimension newSampleDialogSize)
+	{
+		sampleDialogSize = newSampleDialogSize;
+	}
+	/**
+	 * @param sampleDialogVisable the sampleDialogVisable to set
+	 */
+	protected void setSampleDialogVisable(final boolean newSampleDialogVisable)
+	{
+		oldModSampleDialogVisibility = (newSampleDialogVisable)?1:0;
+	}
+	/**
+	 * @param instrumentDialogLocation the instrumentDialogLocation to set
+	 */
+	protected void setInstrumentDialogLocation(final Point newInstrumentDialogLocation)
+	{
+		instrumentDialogLocation = newInstrumentDialogLocation;
+	}
+	/**
+	 * @param instrumentDialogSize the instrumentDialogSize to set
+	 */
+	protected void setInstrumentDialogSize(final Dimension newInstrumentDialogSize)
+	{
+		instrumentDialogSize = newInstrumentDialogSize;
+	}
+	/**
+	 * @param instrumentDialogVisable the instrumentDialogVisable to set
+	 */
+	protected void setInstrumentDialogVisable(final boolean newInstrumentDialogVisable)
+	{
+		oldModInstrumentDialogVisibility = (newInstrumentDialogVisable)?1:0;
+	}
+	/**
 	 * @since 13.10.2007
 	 */
 	private void initialize()
@@ -798,69 +861,6 @@ public class ModInfoPanel extends JPanel
 			modInfo_Samples.setFont(Helpers.getTextAreaFont());
 		}
 		return modInfo_Samples;
-	}
-	/**
-	 * @param patternDialogLocation the patternDialogLocation to set
-	 */
-	protected void setPatternDialogLocation(Point newPatternDialogLocation)
-	{
-		patternDialogLocation = newPatternDialogLocation;
-	}
-	/**
-	 * @param patternDialogSize the patternDialogSize to set
-	 */
-	protected void setPatternDialogSize(Dimension newPatternDialogSize)
-	{
-		patternDialogSize = newPatternDialogSize;
-	}
-	/**
-	 * @param patternDialogVisable the patternDialogVisable to set
-	 */
-	protected void setPatternDialogVisable(boolean newPatternDialogVisable)
-	{
-		oldModPatternDialogVisibility = (newPatternDialogVisable)?1:0;
-	}
-	/**
-	 * @param sampleDialogLocation the sampleDialogLocation to set
-	 */
-	protected void setSampleDialogLocation(Point newSampleDialogLocation)
-	{
-		sampleDialogLocation = newSampleDialogLocation;
-	}
-	/**
-	 * @param sampleDialogSize the sampleDialogSize to set
-	 */
-	protected void setSampleDialogSize(Dimension newSampleDialogSize)
-	{
-		sampleDialogSize = newSampleDialogSize;
-	}
-	/**
-	 * @param sampleDialogVisable the sampleDialogVisable to set
-	 */
-	protected void setSampleDialogVisable(boolean newSampleDialogVisable)
-	{
-		oldModSampleDialogVisibility = (newSampleDialogVisable)?1:0;
-	}
-	/**
-	 * @param instrumentDialogLocation the instrumentDialogLocation to set
-	 */
-	protected void setInstrumentDialogLocation(Point newInstrumentDialogLocation)
-	{
-		instrumentDialogLocation = newInstrumentDialogLocation;
-	}
-	/**
-	 * @param instrumentDialogSize the instrumentDialogSize to set
-	 */
-	protected void setInstrumentDialogSize(Dimension newInstrumentDialogSize)
-	{
-		instrumentDialogSize = newInstrumentDialogSize;
-	}
-	/**
-	 * @param instrumentDialogVisable the instrumentDialogVisable to set
-	 */
-	protected void setInstrumentDialogVisable(boolean newInstrumentDialogVisable)
-	{
-		oldModInstrumentDialogVisibility = (newInstrumentDialogVisable)?1:0;
 	}
 	/**
 	 * gets called from ModPatternDialog to show the selected instrument.

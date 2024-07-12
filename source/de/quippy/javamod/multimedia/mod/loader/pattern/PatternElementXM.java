@@ -109,7 +109,7 @@ public class PatternElementXM extends PatternElement
 			case 0x14: return "Key off";
 			case 0x15: return "Set Envelope Position";
 			case 0x19: return "Panning Slide";
-			case 0x1B: return "Retrig Note + VolSlide";
+			case 0x1B: return "Multi Retrig";
 			case 0x1D: return "Tremor";
 			case 0x20: return "Empty";
 			case 0x21: // Extended XM Effects

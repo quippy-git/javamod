@@ -199,7 +199,13 @@ public class XMMod extends ProTrackerMod
 			inputStream.skip(1);
 	
 			int rows = (version==0x0102)?inputStream.read()+1:inputStream.readIntelUnsignedWord();
-			if (rows==0) rows=64; else if (rows>ModConstants.MAX_PATTERN_SIZE) rows = ModConstants.MAX_PATTERN_SIZE; 
+			if (rows==0)
+				rows=64; 
+			else
+			{
+				final int MaxPatternSize = ((getModType()&(ModConstants.MODTYPE_MPT|ModConstants.MODTYPE_OMPT))!=0)?1024:256;
+				if (rows>MaxPatternSize) rows = MaxPatternSize; 
+			}
 	
 			final int packedPatternDataSize = inputStream.readIntelUnsignedWord();
 			if (packedPatternDataSize==0)
@@ -525,7 +531,7 @@ public class XMMod extends ProTrackerMod
 				int fine = inputStream.read();
 				fine = (fine>0x7F)?fine-0x100:fine;
 				current.setFineTune(fine);
-				current.setBaseFrequency(ModConstants.it_fineTuneTable[(fine>>4)+8]);
+				current.setBaseFrequency(ModConstants.IT_fineTuneTable[(fine>>4)+8]);
 				
 				current.setFlags(inputStream.read());
 				int loopType = 0;

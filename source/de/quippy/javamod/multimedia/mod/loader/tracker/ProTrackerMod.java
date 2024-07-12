@@ -564,7 +564,7 @@ public class ProTrackerMod extends Module
 			}
 			current.setFineTune((isAmigaLike)?fine:fine<<4); // if not amiga like, we use XM_AMIGA_TABLE - finetune is -128-+127 then
 			// BaseFrequenzy from Table: FineTune is -8...+7
-			current.setBaseFrequency(ModConstants.it_fineTuneTable[fine+8]);
+			current.setBaseFrequency(ModConstants.IT_fineTuneTable[fine+8]);
 			current.setTranspose(0);
 			
 			if(current.length > 65535) isNoiseTracker = false;			

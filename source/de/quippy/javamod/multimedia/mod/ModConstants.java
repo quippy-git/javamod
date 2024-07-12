@@ -44,9 +44,6 @@ public class ModConstants
 	public static final int BASEPERIOD = 428;
 	public static final int BASENOTEINDEX = 48;
 
-	// Some Loading constants to sanitize
-	public static final int MAX_PATTERN_SIZE = 1024;
-
 	//The frequency tables supported
 	public static final int STM_S3M_TABLE 	= 0x01;
 	public static final int IT_LINEAR_TABLE = 0x02;
@@ -329,14 +326,22 @@ public class ModConstants
 		216,203,192,181,171,161,152,144,136,128,121,114,0,
 
 		/* Arpeggio on -1 finetuned samples can do an out-of-bounds read from
-		** this table. Here's the correct overflow values from the
-		** "CursorPosTable" and "UnshiftedKeymap" table in the PT code, which are
-		** located right after the period table. These tables and their order didn't
-		** seem to change in the different PT1.x/PT2.x versions (I checked the
-		** source codes). (8bitbubsy)
+		 * this table. Here's the correct overflow values from the
+		 * "CursorPosTable" and "UnshiftedKeymap" table in the PT code, which are
+		 * located right after the period table. These tables and their order didn't
+		 * seem to change in the different PT1.x/PT2.x versions (I checked the
+		 * source codes). (8bitbubsy)
 		*/
 		774,1800,2314,3087,4113,4627,5400,6426,6940,7713,
 		8739,9253,24625,12851,13365
+	};
+	/**
+	 * Table for Invert Loop and Funk Repeat effects (EFx, .MOD only) 
+	 */
+	public static final int modEFxTable[] =
+	{
+		0x00, 0x05, 0x06, 0x07, 0x08, 0x0A, 0x0B, 0x0D,
+		0x10, 0x13, 0x16, 0x1A, 0x20, 0x2B, 0x40, 0x80
 	};
 	/**
 	 * FT2 linear periods table
@@ -658,6 +663,16 @@ public class ModConstants
 		   0,   24,   49,   74,   97,  120,  141,  161,  180,  197,  212,  224,  235,  244,  250,  253,
 		 255,  253,  250,  244,  235,  224,  212,  197,  180,  161,  141,  120,   97,   74,   49,   24,
 	};
+//	/**
+//	 * OMPT Random table - is used with OPMT files only!
+//	 */
+//	public static final int [] ModRandomTable =
+//	{
+//		   98, -127,  -43,   88,  102,   41,  -65,  -94,  125,   20,  -71,  -86,  -70,  -32,  -16,  -96,
+//		   17,   72,  107,   -5,  116,  -69,  -62,  -40,   10,  -61,   65,  109,  -18,  -38,  -13,  -76,
+//		  -23,   88,   21,  -94,    8,  106,   21, -112,    6,  109,   20,  -88,  -30,    9, -127,  118,
+//		   42,  -34,   89,   -4,  -51,  -72,   21,  -29,  112,  123,   84, -101,  -92,   98,  -54,  -95
+//	};
 	/**
 	 * FT2 Auto Vibrato
 	 */
@@ -704,7 +719,7 @@ public class ModConstants
 		63455, 63587, 63719, 63850, 63982, 64113, 64243, 64374, 64504, 64634, 64763, 64893, 65022, 65151, 65279, 65408, 65536
 	};
     /**
-	 * Basic C4 S3M/IT --> These Values are from above (Octave 0)!
+	 * Basic C4 S3M/IT
 	 */
 	public static final int FreqS3MTable[] =
 	{
@@ -715,7 +730,7 @@ public class ModConstants
 	 * old "fineTune" effekt as they are downward compatible
 	 * calculated by 8363*2^((i-8)/(12*8))
 	 */
-	public static final int [] it_fineTuneTable =
+	public static final int [] IT_fineTuneTable =
 	{
 		7895, 7941, 7985, 8046, 8107, 8169, 8232, 8280,
 		8363, 8413, 8463, 8529, 8581, 8651, 8723, 8757
@@ -734,9 +749,10 @@ public class ModConstants
 		65536, 61858, 58386, 55109, 52016, 49097, 46341, 43740, 
 		41285, 38968, 36781, 34716, 32768, 30929, 29193, 27554	
 	};
-	// For some reason, these tables are exactly the other way round with me
-	// than normally used. What is SlideUp is SlideDown at Schism, and vice versa.
-	// This would affect Vibrato, AutoVibrato, (Fine|Extra Fine|PortaUp/Down ... 
+	// These tables are exactly the other way round with me than normally used. 
+	// What is SlideUp is SlideDown at Schism, and vice versa.
+	// This would affect Vibrato, AutoVibrato, (Fine|Extra Fine|PortaUp/Down ...
+	// As we use periods instead of frequencies, that is why, and will not change
 	/**
 	 * Used by IT Tracker Mods if linear frequencies enabled
 	 */
@@ -933,17 +949,13 @@ public class ModConstants
 		0.0749894231557846d, 0.0733879879117012d, 0.0718207582831383d, 0.0702869966626167d,
 		0.0687859877943993d, 0.0673170387744904d, 0.0658794566988945d, 0.0644725710153580d
 	};
-	public static final int IT_VolColumnPortaNotSpeedTranslation[] =
+	/**
+	 * Translation for porta2note speed - 10 values
+	 */
+	public static final int IT_VolColumnPortaNoteSpeedTranslation[] =
 	{
 	 	0x00, 0x01, 0x04, 0x08, 0x10, 0x20, 0x40, 0x60, 0x80, 0xFF
 	};
-	// Table for Invert Loop and Funk Repeat effects (EFx, .MOD only)
-	public static final int modEFxTable[] =
-	{
-		0x00, 0x05, 0x06, 0x07, 0x08, 0x0A, 0x0B, 0x0D,
-		0x10, 0x13, 0x16, 0x1A, 0x20, 0x2B, 0x40, 0x80
-	};
-
 	/**
 	 * For the patterndisplay: retrieve a String for the given note index
 	 * @param index
@@ -983,16 +995,10 @@ public class ModConstants
 		else
 			return i;
 	}
-//	/**
-//	 * For the patterndisplay: retrieve a String for the given period
-//	 * @param period
-//	 * @return
-//	 */
-//	public static String getNoteNameForPeriod(final int period)
-//	{
-//		return getNoteNameForIndex(getNoteIndexForPeriod(period));
-//	}
-    public static final char[] numbers = 
+    /**
+     * Used by getAsHex
+     */
+	public static final char[] numbers = 
 	{
 		'0', '1', '2', '3', '4', 
 		'5', '6', '7', '8', '9',
@@ -1018,6 +1024,11 @@ public class ModConstants
 //		for (int i=0; i<zeros; i++) result.append('0');
 //		return (result.append(hex)).toString();
 	}
+	/**
+	 * convert the ModPlug version information to a readable string
+	 * @param version
+	 * @return
+	 */
 	public static String getModPlugVersionString(final int version)
 	{
 		if (version==0) return "Unknown";

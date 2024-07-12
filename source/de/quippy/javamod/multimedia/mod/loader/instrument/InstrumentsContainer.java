@@ -119,7 +119,7 @@ public class InstrumentsContainer
 		if (instruments==null)
 			return null;
 		else
-		if (index>=instruments.length) 
+		if (index<0 || index>=instruments.length) 
 			return null;
 		else
 			return instruments[index];
