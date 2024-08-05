@@ -35,6 +35,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternContainer;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
+import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -47,6 +48,27 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
  	{
  		"it", "mptm"
  	};
+
+	private static final int MAX_CHANNELS = 127;
+	private static final int CHANNEL_MASK = 0x7F;
+	
+	private static final int sampleDataPresent   = 0x01;
+	private static final int sample16Bit         = 0x02;
+	private static final int sampleStereo        = 0x04;
+	private static final int sampleCompressed    = 0x08;
+	private static final int sampleLoop          = 0x10;
+	private static final int sampleSustain       = 0x20;
+	private static final int sampleBidiLoop      = 0x40;
+	private static final int sampleBidiSustain   = 0x80;
+
+	private static final int cvtSignedSample     = 0x01;
+	private static final int cvtBigEndian        = 0x02;
+	private static final int cvtDelta            = 0x04;
+	private static final int cvtPTM8to16         = 0x08;
+	private static final int cvtOPLInstrument    = 0x40;  // FM instrument in MPTM
+	private static final int cvtExternalSample   = 0x80;  // Keep MPTM sample on disk
+	private static final int cvtADPCMSample      = 0xFF;  // ModPlug special
+
 	/**
 	 * Will be executed during class load
 	 */
@@ -62,9 +84,6 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	protected MidiMacros midiMacros;
 	protected int pwDepth;
 	
-	private static final int MAX_CHANNELS = 127;
-	private static final int CHANNEL_MASK = 0x7F;
-
 	/**
 	 * Constructor for ImpulseTrackerMod
 	 */
@@ -295,10 +314,12 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		//                 (Coded this way to permit cross-version saving)
 		flags = inputStream.readIntelUnsignedWord();
 		if ((flags & 0x01)!=0)	 songFlags |= ModConstants.SONG_ISSTEREO;
+		if ((flags & 0x02)!=0)	 songFlags |= ModConstants.SONG_VOL0MIXOPTI;
 		if ((flags & 0x04)!=0)	 songFlags |= ModConstants.SONG_USEINSTRUMENTS;
 		if ((flags & 0x08)!=0)	 songFlags |= ModConstants.SONG_LINEARSLIDES;
 		if ((flags & 0x10)!=0)	 songFlags |= ModConstants.SONG_ITOLDEFFECTS;
 		if ((flags & 0x20)!=0)	 songFlags |= ModConstants.SONG_ITCOMPATMODE;
+		if ((flags & 0x40)!=0)	 songFlags |= ModConstants.SONG_USEMIDIPITCH;
 		if ((flags & 0x80)!=0)	 songFlags |= ModConstants.SONG_EMBEDMIDICFG;
 		if ((flags & 0x1000)!=0) songFlags |= ModConstants.SONG_EXFILTERRANGE;
 
@@ -351,7 +372,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		//           100 = Surround sound.
 		//           +128 = disabled channel (notes will not be played, but note
 		//                                    that effects in muted channels are
-		//                                    still processed)
+		//                                    still processed (unlike with S3M))
 		boolean hasFFPanningValue = false;
 		usePanningValues = true;
 		panningValue = new int[64];
@@ -377,14 +398,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		if ((version & 0xF000)==0x5000)
 		{
 			int mptVersion = (version & 0x0FFF) << 16;
-			if (reserved == 0x4F4D5054) //"OMPT"
+			if (reserved == 0x54504D4F) //"OMPT"
 				setModType(getModType() | ModConstants.MODTYPE_OMPT);
 			else
 			if (mptVersion>=0x01290000)
 				mptVersion |= reserved & 0xFFFF;
 			lastSavedWithVersion = mptVersion;
-			setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion));
-			if ((getModType()&ModConstants.MODTYPE_OMPT)==0) setTrackerName(getTrackerName() + ModConstants.COMPAT_MODE); 
+			if ((getModType()&ModConstants.MODTYPE_OMPT)==0) setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion) + ModConstants.COMPAT_MODE); 
 		}
 		else
 		if (version==0x0888 || cmwt==0x888)
@@ -404,12 +424,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		if (version == 0x0300 && cmwt == 0x0300 && reserved==0 && getSongLength()==256 && panningSeparation == 128 && pwDepth == 0)
 		{
 			lastSavedWithVersion = 0x01170220;
-			setTrackerName("OpenMPT 1.17.02.20-25");
+			//setTrackerName("OpenMPT 1.17.02.20-25");
 			setModType(getModType() | ModConstants.MODTYPE_OMPT);
-		}
-		else
-		{
-			setTrackerName("Impulse Tracker V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2) + " (CmwT: " + ModConstants.getAsHex((cmwt>>8)&0xF, 1) + "." + ModConstants.getAsHex(cmwt&0xFF, 2) + ")");
 		}
 
 		if (hasHighlight)
@@ -487,21 +503,30 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		{
 			midiMacros.loadFrom(inputStream);
 		}
-		if (version < 0x0214) // clear midi macros
+
+		// OpenModPlug says:
+		// Ignore MIDI data. Fixes some files like denonde.it that were made with old versions of Impulse Tracker (which didn't support Zxx filters) and have Zxx effects in the patterns.
+		// Example: denonde.it by Mystical
+		// Note: Only checking the cwtv "made with" version is not enough: spx-visionsofthepast.it has the strange combination of cwtv=2.00, cmwt=2.16
+		// Hence to be sure, we check that both values are below 2.14.
+		// Note that all ModPlug Tracker alpha versions do not support filters yet. Earlier alphas identify as cwtv=2.02, cmwt=2.00, but later alpha versions identify as IT 2.14.
+		// Apart from that, there's an unknown XM conversion tool declaring a lower compatible version, which naturally also does not support filters, so it's okay that it is caught here.
+		if ((version<0x0214 && cmwt<0x214) || (lastSavedWithVersion!=0 && lastSavedWithVersion<0x10000A6))
 			midiMacros.clearZxxMacros();
 		
+		boolean isBeRoTracker = false;
 		if (histSize<=0)
 		{
 			final int beroMarker = inputStream.readIntelDWord();
 			if (beroMarker==0x4D4F4455) // "MODU"
-				setTrackerName("BeroTracker");
+				isBeRoTracker = true;
 			else
 				inputStream.skipBack(4);
 		}
 		else
 		if ((version & 0xF000)==0x6000)
 		{
-			if ((version&0x0FFF)==0) setTrackerName("BeRoTracker");
+			if ((version&0x0FFF)==0) isBeRoTracker = true;
 		}
 		
 		// read Pattern Names:
@@ -544,7 +569,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		{
 			inputStream.seek(instrumentParaPointer[i]);
 
-			if (inputStream.readMotorolaDWord()!=0x494D5049 /*IMPI*/) throw new IOException("Unsupported IT Instrument Header!");
+			if (inputStream.readMotorolaDWord()!=0x494D5049 /*IMPI*/) continue; //throw new IOException("Unsupported IT Instrument Header!");
 			
 			final Instrument currentIns = new Instrument();
 			currentIns.setDosFileName(inputStream.readString(13));
@@ -664,14 +689,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		{
 			inputStream.seek(samplesParaPointer[i]);
 
-			if (inputStream.readMotorolaDWord()!=0x494D5053 /*IMPI*/) throw new IOException("Unsupported IT Sample Header!");
+			if (inputStream.readMotorolaDWord()!=0x494D5053 /*IMPS*/) continue;//throw new IOException("Unsupported IT Sample Header!");
 			
 			Sample currentSample = new Sample();
 
 			currentSample.setDosFileName(inputStream.readString(13));
-			int globalVolume = inputStream.read();
-			if (globalVolume > 64) globalVolume = 64;
-			currentSample.setGlobalVolume(globalVolume);
+			final int globalVolume = inputStream.read();
+			currentSample.setGlobalVolume((globalVolume>64)?64:globalVolume);
 			
 			final int flags = inputStream.read();
 			currentSample.setFlags(flags);
@@ -680,10 +704,10 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
             Bit 6. On = Ping Pong loop, Off = Forwards loop
             Bit 7. On = Ping Pong Sustain loop, Off = Forwards Sustain loop*/
 			int loopType = 0;
-			if ((flags&0x10)==0x10) loopType |= ModConstants.LOOP_ON; 
-			if ((flags&0x20)==0x20) loopType |= ModConstants.LOOP_SUSTAIN_ON; 
-			if ((flags&0x40)==0x40) loopType |= ModConstants.LOOP_IS_PINGPONG; 
-			if ((flags&0x80)==0x80) loopType |= ModConstants.LOOP_SUSTAIN_IS_PINGPONG; 
+			if ((flags&sampleLoop)!=0) 			loopType |= ModConstants.LOOP_ON; 
+			if ((flags&sampleSustain)!=0)		loopType |= ModConstants.LOOP_SUSTAIN_ON; 
+			if ((flags&sampleBidiLoop)!=0)		loopType |= ModConstants.LOOP_IS_PINGPONG; 
+			if ((flags&sampleBidiSustain)!=0)	loopType |= ModConstants.LOOP_SUSTAIN_IS_PINGPONG; 
 			currentSample.setLoopType(loopType);
 
 			int volume = inputStream.read();
@@ -691,7 +715,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			currentSample.setVolume(volume);
 
 			currentSample.setName(inputStream.readString(26));
-			int CvT = inputStream.read();
+			final int CvT = inputStream.read();
 			currentSample.setCvT(CvT);
 			// DfP - Default Pan. Bits 0->6 = Pan value, Bit 7 ON to USE (opposite of inst)
 			int panning = inputStream.read();
@@ -709,11 +733,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 
 			currentSample.setFineTune(0);
 			currentSample.setTranspose(0);
-			int c4Speed = inputStream.readIntelDWord();
-			if (c4Speed==0) c4Speed = 8363;
-			else
-			if (c4Speed<256) c4Speed = 256;
-			currentSample.setBaseFrequency(c4Speed); 
+			final int c4Speed = inputStream.readIntelDWord();
+			currentSample.setBaseFrequency((c4Speed==0)?ModConstants.BASEFREQUENCY:(c4Speed<256)?256:c4Speed); 
 			
 			final int sustainLoopStart = inputStream.readIntelDWord();
 			final int sustainLoopStop = inputStream.readIntelDWord();
@@ -721,7 +742,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			currentSample.setSustainLoopStop(sustainLoopStop);
 			currentSample.setSustainLoopLength(sustainLoopStop - sustainLoopStart);
 			
-			int sampleOffset = inputStream.readIntelDWord();
+			final int sampleOffset = inputStream.readIntelDWord();
 			
 			currentSample.setVibratoRate(inputStream.read());
 			currentSample.setVibratoDepth(inputStream.read() & 0x7F);
@@ -731,19 +752,50 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			if (sampleOffset>0 && currentSample.length>0)
 			{
 				int loadFlag = 0;
-				if (CvT==0xFF && (flags & (0x02 | 0x04))==0)  // ModPlug ADPCM compression
+				if (CvT==cvtADPCMSample && (flags & (sample16Bit | sampleStereo))==0)  // ModPlug ADPCM compression, only mono 8Bit (I check for mono - nobody else does that. Why?!)
 					loadFlag |= ModConstants.SM_ADPCM;
 				else
 				{
-					loadFlag = ((CvT&0x1)==0x1)?ModConstants.SM_PCMS:ModConstants.SM_PCMU;
-					if ((flags&0x2)!=0) loadFlag |= ModConstants.SM_16BIT;
-					if ((flags&0x4)!=0) loadFlag |= ModConstants.SM_STEREO;
-					if ((flags&0x8)!=0) loadFlag |= (version>=0x215 && (CvT&0x4)==0x4)?ModConstants.SM_IT2158:ModConstants.SM_IT2148;
+					if ((flags&sample16Bit)!=0)	 loadFlag |= ModConstants.SM_16BIT;
+					if ((flags&sampleStereo)!=0) loadFlag |= ModConstants.SM_STEREO;
+					if ((CvT&cvtBigEndian)!=0)	 loadFlag |= ModConstants.SM_BigEndian;
+					if ((CvT&cvtPTM8to16)!=0)	 loadFlag |= ModConstants.SM_PTM8Dto16;
+
+					if ((flags&sampleCompressed)!=0)
+						loadFlag |= ((CvT&cvtDelta)!=0)?ModConstants.SM_IT215:ModConstants.SM_IT214;
+					else
+						loadFlag |= ((CvT&cvtDelta)!=0)?ModConstants.SM_PCMD:((CvT&cvtSignedSample)!=0)?ModConstants.SM_PCMS:ModConstants.SM_PCMU;
 				}
 				currentSample.setStereo((loadFlag&ModConstants.SM_STEREO)!=0);
 				inputStream.seek(sampleOffset);
 				currentSample.setSampleType(loadFlag);
-				readSampleData(currentSample, inputStream);
+				if ((flags&sampleDataPresent)!=0)
+				{
+					if ((CvT&cvtExternalSample)!=0)
+					{
+						final int strLen = inputStream.read();
+						if (strLen>0)
+						{
+							final String fileName = inputStream.readString(strLen); 
+							Log.info(fileName + " --> loading external sample \""+currentSample.name+"\" not supported");
+						}
+						else
+							Log.error("External sample \""+currentSample.name+"\" without file name!");
+					}
+					else
+					if (CvT==cvtOPLInstrument && currentSample.length==12) // OMPT OPL3 support
+					{
+						currentSample.adLib_Instrument = new byte[12];
+						inputStream.read(currentSample.adLib_Instrument, 0, 12);
+						if (needsOPL==NO_OPL) needsOPL = OPL3;
+					}
+					else
+					{
+						readSampleData(currentSample, inputStream);
+					}
+				}
+				else
+					currentSample.setLength(0);
 			}
 			
 			instrumentContainer.setSample(i, currentSample);
@@ -758,9 +810,9 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
 			final long seek = patternParaPointer[pattNum];
-			if (seek<=0) // Empty pattern - create one with default MAX_CHANNELS rows
+			if (seek<=0) // Empty pattern - create one with one row
 			{
-				patternContainer.createPattern(pattNum, MAX_CHANNELS); // PatternElements will get created when we know the amount of channels.
+				patternContainer.createPattern(pattNum, 1); // PatternElements will get created when we know the amount of channels.
 				continue;
 			} 
 			inputStream.seek(seek);
@@ -880,7 +932,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 							// Old versions of ModPlug saved this as "set vibrato speed" instead, so let's fix that.
 							if (volOp!=0 && lastSavedWithVersion!=-1 && lastSavedWithVersion<=0x01170254)
 								volCmd = 0x06;
-						}
+						} else
 						// 213-222: was once Velocity (MPT)
 						// 223-232: Sample Offset (MPT)
 						if ((vol >= 223) && (vol <= 232)) { volCmd = 0x0E; volOp = vol - 223; }
@@ -924,9 +976,10 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			}
 		}
 		
-		setNChannels((maxChannelIndex<3)?4:maxChannelIndex+1); // minimum 4 channels
+		setNChannels(maxChannelIndex+1);
 		patternContainer.setToChannels(getNChannels());
 		patternContainer.setChannelNames(chnNames);
+		patternContainer.setChannelActiveStatus(panningValue);
 		
 		// Correct the songlength for playing, skip markerpattern... (do not want to skip them during playing!)
 		cleanUpArrangement();
@@ -935,13 +988,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		if (lastSavedWithVersion!=-1 && (getTrackerName()==null || getTrackerName().length()==0))
 		{
 			setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion));
-			boolean isCompatMode = reserved==0x4F4D5054 && (version & 0xF000)==0x5000;
+			boolean isCompatMode = reserved!=0x54504D4F && (version & 0xF000)==0x5000;
 			if (lastSavedWithVersion==0x01170000)
-				isCompatMode = !hasExtraInstrumentInfos && !hasExtraSongProperties;
+				isCompatMode = !hasExtraInstrumentInfos && !hasExtraSongProperties && !hasModPlugExtensions;
 			
 			if (isCompatMode)
 			{
-				setTrackerName(getTrackerName() + " (compatibility export)");
+				setTrackerName(getTrackerName() + ModConstants.COMPAT_MODE);
 				// Treat compatibility export as ITs
 				setModType(getModType() & ~(ModConstants.MODTYPE_MPT | ModConstants.MODTYPE_OMPT));
 			}
@@ -950,6 +1003,105 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			
 			if (createdWithVersion!=-1) setTrackerName(getTrackerName() + " (first created with " + ModConstants.getModPlugVersionString(createdWithVersion)+")");
 		}
+		else
+		{
+			switch (version>>12)
+			{
+				case 0:
+					if (isBeRoTracker)
+					{
+						setTrackerName("BeRoTracker");
+					}
+					else
+					if(version==0x0202 && cmwt==0x0200 && rowsPerBeat==0 && rowsPerMeasure==0 && reserved==0 && 
+						patternParaPointer.length>0 && samplesParaPointer.length>0 && 
+						patternParaPointer[0]!=0 && patternParaPointer[0]<samplesParaPointer[0])
+					{
+						lastSavedWithVersion=0x10000A0;
+						setTrackerName("ModPlug Tracker 1.0 pre-alpha / alpha");
+						setModType(getModType() | ModConstants.MODTYPE_MPT);
+					}
+					else
+					if (version==0x0214 && cmwt==0x0200 && rowsPerBeat==0 && rowsPerMeasure==0 && reserved==0)
+					{
+						if (hasEditHistory && hasHighlight)
+						{
+							if (instrumentParaPointer.length>=2 && instrumentParaPointer[1] - instrumentParaPointer[0]==557)
+							{
+								lastSavedWithVersion=0x10000B2;
+								setTrackerName("ModPlug Tracker 1.0b2");
+							}
+							else
+							{
+								lastSavedWithVersion=0x10000B1;
+								setTrackerName("ModPlug Tracker 1.0 alpha / beta");
+							}
+						}
+						else
+						{
+							lastSavedWithVersion=0x10000A5;
+							setTrackerName("ModPlug Tracker 1.0a5");
+						}
+						setModType(getModType() | ModConstants.MODTYPE_MPT);
+					}
+					else
+					if (version==0x214 && cmwt==0x214 && reserved==0x49424843) //CHBI - reversed order!
+					{
+						setTrackerName("ChibiTracker");
+						// preamp only halve!
+					}
+					else
+					if (version==0x0214 && cmwt==0x0214 && special<=1 && pwDepth==0 && reserved==0 &&
+						(songFlags & (ModConstants.SONG_VOL0MIXOPTI | ModConstants.SONG_USEINSTRUMENTS | ModConstants.SONG_USEMIDIPITCH | ModConstants.SONG_EMBEDMIDICFG | ModConstants.SONG_EXFILTERRANGE)) == ModConstants.SONG_USEINSTRUMENTS &&
+						getNSamples()>1 && (instrumentContainer.getSample(1).dosFileName.equals("XXXXXXXX.YYY")))
+					{
+						setTrackerName("CheeseTracker");
+					}
+					else
+					if (version>0 && cmwt<0x300 && (getTrackerName()==null || getTrackerName().length()==0))
+					{
+						if (cmwt>0x0214)
+						{
+							setTrackerName("Impulse Tracker 2.15");
+						}
+						else
+						if (version>0x0214)
+						{
+							setTrackerName("Impulse Tracker 2.14p" + (version - 0x0214));
+						}
+						else
+						{
+//							setTrackerName("Impulse Tracker V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2) + " (CmwT: " + ModConstants.getAsHex((cmwt>>8)&0xF, 1) + "." + ModConstants.getAsHex(cmwt&0xFF, 2) + ")");
+							setTrackerName("Impulse Tracker V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2));
+						}
+					}
+					break;
+				case 1:
+					setTrackerName("Schism Tracker "+ModConstants.getSchismVersionString((version<<16) | reserved));
+					break;
+				case 4:
+					setTrackerName("pyIT V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2));
+					break;
+				case 6:
+					setTrackerName("BeRoTracker");
+					break;
+				case 7:
+					if (version==0x7FFF && cmwt==0x0215)
+						setTrackerName("munch.py");
+					else
+						setTrackerName("ITMCK "+((version>>8)&0x0F)+"."+((version>>4)&0x0F)+"."+(version&0x0F));
+					break;
+				case 0xD:
+					if (version==0xDAEB)
+						setTrackerName("spc2it");
+					else 
+					if (version==0xD1CE)
+						setTrackerName("itwriter");
+					break;
+			}
+		}
+		if (getTrackerName()==null || getTrackerName().length()==0)
+			setTrackerName("Unknown Tracker V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2) + "(ID: "+((version&0xF000)>>12)+" CmwT: " + ModConstants.getAsHex((cmwt>>8)&0xF, 1) + "." + ModConstants.getAsHex(cmwt&0xFF, 2) + ")");
 
 		// With OpenModPlug Files we create default channel colors if none are set
 		if ((getModType()&(ModConstants.MODTYPE_MPT | ModConstants.MODTYPE_OMPT))!=0 && patternContainer.getChannelColors()==null)

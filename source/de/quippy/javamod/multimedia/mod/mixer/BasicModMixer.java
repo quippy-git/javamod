@@ -121,7 +121,7 @@ public abstract class BasicModMixer
 		public int IT_EFG; // IT specific: linked memory
 		public int EFxSpeed, EFxDelay, EFxOffset; // MOD specific: invertLoop (trash the sample)
 		
-		public int jumpLoopPatternRow, jumpLoopRepeatCount;
+		public int jumpLoopPatternRow, jumpLoopRepeatCount, jumpLoopITLastRow;
 
 		public int noteDelayCount, noteCutCount;
 		
@@ -192,7 +192,7 @@ public abstract class BasicModMixer
 			filter_A0 = filter_B0 = filter_B1 = filter_HP = 0;
 			filter_Y1 = filter_Y2 = filter_Y3 = filter_Y4 = 0;
 			
-			jumpLoopPatternRow = jumpLoopRepeatCount = 0;
+			jumpLoopPatternRow = jumpLoopRepeatCount = jumpLoopITLastRow = -1;
 		}
 		/**
 		 * Every possible way to create a 1:1 copy of ChannelMemory for NNA
@@ -275,7 +275,8 @@ public abstract class BasicModMixer
 		public String toString()
 		{
 			return  "Channel: "+channelNumber+(isNNA?"(NNA) ":" ")+
-					"Note: "+ModConstants.getNoteNameForIndex(assignedNoteIndex)+
+					((currentElement!=null)?currentElement.toString():"NONE")+
+					" Note: "+ModConstants.getNoteNameForIndex(assignedNoteIndex)+
 					" Volume: "+currentInstrumentVolume+
 					" Instrument: \""+((assignedInstrument!=null)?assignedInstrument.toString():"NONE")+
 					"\" Sample: \"" + ((assignedSample!=null)?assignedSample.toString():"NONE")+'\"';
@@ -578,6 +579,7 @@ public abstract class BasicModMixer
 				if (channelMemory[c]!=null) channelMemory[c].muted = muteStatus[c];
 			}
 		}
+		resetJumpPositionSet();
 	}
 	/**
 	 * Does only a forward seek, so starts from the beginning
@@ -1088,6 +1090,14 @@ public abstract class BasicModMixer
 	 */
 	protected abstract int calculateExtendedValue(final ChannelMemory aktMemo, final AtomicInteger extendedRowsUsed);
 	/**
+	 * Set the new note period / frequency and instrument
+	 * This moved to the respective player classes to not mix up all the different
+	 * player variations between ProTracker, FastTracker, ScreamTracker, ImpulseTracker
+	 * @since 11.06.2006
+	 * @param aktMemo
+	 */
+	protected abstract void setNewInstrumentAndPeriod(final ChannelMemory aktMemo);
+	/**
 	 * @since 19.06.2020
 	 * @param aktMemo
 	 */
@@ -1100,102 +1110,6 @@ public abstract class BasicModMixer
 			aktMemo.fadeOutVolume = ModConstants.MAXFADEOUTVOLUME;
 			aktMemo.noteFade = true;
 		}
-	}
-	/**
-	 * @since 20.06.2024
-	 * @param aktMemo
-	 */
-	protected void doKeyOff(final ChannelMemory aktMemo)
-	{
-		aktMemo.keyOff = true;
-		if (isXM)
-		{
-			// XM has a certain envelope tick reset with key off and existing envelopes - tick is reset to the previous start position
-			// That way a sustain release is managed - however, with panning because of a bug, that does not work
-			final Instrument currentInstrument = aktMemo.assignedInstrument;
-			final Envelope volumeEnv = (currentInstrument!=null)?currentInstrument.volumeEnvelope:null;
-			if (volumeEnv!=null && volumeEnv.on)
-			{
-				aktMemo.volEnvTick = volumeEnv.getXMResetPosition(aktMemo.volEnvTick, aktMemo.volXMEnvPos);
-			}
-			else
-			{
-				aktMemo.currentVolume = 0;
-				aktMemo.doFastVolRamp = true;
-			}
-			final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
-			if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
-			{
-				aktMemo.panEnvTick = panningEnv.getXMResetPosition(aktMemo.panEnvTick, aktMemo.panXMEnvPos);
-			}
-		}
-	}
-	/**
-	 * @since 10.07.2024
-	 * @param aktMemo
-	 */
-	protected void doNoteCut(final ChannelMemory aktMemo)
-	{
-		aktMemo.noteCut = true;
-		//currentVolume = 0;
-		// Schism sets tuning=0 and deletes the last period
-		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
-		// that would be our way:
-		//aktMemo.instrumentFinished = true;
-		aktMemo.doFastVolRamp = true;
-	}
-	/**
-	 * Check if effect is a fine slide - then only on first tick!
-	 * @since 04.04.2020
-	 * @param slideValue
-	 * @return
-	 */
-	protected boolean isFineSlide(final int slideValue)
-	{
-		return ((slideValue>>4)==0xF && (slideValue&0xF)!=0x0) ||
-			   ((slideValue>>4)!=0x0 && (slideValue&0xF)==0xF);
-	}
-	/**
-	 * To not over and over again implement the same algorithm, this method
-	 * will return a -value or a value. Just add (or substract) it 
-	 * @since 22.12.2023
-	 * @param effectOp
-	 * @return
-	 */
-	protected int getFineSlideValue(final int effectOp)
-	{
-		final int x = (effectOp>>4)&0x0F;
-		final int y = effectOp&0x0F;
-		
-		// 0xFF can be fine slide up 15 or down 15. Per convention it is
-		// fine up 15, so we test fine up first.
-		if (y==0xF) // Fine Slide Up or normal slide down 15 (0x0F)
-		{
-			if (x!=0)
-				return x;
-			else
-				return -15;	
-		}
-		else 
-		if (x==0xF) // Fine Slide down or normal slide up
-		{
-			if (y!=0)
-				return -y;
-			else
-				return 15;	
-		}
-		else
-		if (y!=0)
-		{
-			if (x==0) return -y;
-		}
-		else
-		if (x!=0)
-		{
-			if (y==0) return x; 
-		}
-		// Having OP with x and y set (like 15 or 84) is not supported and does nothing
-		return 0;
 	}
 	/**
 	 * The size of volume-ramping we intend to use
@@ -1630,198 +1544,9 @@ public abstract class BasicModMixer
 	 * @param aktMemo
 	 * @return
 	 */
-	private boolean isChannelActive(final ChannelMemory aktMemo)
+	protected boolean isChannelActive(final ChannelMemory aktMemo)
 	{
 		return (aktMemo!=null)?(!aktMemo.instrumentFinished && aktMemo.currentTuning!=0 && aktMemo.currentSample!=null && aktMemo.channelNumber!=-1):false;
-	}
-	/**
-	 * perform the duplicate note checks, if any are defined
-	 * @since 08.07.2020
-	 * @param aktMemo
-	 */
-	protected void doDNA(final ChannelMemory aktMemo)
-	{
-		final Instrument instr = aktMemo.assignedInstrument;
-		if (instr == null) return;
-
-		// we can save the time, if no duplicate action is set
-		if (instr.dublicateNoteCheck == ModConstants.DCT_NONE) return;
-		
-		final int channelNumber = aktMemo.channelNumber;
-		for (int c=channelNumber; c<maxChannels; c++)
-		{
-			// Only apply to background channels, or the same pattern channel
-			if (c!=channelNumber && c<mod.getNChannels())
-				continue;
-			
-			final ChannelMemory currentNNAChannel = channelMemory[c];
-			if (!isChannelActive(currentNNAChannel)) continue;
-
-			if (currentNNAChannel.channelNumber == channelNumber)
-			{
-				boolean applyDNA = false;
-				// Check the Check
-				switch (instr.dublicateNoteCheck)
-				{
-					case ModConstants.DCT_NONE:
-						// this was checked earlier - but to be complete here...
-						break;
-					case ModConstants.DCT_NOTE:
-						final int note = currentNNAChannel.assignedNoteIndex; 
-						// ** With other players, the noteindex of instrument mapping 
-						// ** might count!! Would be this:
-						//final int note = inst.getNoteIndex(aktMemo.assignedNoteIndex-1)+1;
-						// *********
-						if (note>0 && 
-								note==currentNNAChannel.assignedNoteIndex && 
-								instr==currentNNAChannel.assignedInstrument)
-							applyDNA = true;
-						break;
-					case ModConstants.DCT_SAMPLE:
-						final Sample sample = aktMemo.currentSample;
-						if (sample!=null && 
-								sample==currentNNAChannel.currentSample && // this compares only pointer. Should work, as samples exist only once!
-								instr==currentNNAChannel.assignedInstrument) // IT: also same instrument
-							applyDNA = true;
-						break;
-					case ModConstants.DCT_INSTRUMENT:
-						if (instr==currentNNAChannel.assignedInstrument)
-							applyDNA = true;
-						break;
-					case ModConstants.DCT_PLUGIN:
-						// Unsupported
-						break;
-				}
-				
-				if (applyDNA)
-				{
-					// We have a match!
-					switch (instr.dublicateNoteAction)
-					{
-						case ModConstants.DNA_CUT:	// CUT: note volume to zero
-							currentNNAChannel.noteCut = true;
-							break;
-						case ModConstants.DNA_FADE:		// fade: fade out with fixed values 
-							initNoteFade(currentNNAChannel); 
-							break;
-						case ModConstants.DNA_OFF: 		// OFF: fade out with instrument fade out value
-							currentNNAChannel.keyOff = true; 
-							break;
-					}
-				}
-			}
-		}
-	}
-	/**
-	 * @since 11.06.2020
-	 * @param aktMemo
-	 * @param NNA
-	 */
-	protected void doNNA(final ChannelMemory aktMemo, final int NNA)
-	{
-		switch (NNA)
-		{
-			case ModConstants.NNA_CUT:		// CUT: note volume to zero 
-				aktMemo.noteCut = true; 
-				break;
-			case ModConstants.NNA_CONTINUE:	// continue: let the music play 
-				break;
-			case ModConstants.NNA_FADE:		// fade: fade out with fixed values 
-				initNoteFade(aktMemo); 
-				break;
-			case ModConstants.NNA_OFF: 		// OFF: fade out with instrument fade out value
-				aktMemo.keyOff = true; 
-				break;
-		}
-	}
-	/**
-	 * @since 11.06.2020
-	 * @param aktMemo
-	 * @param NNA
-	 */
-	private void doNNANew(final ChannelMemory aktMemo, final int NNA)
-	{
-		ChannelMemory newChannel = null;
-		int lowVol = ModConstants.MAXCHANNELVOLUME;
-		int envPos = 0;
-		// Pick a Channel with lowest volume or silence
-		for (int c=mod.getNChannels(); c<maxChannels; c++)
-		{
-			final ChannelMemory memo = channelMemory[c];
-			if (!isChannelActive(memo))
-			{
-				newChannel = memo;
-				break;
-			}
-			
-			// to find the channel with the lowest volume,
-			// add left and right target volumes but add the current 
-			// channelVolume so temporary silent channels are not killed
-			// (left and right volume are shifted by 12+6 bit, so channel volume
-			//  has space in the lower part)
-			// additionally we also consider channels being far beyond their endpoint
-			final int currentVolume = (memo.actVolumeLeft + memo.actVolumeRight) | memo.channelVolume;
-			if ((currentVolume < lowVol) || (currentVolume == lowVol && memo.volEnvTick > envPos)) 
-			{
-				envPos = memo.volEnvTick;
-				lowVol = currentVolume;
-				newChannel = memo;
-			}
-		}
-
-		if (newChannel!=null)
-		{
-			newChannel.setUpFrom(aktMemo);
-			doDNA(aktMemo);
-			doNNA(newChannel, NNA);
-			// stop the current channel - it is copied
-			aktMemo.instrumentFinished = true;
-		}
-	}
-	/**
-	 * @since 11.06.2020
-	 * @param aktMemo
-	 * @param NNA
-	 */
-	protected void doNNAforAllof(final ChannelMemory aktMemo, final int NNA)
-	{
-		final int channelNumber = aktMemo.channelNumber;
-		for (int c=mod.getNChannels(); c<maxChannels; c++)
-		{
-			final ChannelMemory currentNNAChannel = channelMemory[c];
-			if (!isChannelActive(currentNNAChannel)) continue;
-			if (currentNNAChannel.channelNumber == channelNumber)
-				doNNA(currentNNAChannel, NNA);
-		}
-	}
-	/**
-	 * @since 29.03.2010
-	 * @param aktMemo
-	 */
-	protected void doNNAAutoInstrument(ChannelMemory aktMemo)
-	{
-		if (!isIT || !isChannelActive(aktMemo) || aktMemo.muted || aktMemo.noteCut) return;
-		
-		Instrument currentInstrument = aktMemo.assignedInstrument;
-		if (currentInstrument!=null)
-		{
-			// NNA_CUT is default for instruments with no NNA
-			// so do not copy this to a new channel for just finishing
-			// it off then.
-			if (currentInstrument.NNA != ModConstants.NNA_CUT)
-			{
-				final int nna;
-				if (aktMemo.tempNNAAction>-1)
-				{
-					nna = aktMemo.tempNNAAction;
-					aktMemo.tempNNAAction = -1;
-				}
-				else
-					nna = currentInstrument.NNA;
-			
-				doNNANew(aktMemo, nna);
-			}
-		}
 	}
 	/**
 	 * Service method to reset envelope pointers when
@@ -1869,8 +1594,9 @@ public abstract class BasicModMixer
 	 * Is for new notes or re-trigger a note
 	 * @since 19.06.2006
 	 * @param aktMemo
+	 * @param forceS3MZero set to true at S3M re-trigger to not use sampleOffset Memo but zero in that case
 	 */
-	protected void resetInstrumentPointers(final ChannelMemory aktMemo)
+	protected void resetInstrumentPointers(final ChannelMemory aktMemo, final boolean forceS3MZero)
 	{
 		aktMemo.EFxOffset =
 		aktMemo.currentTuningPos = 
@@ -1883,6 +1609,13 @@ public abstract class BasicModMixer
 		{
 			final int max = aktMemo.currentSample.length-1;
 			aktMemo.currentSamplePos = (aktMemo.prevSampleOffset>max)?max:aktMemo.prevSampleOffset;
+		}
+		else
+		if (isS3M) // special S3M sample offset handling
+		{
+			final int offset = (!forceS3MZero)?((ScreamTrackerMixer)this).validateNewSampleOffset(aktMemo, aktMemo.prevSampleOffset):0;
+			aktMemo.currentSamplePos = offset;
+			// prevSampleOffset is set zero in setNewInstrumentAndPeriod with a new instrument
 		}
 		else
 		{
@@ -1902,21 +1635,6 @@ public abstract class BasicModMixer
 			aktMemo.currentFineTune = currentSample.fineTune;
 			aktMemo.currentTranspose = currentSample.transpose;
 		}
-		aktMemo.prevSampleOffset=0;
-	}
-	/**
-	 * Is only called for ImpulseTracker now. Fast- and Pro-Tracker are handled
-	 * completely differently
-	 * @since 14.06.2020
-	 * @param aktMemo
-	 */
-	protected void resetForNewSample(final ChannelMemory aktMemo)
-	{
-		resetInstrumentPointers(aktMemo);
-		resetFineTune(aktMemo, aktMemo.currentSample);
-		resetEnvelopes(aktMemo);
-		resetAutoVibrato(aktMemo, aktMemo.currentSample);
-		aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * Service method to reset Volume and Panning of current instrument / sample 
@@ -2005,10 +1723,20 @@ public abstract class BasicModMixer
 		if (aktMemo.arpeggioIndex>=0)
 		{
 			aktMemo.arpeggioIndex=-1;
-			final int baseNotePeriod = aktMemo.arpeggioNote[0];
-			if (baseNotePeriod!=0)
+			if (isSTM) aktMemo.currentNotePeriod = aktMemo.currentNotePeriodSet;
+			else
+			if (isS3M)
 			{
-				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = baseNotePeriod);
+				if (currentElement.getEffekt()==0x05 || currentElement.getEffekt()==0x06)
+					aktMemo.currentNotePeriod = aktMemo.currentNotePeriodSet;
+			}
+			else
+			{
+				final int baseNotePeriod = aktMemo.arpeggioNote[0];
+				if (baseNotePeriod!=0)
+				{
+					setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = baseNotePeriod);
+				}
 			}
 		}
 
@@ -2079,184 +1807,6 @@ public abstract class BasicModMixer
 		}
 		
 		return useFilter;
-	}
-	/**
-	 * TODO: Clean up this mess - it is now only for STM, S3M, IT and MPTM
-	 * @since 11.06.2006
-	 * @param aktMemo
-	 */
-	protected void setNewInstrumentAndPeriod(final ChannelMemory aktMemo)
-	{
-		final PatternElement element = aktMemo.currentElement;
-//		final boolean isNoteDelay = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
-		final boolean isKeyOff = element.getPeriod()==ModConstants.KEY_OFF || element.getNoteIndex()==ModConstants.KEY_OFF;
-		final boolean isNewNote = hasNewNote(element);
-		boolean isPortaToNoteEffect = isPortaToNoteEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam, aktMemo.currentAssignedVolumeEffekt, aktMemo.currentAssignedVolumeEffektOp, aktMemo.currentAssignedNotePeriod);
-		
-		// Do Instrument default NNA
-		if (isNewNote && 
-			!isPortaToNoteEffect && 
-			!isNNAEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam)) // New Note Action
-		{
-			doNNAAutoInstrument(aktMemo);
-		}
-		
-		// copy last seen values from pattern - only effect values first
-		aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
-		aktMemo.assignedEffektParam = aktMemo.currentAssignedEffektParam; 
-		aktMemo.assignedVolumeEffekt = aktMemo.currentAssignedVolumeEffekt; 
-		aktMemo.assignedVolumeEffektOp = aktMemo.currentAssignedVolumeEffektOp;
-		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
-		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex;
-		aktMemo.assignedSample = (aktMemo.currentAssignedInstrument!=null)?
-		                            ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
-		        				       mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1))
-		        				       :null) // Instrument set without a note - so no mapping to sample possible!
-		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
-		
-		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
-		if (hasInstrument) // At this point we reset volume and panning for XMs and Fastracker family (IT, STM, S3M)
-		{
-			if (isS3M)
-			{
-				if (isPortaToNoteEffect)
-				{
-					if (aktMemo.currentSample!=aktMemo.assignedSample)
-					{
-						aktMemo.currentSample = aktMemo.assignedSample;
-						resetForNewSample(aktMemo);
-					}
-//					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-//					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-//					aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
-				}
-//				else
-//				if (isNewNote) // reset only volume and panning
-//				{
-					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-//				}
-			}
-			else
-			if (isIT)
-			{
-				if (isPortaToNoteEffect) // With IT: if there is a new(!) sample at a porta2note, we ignore the porta2note and set sample and instrument
-				{
-					if (aktMemo.currentSample!=aktMemo.assignedSample)
-						isPortaToNoteEffect=false;
-					else
-					{
-						resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
-						resetEnvelopes(aktMemo, aktMemo.assignedInstrument);
-					}
-				}
-				// no "else" - so the trick with a new sample works...
-				if (!isPortaToNoteEffect/* && isNewNote*/) // reset only volume and panning
-				{
-					// With IT: re-activate volume and panning even without note
-					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-				}
-			}
-			else
-			if (!isMOD && !isPortaToNoteEffect) // don't do if is (isMOD || portaToNoteEffect)
-			{
-				resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-				// Envelopes et cet. are done later
-			}
-		}
-		
-		// Now safe those instruments for later re-use
-		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
-		aktMemo.assignedInstrument = aktMemo.currentAssignedInstrument;
-
-		// Key Off, Note Cut, Note Fade or Period / noteIndex to set?
-		if (isKeyOff)
-		{
-			doKeyOff(aktMemo);
-		}
-		else
-		if (element.getPeriod()==ModConstants.NOTE_CUT || element.getNoteIndex()==ModConstants.NOTE_CUT)
-		{
-			doNoteCut(aktMemo);
-		}
-		else
-		if (element.getPeriod()==ModConstants.NOTE_FADE || element.getNoteIndex()==ModConstants.NOTE_FADE)
-		{
-			initNoteFade(aktMemo);
-		}
-		else
-		if ((isNewNote ||											// if there is a note, we need to calc the new tuning and activate a previous set instrument
-			hasInstrument) &&										// but with scream tracker like mods, the old note value is used, if an instrument is set
-			(!isPortaToNoteEffect || aktMemo.instrumentFinished)	// but ignore this if porta to note, except when not FastTracker (FT always ignore instruments at Porta2Note) or the instrument finished 
-			)
-		{
-			final int savedNoteIndex = aktMemo.assignedNoteIndex; // save the noteIndex - if it is changed by an instrument, we use that one to generate the period, but set it back then
-			boolean useFilter = !globalFilterMode;
-			boolean newInstrumentWasSet = false;
-
-			// We have an instrument/sample assigned, so there was (once) an instrument set!
-			if (aktMemo.assignedInstrument!=null || aktMemo.assignedInstrumentIndex>0) 
-			{
-				// now the correct note index from the mapping table, if we have an instrument and a valid note index
-				// the sample was already read before
-				if (aktMemo.assignedInstrument!=null && aktMemo.assignedNoteIndex>0)
-				{
-					aktMemo.assignedNoteIndex = aktMemo.assignedInstrument.getNoteIndex(aktMemo.assignedNoteIndex-1)+1;
-					// Now set filters from instrument for IT
-					if (isIT) useFilter = setFilterAndRandomVariations(aktMemo, aktMemo.assignedInstrument, useFilter);
-				}
-				
-				if (aktMemo.assignedSample!=null)
-				{
-					// Reset all pointers, if it's a new one...
-					// or with IT: play sample even without note - but not only if it is
-					// a new one but the same, and it's finished / silent...
-					if (aktMemo.currentSample!=aktMemo.assignedSample)
-					{
-						// Now activate new Instrument...
-						aktMemo.currentSample = aktMemo.assignedSample;
-						//aktMemo.assignedSample = null;
-						resetForNewSample(aktMemo);
-						newInstrumentWasSet = true;
-					}
-					// With scream tracker this has to be checked! Always! 
-					// IT-MODS (and derivates) reset here, because a sample set is relevant (see below)
-					if (aktMemo.instrumentFinished || isNewNote)
-					{
-						aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-						aktMemo.tempVolEnv = aktMemo.tempPanEnv = aktMemo.tempPitchEnv = -1;
-						resetInstrumentPointers(aktMemo);
-						resetEnvelopes(aktMemo);
-						resetAutoVibrato(aktMemo, aktMemo.currentSample);
-					}
-				}
-			}
-			
-			if (!isPortaToNoteEffect ||
-				(isPortaToNoteEffect && newInstrumentWasSet)) // With IT, if a new sample is set, ignore porta to note-->set it					
-			{
-				// Now set the player Tuning and reset some things in advance.
-				// normally we are here, because a note was set in the pattern.
-				// Except for IT-MODs - then we are here, because either note or
-				// instrument were set. If no note value was set, the old 
-				// note value is to be used.
-				// However, we do not reset the instrument here - the reset was 
-				// already done above - so this is here for all sane players :)
-				if (isScreamTrackerFamily)
-				{
-					if (isNewNote || newInstrumentWasSet)
-					{
-						setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-						// With S3Ms (STMs?) the port2target is the last seen note value
-						if (isS3M || isSTM) aktMemo.portaTargetNotePeriod = aktMemo.currentNotePeriod;
-					}
-					// and set the resonance, settings were stored above in instr. value copy
-					if ((/*aktMemo.resonance>0 || */aktMemo.cutOff<0x7F) && useFilter) setupChannelFilter(aktMemo, true, 256);
-					if (isNewNote && !isPortaToNoteEffect) reset_VibTremPan_TablePositions(aktMemo); // IT resets vibrato table position with a new note (and only that position)
-				}
-			}
-			// write back, if noteIndex was changed by instrument note mapping
-			aktMemo.assignedNoteIndex = savedNoteIndex;
-		}
 	}
 	/**
 	 * Do the row and volume effects inside a Tick (tick>0)
@@ -2368,7 +1918,7 @@ public abstract class BasicModMixer
 						aktMemo.currentAssignedInstrument = mod.getInstrumentContainer().getInstrument(aktMemo.currentAssignedInstrumentIndex-1);
 				}
 
-				// so far for S00 effect memory - if FastTracker has that too, we will elaborate
+				// S00 effect memory with Impulse Tracker
 				if (isIT)
 				{
 					if (aktMemo.currentAssignedEffekt!=0 && aktMemo.currentAssignedEffektParam == 0)
@@ -2383,7 +1933,7 @@ public abstract class BasicModMixer
 					processEffekts(aktMemo); // Tick 0
 				}
 				else
-				{
+				{ // !isMOD && isNoteDelay
 					if (isFastTrackerFamily)
 					{
 						aktMemo.assignedEffekt = aktMemo.currentAssignedEffekt;
@@ -2424,18 +1974,129 @@ public abstract class BasicModMixer
 				processEnvelopes(channelMemory[c]);
 		}
 	}
-//	/**
-//	 * when stepping to a new Pattern - Position needs new set...
-//	 * @since 21.01.2014
-//	 */
-//	private void resetJumpPositionSet()
-//	{
-//		if (isMOD)
-//		{
+	/**
+	 * when stepping to a new Pattern - Position needs new set...
+	 * During pattern transition: S3M resets
+	 * @since 21.01.2014
+	 */
+	private void resetJumpPositionSet()
+	{
+		if (isS3M)
+		{
 //			for (int c=0; c<maxChannels; c++)
-//				channelMemory[c].jumpLoopPositionSet = false;
-//		}
-//	}
+//				channelMemory[c].jumpLoopPatternRow = -1;
+			channelMemory[0].jumpLoopPatternRow =
+			channelMemory[0].jumpLoopITLastRow = -1;
+		}
+	}
+	/**
+	 * Will proceed to the next row, the next pattern or signal "end of song"
+	 * Will also perform any pattern jumps and pattern breaks
+	 * @since 24.07.2024
+	 * @return true, if piece finished
+	 */
+	protected void proceedToNextRow()
+	{
+		if (patternJumpSet) // Perform the jump
+		{
+			patternJumpSet = false;
+			currentRow = patternJumpRowIndex;
+			// PT/FT uses pBreakPosition/pBreakPos for all: Jump Position set and Pattern breaks row set
+			// So with these we synch patternBreakRowIndex and patternJumpRowIndex
+			// However, PT resets patternJumpRowIndex to Zero - so we do that as well
+			if (isMOD) patternBreakRowIndex = patternJumpRowIndex = 0;
+		}
+		else
+			currentRow++; // and step to the next row...
+
+		// now check for end of pattern and perform patternJumps, if any
+		if (currentRow>=currentPattern.getRowCount() || patternBreakSet)
+		{
+			patternBreakSet = false;
+			mod.setArrangementPositionPlayed(currentArrangement);
+
+			final boolean ignoreLoop = (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0;
+			final boolean fadeOutLoop = (doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0;
+			final boolean loopSong = (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0;
+			if (patternBreakPatternIndex!=-1)
+			{
+				final boolean infiniteLoop = isInfiniteLoop(patternBreakPatternIndex, patternBreakRowIndex);
+				if (infiniteLoop && ignoreLoop)
+				{
+					patternBreakRowIndex = patternBreakPatternIndex = -1;
+					currentArrangement++;
+				}
+				else
+				{
+					currentArrangement = patternBreakPatternIndex;
+				}
+				patternBreakPatternIndex = -1;
+				// and activate fadeout, if wished
+				if (infiniteLoop && fadeOutLoop)
+					doLoopingGlobalFadeout = true;
+			}
+			else
+			{
+				currentArrangement++;
+			}
+			
+			if (patternBreakRowIndex!=-1)
+			{
+				// With XMs patternBreakRowIndex might be set from 
+				// patternJumpRowIndex - FT2 uses only one var for this
+				currentRow = patternBreakRowIndex;
+				patternBreakRowIndex = -1;
+			}
+			else
+			{
+				currentRow = 0;
+			}
+			
+			// sanity check FT2.09 style
+			if (isXM && currentArrangement<mod.getSongLength())
+			{
+				final int patIndex = mod.getArrangement()[currentArrangement];
+				final Pattern pat = mod.getPatternContainer().getPattern(patIndex);
+				if (currentRow >= pat.getRowCount())
+				{
+					currentArrangement--;
+					currentRow=0;
+					// as this is the meaning of infinity:
+					if (fadeOutLoop)
+						doLoopingGlobalFadeout = true;
+				}
+			}
+			
+			// Currently this is only done for S3Ms
+			resetJumpPositionSet();
+			
+			// End of song? Fetch new pattern if not...
+			if (currentArrangement<mod.getSongLength())
+			{
+				currentPatternIndex = mod.getArrangement()[currentArrangement];
+				currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
+			}
+			else
+			{
+				if (!ignoreLoop && loopSong)
+				{
+					currentArrangement = mod.getSongRestart(); // can be -1 if not set
+					if (currentArrangement < 0) currentArrangement = 0;
+					currentPatternIndex = mod.getArrangement()[currentArrangement];
+					currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
+					// as this is per definition an infinite loop, activate fadeout, if wished
+					if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
+						doLoopingGlobalFadeout = true;
+					
+				}
+				else
+				{
+					currentPatternIndex = -1;
+					currentPattern = null;
+				}
+			}
+		}
+	}
 	/**
 	 * Do the events during a Tick.
 	 * @return true, if finished! 
@@ -2446,7 +2107,13 @@ public abstract class BasicModMixer
 		if (doLoopingGlobalFadeout)
 		{
 			loopingFadeOutValue-=ModConstants.FADEOUT_SUB;
-			if (loopingFadeOutValue <= 0) return true; // We did a fadeout and are finished now
+			if (loopingFadeOutValue <= 0)
+			{
+				currentPatternIndex = -1;
+				currentPattern = null;
+				currentTick = 0;
+				return true; // We did a fadeout and are finished now
+			}
 		}
 		
 		// ProTracker 1/2 had BPM sets centrally as first command in the Tick based loop.
@@ -2465,197 +2132,73 @@ public abstract class BasicModMixer
 		{
 			for (int c=0; c<maxChannels; c++)
 				processEffektsInTick(channelMemory[c]);
-			patternTicksDelayCount--; 
+			patternTicksDelayCount--;
+			return false;
+		}
+		
+		currentTick--;
+		if (currentTick>0)
+		{
+			// Do all Tickevents, 'cause we are in a Tick...
+			for (int c=0; c<maxChannels; c++)
+				processEffektsInTick(channelMemory[c]);
 		}
 		else
 		{
-			currentTick--;
-			if (currentTick<=0)
+			if (currentPattern==null) return true;
+			
+			currentTick = currentTempo;
+
+			// if PatternDelay, do it and return
+			if (patternDelayCount>0)
 			{
-				currentTick = currentTempo;
-
-				// if PatternDelay, do it and return
-				if (patternDelayCount>0)
+				// Process effects
+				for (int c=0; c<maxChannels; c++)
 				{
-					// Process effects
-					for (int c=0; c<maxChannels; c++)
+					final ChannelMemory aktMemo = channelMemory[c];
+
+					processEffektsInTick(aktMemo);
+
+					// for IT and S3M (not STM!) re-set note delays, but do not call doRowEvents (is for tick=0 only)
+					if (isIT || isS3M || isModPlug)
 					{
-						final ChannelMemory aktMemo = channelMemory[c];
-
-						processEffektsInTick(aktMemo);
-
-						// for IT and S3M (not STM!) re-set note delays, but do not call doRowEvents (is for tick=0 only)
-						if (isIT || isS3M)
+						if (isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam) && aktMemo.noteDelayCount<0)
 						{
-							if (isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam) && aktMemo.noteDelayCount<0)
-							{
-								final int effektOpEx = aktMemo.currentAssignedEffektParam&0x0F;
-								
-								if (isIT && effektOpEx==0)
-									aktMemo.noteDelayCount=1;
-								else
-									aktMemo.noteDelayCount = effektOpEx;
-							}
-
-							if (isPatternFramesDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam))
-							{
-								patternTicksDelayCount += aktMemo.currentAssignedEffektParam&0x0F;
-							}
-						}
-					}
-
-					patternDelayCount--;
-					if (patternDelayCount<=0)
-					{
-						patternDelayCount = -1;
-						currentRow++; // and move on!
-					}
-				}
-				else
-				{
-					// Ticks finished and no new row --> FINITO!
-					if (currentArrangement>=mod.getSongLength())
-					{
-						if (mod.getSongRestart()>-1 && (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0)
-						{
-							// Doing the reset here is bad. We are typically already on the next row...
-//							initializeMixer(true);
-//							currentTick = currentTempo;
-							currentArrangement = mod.getSongRestart();
-							currentPatternIndex = mod.getArrangement()[currentArrangement];
-							currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-							currentRow = 0;
-							if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
-								doLoopingGlobalFadeout = true;
-						}
-						else
-							return true;
-					}
-
-					// Do the row events
-					doRowEvents();
-
-					// and step to the next row... Even if there are no more -  we will find out later!
-					// However: if doRowEvents sets a patternDelay (patternDelayCount!=-1)
-					// we should not move on, but process the patternDelay on the currentRow set
-					// and if the patternDelayCount is finished, move on then.
-					if (patternDelayCount<=0)
-					{
-						currentRow++;
-						patternDelayCount = -1; // if patternDelayCount was "0", set it to uninitialized
-					}
-
-					if (patternJumpSet) // Perform the jump
-					{
-						patternJumpSet = false;
-						currentRow = patternJumpRowIndex;
-						// PT/FT uses pBreakPosition/pBreakPos for all: Jump Position set and Pattern breaks row set
-						// So with these we synch patternBreakRowIndex and patternJumpRowIndex
-						// However, PT resets patternJumpRowIndex to Zero - so we do that as well
-						if (isMOD) patternBreakRowIndex = patternJumpRowIndex = 0;
-					}
-				}
-				
-				// now check for end of pattern and perform patternJumps, if any
-				if (currentRow>=currentPattern.getRowCount() || patternBreakSet)
-				{
-					patternBreakSet = false;
-					mod.setArrangementPositionPlayed(currentArrangement);
-
-					final boolean ignoreLoop = (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0;
-					final boolean fadeOutLoop = (doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0;
-					final boolean loopSong = (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0;
-					if (patternBreakPatternIndex!=-1)
-					{
-						final boolean infiniteLoop = isInfiniteLoop(patternBreakPatternIndex, (patternBreakRowIndex!=-1)?patternBreakRowIndex:currentRow-1);
-						if (infiniteLoop && ignoreLoop)
-						{
-							patternBreakRowIndex = patternBreakPatternIndex = -1;
-							currentArrangement++;
-						}
-						else
-						{
-							currentArrangement = patternBreakPatternIndex;
-						}
-						patternBreakPatternIndex = -1;
-						// and activate fadeout, if wished
-						if (infiniteLoop && fadeOutLoop)
-							doLoopingGlobalFadeout = true;
-					}
-					else
-					{
-						currentArrangement++;
-					}
-					
-					if (patternBreakRowIndex!=-1)
-					{
-						// With XMs patternBreakRowIndex might be set from 
-						// patternJumpRowIndex - FT2 uses only one var for this
-						currentRow = patternBreakRowIndex;
-						patternBreakRowIndex = -1;
-					}
-					else
-					{
-						currentRow = 0;
-					}
-					
-					// sanity check FT2.09 style
-					if (isXM && currentArrangement<mod.getSongLength())
-					{
-						final int patIndex = mod.getArrangement()[currentArrangement];
-						final Pattern pat = mod.getPatternContainer().getPattern(patIndex);
-						if (currentRow >= pat.getRowCount())
-						{
-							currentArrangement--;
-							currentRow=0;
-							// as this is the meaning of infinity:
-							if (fadeOutLoop)
-								doLoopingGlobalFadeout = true;
-						}
-					}
-					
-					// End of song? Fetch new pattern if not...
-					if (currentArrangement<mod.getSongLength())
-					{
-						currentPatternIndex = mod.getArrangement()[currentArrangement];
-						currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-					}
-					else
-					{
-						if (!ignoreLoop && loopSong)
-						{
-							currentArrangement = mod.getSongRestart(); // can be -1 if not set
-							if (currentArrangement < 0) currentArrangement = 0;
-							currentPatternIndex = mod.getArrangement()[currentArrangement];
-							currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-							// as this is per definition an infinite loop, activate fadeout, if wished
-							if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
-								doLoopingGlobalFadeout = true;
+							final int effektOpEx = aktMemo.currentAssignedEffektParam&0x0F;
 							
+							if (isIT && effektOpEx==0)
+								aktMemo.noteDelayCount = 1;
+							else
+								aktMemo.noteDelayCount = effektOpEx;
 						}
-						else
+
+						if (isPatternFramesDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam))
 						{
-							currentPatternIndex = -1;
-							currentPattern = null;
+							patternTicksDelayCount += aktMemo.currentAssignedEffektParam&0x0F;
 						}
 					}
 				}
+
+				patternDelayCount--;
+				if (patternDelayCount>0) return false;
+				patternDelayCount = -1;
 			}
 			else
 			{
-				// Do all Tickevents, 'cause we are in a Tick...
-				for (int c=0; c<maxChannels; c++)
-					processEffektsInTick(channelMemory[c]);
+				// Do the row events
+				doRowEvents();
+				if (patternDelayCount>0) return false;
 			}
-
-			// if not ProTracker, recalculate samplesPerTick here.
-			// do this every(!) Tick with tempoMode "Modern" or on Tick zero for all others
-			// currentPattern is null, if end was reached
-			if (!isMOD && currentPattern!=null && (mod.getTempoMode()==ModConstants.TEMPOMODE_MODERN || currentTick==currentTempo))
-				calculateSamplesPerTick();
+			proceedToNextRow();
 		}
 
-		return false;
+		// if not ProTracker, recalculate samplesPerTick here.
+		// do this every(!) Tick with tempoMode "Modern" or on Tick zero for all others
+		// currentPattern is null, if end was reached
+		if (!isMOD && currentPattern!=null && (mod.getTempoMode()==ModConstants.TEMPOMODE_MODERN || currentTick==currentTempo))
+			calculateSamplesPerTick();
+
+		return (currentPatternIndex==-1 && currentTick<=0);
 	}
 	/**
 	 * Add current speed to samplepos and
@@ -2667,6 +2210,8 @@ public abstract class BasicModMixer
 	protected void fitIntoLoops(final ChannelMemory aktMemo)
 	{
 		final Sample sample = aktMemo.currentSample;
+		if (sample.length<=0) return;
+
 		aktMemo.currentTuningPos += aktMemo.currentTuning;
 		if (aktMemo.currentTuningPos >= ModConstants.SHIFT_MAX)
 		{
@@ -2863,21 +2408,21 @@ public abstract class BasicModMixer
 	private void fillRampDataIntoBuffers(final long[] leftBuffer, final long[] rightBuffer, final ChannelMemory aktMemo)
 	{
 		// Remember changeable values
-		final long filter_Y1				= aktMemo.filter_Y1;
-		final long filter_Y2				= aktMemo.filter_Y2;
-		final long filter_Y3				= aktMemo.filter_Y3;
-		final long filter_Y4				= aktMemo.filter_Y4;
-		final int  actRampVolLeft			= aktMemo.actRampVolLeft;
-		final int  actRampVolRight			= aktMemo.actRampVolRight;
-		final int  deltaVolLeft				= aktMemo.deltaVolLeft;
-		final int  deltaVolRight			= aktMemo.deltaVolRight;
+		final long	  filter_Y1				= aktMemo.filter_Y1;
+		final long	  filter_Y2				= aktMemo.filter_Y2;
+		final long	  filter_Y3				= aktMemo.filter_Y3;
+		final long	  filter_Y4				= aktMemo.filter_Y4;
+		final int	  actRampVolLeft		= aktMemo.actRampVolLeft;
+		final int	  actRampVolRight		= aktMemo.actRampVolRight;
+		final int	  deltaVolLeft			= aktMemo.deltaVolLeft;
+		final int	  deltaVolRight			= aktMemo.deltaVolRight;
 		final boolean instrumentFinished	= aktMemo.instrumentFinished;
-		final int currentTuningPos			= aktMemo.currentTuningPos;
-		final int currentSamplePos			= aktMemo.currentSamplePos;
+		final int	  currentTuningPos		= aktMemo.currentTuningPos;
+		final int	  currentSamplePos		= aktMemo.currentSamplePos;
 		final boolean isForwardDirection	= aktMemo.isForwardDirection;
-		final int interpolationMagic		= aktMemo.interpolationMagic;
-		final Sample currentSample			= aktMemo.currentSample;
-		final Sample assignedSample			= aktMemo.assignedSample;
+		final int	  interpolationMagic	= aktMemo.interpolationMagic;
+		final Sample  currentSample			= aktMemo.currentSample;
+		final Sample  assignedSample		= aktMemo.assignedSample;
 		aktMemo.assignedSample				= null; // no sample swap here!
 
 //		memory.setUpFrom(aktMemo);

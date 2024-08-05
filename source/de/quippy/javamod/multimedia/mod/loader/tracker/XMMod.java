@@ -71,12 +71,12 @@ public class XMMod extends ProTrackerMod
 	 * Constructor for XMMod
 	 * @param fileExtension
 	 */
-	protected XMMod(String fileName)
+	protected XMMod(final String fileName)
 	{
 		super(fileName);
 	}
 	/**
-	 * @return the Fileextensions this loader is suitable for
+	 * @return the file extensions this loader is suitable for
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
@@ -130,12 +130,34 @@ public class XMMod extends ProTrackerMod
 		return false;
 	}
 	/**
+	 * @param inputStream
+	 * @return true, if this is a FastTracker mod, false if this is not clear
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
+	 */
+	@Override
+	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
+	{
+		final String xmID = inputStream.readString(17);
+		inputStream.seek(0);
+		return isXMMod(xmID);
+	}
+	/**
+	 * @param fileName
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
+	 */
+	@Override
+	protected Module getNewInstance(final String fileName)
+	{
+		return new XMMod(fileName);
+	}
+	/**
 	 * @since 26.05.2006
 	 * @param currentElement
 	 * @param inputStream
 	 * @throws IOException
 	 */
-	private void setIntoPatternElement(ModfileInputStream inputStream, PatternElement currentElement) throws IOException
+	private void setIntoPatternElement(final ModfileInputStream inputStream, final PatternElement currentElement) throws IOException
 	{
 		int flags = inputStream.read();
 		if ((flags&0x80) == 0) // is not packed
@@ -263,7 +285,7 @@ public class XMMod extends ProTrackerMod
 	{
 		for (int samIndex=0; samIndex<anzSamples; samIndex++)
 		{
-			Sample current = instrumentContainer.getSample(samIndex + sampleOffsetIndex); 
+			final Sample current = instrumentContainer.getSample(samIndex + sampleOffsetIndex); 
 			readSampleData(current, inputStream);
 		}
 	}
@@ -272,33 +294,46 @@ public class XMMod extends ProTrackerMod
 	 * @param kennung
 	 * @return
 	 */
-	private boolean isXMMod(String kennung)
+	private boolean isXMMod(final String kennung)
 	{
-		if (kennung.equals("Extended Module: ")) return true;
-		if (kennung.toLowerCase().equals("extended module: ")) return true;
+		if (kennung.equalsIgnoreCase("Extended Module: ")) return true;
 		return false;
 	}
 	/**
-	 * @param inputStream
-	 * @return true, if this is a protracker mod, false if this is not clear
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
-	 */
-	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
-	{
-		String xmID = inputStream.readString(17);
-		inputStream.seek(0);
-		return isXMMod(xmID);
-	}
-	/**
-	 * @param fileName
+	 * This is only for some fun - to be honest. The C4-Period is never used, just displayed.
+	 * @since 26.07.2024
+	 * @param sample
+	 * @param useTable
 	 * @return
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
 	 */
-	@Override
-	protected Module getNewInstance(String fileName)
+	private int getPeriod2Hz(final Sample sample, final int useTable)
 	{
-		return new XMMod(fileName);
+		if (sample==null) return -1;
+
+		int note = (4*12) + sample.transpose;
+		if (note<0) return -1;
+		if (note>=(10*12)-1) return -1;
+		final int C4Period = ((note<<4) + ((sample.fineTune>>3) + 16));
+		
+		switch (useTable)
+		{
+			case ModConstants.XM_AMIGA_TABLE:
+				return (ModConstants.BASEFREQUENCY * 1712) / (ModConstants.FT2_amigaPeriods[C4Period]&0xFFFF);
+			case ModConstants.XM_LINEAR_TABLE:
+				final int period = ModConstants.FT2_linearPeriods[C4Period]&0xFFFF;
+				// Original FT2 method with doubles - is a bit more precise in rounding
+//				final int invPeriodDouble = ((12 * 192 * 4) - C4Period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
+//				final int quotientDouble  = invPeriodDouble / (12 * 16 * 4);
+//				final int remainderDouble = invPeriodDouble % (12 * 16 * 4);
+//				final double logValue = (ModConstants.BASEFREQUENCY * 256d) * Math.pow(2d, (double)remainderDouble / (4d * 12d * 16d));
+//				final double frequencyDouble = logValue * (1d /Math.pow(2d, (double)((14 - quotientDouble) & 0x1F)));
+				
+				final int invPeriod = ((12 * 192 * 4) + 767 - period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
+				final int quotient  = invPeriod / (12 * 16 * 4);
+				final int remainder = period % (12 * 16 * 4);
+				return ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
+		}
+		return -1;
 	}
 	/**
 	 * @param inputStream
@@ -306,7 +341,7 @@ public class XMMod extends ProTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
 		setMixingPreAmp(ModConstants.MIN_MIXING_PREAMP);
@@ -335,7 +370,8 @@ public class XMMod extends ProTrackerMod
 		setTrackerName(trackerName.trim());
 		if (trackerName.startsWith("FastTracker v2.00") && headerSize==276)
 		{
-			setTrackerName("FastTracker II V" + ModConstants.getAsHex((version>>8)&0xFF, 2) + "." + ModConstants.getAsHex(version&0xFF, 2)); 
+			final int highVersion = (version>>8)&0xFF;
+			setTrackerName("FastTracker II V" + ModConstants.getAsHex(highVersion, (highVersion>0x0f)?2:1) + "." + ModConstants.getAsHex(version&0xFF, 2)); 
 			if (!trackerName.endsWith("   "))
 				setTrackerName(getTrackerName() + " (generic)");
 		}
@@ -531,7 +567,6 @@ public class XMMod extends ProTrackerMod
 				int fine = inputStream.read();
 				fine = (fine>0x7F)?fine-0x100:fine;
 				current.setFineTune(fine);
-				current.setBaseFrequency(ModConstants.IT_fineTuneTable[(fine>>4)+8]);
 				
 				current.setFlags(inputStream.read());
 				int loopType = 0;
@@ -573,6 +608,8 @@ public class XMMod extends ProTrackerMod
 				int transpose = inputStream.read();
 				current.setTranspose((transpose>0x7F)?transpose-0x100:transpose);
 				
+				current.setBaseFrequency(getPeriod2Hz(current, getFrequencyTable()));
+
 				// Reserved
 				current.XM_reserved = inputStream.read();
 				
@@ -673,5 +710,9 @@ public class XMMod extends ProTrackerMod
 		// Classic FT2: delete midi macros, Zxx effects are illegal there
 		if (!hasMidiConfig && !isMPT) 
 			midiMacros.clearZxxMacros();
+
+		// With OpenModPlug Files we create default channel colors if none are set
+		if (isMPT && getPatternContainer().getChannelColors()==null)
+			getPatternContainer().createMPTMDefaultRainbowColors();
 	}
 }

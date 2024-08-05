@@ -88,7 +88,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.9.3";
+	public static final String VERSION = "V3.9.4";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -1222,6 +1222,7 @@ public class Helpers
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");				} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerSTXMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }

@@ -21,6 +21,9 @@
  */
 package de.quippy.javamod.multimedia.mod;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 /**
  * @author Daniel Becker
  * @since 02.08.2020
@@ -84,9 +87,12 @@ public class ModConstants
 		0xB0, 0xB4, 0xB8, 0xBC,	// 24-31
 	};
 
-	// Panning values for old ProTracker and STMs
+	// Panning values for old ProTracker and STMs / S3Ms
 	public static final int OLD_PANNING_LEFT	= 0;								// 0: full left, 64: quarter left
 	public static final int OLD_PANNING_RIGHT	= 256 - OLD_PANNING_LEFT;
+	// Special panning values for S3M and IT
+	public static final int CHANNEL_IS_MUTED	= 0x80<<2;							// IT and S3M use this
+	public static final int CHANNEL_IS_SURROUND = 100<<2;							// IT uses this (YES, not hex!)
 	
 	// Volume constants
 	public static final int MAXGLOBALVOLUME		= 128; 								// the maximum global volume at mod loading
@@ -133,19 +139,18 @@ public class ModConstants
 	public static enum PanBits { Pan4Bit, Pan6Bit, Pan8Bit } 
 	
 	// Constants for different supported samples
-	public static final int SM_PCMS		= 	0x00;					// PCM 8 Bit Signed
-	public static final int SM_PCMU		= 	0x01;					// PCM 8 Bit unsigned
-	public static final int SM_PCMD 	=	0x02;					// PCM 8 Bit delta values
-	public static final int SM_16BIT 	=	0x04;					// 16 BIT
-	public static final int SM_STEREO	= 	0x08;					// STEREO
-	public static final int SM_PCM16D 	=	SM_PCMD | SM_16BIT;		// PCM 16 Bit delta values
+	public static final int SM_PCMS			= 	0x0001;					// PCM 8 Bit Signed
+	public static final int SM_PCMU			= 	0x0002;					// PCM 8 Bit unsigned
+	public static final int SM_PCMD			=	0x0004;					// PCM 8 Bit delta values
+	public static final int SM_16BIT		=	0x0008;					// 16 BIT
+	public static final int SM_BigEndian	=	0x0010;					// 16 Bit in BigEndian order 
+	public static final int SM_STEREO		= 	0x0020;					// STEREO
 	// IT Packed (>2.14)
-	public static final int SM_IT2148	=	0x10;					// IT 2.14  8Bit compressed - can have stereo set
-	public static final int SM_IT21416	=	SM_IT2148 | SM_16BIT;	// IT 2.14 16Bit compressed - can have stereo set
-	public static final int SM_IT2158	=	0x12;					// IT 2.15  8Bit compressed - can have stereo set
-	public static final int SM_IT21516	=	SM_IT2158 | SM_16BIT;	// IT 2.15 16Bit compressed - can have stereo set
+	public static final int SM_IT214		=	0x0040;					// IT 2.14 compressed
+	public static final int SM_IT215		=	0x0080;					// IT 2.15 compressed
+	public static final int SM_PTM8Dto16 	=	0x0100;					// IT PTM8to16
 	// XM ADPCM ModPlug
-	public static final int SM_ADPCM	=	0x20;					// ModPlug ADPCM
+	public static final int SM_ADPCM		=	0x0200;					// ModPlug ADPCM
 
 	// Loop Types
 	public static final int LOOP_ON						=	0x01;
@@ -201,6 +206,12 @@ public class ModConstants
 	public static final int SONG_AMIGALIMITS	= 0x00040;
 	public static final int SONG_ISSTEREO		= 0x00080;
 	public static final int SONG_USEINSTRUMENTS = 0x00100;
+	public static final int SONG_ST2VIBRATO		= 0x00200;
+	public static final int SONG_ST2TEMPO		= 0x00400;
+	public static final int SONG_AMIGASLIDES	= 0x00800;
+	public static final int SONG_VOL0MIXOPTI	= 0x01000;
+	public static final int SONG_USEMIDIPITCH	= 0x02000;
+	public static final int SONG_S3M_GUS		= 0x80000;
 	
 	// Player flags
 	public static final int PLAYER_LOOP_DEACTIVATED = 0x00;
@@ -1018,12 +1029,30 @@ public class ModConstants
 		for (int shift=(digits-1)<<2; shift>=0; shift-=4)
 			result.append(numbers[(value>>shift)&0xF]);
 		return result.toString();
+	}
+	/**
+	 * Displays a value as a hex-value, using #digits. If the digits are not
+	 * sufficient, the number is cut!
+	 * @param value
+	 * @param digits
+	 * @return
+	 */
+	public static String getAsHex(final long value, final int digits)
+	{
+		StringBuilder result = new StringBuilder();
+		for (int shift=(digits-1)<<2; shift>=0; shift-=4)
+			result.append(numbers[(int)(value>>shift)&0xF]);
+		return result.toString();
 //		Old standard way, much slower, much more fail safe.		
 //		final String hex = Integer.toHexString(value).toUpperCase();
 //		final int zeros = digits - hex.length();
 //		for (int i=0; i<zeros; i++) result.append('0');
 //		return (result.append(hex)).toString();
 	}
+	/**
+	 * Our standard Date formatter
+	 */
+	public static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	/**
 	 * convert the ModPlug version information to a readable string
 	 * @param version
@@ -1032,10 +1061,68 @@ public class ModConstants
 	public static String getModPlugVersionString(final int version)
 	{
 		if (version==0) return "Unknown";
-		if ((version&0xFFFF)==0) return getAsHex((version>>24)&0xFF, 2) + '.' + getAsHex((version>>16)&0xFF, 2);
-		final String versionString = getAsHex((version>>24)&0xFF, 2) + '.' + getAsHex((version>>16)&0xFF, 2) + '.' + getAsHex((version>>8)&0xFF, 2) + '.' + getAsHex(version&0xFF, 2);
-		if (versionString.charAt(0)=='0') return versionString.substring(1); else return versionString;
+		if ((version&0xFFFF)==0) return String.format("%x.%02x", Integer.valueOf((version>>24)&0xFF), Integer.valueOf((version>>16)&0xFF));
+		return String.format("%x.%02x.%02x.%02x", Integer.valueOf((version>>24)&0xFF), Integer.valueOf((version>>16)&0xFF), Integer.valueOf((version>>8)&0xFF), Integer.valueOf(version&0xFF));
 	}
+	/**
+	 * convert the Schism version information to a readable string
+	 * @since 19.07.2024
+	 * @param version
+	 * @return
+	 */
+	public static String getSchismVersionString(final int version)
+	{
+		final int cwtv = (version>>16) & 0xFFF;
+		final int extVersion = version&0xFFFF;
+		if (cwtv>0x50)
+		{
+			// version is days from 2009-10-31
+			LocalDate d = LocalDate.of(2009, 10, 31);
+			if (cwtv<0xFFF)
+				d = d.plusDays(cwtv-0x50);
+			else
+				d = d.plusDays(extVersion);
+			return DATE_FORMATER.format(d);
+		}
+		return String.format("0.%x", Integer.valueOf(cwtv));
+	}
+//	private static final int ST2TempoFactor[] = { 140, 50, 25, 15, 10, 7, 6, 4, 3, 3, 2, 2, 2, 2, 1, 1 };
+//	private static final int st2MixingRate = 23863; // Highest possible setting in ST2
+//	public static int convertST2tempo(final int tempo)
+//	{
+//		// This underflows at tempo 06...0F, and the resulting tick lengths depend on the mixing rate.
+//		// Note: ST2.3 uses the constant 50 below, earlier versions use 49 but they also play samples at a different speed.
+//		int samplesPerTick = st2MixingRate / (50 - ((ST2TempoFactor[tempo >> 4] * (tempo & 0x0F)) >> 4));
+//		if(samplesPerTick <= 0)
+//			samplesPerTick += 65536;
+//		return (st2MixingRate<<5)/(samplesPerTick<<2);
+//	}
+	private static final int st2_tempo_table[][] = 
+	{
+	  	{ 125,  117,  110,  102,   95,   87,   80,   72,   62,   55,   47,   40,   32,   25,   17,   10, },
+	  	{ 125,  122,  117,  115,  110,  107,  102,  100,   95,   90,   87,   82,   80,   75,   72,   67, },
+	  	{ 125,  125,  122,  120,  117,  115,  112,  110,  107,  105,  102,  100,   97,   95,   92,   90, },
+	  	{ 125,  125,  122,  122,  120,  117,  117,  115,  112,  112,  110,  110,  107,  105,  105,  102, },
+	  	{ 125,  125,  125,  122,  122,  120,  120,  117,  117,  117,  115,  115,  112,  112,  110,  110, },
+	  	{ 125,  125,  125,  122,  122,  122,  120,  120,  117,  117,  117,  115,  115,  115,  112,  112, },
+	  	{ 125,  125,  125,  125,  122,  122,  122,  122,  120,  120,  120,  120,  117,  117,  117,  117, },
+	  	{ 125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  120,  120,  120,  120,  120, },
+	  	{ 125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  120,  120,  120,  120,  120, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  122,  122,  122, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  122,  122,  122, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  122,  122,  122, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  122,  122,  122,  122,  122,  122,  122,  122, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125, },
+	  	{ 125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125,  125, },
+	};
+	public static int convertST2tempo(final int tempo)
+	{
+		final int tpr = ((tempo>>4)!=0)?(tempo>>4):1;
+		final int scale = tempo&0xF;
+		return st2_tempo_table[tpr-1][scale];
+	}
+
+
 	// Conversions for read bytes! *********************************************
 //	/**
 //	 * Converts an Intel like stored word to an integer

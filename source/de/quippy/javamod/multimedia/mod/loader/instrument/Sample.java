@@ -48,7 +48,7 @@ public class Sample
 	public boolean isStereo;	// true, if this is a stereo-sample
 
 	//S3M:
-	public int type;			// always 1 for a sample
+	public int type;			// always 1 for a sample, 1-7 AdLib (2:Melody 3:Basedrum 4:Snare 5:Tom 6:Cym 7:HiHat)
 	public String dosFileName;	// DOS File-Name
 	public int flags;			// flag: 1:Looping sample 2:Stereo 4:16Bit-Sample...
 	
@@ -74,13 +74,16 @@ public class Sample
 	private int interpolationStartLoop;
 	private int interpolationStartSustain;
 	
+	// If this is adlib...
+	public byte[] adLib_Instrument;
+	
 	// MPT specific cue points
 	private int [] cues;
 	public static final int MAX_CUES = 9;
 	
 	public static final int INTERPOLATION_LOOK_AHEAD = 16;
 
-	// The sampledata, already converted to signed 32 bit (always)
+	// The sample data, already converted to signed 32 bit (always)
 	// 8Bit: 0..127,128-255; 16Bit: -32768..0..+32767
 	public long [] sampleL;
 	public long [] sampleR;
@@ -131,12 +134,14 @@ public class Sample
 		// Kill invalid loops
 		// with protracker, a loopsize of 2 is considered invalid
 		if (((modType&ModConstants.MODTYPE_MOD)!=0 && loopStart+2>loopStop) ||
-				loopStart > loopStop)
+				loopStart>loopStop ||
+				loopLength<=0)
 		{
 			loopStart = loopStop = 0;
 			loopType &= ~ModConstants.LOOP_ON;
 		}
-		if (sustainLoopStart>sustainLoopStop)
+		if (sustainLoopStart>sustainLoopStop ||
+				sustainLoopLength<=0)
 		{
 			sustainLoopStart = sustainLoopStop = 0;
 			loopType &= ~ModConstants.LOOP_SUSTAIN_ON;
@@ -315,16 +320,18 @@ public class Sample
 	 */
 	public String getSampleTypeString()
 	{
+		if (adLib_Instrument!=null) return "OPL Instrument";
+
 		StringBuilder bf = new StringBuilder();
-		bf.append((sampleType&ModConstants.SM_16BIT)!=0 ? "16-Bit" : "8-Bit").append(", ");
-		bf.append((sampleType&ModConstants.SM_PCMU)	!=0 ? "unsigned" : "signed").append(", ");
-		bf.append(
-				(sampleType&ModConstants.SM_PCMD)	!=0 ? "delta packed" : 
-				(sampleType&ModConstants.SM_IT2148)	!=0 ? "IT V2.14 packed" : 
-				(sampleType&ModConstants.SM_IT2158)	!=0 ? "IT V2.15 packed" : 
-				(sampleType&ModConstants.SM_ADPCM)	!=0 ? "ADPCM packed" : 
-														  "unpacked").append(", ");
-		bf.append((sampleType&ModConstants.SM_STEREO)!=0 ? "stereo" : "mono").append(", ");
+		bf.append((sampleType&ModConstants.SM_16BIT)!=0		? "16-Bit" : "8-Bit").append(", ");
+		bf.append((sampleType&ModConstants.SM_BigEndian)!=0	? "big" : "little").append(" endian, ");
+		bf.append((sampleType&ModConstants.SM_PCMU)!=0		? "unsigned" : "signed").append(", ");
+		bf.append((sampleType&ModConstants.SM_PCMD)!=0		? "delta packed" : 
+				  (sampleType&ModConstants.SM_IT214)!=0		? "IT V2.14 packed" : 
+				  (sampleType&ModConstants.SM_IT215)!=0		? "IT V2.15 packed" : 
+				  (sampleType&ModConstants.SM_ADPCM)!=0		? "ADPCM packed" : 
+															  "unpacked").append(", ");
+		bf.append((sampleType&ModConstants.SM_STEREO)!=0	? "stereo" : "mono").append(", ");
 		bf.append("length: ").append(length);
 		return bf.toString();
 	}
@@ -814,4 +821,60 @@ public class Sample
 //		}
 //		return false;
 //	}
+	public boolean getAdlibAmplitudeVibrato(int cm)
+	{
+		return ((adLib_Instrument[0+cm]>>7)&0x01)>0;
+	}
+	public boolean getAdlibFrequencyVibrato(int cm)
+	{
+		return ((adLib_Instrument[0+cm]>>6)&0x01)>0;
+	}
+	public boolean getAdlibSustainSound(int cm)
+	{
+		return ((adLib_Instrument[0+cm]>>5)&0x01)>0;
+	}
+	public boolean getAdlibEnvelopeScaling(int cm)
+	{
+		return ((adLib_Instrument[0+cm]>>4)&0x01)>0;
+	}
+	public int getAdlibFrequencyMultiplier(int cm)
+	{
+		return adLib_Instrument[0+cm]&0x0F;
+	}
+	public int getAdlibKeyScaleLevel(int cm)
+	{
+		return (adLib_Instrument[2+cm]>>6)&0x03;
+	}
+	public int getAdlibVolumeLevel(int cm)
+	{
+		return adLib_Instrument[2+cm]&0x3F;
+	}
+	public int getAdlibAttackRate(int cm)
+	{
+		return (adLib_Instrument[4+cm]>>4)&0x0F;
+	}
+	public int getAdlibDecaykRate(int cm)
+	{
+		return adLib_Instrument[4+cm]&0x0F;
+	}
+	public int getAdlibSustainLevel(int cm)
+	{
+		return (adLib_Instrument[6+cm]>>4)&0x0F;
+	}
+	public int getAdlibReleaseRate(int cm)
+	{
+		return adLib_Instrument[6+cm]&0x0F;
+	}
+	public int getAdlibWaveSelect(int cm)
+	{
+		return adLib_Instrument[8+cm]&0x07;
+	}
+	public int getAdlibModulationFeedback()
+	{
+		return (adLib_Instrument[10]>>1)&0x7;
+	}
+	public boolean getAdlibAdditiveSynthesis()
+	{
+		return (adLib_Instrument[10]&0x01)>0;
+	}
 }

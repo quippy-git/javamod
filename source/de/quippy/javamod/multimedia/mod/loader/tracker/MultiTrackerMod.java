@@ -73,7 +73,7 @@ public class MultiTrackerMod extends ProTrackerMod
 
 	}
 	/**
-	 * @return the Fileextensions this loader is suitable for
+	 * @return the file extensions this loader is suitable for
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override

@@ -989,6 +989,9 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 			final int channels = patternContainer.getChannels();
 			for (int i=0; i<channels; i++)
 			{
+				if (!patternContainer.getIsChannelActive(i))
+					channelButtons[i].setForeground(Color.lightGray);
+				else
 				if (muteStatus!=null && i<muteStatus.length && i<internalMuteStatus.length)
 					channelButtons[i].setForeground((!(internalMuteStatus[i] = muteStatus[i]))?Color.black:Color.lightGray);
 				else
@@ -1320,6 +1323,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 					fillButtonsForChannels(0, patternContainer.getChannels());
 					setCurrentPattern(0);
 					setPreferredSize(getSize());
+					updateMuteStatus();
 					pack();
 				}
 				catch (Throwable ex)
@@ -1389,6 +1393,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 		else
 		if (!isPlaying)
 		{
+			if (currentIndex<0) return; // Obviously we do not display anything yet, so nothing to do
 			EventQueue.invokeLater(new Runnable()
 			{
 				public void run()

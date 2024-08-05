@@ -102,13 +102,12 @@ public class ProTrackerMixer extends BasicModMixer
 		{
 			case ModConstants.AMIGA_TABLE:
 				final int lookUpFineTune = ((aktMemo.currentFineTune<0)?aktMemo.currentFineTune+16:aktMemo.currentFineTune)*37;
-				int proTrackerIndex = noteIndex - 36; // the noteindex we use has 3 more octaves than the PT period table
+				int proTrackerIndex = noteIndex - (3*12); // the noteindex we use has 3 more octaves than the PT period table
 				if (proTrackerIndex>35) proTrackerIndex = 35;
 				return ModConstants.periodTable[lookUpFineTune + proTrackerIndex]<<ModConstants.PERIOD_SHIFT;
 			
 			case ModConstants.XM_AMIGA_TABLE:
 			case ModConstants.XM_LINEAR_TABLE:
-				if (noteIndex<0 || noteIndex>=((10*12)-1)) return 0; // Just in case
 				final int C4Period = (noteIndex<<4) + ((aktMemo.currentFineTune>>3) + 16); // 0..1920
 				return note2Period[C4Period]<<(ModConstants.PERIOD_SHIFT-2); // table values are already shifted by 2
 
@@ -122,7 +121,7 @@ public class ProTrackerMixer extends BasicModMixer
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#setNewPlayerTuningFor(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory, int)
 	 */
 	@Override
-	protected void setNewPlayerTuningFor(ChannelMemory aktMemo, int newPeriod)
+	protected void setNewPlayerTuningFor(final ChannelMemory aktMemo, final int newPeriod)
 	{
 		aktMemo.currentNotePeriodSet = newPeriod;
 		
@@ -208,40 +207,51 @@ public class ProTrackerMixer extends BasicModMixer
 	 * @param aktMemo
 	 * @param forNote
 	 */
-	protected boolean triggerFTNote(final ChannelMemory aktMemo, final int forNote)
+	protected void triggerFTNote(final ChannelMemory aktMemo, final int forNote)
 	{
 		if (forNote == ModConstants.KEY_OFF)
 		{
 			doKeyOff(aktMemo);
-			return true;
+			return;
 		}
 
 		int note = forNote;
 		if (note==0)
 		{
 			note = aktMemo.assignedNoteIndex;
-			if (note==0) return true;
+			if (note==0) return;
 		}
 		aktMemo.assignedNoteIndex = note;
 
 		final Instrument ins = mod.getInstrumentContainer().getInstrument(aktMemo.currentAssignedInstrumentIndex-1);
-		aktMemo.assignedSample = (ins!=null)?mod.getInstrumentContainer().getSample(ins.getSampleIndex(note-1)):null;
+		aktMemo.assignedSample = (ins!=null)?mod.getInstrumentContainer().getSample(ins.getSampleIndex(note-1)):mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
 		aktMemo.assignedInstrument = aktMemo.currentAssignedInstrument;
 
 		if (note>96) note = 96;
 		aktMemo.currentSample = aktMemo.assignedSample;
 		if (aktMemo.assignedSample!=null) note += aktMemo.assignedSample.transpose;
-
-		if (note<0 || note>=10*12) return true; // this is an uint8 compare
+		
+		note&=0xFF; // note is an uint8_t - simulate
+		if (note>=10*12) return; // this is an uint8 compare and works for <0 as well - well at least when we do not get *that* negative...
 		
 		// Memorize volumes to set in FT2 code, but do not do it (chn->oldVol...)
 		// resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.currentSample);
-		resetFineTune(aktMemo, aktMemo.currentSample);
+		resetFineTune(aktMemo, aktMemo.currentSample); // fineTune and other resets...
+		if (aktMemo.assignedEffekt==0x0E && (aktMemo.assignedEffektParam&0xF0)==0x50)
+			aktMemo.currentFineTune = ((aktMemo.assignedEffektParam&0x0F)<<4)-128;
 		
-		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo, note));
-		resetInstrumentPointers(aktMemo);
-		return false;
+		if (note!=0)
+		{
+			// in favor of the uint8 used here, we re-implement it like FT2 does it. That way some quirks with
+			// too low notes will result in the same behavior (i.e. a wrap around).
+			//setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo, note));
+			final int noteIndex = (((note-1)&0xFF)<<4) + ((aktMemo.currentFineTune>>3) + 16); // 0..1920
+			aktMemo.currentNotePeriod = note2Period[noteIndex]<<(ModConstants.PERIOD_SHIFT-2); // table values are already shifted by 2
+			setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod);
+		}
+		resetInstrumentPointers(aktMemo, true);
+		return;
 	}
 	/**
 	 * Convenient Method of FT2 retriggerInstrument
@@ -251,7 +261,7 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void triggerFTInstrument(final ChannelMemory aktMemo)
 	{
 		reset_VibTremPan_TablePositions(aktMemo);
-		aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false; // noteCut is superfluous 
+		aktMemo.keyOff = aktMemo.noteFade = false; 
 		aktMemo.retrigCount = aktMemo.tremorOfftimeSet = 0;
 		resetEnvelopes(aktMemo);
 		resetAutoVibrato(aktMemo, aktMemo.assignedSample);
@@ -265,15 +275,42 @@ public class ProTrackerMixer extends BasicModMixer
 	private void triggerPTPeriod(final ChannelMemory aktMemo)
 	{
 		aktMemo.currentSample = aktMemo.assignedSample;
-		resetInstrumentPointers(aktMemo);
+		resetInstrumentPointers(aktMemo, true);
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
 	}
 	/**
+	 * @since 26.07.2024
+	 * @param aktMemo
+	 */
+	protected void doKeyOff(final ChannelMemory aktMemo)
+	{
+		aktMemo.keyOff = true;
+		// XM has a certain envelope tick reset with key off and existing envelopes - tick is reset to the previous start position
+		// That way a sustain release is managed - however, with panning because of a bug, that does not work
+		final Instrument currentInstrument = aktMemo.assignedInstrument;
+		final Envelope volumeEnv = (currentInstrument!=null)?currentInstrument.volumeEnvelope:null;
+		if (volumeEnv!=null && volumeEnv.on)
+		{
+			aktMemo.volEnvTick = volumeEnv.getXMResetPosition(aktMemo.volEnvTick, aktMemo.volXMEnvPos);
+		}
+		else
+		{
+			aktMemo.currentVolume = 0;
+			aktMemo.doFastVolRamp = true;
+		}
+		final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
+		if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
+		{
+			aktMemo.panEnvTick = panningEnv.getXMResetPosition(aktMemo.panEnvTick, aktMemo.panXMEnvPos);
+		}
+	}
+	/**
+	 * @since 14.07.2024
 	 * @param aktMemo
 	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#setNewInstrumentAndPeriod(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)
 	 */
 	@Override
-	protected void setNewInstrumentAndPeriod(ChannelMemory aktMemo)
+	protected void setNewInstrumentAndPeriod(final ChannelMemory aktMemo)
 	{
 		final PatternElement element = aktMemo.currentElement;
 		final boolean isNoteDelayEffect = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
@@ -313,6 +350,7 @@ public class ProTrackerMixer extends BasicModMixer
 				{
 					resetVolumeAndPanning(aktMemo, null, aktMemo.assignedSample);
 					resetFineTune(aktMemo, aktMemo.assignedSample);
+					aktMemo.prevSampleOffset=0;
 					// Inplace sample swap:
 					// This is an exception: inplace instrument is activated, if with retrigger effect or
 					// previous was an empty one (instrumentFinished is not sufficient!)
@@ -326,7 +364,7 @@ public class ProTrackerMixer extends BasicModMixer
 					{
 						// Now activate new Instrument...
 						aktMemo.currentSample = aktMemo.assignedSample;
-						resetInstrumentPointers(aktMemo);
+						resetInstrumentPointers(aktMemo, true);
 					}
 				}
 			}
@@ -365,6 +403,7 @@ public class ProTrackerMixer extends BasicModMixer
 				if (element.getInstrument()>0)
 					resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
 
+				// with a delayed keyOff, this needs to be done!
 				if (isNoteDelayEffect)
 				{
 					triggerFTInstrument(aktMemo);
@@ -372,27 +411,23 @@ public class ProTrackerMixer extends BasicModMixer
 			}
 			else
 			{
-				boolean isXMIllegalNote = false;
 				if (isPortaToNoteEffect)
 				{
 					aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod; 
 					aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex;
+					// ignore the instrument, so set back the previous one
+					aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
+					aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
+					if (aktMemo.currentSample!=null) aktMemo.assignedSample = aktMemo.currentSample;
 					return;
 				}
 				if (element.getNoteIndex()>0 && !isNoteDelayEffect)
-					isXMIllegalNote = ((ProTrackerMixer)this).triggerFTNote(aktMemo, element.getNoteIndex());
+					triggerFTNote(aktMemo, element.getNoteIndex());
 				if (element.getInstrument()>0)
 				{
-					// PortaToNote or no note: ignore new instrument completely but reset old one (except, if it is a notedelay)
-					if (isPortaToNoteEffect && !isNoteDelayEffect)
-					{
-						aktMemo.currentAssignedInstrumentIndex = aktMemo.assignedInstrumentIndex;
-						aktMemo.currentAssignedInstrument = aktMemo.assignedInstrument;
-						if (aktMemo.currentSample!=null) aktMemo.assignedSample = aktMemo.currentSample;
-					}
 					// reset for new Instrument
-					if (!isXMIllegalNote) resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
-					triggerFTInstrument(aktMemo);
+					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
+					if (!isKeyOff) triggerFTInstrument(aktMemo);
 				}
 			}
 		}
@@ -491,6 +526,7 @@ public class ProTrackerMixer extends BasicModMixer
 				doPanning(aktMemo, aktMemo.assignedEffektParam, ModConstants.PanBits.Pan8Bit);
 				break;
 			case 0x09 : 		// Sample Offset
+				if (isXM && hasNoNote(element)) break; // is normally done in "triggerFTNote"
 				rowsUsed = new AtomicInteger(0);
 				final int newSampleOffset = calculateExtendedValue(aktMemo, rowsUsed);
 				if (newSampleOffset!=0)
@@ -571,12 +607,17 @@ public class ProTrackerMixer extends BasicModMixer
 						aktMemo.vibratoNoRetrig = (effektOp&0x4)!=0;
 						break;
 					case 0x5:	// Set FineTune
-						if (isXM && hasNewNote(element)) // XMs: ignore fine tune, if no note
-							aktMemo.currentFineTune = (effektOp<<4)-128;
-						else
+//						if (isXM && hasNewNote(element)) // XMs: is now done in triggerNote, as FT2 does it
+//						{
+//							aktMemo.currentFineTune = (effektOp<<4)-128;
+//							setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
+//						}
+//						else
 						if (isMOD)
+						{
 							aktMemo.currentFineTune = (effektOp>7)?effektOp-16:effektOp;
-						if (hasNewNote(element)) setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
+							if (hasNewNote(element)) setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
+						}
 						break;
 					case 0x6:	// JumpLoop
 						if (effektOp==0) // Set a marker for loop
@@ -584,18 +625,19 @@ public class ProTrackerMixer extends BasicModMixer
 							aktMemo.jumpLoopPatternRow = currentRow;
 						}
 						else
-						if (aktMemo.jumpLoopRepeatCount == 0) // was not set && effektOp!=0
 						{
-							aktMemo.jumpLoopRepeatCount = effektOp;
+							if (aktMemo.jumpLoopRepeatCount<=0) // was not set && effektOp!=0
+							{
+								aktMemo.jumpLoopRepeatCount = effektOp;
+								if (aktMemo.jumpLoopPatternRow<0) aktMemo.jumpLoopPatternRow=0;
+							}
+							else
+							if (--aktMemo.jumpLoopRepeatCount<=0)
+							{
+								break;
+							}
 							patternJumpRowIndex = aktMemo.jumpLoopPatternRow;
-							patternBreakRowIndex = patternJumpRowIndex;
-							patternJumpSet = true;
-						}
-						else
-						if (--aktMemo.jumpLoopRepeatCount > 0)
-						{
-							patternJumpRowIndex = aktMemo.jumpLoopPatternRow;
-							if (isXM) patternBreakRowIndex = patternJumpRowIndex;
+							patternBreakRowIndex = patternJumpRowIndex; // PT/FT only use one variable for this
 							patternJumpSet = true;
 						}
 						break;
@@ -698,7 +740,7 @@ public class ProTrackerMixer extends BasicModMixer
 				if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
 				break;
 			case 0x11:			// Global volume slide
-				if (aktMemo.assignedEffektParam!=0) aktMemo.globalVolumSlideValue = aktMemo.assignedEffektParam;
+				doGlobalVolumeSlideEffekt(aktMemo); //ONLY TICK ZERO!
 				break;
 			case 0x14:			// Key off
 				aktMemo.keyOffCounter = aktMemo.assignedEffektParam;
@@ -724,11 +766,13 @@ public class ProTrackerMixer extends BasicModMixer
 				// This effect can be set in OMPT, but is without function (yet?) 
 				break;
 			case 0x21:			// Extended XM Effects
-				final int effektOpEx = aktMemo.assignedEffektParam&0x0F;
-				switch (aktMemo.assignedEffektParam>>4)
+				final int effektOpExParam = aktMemo.assignedEffektParam&0x0F;
+				final int effektOpEx = aktMemo.assignedEffektParam>>4;
+				if (!isModPlug && effektOpEx>2) break; 
+				switch (effektOpEx)
 				{
 					case 0x1:	// Extra Fine Porta Up
-						if (effektOpEx!=0) aktMemo.finePortaUpEx = effektOpEx<<2;
+						if (effektOpExParam!=0) aktMemo.finePortaUpEx = effektOpExParam<<2;
 						aktMemo.currentNotePeriod -= aktMemo.finePortaUpEx;
 						if (isXM)
 						{
@@ -738,7 +782,7 @@ public class ProTrackerMixer extends BasicModMixer
 						setNewPlayerTuningFor(aktMemo);
 						break;
 					case 0x2:	// Extra Fine Porta Down
-						if (effektOpEx!=0) aktMemo.finePortaDownEx = effektOpEx<<2; 
+						if (effektOpExParam!=0) aktMemo.finePortaDownEx = effektOpExParam<<2; 
 						aktMemo.currentNotePeriod += aktMemo.finePortaDownEx;
 						if (isXM)
 						{
@@ -749,15 +793,15 @@ public class ProTrackerMixer extends BasicModMixer
 						setNewPlayerTuningFor(aktMemo);
 						break;
 					case 0x5: 			// set PanBrello Waveform
-						aktMemo.panbrelloType=effektOpEx&0x3;
-						aktMemo.panbrelloNoRetrig = ((effektOpEx&0x04)!=0);
+						aktMemo.panbrelloType=effektOpExParam&0x3;
+						aktMemo.panbrelloNoRetrig = ((effektOpExParam&0x04)!=0);
 						break;
 					case 0x6: 			// Fine Pattern Delay --> # of ticks - OpenModPlug Effect!
 						if (isModPlug /*&& patternDelayCount<0*/) 
-							patternTicksDelayCount += effektOpEx;
+							patternTicksDelayCount += effektOpExParam;
 						break;
 					case 0x9: // Sound Control
-						switch (effektOpEx)
+						switch (effektOpExParam)
 						{
 							case 0x0: // Disable surround for the current channel
 								aktMemo.doSurround = false; 
@@ -877,9 +921,8 @@ public class ProTrackerMixer extends BasicModMixer
 
 		final int fineTune = (aktMemo.currentFineTune >> 3) + 16;
 
-		/* FT2 bug, should've been 10*12*16. Notes above B-7 (95) will have issues.
-		** You can only achieve such high notes by having a high relative note setting.
-		*/
+		// FT2 bug, should've been 10*12*16. Notes above B-7 (95) will have issues.
+		// You can only achieve such high notes by having a high relative note setting.
 		int hiPeriod = 8*12*16;
 		int loPeriod = 0;
 
@@ -969,10 +1012,11 @@ public class ProTrackerMixer extends BasicModMixer
 			else
 			if (hasNewNote(element)) // KeyOff is not a note...
 			{
-				final int note = getFineTunePeriod(aktMemo);
-				if (note<(((10*12*16)+16)<<ModConstants.PERIOD_SHIFT))
+				// because of p->note being uint8, we need to simulate
+				final int note = (((aktMemo.assignedNoteIndex + aktMemo.currentTranspose - 1)&0xFF)<<4) + ((aktMemo.currentFineTune>>3) + 16); 
+				if (note<(10*12*16)+16)
 				{
-					aktMemo.portaTargetNotePeriod = note;
+					aktMemo.portaTargetNotePeriod = note2Period[note]<<(ModConstants.PERIOD_SHIFT-2);
 					if (aktMemo.portaTargetNotePeriod == aktMemo.currentNotePeriod)
 						aktMemo.portamentoDirection_PT_FT = 0;
 					else if (aktMemo.portaTargetNotePeriod > aktMemo.currentNotePeriod)
@@ -985,13 +1029,7 @@ public class ProTrackerMixer extends BasicModMixer
 			if (element.getInstrument()>0)
 			{
 				resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
-				if (!isKeyOff)
-				{
-					resetEnvelopes(aktMemo, aktMemo.assignedInstrument);
-					resetAutoVibrato(aktMemo, aktMemo.assignedSample);
-					reset_VibTremPan_TablePositions(aktMemo);
-					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
-				}
+				if (!isKeyOff) triggerFTInstrument(aktMemo);
 			}
 		}
 	}
@@ -1223,7 +1261,7 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		// For FT we need two parameter: tremorParam (we use tremorOntimeSet) and tremorPos (we use tremorOfftimeSet)
 		// That way we can recycle those parameters for ScreamTracker
-		// Remember to reset tremorOfftimeSet at "triggerInstrument"
+		// tremorOfftimeSet is reset at "triggerInstrument"
 		final int param = aktMemo.tremorOntimeSet;
 		int tremorSign = aktMemo.tremorOfftimeSet&0x80;
 		int tremorData = aktMemo.tremorOfftimeSet&0x7F;
@@ -1248,7 +1286,7 @@ public class ProTrackerMixer extends BasicModMixer
 		aktMemo.doFastVolRamp = true;
 	}
 	/**
-	 * Convenient Method for the VolumeSlide Effect
+	 * Convenient Method for the VolumeSlide effect
 	 * @param aktMemo
 	 */
 	private void doVolumeSlideEffekt(final ChannelMemory aktMemo, final int volumeSlideValue)
@@ -1265,6 +1303,27 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 
 		aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+	}
+	/**
+	 * Convenient Method for the Global VolumeSlide effect
+	 * Only on Tick Zero!
+	 * @since 21.06.2006
+	 * @param aktMemo
+	 */
+	private void doGlobalVolumeSlideEffekt(final ChannelMemory aktMemo)
+	{
+		// Global Volume here is 0..128 (not 0..64) - so <<1 the param
+		if (aktMemo.assignedEffektParam!=0) aktMemo.globalVolumSlideValue = aktMemo.assignedEffektParam;
+		if ((aktMemo.globalVolumSlideValue&0xF0)==0)
+		{
+			globalVolume -= (aktMemo.globalVolumSlideValue&0xF)<<1;
+			if (globalVolume<0) globalVolume = 0;
+		}
+		else
+		{
+			globalVolume += ((aktMemo.globalVolumSlideValue>>4)&0xF)<<1;
+			if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
+		}
 	}
 	/**
 	 * @since 18.01.2024
@@ -1321,24 +1380,7 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 	}
 	/**
-	 * Convenient Method for the Global VolumeSlideEffekt
-	 * @since 21.06.2006
-	 * @param aktMemo
-	 */
-	private void doGlobalVolumeSlideEffekt(final ChannelMemory aktMemo)
-	{
-		if ((aktMemo.globalVolumSlideValue&0xF0)!=0)
-			globalVolume += (aktMemo.globalVolumSlideValue>>4)<<1;
-		else
-		if ((aktMemo.globalVolumSlideValue&0x0F)!=0)
-			globalVolume -= (aktMemo.globalVolumSlideValue&0xF)<<1;
-
-		if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
-		else
-		if (globalVolume<0) globalVolume = 0;
-	}
-	/**
-	 * Convenient Method for the VolumeSlide Effekt
+	 * Convenient Method for the VolumeSlide Effect
 	 * @param aktMemo
 	 */
 	private void doPanningSlideEffekt(final ChannelMemory aktMemo)
@@ -1370,7 +1412,7 @@ public class ProTrackerMixer extends BasicModMixer
 					doRetrig = ((tick % aktMemo.retrigCount)==0);
 			}
 			if (doRetrig)
-				resetInstrumentPointers(aktMemo);
+				resetInstrumentPointers(aktMemo, true);
 			return;
 		}
 		
@@ -1384,12 +1426,12 @@ public class ProTrackerMixer extends BasicModMixer
 			{
 				if (currentTick==currentTempo)
 				{
-					doRetrig = true;
 					aktMemo.retrigMemo = -1;
+					doRetrig = true;
 				}
 			}
 			else
-			if (tick>0 && ((currentTempo - currentTick) % aktMemo.retrigMemo) == 0) // only on tick non zero
+			if (tick>0 && (tick % aktMemo.retrigMemo) == 0) // only on tick non zero
 			{
 				doRetrig = true;
 			}
@@ -1408,56 +1450,47 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 		else // multi retrigger note
 		{
-			int cnt = aktMemo.retrigCount + 1;
+			final int cnt = aktMemo.retrigCount + 1;
 			if (cnt < aktMemo.retrigMemo)
 			{
 				aktMemo.retrigCount = cnt;
 				return;
 			}
+			
+			aktMemo.retrigCount = 0;
+
+			int vol = aktMemo.currentVolume;
+			switch (aktMemo.retrigVolSlide)
+			{
+				case 0x1: vol--; break;
+				case 0x2: vol-=  2; break;
+				case 0x3: vol-=  4; break;
+				case 0x4: vol-=  8; break;
+				case 0x5: vol-= 16; break;
+				case 0x6: vol = (vol>>1) + (vol>>3) + (vol>>4); break;	// only approximately 2/3 (11/16)
+				case 0x7: vol>>=1; break;
+				case 0x8: /* No volume Change */ break;
+				case 0x9: vol++; break;
+				case 0xA: vol+=  2; break;
+				case 0xB: vol+=  4; break;
+				case 0xC: vol+=  8; break;
+				case 0xD: vol+= 16; break;
+				case 0xE: vol=  (vol>>1) + vol; break;					// exactly (vol*3)/2 (vol+(vol/2))
+				case 0xF: vol<<=1; break;
+				default: break;
+			}
+			if (vol>ModConstants.MAX_SAMPLE_VOL) vol = ModConstants.MAX_SAMPLE_VOL;
 			else
-			{
-				aktMemo.retrigCount = 0;
-				doRetrig = true;
-			}
-		}
+			if (vol<ModConstants.MIN_SAMPLE_VOL) vol = ModConstants.MIN_SAMPLE_VOL;
+			aktMemo.currentInstrumentVolume = aktMemo.currentVolume = vol;
 
-		if (doRetrig)  
-		{
-			if (withVolSlide)
-			{
-				int vol = aktMemo.currentVolume;
-				switch (aktMemo.retrigVolSlide)
-				{
-					case 0x1: vol--; break;
-					case 0x2: vol-=  2; break;
-					case 0x3: vol-=  4; break;
-					case 0x4: vol-=  8; break;
-					case 0x5: vol-= 16; break;
-					case 0x6: vol = (vol>>1) + (vol>>3) + (vol>>4); break;	// only approximately 2/3 (11/16)
-					case 0x7: vol>>=1; break;
-					case 0x8: /* No volume Change */ break;
-					case 0x9: vol++; break;
-					case 0xA: vol+=  2; break;
-					case 0xB: vol+=  4; break;
-					case 0xC: vol+=  8; break;
-					case 0xD: vol+= 16; break;
-					case 0xE: vol=  (vol>>1) + vol; break;					// exactly (vol*3)/2 (vol+(vol/2))
-					case 0xF: vol<<=1; break;
-					default: break;
-				}
-				if (vol>ModConstants.MAX_SAMPLE_VOL) vol = ModConstants.MAX_SAMPLE_VOL;
-				else
-				if (vol<ModConstants.MIN_SAMPLE_VOL) vol = ModConstants.MIN_SAMPLE_VOL;
-				aktMemo.currentInstrumentVolume = aktMemo.currentVolume = vol;
+			// FT2 resets volume column vol / panning at re-trigger
+			if (aktMemo.currentAssignedVolumeEffekt==0x01 || aktMemo.currentAssignedVolumeEffekt==0x08)
+				doVolumeColumnRowEffekt(aktMemo);
 
-				// FT2 resets volume column vol / panning at re-trigger
-				if (aktMemo.currentAssignedVolumeEffekt==0x01 || aktMemo.currentAssignedVolumeEffekt==0x08)
-					doVolumeColumnRowEffekt(aktMemo);
+			aktMemo.doFastVolRamp = true;
 
-				aktMemo.doFastVolRamp = true;
-
-				triggerFTNote(aktMemo, 0);
-			}
+			triggerFTNote(aktMemo, 0);
 		}
 	}
 	/**
@@ -1688,7 +1721,7 @@ public class ProTrackerMixer extends BasicModMixer
 				}
 				break;
 			case 0x11 :			// Global volume slide
-				doGlobalVolumeSlideEffekt(aktMemo);
+				//doGlobalVolumeSlideEffekt(aktMemo); ONLY TICK ZERO!
 				break;
 			case 0x14 :			// Key off
 				if (aktMemo.keyOffCounter>0)

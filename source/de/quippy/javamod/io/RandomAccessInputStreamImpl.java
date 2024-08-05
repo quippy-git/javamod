@@ -91,11 +91,11 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	 * @param fileName
 	 * @throws FileNotFoundException
 	 */
-	public RandomAccessInputStreamImpl(String fileName) throws IOException, FileNotFoundException
+	public RandomAccessInputStreamImpl(final String fileName) throws IOException, FileNotFoundException
 	{
 		this(new File(fileName));
 	}
-	public RandomAccessInputStreamImpl(URL fromUrl) throws IOException, FileNotFoundException
+	public RandomAccessInputStreamImpl(final URL fromUrl) throws IOException, FileNotFoundException
 	{
 		super();
 		if (Helpers.isFile(fromUrl))
@@ -142,6 +142,21 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 				localFile = null;
 			}
 		}
+	}
+	/**
+	 * Constructor for RandomAccessInputStreamImpl from a direct byte array
+	 * @param fromByteArray
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	public RandomAccessInputStreamImpl(final byte[] fromByteArray) throws IOException, FileNotFoundException
+	{
+		super();
+		fullFileCache = fromByteArray;
+		fullFileCache_length = fullFileCache.length;
+		fullFileCache_readPointer = 0;
+		raFile = null;
+		localFile = null;
 	}
 	/**
 	 * @since 04.01.2011

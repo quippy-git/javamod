@@ -140,10 +140,16 @@ public class SampleInstrumentPlayer
 		// plus set master and global volume back to maximum - we only have one voice
 		currentMixer.masterVolume = ModConstants.MAX_MIXING_PREAMP;
 		currentMixer.globalVolume = ModConstants.MAXGLOBALVOLUME;
+		aktMemo.doFastVolRamp = true;
+
+		// reset all instrument / sample values
+		currentMixer.resetInstrumentPointers(aktMemo, true);
+		currentMixer.resetFineTune(aktMemo, aktMemo.currentSample);
+		currentMixer.resetEnvelopes(aktMemo);
+		currentMixer.resetAutoVibrato(aktMemo, aktMemo.currentSample);
+		currentMixer.setPeriodBorders(aktMemo);
 
 		// now for the tuning of the current note set
-		currentMixer.resetForNewSample(aktMemo);
-		currentMixer.setPeriodBorders(aktMemo);
 		currentMixer.setNewPlayerTuningFor(aktMemo, currentMixer.getFineTunePeriod(aktMemo));
 		
 		// ImpulseTracker specials

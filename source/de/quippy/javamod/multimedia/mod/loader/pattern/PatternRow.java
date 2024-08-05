@@ -84,9 +84,7 @@ public class PatternRow
 			if (channel<oldPatternElements.length && oldPatternElements[channel]!=null)
 				patternElements[channel] = oldPatternElements[channel];
 			else
-			{
 				parentPattern.parentPatternContainer.createPatternElement(patternIndex, row, channel);
-			}
 		}
 	}
 	/**

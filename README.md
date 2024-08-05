@@ -1,4 +1,6 @@
-# JavaMod V3.9.3
+V3.9.4
+
+# JavaMod V3.9.4
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -20,8 +22,8 @@ On Linux consider starting with OpenGL render pipeline activated:
 ## Remarks to 3.9.x version updates
 With JavaMod versions 4.0 to 5.0 I want to integrate Midi and AdLib support.
 However, before starting that I want to have all test mods of Schism and
-Open ModPlug Tracker to work. We finished MOD and XM with this version
-and a whole lot of other stuff as well. So I decided to release new version 
+Open ModPlug Tracker to work. We finished MOD, XM, STM and S3M with this version
+and a whole lot of other stuff as well. So I decided to release new versions
 with minor version number updates to have you participate in these changes!
 
 ## Download of compiled version and source code
@@ -78,12 +80,66 @@ JavaMod incorporates modified versions of the following libraries:
   * MO3 support
   * read from 7z archives
 
+## New in Version 3.9.4
+* NEW: Supporting STX (ScreamTracker Music Interface Kit)
+* NEW: moved all STM, S3M, IT, ModPlug specific coding into ScreamTrackerMixer
+* NEW: PatternImagePanel now knows about unused (muted) channels with IT - with
+       S3Ms I still throw them out (can be changed by a "compile switch").
+* NEW: also XMs, when saved with ModPlug (not when compatibility mode), get
+       rainbow colored headers in pattern dialog
+* NEW: Same with S3Ms when OPL3 is needed
+* NEW: recognizing MPTM "sample on disc" to output an error. I do not support
+       that, and I don't want to support all the sample sources MPTM can load.
+* NEW: AdLib Instruments loaded for MPTP and S3M plus display in sample dialog
+* FIX: Finished - (except those tests that require OPL):
+       Enhanced ScreamTracker 2 compatibility by fixing everything to make these
+       test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/S3M
+       (many, many changes...!)
+       Remarks to the loop tests. They are now played, as ST3 (V3.21) does it.  
+       The loops run differently when you mute channels in ST3, because then the
+       SB0 and SBx commands of the muted channels are not executed. JavaMod on
+       the other hand does not simulated that. If you mute a channel, effects
+       are still executed. Only channels that were saved as muted are ignored.
+* FIX: Bugs after finishing MODs and XMs. I broke XMs without instruments.
+       And the overflow check at preparePortaToNoteEffect was checking a period
+       against an index.
+* FIX: XM GlobalVolSlide only on Tick Zero.
+* FIX: XM porta2Note with new instrument - really ignore it. Was now dead code.
+* FIX: XM and low notes - removed security checks, FT2 does not do them.
+       However, we simulate the uint8 note value to get negative wrap around.
+* FIX: XM show correct frequency and transposed note in sample dialog
+* FIX: XM only in modplug mode support extended XM effects >0xE2x
+* FIX: XM ignores sample offset, if no note is present
+* FIX: IT, STM, S3M jumpLoops
+* FIX: IT, STM, S3M vibrato depths fixed
+* FIX: IT Global Tempo Slide on ticks>0 and not (and not only) on tick 0
+* FIX: IT moving noteCut to a method: NNA/DNA must also call that. *ARGH!*
+* FIX: IT recognizing different SavedWithTracker names
+* FIX: S3M Loading: recognize different trackers now, ModPlug recognition
+       optimized
+* FIX: S3M reading song flags now correctly
+* FIX: S3M if AmigaLimits is now active - set correct borders
+* FIX: S3M calculation of periods was too precise (cannot believe I say that)
+* FIX: S3M double clean up of pattern removed
+* FIX: Empty S3Ms are better loaded now
+* FIX: STM special speed set (also added ST2Tempo for S3M, if set in song flags,
+       but did not check)
+* FIX: STM is mono (as is STX)
+* FIX: STM / S3M Arpeggios were one half note off
+* FIX: STM Zero Effects - no effect memo
+* FIX: STM unsupported effects: you can edit beyond arpeggio effect, but are not
+       implemented in ScreamTracker 2.21
+* FIX: STM recognition optimized (false positive STX and some Schism)
+* FIX: Reworked proceedToNextRow - patternFineDelay plus PatternBreak failed
+* FIX: PatternImagePanel: no IndexArrayOutOfBounds with initial currentIndex=-1
+       (went unnoticed - was just catched and "walked off")
+       
 ## New in Version 3.9.3
-* FIX: finished:
+* FIX: Finished:
        Enhanced FastTracker 2 compatibility by fixing everything to make these
        test MODs work: https://wiki.openmpt.org/Development:_Test_Cases/XM
        (many, many changes...!)
-* FIX: When fixing (Fine) Volslides for XMs: MODs do not have effect memory with
+* FIX: When fixing (Fine) VolSlides for XMs: MODs do not have effect memory with
        fine volume slides
 * FIX: Note Delays with XMs did not work correctly anymore, due to other fixes.
        Refixed...

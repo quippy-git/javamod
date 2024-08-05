@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -66,12 +67,41 @@ public class ModSampleDialog extends JDialog
 {
 	private static final long serialVersionUID = -9058637708283713743L;
 
-	private static String [] AUTOVIBRATO_TYPES = new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
-	private static String [] ZOOM_TYPES = new String [] { "Auto", "1:1", "2:1", "4:1", "8:1", "16:1", "32:1" };
+	private static String [] AUTOVIBRATO_TYPES		= new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
+	private static String [] ZOOM_TYPES				= new String [] { "Auto", "1:1", "2:1", "4:1", "8:1", "16:1", "32:1" };
 
-	public static final String BUTTONPLAY_INACTIVE = "/de/quippy/javamod/main/gui/ressources/play.gif";
-	public static final String BUTTONPLAY_ACTIVE = "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
-	public static final String BUTTONPLAY_NORMAL = "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
+	public static final String BUTTONPLAY_INACTIVE	= "/de/quippy/javamod/main/gui/ressources/play.gif";
+	public static final String BUTTONPLAY_ACTIVE 	= "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
+	public static final String BUTTONPLAY_NORMAL	= "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
+
+	private static final int ADLIB_SIZE			= 46;
+	private static final int ATTACK_POS			= 1;
+	private static final int DECAY_POS			= 3;
+	private static final int SUSTAIN_POS		= 5;
+	private static final int RELEASE_POS		= 7;
+	private static final int SUSTAINSOUND_POS	= 8;
+	private static final int VOLUME_POS			= 10;
+	private static final int SCALE_POS			= 11;
+	private static final int KEYSCALE_POS		= 13;
+	private static final int FRQM_POS			= 15;
+	private static final int WAVEFORM_POS		= 17;
+	private static final int VIBRATO_POS		= 18;
+	private static final int TREMOLO_POS		= 19;
+	private static final String [] LABELS = 
+	{
+		"Attack rate:", "Decay rate:", "Sustain level:", "Release level:",
+		"Sustain sound",
+		"Volume:",
+		"Scale envelopes with keys", "Key scale level:", "Frequence multiplier:",
+		"Waveform:",
+		"Vibrato", "Tremolo"
+	};
+	private static final String[] WAVEFORMS =
+	{
+		"Sine", "Half Sine", "Absolute Sine", "Pulse Sine",
+		// OPL3 specific
+		"Sine (even periods)", "Absolute Sine (even periods)", "Square", "Derived Square"
+	};
 
 	private ImageIcon buttonPlay_Active = null;
 	private ImageIcon buttonPlay_Inactive = null;
@@ -83,6 +113,7 @@ public class ModSampleDialog extends JDialog
 	private JComboBox<String> noteSelector = null;
 	private JButton button_Play = null;
 	private JTextField sampleType = null;
+	private JScrollPane imageBufferScrollPane = null;
 	private SampleImagePanel imageBufferPanel = null;
 	private JPanel sampleNameAndLoopsPanel = null;
 	private JPanel sampleNamePanel = null;
@@ -127,6 +158,15 @@ public class ModSampleDialog extends JDialog
 	private JTextField autoVibSweepValue = null;
 	private JLabel autoVibRateLabel = null;
 	private JTextField autoVibRateValue = null;
+	
+	private JPanel adlibSamplePanel = null;
+	private FixedStateCheckBox additiveSynthesis = null;
+	private JLabel modulationFeedBackLabel = null;
+	private JTextField modulationFeedBack = null;
+	private JPanel adlibCarrierPanel = null;
+	private JComponent [] adlibCarrierComponents = null;
+	private JPanel adlibModulatorPanel = null;
+	private JComponent [] adlibModulatorComponents = null;
 
 	private SampleInstrumentPlayer player = null;
 	private Sample [] samples;
@@ -160,6 +200,7 @@ public class ModSampleDialog extends JDialog
 		baseContentPane.add(getVolumePanel(),				Helpers.getGridBagConstraint(0, 1, 1, 3, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getSampleNameAndLoopsPanel(),	Helpers.getGridBagConstraint(3, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getImageBufferPanel(), 			Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
+		baseContentPane.add(getAdlibSamplePanel(), 			Helpers.getGridBagConstraint(0, 4, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
 		
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter()
@@ -925,7 +966,6 @@ public class ModSampleDialog extends JDialog
 		}
 		return autoVibRateValue;
 	}
-	private JScrollPane imageBufferScrollPane = null;
 	private JScrollPane getImageBufferScrollPane()
 	{
 		if (imageBufferScrollPane==null)
@@ -986,6 +1026,163 @@ public class ModSampleDialog extends JDialog
 			}
 		});
 	}
+	private JPanel getAdlibSamplePanel()
+	{
+		if (adlibSamplePanel==null)
+		{
+			adlibSamplePanel = new JPanel();
+			adlibSamplePanel.setBorder(new TitledBorder(null, "Ad-Lib Instrument", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			adlibSamplePanel.setLayout(new GridBagLayout());
+			adlibSamplePanel.add(getAdditiveSynthesis(),			Helpers.getGridBagConstraint(0, 0, 1, 2, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			adlibSamplePanel.add(getModulationFeedBackLabel(),		Helpers.getGridBagConstraint(2, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			adlibSamplePanel.add(getModulationFeedBack(),			Helpers.getGridBagConstraint(3, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			adlibSamplePanel.add(getAdlibCarrierPanel(), 			Helpers.getGridBagConstraint(0, 1, 1, 2, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 0.0, 0.0));
+			adlibSamplePanel.add(getAdlibModulatorPanel(), 			Helpers.getGridBagConstraint(2, 1, 1, 2, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 0.0, 0.0));
+		}
+		return adlibSamplePanel;
+	}
+	private FixedStateCheckBox getAdditiveSynthesis()
+	{
+		if (additiveSynthesis==null)
+		{
+			additiveSynthesis = new FixedStateCheckBox();
+			additiveSynthesis.setName("additiveSynthesis");
+			additiveSynthesis.setText("Additive Synthesis");
+			additiveSynthesis.setFont(Helpers.getDialogFont());
+
+			final FontMetrics metrics = globalVolume.getFontMetrics(Helpers.getDialogFont());
+			final Dimension d = new Dimension(ADLIB_SIZE*metrics.charWidth('0'), metrics.getHeight());
+			additiveSynthesis.setSize(d);
+			additiveSynthesis.setMinimumSize(d);
+			additiveSynthesis.setMaximumSize(d);
+			additiveSynthesis.setPreferredSize(d);
+		}
+		return additiveSynthesis;
+	}
+	private JLabel getModulationFeedBackLabel()
+	{
+		if (modulationFeedBackLabel==null)
+		{
+			modulationFeedBackLabel = new JLabel();
+			modulationFeedBackLabel.setName("modulationFeedBackLabel");
+			modulationFeedBackLabel.setText("Modulation Feedback");
+			modulationFeedBackLabel.setFont(Helpers.getDialogFont());
+		}
+		return modulationFeedBackLabel;
+	}
+	private JTextField getModulationFeedBack()
+	{
+		if (modulationFeedBack==null)
+		{
+			modulationFeedBack = new JTextField();
+			modulationFeedBack.setName("modulationFeedBack");
+			modulationFeedBack.setEditable(false);
+			modulationFeedBack.setFont(Helpers.getDialogFont());
+
+			final FontMetrics metrics = globalVolume.getFontMetrics(Helpers.getDialogFont());
+			final Dimension d = new Dimension((ADLIB_SIZE-19)*metrics.charWidth('0'), metrics.getHeight());
+			modulationFeedBack.setSize(d);
+			modulationFeedBack.setMinimumSize(d);
+			modulationFeedBack.setMaximumSize(d);
+			modulationFeedBack.setPreferredSize(d);
+		}
+		return modulationFeedBack;
+	}
+	private JComponent[] createComponents()
+	{
+		ArrayList<JComponent> list = new ArrayList<JComponent>();
+		for (int i=0; i<LABELS.length; i++)
+		{
+			final String label = LABELS[i];
+			if (label.endsWith(":"))
+			{
+				JLabel newLabel = new JLabel();
+				newLabel.setName("adLibLabel_"+label);
+				newLabel.setText(label);
+				newLabel.setFont(Helpers.getDialogFont());
+				list.add(newLabel);
+				JTextField newValue = new JTextField();
+				newValue.setName("newValue_"+label);
+				newValue.setEditable(false);
+				newValue.setFont(Helpers.getDialogFont());
+				list.add(newValue);
+			}
+			else
+			{
+				FixedStateCheckBox newChkBox = new FixedStateCheckBox();
+				newChkBox.setName(label);
+				newChkBox.setText(label);
+				newChkBox.setFont(Helpers.getDialogFont());
+				list.add(newChkBox);
+			}
+		}
+		return list.toArray(new JComponent[list.size()]);
+	}
+	private JComponent[] addComponentsToPanel(JComponent[] components, JPanel panel)
+	{
+		if (components==null)
+		{
+			components = createComponents();
+			panel.add(components[0], 				Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[ATTACK_POS],		Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[2], 				Helpers.getGridBagConstraint(0, 1, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[DECAY_POS],		Helpers.getGridBagConstraint(1, 1, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[4], 				Helpers.getGridBagConstraint(0, 2, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[SUSTAIN_POS],		Helpers.getGridBagConstraint(1, 2, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[6], 				Helpers.getGridBagConstraint(0, 3, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[RELEASE_POS],		Helpers.getGridBagConstraint(1, 3, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[SUSTAINSOUND_POS],	Helpers.getGridBagConstraint(0, 4, 1, 2, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[9],				Helpers.getGridBagConstraint(0, 5, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[VOLUME_POS],		Helpers.getGridBagConstraint(1, 5, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[SCALE_POS],		Helpers.getGridBagConstraint(0, 6, 1, 2, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[12],				Helpers.getGridBagConstraint(0, 7, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[KEYSCALE_POS],		Helpers.getGridBagConstraint(1, 7, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[14],				Helpers.getGridBagConstraint(0, 8, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[FRQM_POS],			Helpers.getGridBagConstraint(1, 8, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[16],				Helpers.getGridBagConstraint(0, 9, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[WAVEFORM_POS],		Helpers.getGridBagConstraint(1, 9, 1, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0));
+			panel.add(components[VIBRATO_POS],		Helpers.getGridBagConstraint(0,10, 1, 2, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+			panel.add(components[TREMOLO_POS],		Helpers.getGridBagConstraint(0,11, 1, 2, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
+		}
+		return components;
+	}
+	private void fillComponents(final JComponent[] components, final Sample sample, final int cm)
+	{
+		((JTextField)components[ATTACK_POS]).setText(Integer.toString(sample.getAdlibAttackRate(cm)));
+		((JTextField)components[DECAY_POS]).setText(Integer.toString(sample.getAdlibDecaykRate(cm)));
+		((JTextField)components[SUSTAIN_POS]).setText(Integer.toString(0xF-sample.getAdlibSustainLevel(cm)));
+		((JTextField)components[RELEASE_POS]).setText(Integer.toString(sample.getAdlibReleaseRate(cm)));
+		((FixedStateCheckBox)components[SUSTAINSOUND_POS]).setFixedState(sample.getAdlibSustainSound(cm));
+		((JTextField)components[VOLUME_POS]).setText(Integer.toString(0x3F-sample.getAdlibVolumeLevel(cm)));
+		((FixedStateCheckBox)components[SCALE_POS]).setFixedState(sample.getAdlibEnvelopeScaling(cm));
+		((JTextField)components[KEYSCALE_POS]).setText(Integer.toString(sample.getAdlibKeyScaleLevel(cm)));
+		((JTextField)components[FRQM_POS]).setText(Integer.toString(sample.getAdlibFrequencyMultiplier(cm)));
+		((JTextField)components[WAVEFORM_POS]).setText(WAVEFORMS[sample.getAdlibWaveSelect(cm)]);
+		((FixedStateCheckBox)components[VIBRATO_POS]).setFixedState(sample.getAdlibFrequencyVibrato(cm));
+		((FixedStateCheckBox)components[TREMOLO_POS]).setFixedState(sample.getAdlibAmplitudeVibrato(cm));
+	}
+	private JPanel getAdlibCarrierPanel()
+	{
+		if (adlibCarrierPanel==null)
+		{
+			adlibCarrierPanel = new JPanel();
+			adlibCarrierPanel.setBorder(new TitledBorder(null, "Carrier", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			adlibCarrierPanel.setLayout(new GridBagLayout());
+			adlibCarrierComponents = addComponentsToPanel(adlibCarrierComponents, adlibCarrierPanel);
+		}
+		return adlibCarrierPanel;
+	}
+	private JPanel getAdlibModulatorPanel()
+	{
+		if (adlibModulatorPanel==null)
+		{
+			adlibModulatorPanel = new JPanel();
+			adlibModulatorPanel.setBorder(new TitledBorder(null, "Modulator", TitledBorder.LEADING, TitledBorder.DEFAULT_POSITION, Helpers.getDialogFont(), null));
+			adlibModulatorPanel.setLayout(new GridBagLayout());
+			adlibModulatorComponents = addComponentsToPanel(adlibModulatorComponents, adlibModulatorPanel);
+		}
+		return adlibModulatorPanel;
+	}
 	private void clearSample()
 	{
 		spinnerModelData = new ArrayList<String>(1);
@@ -1018,6 +1215,9 @@ public class ModSampleDialog extends JDialog
 		
 		getZoomSelector().setSelectedIndex(0);
 		getImageBufferPanel().setSample(null);
+		
+		getImageBufferPanel().setVisible(true);
+		getAdlibSamplePanel().setVisible(false);
 
 		// after setting the new model, make the editor of the spinner un-editable
 		((DefaultEditor)getSelectSample().getEditor()).getTextField().setEditable(false);
@@ -1039,7 +1239,7 @@ public class ModSampleDialog extends JDialog
 		getSetPanValue().setText(Integer.toString(sample.defaultPanning));
 		getFineTuneValue().setText(Integer.toString(sample.fineTune));
 		getBaseFreqValue().setText(Integer.toString(sample.baseFrequency));
-		getTransposeValue().setText(Integer.toString(sample.transpose));
+		getTransposeValue().setText(ModConstants.getNoteNameForIndex(((4*12) + sample.transpose)+1));
 		getLoopTypeValue().setText((sample.loopType&ModConstants.LOOP_ON)==0?"Off":(sample.loopType&ModConstants.LOOP_IS_PINGPONG)==0?"On":"Bidi");
 		getLoopStartValue().setText(Integer.toString(sample.loopStart));
 		getLoopEndValue().setText(Integer.toString(sample.loopStop));
@@ -1051,7 +1251,21 @@ public class ModSampleDialog extends JDialog
 		getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
 		getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
 		
-		getImageBufferPanel().setSample(sample);
+		if (sample.adLib_Instrument!=null)
+		{
+			getAdditiveSynthesis().setFixedState(sample.getAdlibAdditiveSynthesis());
+			getModulationFeedBack().setText(Integer.toString(sample.getAdlibModulationFeedback()));
+			fillComponents(adlibCarrierComponents, sample, 1);
+			fillComponents(adlibModulatorComponents, sample, 0);
+			getImageBufferPanel().setVisible(false);
+			getAdlibSamplePanel().setVisible(true);
+		}
+		else
+		{
+			getImageBufferPanel().setSample(sample);
+			getImageBufferPanel().setVisible(true);
+			getAdlibSamplePanel().setVisible(false);
+		}
 	}
 	public void showSample(final int sampleIndex)
 	{

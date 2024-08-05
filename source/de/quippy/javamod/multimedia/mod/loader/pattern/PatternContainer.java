@@ -38,6 +38,7 @@ public class PatternContainer
 	// MPTP specific information
 	protected String [] channelNames;
 	protected Color [] channelColors;
+	protected boolean [] channelIsActive;
 
 	/**
 	 * Constructor for PatternContainer
@@ -227,6 +228,41 @@ public class PatternContainer
 	{
 		if (channelNames!=null && channel<channelNames.length) return channelNames[channel];
 		return null;
+	}
+	/**
+	 * We use the panningValues to identify muted channels
+	 * This is only for display
+	 * @since 19.07.2024
+	 * @param panningValues
+	 */
+	public void setChannelActiveStatus(final int [] panningValues)
+	{
+		if (panningValues==null) return;
+
+		final int anzChannels = (patterns!=null && patterns[0]!=null)?patterns[0].getChannels():panningValues.length;
+		channelIsActive = new boolean[anzChannels];
+		for (int c=0; c<anzChannels; c++)
+		{
+			channelIsActive[c] = (c<panningValues.length)?((panningValues[c]&ModConstants.CHANNEL_IS_MUTED)==0):false;
+		}
+	}
+	/**
+	 * @since 19.07.2024
+	 * @return
+	 */
+	public boolean[] getChannelIsActive()
+	{
+		return channelIsActive;
+	}
+	/**
+	 * @since 19.07.2024
+	 * @param channel
+	 * @return
+	 */
+	public boolean getIsChannelActive(final int channel)
+	{
+		if (channelIsActive!=null && channel<channelIsActive.length) return channelIsActive[channel];
+		return true;
 	}
 	/**
 	 * Copies the Channel Names, if any

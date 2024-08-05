@@ -46,7 +46,7 @@ public abstract class Module
 	private String modID;
 	
 	private int modType;
-	protected int version; // so far only used to recognize OMPT versions
+	protected int version;
 
 	private String songName;
 	private int nChannels;
@@ -69,7 +69,7 @@ public abstract class Module
 	
 	protected int songFlags;
 	
-	// OMPT specific (or S3M and IT, but manipulated in extended song messages
+	// OMPT specific (or S3M and IT), but manipulated in extended song messages
 	protected int [] panningValue;
 	protected int [] channelVolume;
 	protected int tempoMode;
@@ -80,6 +80,11 @@ public abstract class Module
 	protected int lastSavedWithVersion;
 	protected String author;
 	protected int resampling;
+	
+	protected int needsOPL;
+	protected static final int NO_OPL = 0;
+	protected static final int OPL2 = 0x01;
+	protected static final int OPL3 = 0x02;
 
 	/**
 	 * This class is used to decrompress the IT>=2.14 samples
@@ -318,6 +323,7 @@ public abstract class Module
 
 				width = 9; // start with width of 9 bits
 				d1 = d2 = 0; // reset integrator buffers
+
 				// now uncompress the data block
 				while (blkpos < blklen)
 				{
@@ -351,8 +357,7 @@ public abstract class Module
 							continue; // ... and next value
 						}
 					}
-					else
-					// illegal width, abort
+					else // illegal width, abort
 					{
 						return false;
 					}
@@ -440,8 +445,7 @@ public abstract class Module
 							continue; // ... and next value
 						}
 					}
-					else
-					// illegal width, abort
+					else // illegal width, abort
 					{
 						return false;
 					}
@@ -487,6 +491,7 @@ public abstract class Module
 		createdWithVersion = -1;
 		lastSavedWithVersion = -1;
 		resampling = -1;
+		needsOPL = NO_OPL;
 	}
 	/**
 	 * Constructor for Module
@@ -560,34 +565,32 @@ public abstract class Module
 		final int flags = current.sampleType;
 		final boolean isStereo = (flags&ModConstants.SM_STEREO)!=0;
 		final boolean isUnsigned = (flags&ModConstants.SM_PCMU)!=0;
+		final boolean is16Bit = (flags&ModConstants.SM_16BIT)!=0;
+		final boolean isBigEndian = (flags&ModConstants.SM_BigEndian)!=0;
 		//current.setStereo(isStereo); // just to be sure...
 		
 		if (current.length>0)
 		{
 			current.allocSampleData();
-			if ((flags & ModConstants.SM_IT21416)==ModConstants.SM_IT21416 || (flags & ModConstants.SM_IT21516)==ModConstants.SM_IT21516)
+			if ((flags & ModConstants.SM_IT214)!=0 || (flags & ModConstants.SM_IT215)!=0)
 			{
-				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.length, (flags & ModConstants.SM_IT21516)==ModConstants.SM_IT21516, inputStream);
-				reader.decompress16();
+				final boolean isIT215 = (flags & ModConstants.SM_IT215)!=0;
+				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.length, isIT215, inputStream);
+				if (is16Bit) 
+					reader.decompress16();
+				else
+					reader.decompress8();
 				if (isStereo)
 				{
-					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, (flags & ModConstants.SM_IT21516)==ModConstants.SM_IT21516, inputStream);
-					reader2.decompress16();
+					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, isIT215, inputStream);
+					if (is16Bit) 
+						reader2.decompress16();
+					else
+						reader.decompress8();
 				}
 			}
 			else
-			if ((flags & ModConstants.SM_IT2148)==ModConstants.SM_IT2148 || (flags & ModConstants.SM_IT2158)==ModConstants.SM_IT2158)
-			{
-				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.length, (flags & ModConstants.SM_IT2158)==ModConstants.SM_IT2158, inputStream);
-				reader.decompress8();
-				if (isStereo)
-				{
-					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, (flags & ModConstants.SM_IT2158)==ModConstants.SM_IT2158, inputStream);
-					reader2.decompress8();
-				}
-			}
-			else
-			if ((flags&ModConstants.SM_ADPCM)==ModConstants.SM_ADPCM)
+			if ((flags&ModConstants.SM_ADPCM)!=0)
 			{
 				byte [] deltaLUT = new byte[16];
 				inputStream.read(deltaLUT);
@@ -606,29 +609,37 @@ public abstract class Module
 				}
 			}
 			else
-			if ((flags&ModConstants.SM_PCM16D)==ModConstants.SM_PCM16D)
+			if ((flags&ModConstants.SM_PCMD)!=0 || (flags&ModConstants.SM_PTM8Dto16)!=0)
 			{
-				short delta = 0;
-				for (int s=0; s<current.length; s++)
-					current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
-				if (isStereo)
+				if (is16Bit && (flags&ModConstants.SM_PTM8Dto16)==0)
 				{
-					delta = 0;
+					short delta = 0;
 					for (int s=0; s<current.length; s++)
-						current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += inputStream.readIntelWord()));
+					{
+						final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
+						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += sample));
+					}
+					if (isStereo)
+					{
+						delta = 0;
+						for (int s=0; s<current.length; s++)
+						{
+							final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
+							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += sample));
+						}
+					}
 				}
-			}
-			else
-			if ((flags&ModConstants.SM_PCMD)==ModConstants.SM_PCMD)
-			{
-				byte delta = 0;
-				for (int s=0; s<current.length; s++)
-					current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
-				if (isStereo)
+				else
 				{
-					delta = 0;
+					byte delta = 0;
 					for (int s=0; s<current.length; s++)
-						current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+						current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+					if (isStereo)
+					{
+						delta = 0;
+						for (int s=0; s<current.length; s++)
+							current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+					}
 				}
 			}
 			else
@@ -636,7 +647,7 @@ public abstract class Module
 			{
 				for (int s=0; s<current.length; s++)
 				{
-					final short sample = inputStream.readIntelWord();
+					final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 					if (isUnsigned) // unsigned
 						current.sampleL[s]=ModConstants.promoteUnsigned16BitToSigned32Bit((long)sample);
 					else
@@ -646,7 +657,7 @@ public abstract class Module
 				{
 					for (int s=0; s<current.length; s++)
 					{
-						final short sample = inputStream.readIntelWord();
+						final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 						if (isUnsigned) // unsigned
 							current.sampleR[s]=ModConstants.promoteUnsigned16BitToSigned32Bit((long)sample);
 						else

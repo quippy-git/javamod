@@ -43,8 +43,11 @@ public class ScreamTrackerOldMod extends Module
 {
 	private static final String[] MODFILEEXTENSION = new String [] 
 	{
-		"stm"
+		"stm", "sts"
 	};
+	
+	protected static final String S3M_ID = "SCRM";
+
 	/**
 	 * Will be executed during class load
 	 */
@@ -53,10 +56,6 @@ public class ScreamTrackerOldMod extends Module
 		ModuleFactory.registerModule(new ScreamTrackerOldMod());
 	}
 
-	private int vHi, vLow;
-	private int playBackTempo;
-	private int STMType;
-	
 	/**
 	 * Constructor for ScreamTrackerOldMod
 	 */
@@ -72,7 +71,7 @@ public class ScreamTrackerOldMod extends Module
 		super(fileName);
 	}
 	/**
-	 * @return the Fileextensions this loader is suitable for
+	 * @return the file extensions this loader is suitable for
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
@@ -142,14 +141,6 @@ public class ScreamTrackerOldMod extends Module
 		return null;
 	}
 	/**
-	 * TODO: Read this!!!
-	 * @return the Playback tempo
-	 */
-	public int getPlayBackTempo()
-	{
-		return playBackTempo;
-	}
-	/**
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getSongMessage()
 	 */
@@ -177,18 +168,47 @@ public class ScreamTrackerOldMod extends Module
 		return false;
 	}
 	/**
-	 * Get the current modtype
-	 * @param kennung
-	 * @return
+	 * @param inputStream
+	 * @return true, if this is a Scream Tracker 2 mod, false if this is not clear
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
 	 */
-	private String getModType(String kennung) throws IOException
+	@Override
+	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
 	{
-		if (!kennung.equals("!Scream!")) 
-			throw new IOException("Mod id: " + kennung + ": this is not a screamtracker mod");
-
-		setNSamples(31);
-		setNChannels(4);
-		return "ScreamTracker";
+		inputStream.seek(0);
+		// We should not be too picky about the !Scream!-Tag...
+		// According to ModPlug: Magic bytes that have been found in the wild are !Scream!, BMOD2STM, WUZAMOD! and SWavePro.
+		// But simply accepting any printable ASCII as ID leads to false positives - would need to check more
+		// of the header
+		byte [] header = new byte[32];
+		inputStream.read(header);
+		if (//header[28]!=0x1A ||	// EOF - there seem to be exceptions to this rule
+			header[29]!=2	||		// FileType == 2 (1: we do not load, but is valid STM!)
+			header[30]!=2	||		// VerHi && VerMin we want to support
+			(header[31]!=0 && header[31]!=10 && header[31]!=20 && header[31]!=21))
+		{
+			return false;
+		}
+		for (int c=20; c<28; c++)
+		{
+			if (header[c]<0x20 || header[c]>0x7E) 
+				return false;
+		}
+		// STX files could now produce false positives. So check for those as well
+		inputStream.seek(0x3C);
+		final String s3mID = inputStream.readString(4);
+		inputStream.seek(0);
+		return !s3mID.equals(S3M_ID);
+	}
+	/**
+	 * @param fileName
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
+	 */
+	@Override
+	protected Module getNewInstance(String fileName)
+	{
+		return new ScreamTrackerOldMod(fileName);
 	}
 	/**
 	 * Read the STM pattern data
@@ -220,11 +240,11 @@ public class ScreamTrackerOldMod extends Module
 	
 		pe.setEffekt((note&0xF00)>>8);
 		pe.setEffektOp(note&0xFF);
-		if (pe.getEffekt()==0x01) // set Tempo needs correction. Do not ask why!
-		{
-			int effektOp = pe.getEffektOp();
-			pe.setEffektOp(((effektOp&0x0F)<<4) | ((effektOp&0xF0)>>4));
-		}
+		
+		// All trackers say: "No effect memory" - but throwing them all out is a very bad idea!
+		// For instance: if it is a porta2note effect, the effect is ignored when op is zero,
+		// however, the note is not played instead.
+		//if (pe.getEffektOp()==0) pe.setEffekt(0);
 		
 		int volume =((note&0x70000)>>16) | ((note&0xF000)>>9);
 		if (volume<=64)
@@ -235,39 +255,15 @@ public class ScreamTrackerOldMod extends Module
 	}
 	/**
 	 * @param inputStream
-	 * @return true, if this is a screamtracker mod, false if this is not clear
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
-	 */
-	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
-	{
-		inputStream.seek(0x14);
-		String stmID = inputStream.readString(8);
-		inputStream.seek(0);
-		return stmID.equalsIgnoreCase("!SCREAM!"); // Don't be too squishy... 
-	}
-	/**
-	 * @param fileName
-	 * @return
-	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
-	 */
-	@Override
-	protected Module getNewInstance(String fileName)
-	{
-		return new ScreamTrackerOldMod(fileName);
-	}
-	/**
-	 * @param inputStream
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(byte[])
 	 */
 	@Override
 	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
 	{
-		inputStream.seek(0x14);
-		setTrackerName(getModType(inputStream.readString(8)));
-		inputStream.seek(0);
-		
+		setModType(ModConstants.MODTYPE_STM);
+		setNSamples(31);
+		setNChannels(4);
 		setSongRestart(0);
 		
 		// Songname
@@ -276,27 +272,30 @@ public class ScreamTrackerOldMod extends Module
 		// ID. Should be "!SCREAM!"
 		setModID(inputStream.readString(8));
 		
-		// 0x1A as file end signal... overread
+		// 0x1A as file end signal... read over
 		inputStream.skip(1);
 		// Type: 1=Song 2=MOD
-		STMType = inputStream.read();
-		if (STMType!=2) throw new IOException("Unsupported STM MOD (ID!=0x02)");
+		final int STMType = inputStream.read();
+		if (STMType!=0x02) throw new IOException("Unsupported STM MOD (ID!=0x02)");
 		
 		// Version
-		vHi = inputStream.read();
-		vLow = inputStream.read();
-		setTrackerName(getTrackerName() + " V" + vHi + '.' + vLow);
+		final int vHi = inputStream.read();
+		final int vLow = inputStream.read();
+		version = vHi<<4|vLow;
+		setTrackerName("ScreamTracker V" + vHi + '.' + vLow);
 		
-		// is always stereo
-		songFlags |= ModConstants.SONG_ISSTEREO;
+		// is always mono
+		//songFlags |= ModConstants.SONG_ISSTEREO;
 		// default, so we do not need to check for IT
+		songFlags |= ModConstants.SONG_ST2VIBRATO;
+		songFlags |= ModConstants.SONG_ST2TEMPO;
 		songFlags |= ModConstants.SONG_ITOLDEFFECTS;
 
-		// PlaybackTemp (???)
-		playBackTempo = inputStream.read();
-		setTempo(6);
-		setBPMSpeed(125);
-		setModType(ModConstants.MODTYPE_STM);
+		// PlaybackTemp
+		int playBackTempo = inputStream.read();
+		if (vLow<21) playBackTempo = ((playBackTempo/10)<<4)+(playBackTempo%10);
+		setTempo((playBackTempo>>4)!=0?playBackTempo>>4:1);
+		setBPMSpeed(ModConstants.convertST2tempo(playBackTempo));
 		
 		// count of pattern in arrangement
 		int patternCount = inputStream.read();
@@ -326,9 +325,9 @@ public class ScreamTrackerOldMod extends Module
 			// reserved
 			inputStream.skip(1);
 			
-			// instrument Disk number, if song (not supported)
-			int diskNumber = inputStream.read();
-			if (STMType==1) current.setName(current.name+" #"+diskNumber);
+			// instrument Disk number, if song (not yet supported)
+			final int diskNumber = inputStream.read();
+			if (STMType==0x01) current.setName(current.name+" #"+diskNumber);
 			
 			// Reserved (Sample Beginning Offset?!)
 			inputStream.skip(2);
@@ -399,8 +398,7 @@ public class ScreamTrackerOldMod extends Module
 			{
 				for (int channel=0; channel<getNChannels(); channel++)
 				{
-					int value = inputStream.readMotorolaDWord();
-					createNewPatternElement(patternContainer, pattNum, row, channel, value);
+					createNewPatternElement(patternContainer, pattNum, row, channel, inputStream.readMotorolaDWord());
 				}
 			}
 		}

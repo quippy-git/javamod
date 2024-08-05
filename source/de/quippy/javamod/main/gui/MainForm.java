@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -116,6 +115,7 @@ import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerEvent;
 import de.quippy.javamod.multimedia.MultimediaContainerEventListener;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
+import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 import de.quippy.javamod.system.LogMessageCallBack;
@@ -342,7 +342,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private float currentBalance; /* -1.0 - 1.0 */
 	
 	private LocalDate lastUpdateCheck;
-	private static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private static final LocalDate today = LocalDate.now();
 
 	private ArrayList<URL> lastLoaded;
@@ -490,7 +489,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			getSALMeterPanel().setDrawWhatTo(saMeterLeftDrawType);
 			getSARMeterPanel().setDrawWhatTo(saMeterRightDrawType);
 			
-			lastUpdateCheck = LocalDate.from(DATE_FORMATER.parse(props.getProperty(PROPERTY_LAST_UPDATECHECK, DATE_FORMATER.format(today))));
+			lastUpdateCheck = LocalDate.from(ModConstants.DATE_FORMATER.parse(props.getProperty(PROPERTY_LAST_UPDATECHECK, ModConstants.DATE_FORMATER.format(today))));
 					
 			if (currentEqualizer!=null)
 			{
@@ -573,7 +572,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			props.setProperty(PROPERTY_XMASCONFIG_VISABLE, Boolean.toString(getXmasConfigDialog().isVisible()));
 			props.setProperty(PROPERTY_SAMETER_LEFT_DRAWTYPE, Integer.toString(getSALMeterPanel().getDrawWhat()));
 			props.setProperty(PROPERTY_SAMETER_RIGHT_DRAWTYPE, Integer.toString(getSARMeterPanel().getDrawWhat()));
-			props.setProperty(PROPERTY_LAST_UPDATECHECK, DATE_FORMATER.format(lastUpdateCheck));
+			props.setProperty(PROPERTY_LAST_UPDATECHECK, ModConstants.DATE_FORMATER.format(lastUpdateCheck));
 
 			if (currentEqualizer!=null)
 			{
