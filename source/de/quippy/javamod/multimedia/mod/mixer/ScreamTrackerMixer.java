@@ -474,7 +474,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		{
 			if (!isIT || y==0) return x; 
 		}
-		// Having OP with x and y set (like 15 or 84) is not supported and does nothing
+		// Having OP with x and y set (like 15 or 84) is not supported with IT and does nothing
 		return 0;
 	}
 	/**
@@ -792,6 +792,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 			case 0x09:			// Tremor
 				if (aktMemo.assignedEffektParam!=0)
 				{
+					aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 					aktMemo.tremorOntimeSet = (aktMemo.assignedEffektParam>>4);
 					aktMemo.tremorOfftimeSet = (aktMemo.assignedEffektParam&0xF);
 					if ((mod.getSongFlags() & ModConstants.SONG_ITOLDEFFECTS)!=0)
@@ -800,7 +801,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 						aktMemo.tremorOfftimeSet++;
 					}
 				}
-				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 				if (aktMemo.tremorOntimeSet==0) aktMemo.tremorOntimeSet=1;
 				if (aktMemo.tremorOfftimeSet==0) aktMemo.tremorOfftimeSet=1;
 				doTremorEffekt(aktMemo);

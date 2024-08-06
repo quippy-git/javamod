@@ -1,6 +1,4 @@
-V3.9.4
-
-# JavaMod V3.9.4
+# JavaMod V3.9.4.1
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -33,7 +31,7 @@ with minor version number updates to have you participate in these changes!
 * https://github.com/quippy-git/javamod
 
 ## Supported file types:
-* Mods (FAR, NST, MOD, MTM, STK, WOW, XM, STM, S3M, IT, PowerPacker)
+* Mods (STK, NST, MOD, WOW, XM, FAR, MTM, STM, STS, STX, S3M, IT, MPTM, PowerPacker)
 * OPL2/3 (ROL, LAA, CMF, DRO, SCI)
 * WAV, AU, AIFF
 * MIDI (MID, RMF, RMI) with SF2 soundfont files
@@ -79,6 +77,10 @@ JavaMod incorporates modified versions of the following libraries:
   * WavPack and MusePack support
   * MO3 support
   * read from 7z archives
+
+## New in Version 3.9.4.1 HotFix
+* FIX: IT MidiMacros are dismissed as of version recognition. However, that was
+       wrongly implemented and now MidiMacros are mostly always deleted. 
 
 ## New in Version 3.9.4
 * NEW: Supporting STX (ScreamTracker Music Interface Kit)

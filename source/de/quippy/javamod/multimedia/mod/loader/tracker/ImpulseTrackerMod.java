@@ -511,7 +511,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// Hence to be sure, we check that both values are below 2.14.
 		// Note that all ModPlug Tracker alpha versions do not support filters yet. Earlier alphas identify as cwtv=2.02, cmwt=2.00, but later alpha versions identify as IT 2.14.
 		// Apart from that, there's an unknown XM conversion tool declaring a lower compatible version, which naturally also does not support filters, so it's okay that it is caught here.
-		if ((version<0x0214 && cmwt<0x214) || (lastSavedWithVersion!=0 && lastSavedWithVersion<0x10000A6))
+		if ((version<0x0214 && cmwt<0x214) || (lastSavedWithVersion>0 && lastSavedWithVersion<0x10000A6))
 			midiMacros.clearZxxMacros();
 		
 		boolean isBeRoTracker = false;
