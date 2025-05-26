@@ -1,30 +1,32 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
 package de.quippy.ogg.jogg;
+
+import java.util.Arrays;
 
 public class StreamState{
   byte[] body_data; /* bytes from packet bodies */
@@ -61,7 +63,7 @@ public class StreamState{
     init();
   }
 
-  StreamState(int serialno){
+  StreamState(final int serialno){
     this();
     init(serialno);
   }
@@ -74,17 +76,15 @@ public class StreamState{
     granule_vals=new long[lacing_storage];
   }
 
-  public void init(int serialno){
+  public void init(final int serialno){
     if(body_data==null){
       init();
     }
     else{
       for(int i=0; i<body_data.length; i++)
         body_data[i]=0;
-      for(int i=0; i<lacing_vals.length; i++)
-        lacing_vals[i]=0;
-      for(int i=0; i<granule_vals.length; i++)
-        granule_vals[i]=0;
+      Arrays.fill(lacing_vals, 0);
+      Arrays.fill(granule_vals, 0);
     }
     this.serialno=serialno;
   }
@@ -99,31 +99,31 @@ public class StreamState{
     clear();
   }
 
-  void body_expand(int needed){
+  void body_expand(final int needed){
     if(body_storage<=body_fill+needed){
       body_storage+=(needed+1024);
-      byte[] foo=new byte[body_storage];
+      final byte[] foo=new byte[body_storage];
       System.arraycopy(body_data, 0, foo, 0, body_data.length);
       body_data=foo;
     }
   }
 
-  void lacing_expand(int needed){
+  void lacing_expand(final int needed){
     if(lacing_storage<=lacing_fill+needed){
       lacing_storage+=(needed+32);
-      int[] foo=new int[lacing_storage];
+      final int[] foo=new int[lacing_storage];
       System.arraycopy(lacing_vals, 0, foo, 0, lacing_vals.length);
       lacing_vals=foo;
 
-      long[] bar=new long[lacing_storage];
+      final long[] bar=new long[lacing_storage];
       System.arraycopy(granule_vals, 0, bar, 0, granule_vals.length);
       granule_vals=bar;
     }
   }
 
   /* submit data to the internal buffer of the framing engine */
-  public int packetin(Packet op){
-    int lacing_val=op.bytes/255+1;
+  public int packetin(final Packet op){
+    final int lacing_val=op.bytes/255+1;
 
     if(body_returned!=0){
       /* advance packet data according to the body_returned pointer. We
@@ -171,7 +171,7 @@ public class StreamState{
     return (0);
   }
 
-  public int packetout(Packet op){
+  public int packetout(final Packet op){
 
     /* The last part of decode. We have the stream broken into packet
        segments.  Now we need to group them into packets (or return the
@@ -205,7 +205,7 @@ public class StreamState{
       bytes+=size;
 
       while(size==255){
-        int val=lacing_vals[++ptr];
+        final int val=lacing_vals[++ptr];
         size=val&0xff;
         if((val&0x200)!=0)
           op.e_o_s=0x200;
@@ -227,27 +227,27 @@ public class StreamState{
   // add the incoming page to the stream state; we decompose the page
   // into packet segments here as well.
 
-  public int pagein(Page og){
-    byte[] header_base=og.header_base;
-    int header=og.header;
-    byte[] body_base=og.body_base;
+  public int pagein(final Page og){
+    final byte[] header_base=og.header_base;
+    final int header=og.header;
+    final byte[] body_base=og.body_base;
     int body=og.body;
     int bodysize=og.body_len;
     int segptr=0;
 
-    int version=og.version();
-    int continued=og.continued();
+    final int version=og.version();
+    final int continued=og.continued();
     int bos=og.bos();
-    int eos=og.eos();
-    long granulepos=og.granulepos();
-    int _serialno=og.serialno();
-    int _pageno=og.pageno();
-    int segments=header_base[header+26]&0xff;
+    final int eos=og.eos();
+    final long granulepos=og.granulepos();
+    final int _serialno=og.serialno();
+    final int _pageno=og.pageno();
+    final int segments=header_base[header+26]&0xff;
 
     // clean up 'returned data'
     {
-      int lr=lacing_returned;
-      int br=body_returned;
+      final int lr=lacing_returned;
+      final int br=body_returned;
 
       // body data
       if(br!=0){
@@ -271,9 +271,7 @@ public class StreamState{
     }
 
     // check the serial number
-    if(_serialno!=serialno)
-      return (-1);
-    if(version>0)
+    if((_serialno!=serialno) || (version>0))
       return (-1);
 
     lacing_expand(segments+1);
@@ -300,7 +298,7 @@ public class StreamState{
       if(continued!=0){
         bos=0;
         for(; segptr<segments; segptr++){
-          int val=(header_base[header+27+segptr]&0xff);
+          final int val=(header_base[header+27+segptr]&0xff);
           body+=val;
           bodysize-=val;
           if(val<255){
@@ -320,7 +318,7 @@ public class StreamState{
     {
       int saved=-1;
       while(segptr<segments){
-        int val=(header_base[header+27+segptr]&0xff);
+        final int val=(header_base[header+27+segptr]&0xff);
         lacing_vals[lacing_fill]=val;
         granule_vals[lacing_fill]=-1;
 
@@ -369,11 +367,11 @@ public class StreamState{
      (and *not* ogg_stream_flush) unless you need to flush an undersized
      page in the middle of a stream for some reason. */
 
-  public int flush(Page og){
+  public int flush(final Page og){
 
     int i;
     int vals=0;
-    int maxvals=(lacing_fill>255 ? 255 : lacing_fill);
+    final int maxvals=(lacing_fill>255 ? 255 : lacing_fill);
     int bytes=0;
     int acc=0;
     long granule_pos=granule_vals[0];
@@ -492,7 +490,7 @@ public class StreamState{
   /* This constructs pages from buffered packet segments.  The pointers
   returned are to static buffers; do not free. The returned buffers are
   good only until the next call (using the same ogg_stream_state) */
-  public int pageout(Page og){
+  public int pageout(final Page og){
     if((e_o_s!=0&&lacing_fill!=0)|| /* 'were done, now flush' case */
     body_fill-body_returned>4096|| /* 'page nominal size' case */
     lacing_fill>=255|| /* 'segment table full' case */

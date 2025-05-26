@@ -25,11 +25,11 @@ import java.io.PrintStream;
 
 /**
  * The JavaLayerException is the base class for all API-level
- * exceptions thrown by JavaLayer. To facilitate conversion and 
- * common handling of exceptions from other domains, the class 
- * can delegate some functionality to a contained Throwable instance. 
- * <p> 
- * 
+ * exceptions thrown by JavaLayer. To facilitate conversion and
+ * common handling of exceptions from other domains, the class
+ * can delegate some functionality to a contained Throwable instance.
+ * <p>
+ *
  * @author MDM
  */
 public class JavaLayerException extends Exception
@@ -37,45 +37,47 @@ public class JavaLayerException extends Exception
 	private static final long serialVersionUID = 7212135786131434159L;
 
 	private Throwable		exception;
-	
-	
+
+
 	public JavaLayerException()
 	{
 	}
-	
-	public JavaLayerException(String msg)
+
+	public JavaLayerException(final String msg)
 	{
 		super(msg);
 	}
-	
-	public JavaLayerException(String msg, Throwable t)
+
+	public JavaLayerException(final String msg, final Throwable t)
 	{
 		super(msg);
 		exception = t;
 	}
-	
+
 	public Throwable getException()
 	{
-		return exception;	
+		return exception;
 	}
-	
-	
+
+
+	@Override
 	public void printStackTrace()
 	{
-		printStackTrace(System.err);	
+		printStackTrace(System.err);
 	}
-	
-	public void printStackTrace(PrintStream ps)
+
+	@Override
+	public void printStackTrace(final PrintStream ps)
 	{
 		if (this.exception==null)
 		{
-			super.printStackTrace(ps);	
+			super.printStackTrace(ps);
 		}
 		else
 		{
 			exception.printStackTrace();
 		}
 	}
-	
-	
+
+
 }

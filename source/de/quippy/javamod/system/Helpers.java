@@ -64,6 +64,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
+import javax.sound.sampled.Mixer.Info;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFileChooser;
@@ -88,13 +89,13 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.9.4.1";
+	public static final String VERSION = "V3.9.5";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
-	
+
 	public static final String USER_AGENT = "JavaMod/"+VERSION;
-	
+
 	public static final String VERSION_URL = "https://quippy.de/modplayer/javamod_version.txt";
 	public static final String JAVAMOD_URL = "https://quippy.de/modplayer/javamod.jar";
 
@@ -106,18 +107,18 @@ public class Helpers
 	/** Codepages used when reading playlist files */
 	public static final String CODING_M3U = "ISO-8859-1";
 	/** Codepage used when reading from the web */
-	public static final String CODING_HTTP = "UTF-8";
+	public static final String CODING_UTF8 = "UTF-8";
 	/** Codepage used when reading from ICY Input-Streams*/
-	public static final String CODING_ICY = "ISO-8859-15";
+	public static final String CODING_ICY = "ISO-8859-1";
 
 	public static final String DEFAULTFONTPATH = "/de/quippy/javamod/main/gui/ressources/lucon.ttf";
 	private static Font DIALOG_FONT = null;
     private static Font TEXTAREA_FONT = null;
-    
+
     // This is needed only once...
     public static final String EMPTY_STING = "";
 
-	/** 
+	/**
 	 * HomeDir is the property of the system value "user.home".
 	 * With Applets this value is unreadable (SecurityException)
 	 */
@@ -128,20 +129,20 @@ public class Helpers
 		{
 			HOMEDIR = System.getProperty("user.home");
 		}
-		catch (Throwable ex1)
+		catch (final Throwable ex1)
 		{
 			try
 			{
 				HOMEDIR = System.getProperty("java.io.tmpdir");
 			}
-			catch (Throwable ex2)
+			catch (final Throwable ex2)
 			{
 				Log.error("Could not set home dir", ex2);
 				HOMEDIR = EMPTY_STING;
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieve the current TextArea Font
 	 * @return
@@ -153,11 +154,11 @@ public class Helpers
 		{
 			try
 			{
-				InputStream is = Helpers.class.getResourceAsStream(Helpers.DEFAULTFONTPATH);
-				Font font = Font.createFont(Font.TRUETYPE_FONT, is);
+				final InputStream is = Helpers.class.getResourceAsStream(Helpers.DEFAULTFONTPATH);
+				final Font font = Font.createFont(Font.TRUETYPE_FONT, is);
 				TEXTAREA_FONT = font.deriveFont(10.0f);
 			}
-			catch (Exception ex)
+			catch (final Exception ex)
 			{
 				Log.error("Could not load font!", ex);
 				TEXTAREA_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 10);
@@ -178,14 +179,14 @@ public class Helpers
 		}
 		return DIALOG_FONT;
 	}
-	
+
 	/**
 	 * It's ridiculous, but with the GUI we need cp850 but with
 	 * the commandline we need cp1252. Unbelievable...
 	 * @since 02.07.2006
 	 * @param gui
 	 */
-	public static void setCoding(boolean gui)
+	public static void setCoding(final boolean gui)
 	{
 		currentCoding = (gui)?CODING_GUI:CODING_COMMANLINE;
 	}
@@ -194,7 +195,7 @@ public class Helpers
 	 * VU-Meter constants
 	 */
 	public static final String SCROLLY_BLANKS = "     ";
-	
+
 
 	/* SERVICE METHODS -------------------------------------------------------*/
 	/**
@@ -228,7 +229,7 @@ public class Helpers
 		if (length<=0) return EMPTY_STING;
 		// keep in bounds of the source array...
 		if (start+length>=input.length) length = input.length - start;
-		
+
 		String str = null;
 		if (coding!=null)
 		{
@@ -236,16 +237,16 @@ public class Helpers
 			{
 				str = new String(input, start, length, coding);
 			}
-			catch (UnsupportedEncodingException ex)
+			catch (final UnsupportedEncodingException ex)
 			{
 				/* NOOP */
 			}
 		}
-		
+
 		if (str==null) str = new String(input, start, length);
-		
+
 		// find a null byte and delete it
-		StringBuilder b = new StringBuilder(str);
+		final StringBuilder b = new StringBuilder(str);
 		int index = 0;
 		while (index<b.length() && b.charAt(index)!=0)
 		{
@@ -273,18 +274,40 @@ public class Helpers
 	 */
 	public static byte[] getBytesFromString(final String str, final int length, final String coding)
 	{
-		byte [] result = new byte [length];
+		final byte [] result = new byte [length];
 		int len = str.length();
 		if (len>length) len = length;
 		try
 		{
 			System.arraycopy(str.getBytes(coding), 0, result, 0, len);
 		}
-		catch (UnsupportedEncodingException ex)
+		catch (final UnsupportedEncodingException ex)
 		{
 			System.arraycopy(str.getBytes(), 0, result, 0, len);
 		}
 		return result;
+	}
+	/**
+	 * Converts the encoding of a String.
+	 * @since 03.12.2024
+	 * @param src the string to convert
+	 * @param srcEncoding the source encoding - might be null
+	 * @param trgtEncoding the target encoding
+	 * @return a new string with target encoding or the original string if conversion failed or src is null
+	 */
+	public static final String convertStringEncoding(final String src, final String srcEncoding, final String trgtEncoding)
+	{
+		if (src!=null)
+		{
+			try
+			{
+				return new String((srcEncoding==null)?src.getBytes():src.getBytes(srcEncoding), trgtEncoding);
+			}
+			catch (UnsupportedEncodingException ex)
+			{
+			}
+		}
+		return src;
 	}
 	/**
 	 * Search the data byte array for the first occurrence of the byte array pattern within given boundaries.
@@ -295,7 +318,7 @@ public class Helpers
 	 * @param pattern What is being searched. '*' can be used as wildcard for "ANY character"
 	 * @return
 	 */
-	public static int indexOf(byte[] data, int start, int stop, byte[] pattern)
+	public static int indexOf(final byte[] data, final int start, final int stop, final byte[] pattern)
 	{
 		if (data == null || pattern == null) return -1;
 		final int[] failure = computeFailure(pattern);
@@ -313,7 +336,7 @@ public class Helpers
 	 * Computes the failure function using a boot-strapping process,
 	 * where the pattern is matched against itself.
 	 */
-	private static int[] computeFailure(byte[] pattern)
+	private static int[] computeFailure(final byte[] pattern)
 	{
 		final int[] failure = new int[pattern.length];
 
@@ -329,7 +352,7 @@ public class Helpers
 	}
 
 	//*************** UI *************
-	public static String getHTMLColorString(Color color)
+	public static String getHTMLColorString(final Color color)
 	{
 		String htmlColor = Integer.toHexString(color.getRGB());
 		if (htmlColor.length()>6) htmlColor = htmlColor.substring(htmlColor.length() - 6);
@@ -368,8 +391,8 @@ public class Helpers
 	 */
 	public static GridBagConstraints getGridBagConstraint(final int gridx, final int gridy, final int gridheight, final int gridwidth, final int fill, final int anchor, final double weightx, final double weighty, final Insets insets)
 	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = gridx; 
+		final GridBagConstraints constraints = new GridBagConstraints();
+		constraints.gridx = gridx;
 		constraints.gridy = gridy;
 		constraints.gridheight = gridheight;
 		constraints.gridwidth = gridwidth;
@@ -388,7 +411,7 @@ public class Helpers
 	 */
     public static java.awt.Point getFrameCenteredLocation(final java.awt.Component centerThis, final Component parent)
 	{
-    	java.awt.Dimension screenSize = (parent==null)?java.awt.Toolkit.getDefaultToolkit().getScreenSize():parent.getSize();
+    	final java.awt.Dimension screenSize = (parent==null)?java.awt.Toolkit.getDefaultToolkit().getScreenSize():parent.getSize();
 
 		int x = (screenSize.width - centerThis.getWidth()) >> 1;
 		int y = (screenSize.height - centerThis.getHeight()) >> 1;
@@ -406,7 +429,7 @@ public class Helpers
     /**
      * @since 25.01.2022
      * @param c
-     * @return DisplayMode of graphical context of given component 
+     * @return DisplayMode of graphical context of given component
      */
     public static DisplayMode getScreenInfoOf(final Component c)
     {
@@ -426,13 +449,13 @@ public class Helpers
      */
     public static GraphicsDevice[] getScreenInfos(final Component c)
     {
-		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		if (env!=null)
 			return env.getScreenDevices();
 		return null;
     }
 	/**
-	 * Register the droplistener to all components... 
+	 * Register the droplistener to all components...
 	 * @since: 12.10.2007
 	 * @param list ArrayList of resulting DropTarget-Classes
 	 * @param basePanel
@@ -441,11 +464,10 @@ public class Helpers
 	public static void registerDropListener(final ArrayList<DropTarget> list, final Container basePanel, final PlaylistDropListener myListener)
 	{
 		list.add(new DropTarget(basePanel, DnDConstants.ACTION_COPY_OR_MOVE, myListener));
-	    
-    	Component[] components = basePanel.getComponents();
-	    for (int i=0; i<components.length; i++)
-	    {
-		    Component component = components[i];
+
+    	final Component[] components = basePanel.getComponents();
+	    for (final Component component : components)
+		{
 		    if (component instanceof Container)
 		    	registerDropListener(list, (Container)component, myListener);
 		    else
@@ -457,9 +479,9 @@ public class Helpers
 	 * @param bReader
 	 * @return
 	 */
-	public static List<File> readLinesFromFlavor(BufferedReader bReader)
+	public static List<File> readLinesFromFlavor(final BufferedReader bReader)
 	{
-		List<File> list = new ArrayList<File>();
+		final List<File> list = new ArrayList<>();
 		try
 		{
 			String line;
@@ -469,23 +491,23 @@ public class Helpers
 				{
 					// kde seems to append a 0 char to the end of the reader
 					if (line.charAt(0)=='\0') continue;
-					
+
 					// Furthermore KDE get's confused with encoding the URL of
 					// some files. So we do it manually.
 					// Funny is that File.toURL() works fine!
 					String fileString = Helpers.createStringFromURLString(line);
 					if (fileString.startsWith("file://")) fileString = fileString.substring(7);
 
-					File file = new File(fileString);
+					final File file = new File(fileString);
 					list.add(file);
 				}
-				catch (Exception ex)
+				catch (final Exception ex)
 				{
 					Log.error("Error with " + line + ": ", ex);
 				}
 			}
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			Log.error("Helpers:readLinesFromFlavor", ex);
 		}
@@ -501,7 +523,7 @@ public class Helpers
 	 * @param dtde
 	 * @return
 	 */
-	public static List <?> getDropData(DropTargetDropEvent dtde)
+	public static List <?> getDropData(final DropTargetDropEvent dtde)
 	{
 		List<?> files = null;
         boolean handled = false;
@@ -511,17 +533,17 @@ public class Helpers
 			if (transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor) && (dtde.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE)!=0)
 			{
                 dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-                
+
 				// Check, if we have a flavor to read manually from
-				DataFlavor[] flavors = transferable.getTransferDataFlavors();
+				final DataFlavor[] flavors = transferable.getTransferDataFlavors();
                 for (int flv=0; flv<flavors.length && !handled; flv++)
                 {
-                	DataFlavor flavor = flavors[flv];
-    				
+                	final DataFlavor flavor = flavors[flv];
+
                 	// KDE BUG: check for flavors to manually read from
                 	if (flavor.isRepresentationClassReader())
                     {
-                        Reader reader = flavor.getReaderForText(transferable);
+                        final Reader reader = flavor.getReaderForText(transferable);
 						files = Helpers.readLinesFromFlavor(new BufferedReader(reader));
 						handled = true; // we are already satisfied
                     }
@@ -539,7 +561,7 @@ public class Helpers
 			else
 				dtde.rejectDrop();
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("Helpers::handleDrop", ex);
 		}
@@ -552,7 +574,7 @@ public class Helpers
 	/**
 	 * Compares to URLs and returns true, if they are equal and OK. This is done via
 	 * the URI - as URLs do a domain name lookup which will block if no
-	 * DNS Lookup is possible 
+	 * DNS Lookup is possible
 	 * @since 01.04.2012
 	 * @param url1
 	 * @param url2
@@ -565,11 +587,11 @@ public class Helpers
 		{
 			try
 			{
-				URI uri1 = url1.toURI();
-				URI uri2 = url2.toURI();
+				final URI uri1 = url1.toURI();
+				final URI uri2 = url2.toURI();
 				return uri1.equals(uri2);
 			}
-			catch (URISyntaxException ex)
+			catch (final URISyntaxException ex)
 			{
 				/* NOOP */
 			}
@@ -587,19 +609,19 @@ public class Helpers
 		{
 			try
 			{
-				String path = file.getPath();
-				StringBuilder b = new StringBuilder((File.separatorChar != '/') ? path.replace(File.separatorChar, '/') : path);
+				final String path = file.getPath();
+				final StringBuilder b = new StringBuilder((File.separatorChar != '/') ? path.replace(File.separatorChar, '/') : path);
 				if (file.isDirectory() && b.charAt(b.length() - 1) != '/') b.append('/');
 				if (b.length()>2 && b.charAt(0)=='/' && b.charAt(1)=='/') b.insert(0, "//");
 				if (b.charAt(0)!='/') b.insert(0, "/");
-				URI uri = new URI("file", null, b.toString(), null);
+				final URI uri = new URI("file", null, b.toString(), null);
 				return uri.toURL();
 			}
-			catch (URISyntaxException e)
+			catch (final URISyntaxException e)
 			{
 				// cannot happen...
 			}
-			catch (MalformedURLException ex)
+			catch (final MalformedURLException ex)
 			{
 				// should not happen ;)
 			}
@@ -608,7 +630,7 @@ public class Helpers
 		{
 			return file.toURI().toURL();
 		}
-		catch (MalformedURLException ex)
+		catch (final MalformedURLException ex)
 		{
 		}
 		return null;
@@ -622,11 +644,11 @@ public class Helpers
 	{
 		try
 		{
-			if (urlLine == null || urlLine.length()==0) return null;
-			URI uri = new URI(urlLine);
+			if (urlLine == null || urlLine.isEmpty()) return null;
+			final URI uri = new URI(urlLine);
 			return uri.toURL();
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			return createURLfromFile(new File(urlLine));
 		}
@@ -634,7 +656,7 @@ public class Helpers
 	/**
 	 * @since 22.07.2015
 	 * @param url
-	 * @return a decoded version of the URL - cannot be reversed to an URI 
+	 * @return a decoded version of the URL - cannot be reversed to an URI
 	 */
 	public static String createStringFomURL(final URL url)
 	{
@@ -650,9 +672,9 @@ public class Helpers
 	{
 		try
 		{
-			return URLDecoder.decode(url, CODING_HTTP);
+			return URLDecoder.decode(url, CODING_UTF8);
 		}
-		catch (UnsupportedEncodingException ex)
+		catch (final UnsupportedEncodingException ex)
 		{
 			Log.error("Helpers::createStringRomURLString", ex);
 		}
@@ -703,7 +725,7 @@ public class Helpers
 	{
 		fileName = fileName.substring(fileName.lastIndexOf('\\')+1);
 		fileName = fileName.substring(fileName.lastIndexOf('/')+1);
-		int dot = fileName.indexOf('.');
+		final int dot = fileName.indexOf('.');
 		if (dot>0)
 			return fileName.substring(0, dot).toLowerCase();
 		else
@@ -722,7 +744,7 @@ public class Helpers
 	 * replace illegal characters in a filename with "_"
 	 * illegal characters :
 	 * : \ / * ? | < >
-	 * 
+	 *
 	 * @param name
 	 * @return
 	 */
@@ -775,7 +797,7 @@ public class Helpers
 	public static String createLocalFileStringFromURL(final URL url, final boolean stayLocal)
 	{
 		String suggestedPath = createStringFomURL(url);
-		
+
 		if (url!=null)
 		{
 			if (isFile(url))
@@ -784,7 +806,7 @@ public class Helpers
 				{
 					suggestedPath = new File(url.toURI()).toString();
 				}
-				catch (URISyntaxException ex)
+				catch (final URISyntaxException ex)
 				{
 					Log.error("Helpers::createLocalFileStringFromURL", ex);
 				}
@@ -796,7 +818,7 @@ public class Helpers
 				{
 					suggestedPath = HOMEDIR + File.pathSeparator + getFileNameFromURL(url);
 				}
-				catch (SecurityException ex)
+				catch (final SecurityException ex)
 				{
 					Log.error("Helpers::createLocalFileStringFromURL", ex);
 				}
@@ -812,15 +834,15 @@ public class Helpers
 	public static boolean urlExists(final URL url)
 	{
 		if (url==null) return false;
-		
+
 		if (isFile(url))
 		{
 			try
 			{
-				File f = new File(url.toURI());
+				final File f = new File(url.toURI());
 				return f.exists();
 			}
-			catch (Throwable ex)
+			catch (final Throwable ex)
 			{
 			}
 			return false;
@@ -828,21 +850,21 @@ public class Helpers
 		try
 		{
 			InputStream in = null;
-			try 
-			{ 
-				in = url.openStream(); 
-			} 
-			catch (Throwable ex) 
-			{ 
+			try
+			{
+				in = url.openStream();
+			}
+			catch (final Throwable ex)
+			{
 				return false;
 			}
 			finally
 			{
-				if (in!=null) try { in.close(); } catch (Throwable e) { /*NOOP */}
+				if (in!=null) try { in.close(); } catch (final Throwable e) { /*NOOP */}
 			}
 			return true;
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		return false;
@@ -872,11 +894,11 @@ public class Helpers
 	{
 		try
 		{
-			Path basePath = Paths.get(basePathName);
-			Path inputFilePath = Paths.get(inputFileName);
+			final Path basePath = Paths.get(basePathName);
+			final Path inputFilePath = Paths.get(inputFileName);
 			return basePath.relativize(inputFilePath).toString();
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			return inputFileName;
 		}
@@ -905,14 +927,14 @@ public class Helpers
 				fileName = fileName.replace('\\', '/');
 
 				// Get the path portion of the URL - and decode URL type entries (like %20 for spaces)
-				String path = Helpers.createStringFromURLString(baseURL.getPath());
-				
+				final String path = Helpers.createStringFromURLString(baseURL.getPath());
+
 				// now get rid of playlist file name
-				int lastSlash = path.lastIndexOf('/');
-				StringBuilder relPath = new StringBuilder(path.substring(0, lastSlash + 1));
+				final int lastSlash = path.lastIndexOf('/');
+				final StringBuilder relPath = new StringBuilder(path.substring(0, lastSlash + 1));
 				// and remove a possible starting slash
 				if (fileName.charAt(0) == '/') fileName = fileName.substring(1);
-				
+
 				int iterations = 0;
 				URL fullURL = Helpers.createURLfromString(((new StringBuilder(relPath)).append(fileName)).toString());
 				while (fullURL!=null && !urlExists(fullURL) && iterations<256)
@@ -927,7 +949,7 @@ public class Helpers
 					{
 						return (fullURL.toURI().normalize()).toURL();
 					}
-					catch (URISyntaxException x)
+					catch (final URISyntaxException x)
 					{
 						Log.error("[createAbsolutePathForFile]", x);
 					}
@@ -940,7 +962,7 @@ public class Helpers
 				}
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("[createAbsolutePathForFile]", ex);
 		}
@@ -969,11 +991,11 @@ public class Helpers
 			final File f = new File(dir);
 			dir = f.getCanonicalPath();
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("Helpers::selectFileNameFor", ex);
 		}
-		
+
 		final File theFile = new File(dir);
 		File theDirectory = new File(dir);
 	    while (theDirectory!=null && (!theDirectory.isDirectory() || !theDirectory.exists()))
@@ -996,7 +1018,7 @@ public class Helpers
 
 	    if (result==javax.swing.JFileChooser.APPROVE_OPTION)
 	    {
-	    	File [] selectedFiles = (multiFileSelection)?chooser.getSelectedFiles(): new File[] { chooser.getSelectedFile() };
+	    	final File [] selectedFiles = (multiFileSelection)?chooser.getSelectedFiles(): new File[] { chooser.getSelectedFile() };
 	    	return new FileChooserResult(chooser.getFileFilter(), selectedFiles);
 	    }
 	    else
@@ -1134,14 +1156,14 @@ public class Helpers
 			final StringBuilder result = (new StringBuilder("Running on ")).append(System.getProperty("os.arch"));
 			result.append("\nMixerInfo:\n");
 			final Mixer.Info[] mixerInfo = AudioSystem.getMixerInfo();
-			for (int i = 0; i < mixerInfo.length; i++)
+			for (final Info element : mixerInfo)
 			{
-				result.append("MixerInfo: ").append(mixerInfo[i]).append('\n');
-				Mixer mixer = AudioSystem.getMixer(mixerInfo[i]);
+				result.append("MixerInfo: ").append(element).append('\n');
+				final Mixer mixer = AudioSystem.getMixer(element);
 				result.append("Mixer: ").append(mixer).append('\n');
 				result.append("Devices for recording:\n");
-				Line.Info[] targetLineInfos = mixer.getTargetLineInfo();
-				if (targetLineInfos.length==0) 
+				final Line.Info[] targetLineInfos = mixer.getTargetLineInfo();
+				if (targetLineInfos.length==0)
 					result.append("\tNONE\n");
 				else
 				{
@@ -1150,11 +1172,11 @@ public class Helpers
 						result.append("\tTargetline(").append(j).append("): ").append(targetLineInfos[j]).append('\n');
 						if (targetLineInfos[j] instanceof DataLine.Info)
 						{
-							AudioFormat audioFormats[] = ((DataLine.Info) targetLineInfos[j]).getFormats();
+							final AudioFormat audioFormats[] = ((DataLine.Info) targetLineInfos[j]).getFormats();
 							for (int u = 0; u < audioFormats.length; u++)
 							{
 								result.append("\t\tAudioformat(").append(u).append("): ").append(audioFormats[u]);
-								DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormats[u]);
+								final DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormats[u]);
 								if (!AudioSystem.isLineSupported(info))
 								{
 									result.append(" --> NOT supported.\n");
@@ -1168,8 +1190,8 @@ public class Helpers
 					}
 				}
 				result.append("\nDevices for sound output:\n");
-				Line.Info[] sourceLineInfos = mixer.getSourceLineInfo();
-				if (sourceLineInfos.length==0) 
+				final Line.Info[] sourceLineInfos = mixer.getSourceLineInfo();
+				if (sourceLineInfos.length==0)
 					result.append("\tNONE\n");
 				else
 				{
@@ -1178,11 +1200,11 @@ public class Helpers
 						result.append("\tSourceline(").append(j).append("): ").append(sourceLineInfos[j]).append('\n');
 						if (sourceLineInfos[j] instanceof DataLine.Info)
 						{
-							AudioFormat audioFormats[] = ((DataLine.Info) sourceLineInfos[j]).getFormats();
+							final AudioFormat audioFormats[] = ((DataLine.Info) sourceLineInfos[j]).getFormats();
 							for (int u = 0; u < audioFormats.length; u++)
 							{
 								result.append("\t\tAudioformat(").append(u).append("): ").append(audioFormats[u]);
-								DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormats[u]);
+								final DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormats[u]);
 								if (!AudioSystem.isLineSupported(info))
 								{
 									result.append(" --> NOT supported.\n");
@@ -1197,7 +1219,7 @@ public class Helpers
 				}
 				result.append("---------------------------------------------------------------------\n");
 			}
-			AudioInfos = result.toString(); 
+			AudioInfos = result.toString();
 		}
 		return AudioInfos;
 	}
@@ -1210,42 +1232,42 @@ public class Helpers
 	public static void registerAllClasses()
 	{
 		// Just load these in advance
-		try { Class.forName("de.quippy.javamod.system.Log");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.system.Helpers");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		
+		try { Class.forName("de.quippy.javamod.system.Log");		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.system.Helpers");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+
 		// Interpolation Routines - doing pre-calculations through class loading
-		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.Kaiser");  		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.Kaiser");  		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+
 		// The following are essential for registration at the ModuleFactory
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");				} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerSTXMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");	} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
-		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");		} catch (ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.XMMod");				} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerOldMod");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerSTXMod");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ScreamTrackerMod");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ImpulseTrackerMod");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.FarandoleTrackerMod");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.MultiTrackerMod");		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 
 		// The following are essential for registration at the MultimediaContainerManager
 		// ModContainer uses the ModFactory!!
-		try { Class.forName("de.quippy.javamod.multimedia.mod.ModContainer");	} catch (ClassNotFoundException ex) { Log.info("No MOD file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.wav.WavContainer");	} catch (ClassNotFoundException ex) { Log.info("No WAV file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container");	} catch (ClassNotFoundException ex) { Log.info("No MP3 file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer");	} catch (ClassNotFoundException ex) { Log.info("No OGG file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.ape.APEContainer");	} catch (ClassNotFoundException ex) { Log.info("No APE file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer");	} catch (ClassNotFoundException ex) { Log.info("No FLAC file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer");	} catch (ClassNotFoundException ex) { Log.info("No MIDI file support!"); }
-		try { Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container");	} catch (ClassNotFoundException ex) { Log.info("No OPL file support!"); }
-		
+		try { Class.forName("de.quippy.javamod.multimedia.mod.ModContainer");	} catch (final ClassNotFoundException ex) { Log.info("No MOD file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.wav.WavContainer");	} catch (final ClassNotFoundException ex) { Log.info("No WAV file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.mp3.MP3Container");	} catch (final ClassNotFoundException ex) { Log.info("No MP3 file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ogg.OGGContainer");	} catch (final ClassNotFoundException ex) { Log.info("No OGG file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.ape.APEContainer");	} catch (final ClassNotFoundException ex) { Log.info("No APE file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.flac.FLACContainer");	} catch (final ClassNotFoundException ex) { Log.info("No FLAC file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.midi.MidiContainer");	} catch (final ClassNotFoundException ex) { Log.info("No MIDI file support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.opl3.OPL3Container");	} catch (final ClassNotFoundException ex) { Log.info("No OPL file support!"); }
+
 		// SID and SID WAVE Loading
-		try { Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer");	} catch (ClassNotFoundException ex) { Log.info("No SID file support!"); }
-		try { Class.forName("de.quippy.sidplay.resid_builder.resid.Wave");		} catch (ClassNotFoundException ex) { Log.info("No SID WAVE support!"); }
+		try { Class.forName("de.quippy.javamod.multimedia.sid.SIDContainer");	} catch (final ClassNotFoundException ex) { Log.info("No SID file support!"); }
+		try { Class.forName("de.quippy.sidplay.resid_builder.resid.Wave");		} catch (final ClassNotFoundException ex) { Log.info("No SID WAVE support!"); }
 	}
 	/**
 	 * Opens a txt-File on the server containing the current populated
-	 * Version. 
+	 * Version.
 	 * Compare to Helpers.VERSION
 	 * @since 19.10.2008
 	 * @return Null, if check fails, or the current Version populated
@@ -1256,19 +1278,19 @@ public class Helpers
 		try
 		{
 			final URL version_url = createURLfromString(Helpers.VERSION_URL);
-			reader = new BufferedReader(new InputStreamReader(version_url.openStream(), Helpers.CODING_HTTP));
-			String version = reader.readLine();
+			reader = new BufferedReader(new InputStreamReader(version_url.openStream(), Helpers.CODING_UTF8));
+			final String version = reader.readLine();
 			reader.close();
 			reader = null;
 			return version;
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			/* NOOP */
 		}
 		finally
 		{
-			if (reader!=null) try { reader.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
+			if (reader!=null) try { reader.close(); } catch (final Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return null;
 	}
@@ -1282,15 +1304,15 @@ public class Helpers
 	public static int compareVersions(String v1, String v2)
 	{
 		if (v1==null || v2==null) return 0;
-		
+
 		if (v1.startsWith("V")) v1 = v1.substring(1);
-		StringTokenizer t1 = new StringTokenizer(v1, ".");
+		final StringTokenizer t1 = new StringTokenizer(v1, ".");
 		if (v2.startsWith("V")) v2 = v2.substring(1);
-		StringTokenizer t2 = new StringTokenizer(v2, ".");
+		final StringTokenizer t2 = new StringTokenizer(v2, ".");
 		while (t1.hasMoreTokens() && t2.hasMoreTokens())
 		{
-			int subV1 = Integer.parseInt(t1.nextToken());
-			int subV2 = Integer.parseInt(t2.nextToken());
+			final int subV1 = Integer.parseInt(t1.nextToken());
+			final int subV2 = Integer.parseInt(t2.nextToken());
 			if (subV1 < subV2) return -1;
 			if (subV1 > subV2) return 1;
 		}
@@ -1311,7 +1333,7 @@ public class Helpers
 			final URL javamod_url = createURLfromString(JAVAMOD_URL);
 			return copyFromURL(javamod_url, destination, bar);
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("CheckForUpdate failed", ex);
 		}
@@ -1331,7 +1353,7 @@ public class Helpers
     	{
 			if (destination.createNewFile())
 			{
-				URLConnection conn = fromURL.openConnection();
+				final URLConnection conn = fromURL.openConnection();
 				if (bar!=null)
 				{
 					bar.setDetailMinimum(0);
@@ -1350,14 +1372,14 @@ public class Helpers
 	    		out.flush();
 			}
     	}
-    	catch (Throwable ex)
+    	catch (final Throwable ex)
     	{
 			Log.error("CopyFromURL failed", ex);
     	}
     	finally
     	{
-    		if (in!=null) try { in.close(); } catch (IOException ex) { /*NOOP*/ }
-    		if (out!=null) try { out.close(); } catch (IOException ex) { /*NOOP*/ }
+    		if (in!=null) try { in.close(); } catch (final IOException ex) { /*NOOP*/ }
+    		if (out!=null) try { out.close(); } catch (final IOException ex) { /*NOOP*/ }
     	}
     	return copied;
 	}

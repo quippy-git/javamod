@@ -32,11 +32,11 @@ public class AntiPredictor {
     }
 
     //functions
-    public void antiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements) {
+    public void antiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements) {
         return;
     }
 
-    public static AntiPredictor createAntiPredictor(int nCompressionLevel, int nVersion) {
+    public static AntiPredictor createAntiPredictor(final int nCompressionLevel, final int nVersion) {
         AntiPredictor pAntiPredictor = null;
 
         switch (nCompressionLevel) {

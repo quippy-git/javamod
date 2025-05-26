@@ -7,7 +7,6 @@
 package de.quippy.jflac;
 
 import java.util.HashSet;
-import java.util.Iterator;
 
 import de.quippy.jflac.frame.Frame;
 import de.quippy.jflac.metadata.Metadata;
@@ -18,68 +17,68 @@ import de.quippy.jflac.metadata.Metadata;
  * @author kc7bfi
  */
 class FrameListeners implements FrameListener {
-    private HashSet<FrameListener> frameListeners = new HashSet<FrameListener>();
-    
+    private final HashSet<FrameListener> frameListeners = new HashSet<>();
+
     /**
      * Add a frame listener.
      * @param listener  The frame listener to add
      */
-    public void addFrameListener(FrameListener listener) {
+    public void addFrameListener(final FrameListener listener) {
         synchronized (frameListeners) {
             frameListeners.add(listener);
         }
     }
-    
+
     /**
      * Remove a frame listener.
      * @param listener  The frame listener to remove
      */
-    public void removeFrameListener(FrameListener listener) {
+    public void removeFrameListener(final FrameListener listener) {
         synchronized (frameListeners) {
             frameListeners.remove(listener);
         }
     }
-    
+
     /**
      * Process metadata records.
      * @param metadata the metadata block
      * @see de.quippy.jflac.FrameListener#processMetadata(de.quippy.jflac.metadata.MetadataBase)
      */
-    public void processMetadata(Metadata metadata) {
+    @Override
+	public void processMetadata(final Metadata metadata) {
         synchronized (frameListeners) {
-            Iterator<FrameListener> it = frameListeners.iterator();
-            while (it.hasNext()) {
-                FrameListener listener = it.next();
+            for (final FrameListener listener : frameListeners)
+			{
                 listener.processMetadata(metadata);
             }
         }
     }
-    
+
     /**
      * Process data frames.
      * @param frame the data frame
      * @see de.quippy.jflac.FrameListener#processFrame(de.quippy.jflac.frame.Frame)
      */
-    public void processFrame(Frame frame) {
+    @Override
+	public void processFrame(final Frame frame) {
         synchronized (frameListeners) {
-            Iterator<FrameListener> it = frameListeners.iterator();
-            while (it.hasNext()) {
-                FrameListener listener = it.next();
+            for (final FrameListener listener : frameListeners)
+			{
                 listener.processFrame(frame);
             }
         }
     }
-   
+
     /**
      * Called for each frame error detected.
      * @param msg   The error message
      * @see de.quippy.jflac.FrameListener#processError(java.lang.String)
      */
-    public void processError(String msg) {
+    @Override
+	public void processError(final String msg) {
         synchronized (frameListeners) {
-            Iterator<FrameListener> it = frameListeners.iterator();
-            while (it.hasNext()) {
-                FrameListener listener = it.next();
+            for (final FrameListener listener : frameListeners)
+			{
                 listener.processError(msg);
             }
         }

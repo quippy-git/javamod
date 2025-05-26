@@ -31,7 +31,7 @@ public class RollBufferShort {
         m_pData = null;
     }
 
-    public int Create(int nWindowElements, int nHistoryElements) {
+    public int Create(int nWindowElements, final int nHistoryElements) {
         m_nWindowElements = nWindowElements;
         m_nHistoryElements = nHistoryElements;
         windowPlusHistory = nWindowElements += nHistoryElements;

@@ -33,7 +33,7 @@ public class ByteArrayWriter {
     public ByteArrayWriter() {
     }
 
-    public ByteArrayWriter(int size) {
+    public ByteArrayWriter(final int size) {
         this.data = new byte[size];
     }
 
@@ -41,7 +41,7 @@ public class ByteArrayWriter {
         this.data = data;
     }
 
-    public void reset(int size) {
+    public void reset(final int size) {
         this.data = new byte[size];
         index = 0;
     }
@@ -50,20 +50,20 @@ public class ByteArrayWriter {
         return data;
     }
 
-    public void writeUnsignedByte(short value) {
+    public void writeUnsignedByte(final short value) {
         if (value < 0 || value > 255)
             throw new JMACException("Wrong Value");
         data[index++] = (byte) value;
     }
 
-    public void writeUnsignedShort(int value) {
+    public void writeUnsignedShort(final int value) {
         if (value < 0 || value > 65535)
             throw new JMACException("Wrong Value");
         data[index++] = (byte) (value & 0xff);
         data[index++] = (byte) (value >> 8);
     }
 
-    public void writeUnsignedInt(long value) {
+    public void writeUnsignedInt(final long value) {
         if (value < 0 || value > 4294967295L)
             throw new JMACException("Wrong Value");
         data[index++] = (byte) (value & 0xff);
@@ -72,49 +72,49 @@ public class ByteArrayWriter {
         data[index++] = (byte) ((value >> 24) & 0xff);
     }
 
-    public void writeByte(byte value) {
+    public void writeByte(final byte value) {
         data[index++] = value;
     }
 
-    public void writeShort(short value) {
+    public void writeShort(final short value) {
         data[index++] = (byte) (value & 0xff);
         data[index++] = (byte) (value >> 8);
     }
 
-    public void writeInt(int value) {
+    public void writeInt(final int value) {
         data[index++] = (byte) (value & 0xff);
         data[index++] = (byte) ((value >> 8) & 0xff);
         data[index++] = (byte) ((value >> 16) & 0xff);
         data[index++] = (byte) ((value >> 24) & 0xff);
     }
 
-    public void writeBytes(byte[] buf) {
+    public void writeBytes(final byte[] buf) {
         writeBytes(buf, 0, buf.length);
     }
 
-    public void writeBytes(byte[] buf, int off, int len) {
+    public void writeBytes(final byte[] buf, final int off, final int len) {
         System.arraycopy(buf, off, data, index, len);
         index += len;
     }
 
-    public void writeString(String value, int size, String encoding) {
+    public void writeString(final String value, final int size, final String encoding) {
         try {
-            byte[] bytes = value.getBytes(encoding);
+            final byte[] bytes = value.getBytes(encoding);
             if (bytes.length != size)
                 throw new JMACException("Wrong Value");
             System.arraycopy(bytes, 0, data, index, size);
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (final java.io.UnsupportedEncodingException e) {
             throw new JMACException("Unsupported Encoding", e);
         }
         index += size;
     }
 
-    public void writeZString(String value, String encoding) {
+    public void writeZString(final String value, final String encoding) {
         try {
-            byte[] bytes = value.getBytes(encoding);
+            final byte[] bytes = value.getBytes(encoding);
             System.arraycopy(bytes, 0, data, index, bytes.length);
             index += bytes.length;
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (final java.io.UnsupportedEncodingException e) {
             throw new JMACException("Unsupported Encoding", e);
         }
         data[index++] = 0;

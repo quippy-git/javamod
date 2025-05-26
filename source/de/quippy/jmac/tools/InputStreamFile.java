@@ -47,64 +47,79 @@ public class InputStreamFile extends File {
         this.name = name;
     }
 
-    public void mark(int readlimit) throws IOException {
+    @Override
+	public void mark(final int readlimit) throws IOException {
         stream.mark(readlimit);
     }
 
-    public void reset() throws IOException {
+    @Override
+	public void reset() throws IOException {
         stream.reset();
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
         return stream.read();
     }
 
-    public void readFully(byte[] b) throws IOException {
+    @Override
+	public void readFully(final byte[] b) throws IOException {
         stream.readFully(b);
     }
 
-    public void readFully(byte[] b, int offs, int len) throws IOException {
+    @Override
+	public void readFully(final byte[] b, final int offs, final int len) throws IOException {
         stream.readFully(b, offs, len);
     }
 
-    public int read(byte[] b) throws IOException {
+    @Override
+	public int read(final byte[] b) throws IOException {
         return stream.read(b);
     }
 
-    public int read(byte[] b, int offs, int len) throws IOException {
+    @Override
+	public int read(final byte[] b, final int offs, final int len) throws IOException {
         return stream.read(b, offs, len);
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
         stream.close();
     }
 
-    public boolean readBoolean() throws IOException {
+    @Override
+	public boolean readBoolean() throws IOException {
         return stream.readBoolean();
     }
 
-    public byte readByte() throws IOException {
+    @Override
+	public byte readByte() throws IOException {
         return stream.readByte();
     }
 
-    public char readChar() throws IOException {
+    @Override
+	public char readChar() throws IOException {
         return stream.readChar();
     }
 
-    public double readDouble() throws IOException {
+    @Override
+	public double readDouble() throws IOException {
         return stream.readDouble();
     }
 
-    public float readFloat() throws IOException {
+    @Override
+	public float readFloat() throws IOException {
         return stream.readFloat();
     }
 
-    public int readInt() throws IOException {
+    @Override
+	public int readInt() throws IOException {
         return stream.readInt();
     }
 
-    public String readLine() throws IOException {
-        StringBuffer input = new StringBuffer();
+    @Override
+	public String readLine() throws IOException {
+        final StringBuilder input = new StringBuilder();
         int c = -1;
         boolean eol = false;
 
@@ -132,55 +147,66 @@ public class InputStreamFile extends File {
         return input.toString();
     }
 
-    public long readLong() throws IOException {
+    @Override
+	public long readLong() throws IOException {
         return stream.readLong();
     }
 
-    public short readShort() throws IOException {
+    @Override
+	public short readShort() throws IOException {
         return stream.readShort();
     }
 
-    public int readUnsignedByte() throws IOException {
+    @Override
+	public int readUnsignedByte() throws IOException {
         return stream.readUnsignedByte();
     }
 
-    public int readUnsignedShort() throws IOException {
+    @Override
+	public int readUnsignedShort() throws IOException {
         return stream.readUnsignedShort();
     }
 
-    public String readUTF() throws IOException {
+    @Override
+	public String readUTF() throws IOException {
         return stream.readUTF();
     }
 
-    public int skipBytes(int n) throws IOException {
+    @Override
+	public int skipBytes(final int n) throws IOException {
         return stream.skipBytes(n);
     }
 
-    public long length() throws IOException {
+    @Override
+	public long length() throws IOException {
         throw new JMACException("Unsupported Method");
     }
 
-    public void seek(long pos) throws IOException {
+    @Override
+	public void seek(final long pos) throws IOException {
         throw new JMACException("Unsupported Method");
     }
 
-    public long getFilePointer() throws IOException {
+    @Override
+	public long getFilePointer() throws IOException {
         throw new JMACException("Unsupported Method");
     }
 
-    public void setLength(long newLength) throws IOException {
+    public void setLength(final long newLength) throws IOException {
         throw new JMACException("Unsupported Method");
     }
 
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         throw new JMACException("Unsupported Method");
     }
 
-    public boolean isLocal() {
+    @Override
+	public boolean isLocal() {
         return stream == null;
     }
 
-    public String getFilename() {
+    @Override
+	public String getFilename() {
         return name;
     }
 }

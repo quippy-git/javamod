@@ -35,7 +35,7 @@ public class ByteArrayReader {
     public ByteArrayReader() {
     }
 
-    public ByteArrayReader(final File io, int size) throws IOException {
+    public ByteArrayReader(final File io, final int size) throws IOException {
         this.data = new byte[size];
         io.readFully(data);
     }
@@ -44,7 +44,7 @@ public class ByteArrayReader {
         this.data = data;
     }
 
-    public ByteArrayReader(int size) {
+    public ByteArrayReader(final int size) {
         this.data = new byte[size];
     }
 
@@ -52,20 +52,20 @@ public class ByteArrayReader {
         return data;
     }
 
-    public void reset(byte[] data, int index) {
+    public void reset(final byte[] data, final int index) {
         this.data = data;
         this.index = index;
     }
 
-    public void reset(final File io, int size) throws IOException {
+    public void reset(final File io, final int size) throws IOException {
         index = 0;
         try {
             io.readFully(data, 0, size);
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
         }
     }
 
-    public void skipBytes(long n) {
+    public void skipBytes(final long n) {
         index += n;
     }
 
@@ -80,7 +80,7 @@ public class ByteArrayReader {
 
     public long readUnsignedInt() {
         byte a1[];
-        return ((long) ((a1 = data)[index++] & 0xff)) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24);
+        return ((a1 = data)[index++] & 0xff) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24);
     }
 
     public byte readByte() {
@@ -94,31 +94,31 @@ public class ByteArrayReader {
 
     public int readInt() {
         byte a1[];
-        return (int) (((long) ((a1 = data)[index++] & 0xff)) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24));
+        return (int) (((a1 = data)[index++] & 0xff) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24));
     }
 
     public long readLong() {
         byte a1[];
-        return ((long) ((a1 = data)[index++] & 0xff)) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24) | (((long) (a1[index++] & 0xff)) << 32) | (((long) (a1[index++] & 0xff)) << 40) | (((long) (a1[index++] & 0xff)) << 48) | (((long) (a1[index++] & 0xff)) << 56);
+        return ((a1 = data)[index++] & 0xff) | (((long) (a1[index++] & 0xff)) << 8) | (((long) (a1[index++] & 0xff)) << 16) | (((long) (a1[index++] & 0xff)) << 24) | (((long) (a1[index++] & 0xff)) << 32) | (((long) (a1[index++] & 0xff)) << 40) | (((long) (a1[index++] & 0xff)) << 48) | (((long) (a1[index++] & 0xff)) << 56);
     }
 
-    public void readFully(byte[] buf) {
+    public void readFully(final byte[] buf) {
         System.arraycopy(data, index, buf, 0, buf.length);
         index += buf.length;
     }
 
-    public String readString(int size, String encoding) {
+    public String readString(final int size, final String encoding) {
         String res;
         try {
             res = new String(data, index, size, encoding);
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (final java.io.UnsupportedEncodingException e) {
             throw new JMACException("Unsupported encoding", e);
         }
         index += size;
         return res;
     }
 
-    public String readString(String encoding) {
+    public String readString(final String encoding) {
         int size = 0;
         int i = index;
         while (data[i] != 0) {
@@ -128,7 +128,7 @@ public class ByteArrayReader {
         String res;
         try {
             res = new String(data, index, size, encoding);
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (final java.io.UnsupportedEncodingException e) {
             throw new JMACException("Unsupported encoding", e);
         }
         index += (size + 1);

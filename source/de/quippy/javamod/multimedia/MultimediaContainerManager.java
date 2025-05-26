@@ -2,7 +2,7 @@
  * @(#)MultimediaContainerManager.java
  *
  * Created on 12.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -40,10 +41,10 @@ import de.quippy.javamod.system.Helpers;
  */
 public class MultimediaContainerManager
 {
-	private static HashMap<String, MultimediaContainer> fileExtensionMap;
+	private static Map<String, MultimediaContainer> fileExtensionMap;
 	private static ArrayList<MultimediaContainer> containerArray;
 	private static boolean headlessMode = true;
-	
+
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -64,39 +65,39 @@ public class MultimediaContainerManager
 	{
 		return headlessMode;
 	}
-	public static HashMap<String, MultimediaContainer> getFileExtensionMap()
+	public static Map<String, MultimediaContainer> getFileExtensionMap()
 	{
 		if (fileExtensionMap==null)
-			fileExtensionMap = new HashMap<String, MultimediaContainer>();
-		
+			fileExtensionMap = new HashMap<>();
+
 		return fileExtensionMap;
 	}
 	public static ArrayList<MultimediaContainer> getContainerArray()
 	{
 		if (containerArray==null)
-			containerArray = new ArrayList<MultimediaContainer>();
+			containerArray = new ArrayList<>();
 		return containerArray;
 	}
 	public static void getContainerConfigs(final Properties intoProps)
 	{
-		ArrayList<MultimediaContainer> listeners = getContainerArray();
-		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).configurationSave(intoProps);
+		final ArrayList<MultimediaContainer> listeners = getContainerArray();
+		for (final MultimediaContainer listener : listeners)
+			listener.configurationSave(intoProps);
 	}
 	public static void configureContainer(final Properties fromProps)
 	{
-		ArrayList<MultimediaContainer> listeners = getContainerArray();
-		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).configurationChanged(fromProps);
+		final ArrayList<MultimediaContainer> listeners = getContainerArray();
+		for (final MultimediaContainer listener : listeners)
+			listener.configurationChanged(fromProps);
 	}
 	public static void registerContainer(final MultimediaContainer container)
 	{
 		if (container!=null)
 		{
 			getContainerArray().add(container);
-			String [] extensions = container.getFileExtensionList();
-			for (int i=0; i<extensions.length; i++)
-				getFileExtensionMap().put(extensions[i], container);
+			final String [] extensions = container.getFileExtensionList();
+			for (final String extension : extensions)
+				getFileExtensionMap().put(extension, container);
 		}
 	}
 	public static void deregisterContainer(final MultimediaContainer container)
@@ -104,52 +105,52 @@ public class MultimediaContainerManager
 		if (container!=null)
 		{
 			getContainerArray().remove(container);
-			String [] extensions = container.getFileExtensionList();
-			for (int i=0; i<extensions.length; i++)
-				getFileExtensionMap().remove(extensions[i]);
+			final String[] extensions = container.getFileExtensionList();
+			for (final String extension : extensions)
+				getFileExtensionMap().remove(extension);
+			container.cleanUp();
 		}
 	}
 	public static void cleanUpAllContainers()
 	{
-		ArrayList<MultimediaContainer> containers = getContainerArray();
-		for (int i=0; i<containers.size(); i++)
+		final ArrayList<MultimediaContainer> containers = getContainerArray();
+		while (containers.size()>0)
 		{
-			MultimediaContainer container = containers.get(i); 
+			final MultimediaContainer container = containers.get(0);
 			deregisterContainer(container);
-			container.cleanUp();
 		}
 	}
 	public static void updateLookAndFeel()
 	{
-		ArrayList<MultimediaContainer> listeners = getContainerArray();
-		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).updateLookAndFeel();
+		final ArrayList<MultimediaContainer> listeners = getContainerArray();
+		for (final MultimediaContainer listener : listeners)
+			listener.updateLookAndFeel();
 	}
 	public static String[] getSupportedFileExtensions()
 	{
-		Set<String> keys = getFileExtensionMap().keySet();
-		String[] result = new String[keys.size()];
+		final Set<String> keys = getFileExtensionMap().keySet();
+		final String[] result = new String[keys.size()];
 		return keys.toArray(result);
 	}
-	public static HashMap<String, String[]>getSupportedFileExtensionsPerContainer()
+	public static Map<String, String[]>getSupportedFileExtensionsPerContainer()
 	{
-		ArrayList<MultimediaContainer> listeners = getContainerArray();
-		HashMap<String, String[]> result = new HashMap<String, String []>(listeners.size());
-		for (int i=0; i<listeners.size(); i++)
-			result.put(listeners.get(i).getName(), listeners.get(i).getFileExtensionList());
+		final ArrayList<MultimediaContainer> listeners = getContainerArray();
+		final Map<String, String[]> result = new HashMap<>(listeners.size());
+		for (final MultimediaContainer listener : listeners)
+			result.put(listener.getName(), listener.getFileExtensionList());
 		return result;
 	}
 	public static MultimediaContainer getMultimediaContainerForType(final String type) throws UnsupportedAudioFileException
 	{
-		MultimediaContainer container = getFileExtensionMap().get(type.toLowerCase());
-		if (container==null) 
+		final MultimediaContainer container = getFileExtensionMap().get(type.toLowerCase());
+		if (container==null)
 			throw new UnsupportedAudioFileException(type);
 		else
 			return container;
 	}
 	public static MultimediaContainer getMultimediaContainerSingleton(final URL url) throws UnsupportedAudioFileException
 	{
-		String fileName = url.getPath();
+		final String fileName = url.getPath();
 
 		// we default to mp3 with wrong extensions
 		MultimediaContainer baseContainer = getFileExtensionMap().get(Helpers.getExtensionFrom(fileName));
@@ -176,9 +177,9 @@ public class MultimediaContainerManager
 	 */
 	public static MultimediaContainer getMultimediaContainer(final URL url) throws UnsupportedAudioFileException
 	{
-		MultimediaContainer baseContainer = getMultimediaContainerSingleton(url);
-		MultimediaContainer container = baseContainer.getInstance(url);
-		if (container==null) 
+		final MultimediaContainer baseContainer = getMultimediaContainerSingleton(url);
+		final MultimediaContainer container = baseContainer.getInstance(url);
+		if (container==null)
 			throw new UnsupportedAudioFileException(url.getPath());
 		else
 			return container;
@@ -197,15 +198,15 @@ public class MultimediaContainerManager
 	}
 	public static void addMultimediaContainerEventListener(final MultimediaContainerEventListener listener)
 	{
-		ArrayList<MultimediaContainer> containers = getContainerArray();
-		for (int i=0; i<containers.size(); i++)
-			containers.get(i).addListener(listener);
+		final ArrayList<MultimediaContainer> containers = getContainerArray();
+		for (final MultimediaContainer container : containers)
+			container.addListener(listener);
 	}
 	public static void removeMultimediaContainerEventListener(final MultimediaContainerEventListener listener)
 	{
-		ArrayList<MultimediaContainer> containers = getContainerArray();
-		for (int i=0; i<containers.size(); i++)
-			containers.get(i).removeListener(listener);
+		final ArrayList<MultimediaContainer> containers = getContainerArray();
+		for (final MultimediaContainer container : containers)
+			container.removeListener(listener);
 	}
 	public static String getSongNameFromURL(final URL url)
 	{
@@ -215,17 +216,17 @@ public class MultimediaContainerManager
 		final int lastSlash = result.lastIndexOf('/');
 		int dot = result.lastIndexOf('.');
 		if (dot == -1 || dot<lastSlash) dot = result.length();
-		return result.substring(lastSlash + 1, dot); 
+		return result.substring(lastSlash + 1, dot);
 	}
 	public static String getSongNameFromFile(final File fileName)
 	{
 		if (fileName==null) return Helpers.EMPTY_STING;
 
-		String result = fileName.getAbsolutePath();
+		final String result = fileName.getAbsolutePath();
 		final int lastSlash = result.lastIndexOf(File.separatorChar);
 		int dot = result.lastIndexOf('.');
 		if (dot == -1 || dot<lastSlash) dot = result.length();
-		return result.substring(lastSlash + 1, dot); 
+		return result.substring(lastSlash + 1, dot);
 	}
 	/**
 	 * This method will only do (!)localy(!) what is needed to pick up
@@ -238,10 +239,10 @@ public class MultimediaContainerManager
 	{
 		try
 		{
-			MultimediaContainer container = getMultimediaContainerSingleton(url);
+			final MultimediaContainer container = getMultimediaContainerSingleton(url);
 			if (container!=null) return container.getSongInfosFor(url);
 		}
-		catch (UnsupportedAudioFileException ex)
+		catch (final UnsupportedAudioFileException ex)
 		{
 			//Log.error("IGNORED", ex);
 		}

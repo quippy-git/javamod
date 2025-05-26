@@ -2,7 +2,7 @@
  * @(#) ModUpdateListener.java
  *
  * Created on 11.11.2023 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,13 +34,14 @@ public interface ModUpdateListener
 	{
 		public long samplesMixed;
 		public long timeCode;
-		
+
 		public TimedInformation(final int sampleRate, final long samplesMixed)
 		{
 			this.samplesMixed = samplesMixed;
-			this.timeCode = (samplesMixed * 1000L) / (long)sampleRate;
+			this.timeCode = (samplesMixed * 1000L) / sampleRate;
 		}
-		
+
+		@Override
 		public String toString()
 		{
 			return "Timer: " + samplesMixed + "/" + timeCode;
@@ -58,7 +59,8 @@ public interface ModUpdateListener
 			this.patternIndex = (int)((position >> 48)&0xFFFF);
 			this.patternRow = (int)((position >> 16)&0xFFFF);
 		}
-		
+
+		@Override
 		public String toString()
 		{
 			return super.toString()+"-->Position: "+ModConstants.getAsHex(patternIndex, 2)+"/"+ModConstants.getAsHex(patternRow, 2);
@@ -70,7 +72,7 @@ public interface ModUpdateListener
 		public int actPeekLeft;
 		public int actPeekRight;
 		public boolean isSurround;
-		
+
 		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final int actPeekLeft, final int actPeekRight, final boolean isSurround)
 		{
 			super(sampleRate, samplesMixed);
@@ -79,6 +81,7 @@ public interface ModUpdateListener
 			this.actPeekRight = actPeekRight;
 			this.isSurround = isSurround;
 		}
+		@Override
 		public String toString()
 		{
 			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":Helpers.EMPTY_STING);
@@ -87,11 +90,12 @@ public interface ModUpdateListener
 	public class StatusInformation
 	{
 		public boolean status;
-		
+
 		public StatusInformation(final boolean newStatus)
 		{
 			status = newStatus;
 		}
+		@Override
 		public String toString()
 		{
 			return "Status: " + Boolean.toString(status);

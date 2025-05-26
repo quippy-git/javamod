@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -23,19 +23,19 @@ package de.quippy.sidplay.resid_builder.resid;
 
 /**
  * Class for plotting integers into an array.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class PointPlotter {
 
 	protected int /* sound_sample */f[];
 
-	public PointPlotter(int /* sound_sample */arr[]) {
+	public PointPlotter(final int /* sound_sample */arr[]) {
 		this.f = arr;
 	}
 
-	void plot(double x, double y) {
+	void plot(final double x, double y) {
 		// Clamp negative values to zero.
 		if (y < 0) {
 			y = 0;

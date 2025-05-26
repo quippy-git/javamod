@@ -1,8 +1,8 @@
 /*
  * @(#) WindowedFIR.java
- * 
+ *
  * Created on 15.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -73,9 +73,9 @@ public class WindowedFIR
 	public  static final int	WFIR_FRACSHIFT		=	ModConstants.SHIFT - (WFIR_FRACBITS + 1 + WFIR_LOG2WIDTH);
 	public  static final int	WFIR_FRACMASK		=	(((1<<((ModConstants.SHIFT + 1) - WFIR_FRACSHIFT)) - 1) & ~((1<<WFIR_LOG2WIDTH)-1));
 	public  static final int	WFIR_FRACHALVE		=	1<<(ModConstants.SHIFT-(WFIR_FRACBITS+2));
-	
+
 	public static final int [] lut = new int [WFIR_LUTLEN*WFIR_WIDTH];
-	
+
 	static
 	{
 		initialize();
@@ -103,7 +103,7 @@ public class WindowedFIR
 	{
 		final double widthM1 = width - 1;
 		final double widthM1Half = 0.5d * widthM1;
-		final double posU = ((double) cnr) - ofs;
+		final double posU = (cnr) - ofs;
 		final double idl = 2.0d * Math.PI / widthM1;
 
 		double pos = posU - widthM1Half;
@@ -156,24 +156,24 @@ public class WindowedFIR
 	 */
 	private static void initialize()
 	{
-		final double cllen	= (double)(1L<<WFIR_FRACBITS);	// number of precalculated lines for 0..1 (-1..0)
-		final double norm	= 1.0d / (double)(2.0d * cllen);
+		final double cllen	= 1L<<WFIR_FRACBITS;	// number of precalculated lines for 0..1 (-1..0)
+		final double norm	= 1.0d / (2.0d * cllen);
 		final double cut	= WFIR_CUTOFF;
-		final double scale	= (double)WFIR_QUANTSCALE;
-		
+		final double scale	= WFIR_QUANTSCALE;
+
 		for (int cl=0; cl<WFIR_LUTLEN; cl++)
-		{	
+		{
 			final double [] coefs	= new double [WFIR_WIDTH];
-			final double ofs		= ((double)cl-cllen)*norm;
+			final double ofs		= (cl-cllen)*norm;
 			final int idx			= cl<<WFIR_LOG2WIDTH;
-			
+
 			double gain = 0.0d;
 			for (int c=0; c<WFIR_WIDTH; c++)
 				gain += (coefs[c] = coef(c, ofs, cut, WFIR_WIDTH, WFIR_TYPE));
-			
+
 			gain = 1.0d / gain;
 			for (int c=0; c<WFIR_WIDTH; c++)
-			{	
+			{
 				final double coef = Math.floor( 0.5d + scale*coefs[c]*gain );
 				lut[idx+c] = (int)( (coef<-scale)?-scale:((coef>scale)?scale:coef) );
 			}

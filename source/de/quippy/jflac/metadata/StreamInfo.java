@@ -43,17 +43,17 @@ public class StreamInfo extends Metadata {
     private static final int STREAMINFO_TOTAL_SAMPLES_LEN = 36; // bits
     private static final int STREAMINFO_MD5SUM_LEN = 128; // bits
 
-    private byte[] md5sum = new byte[16];
+    private final byte[] md5sum = new byte[16];
 
-    private int minBlockSize;
-    private int maxBlockSize;
-    private int minFrameSize;
-    private int maxFrameSize;
-    private int sampleRate;
-    private int channels;
-    private int bitsPerSample;
+    private final int minBlockSize;
+    private final int maxBlockSize;
+    private final int minFrameSize;
+    private final int maxFrameSize;
+    private final int sampleRate;
+    private final int channels;
+    private final int bitsPerSample;
     private long totalSamples;
-    
+
     /**
      * The constructor.
      * @param is                The InputBitStream
@@ -61,7 +61,7 @@ public class StreamInfo extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public StreamInfo(BitInputStream is, int length, boolean isLast) throws IOException {
+    public StreamInfo(final BitInputStream is, int length, final boolean isLast) throws IOException {
         super(isLast);
         int usedBits = 0;
 
@@ -96,14 +96,14 @@ public class StreamInfo extends Metadata {
         length -= (usedBits / 8);
         is.readByteBlockAlignedNoCRC(null, length);
     }
-    
+
     /**
      * Write out the metadata block.
      * @param os    The output stream
      * @param isLast    True if this is the last metadata block
      * @throws IOException  Thrown if error writing data
      */
-    public void write(BitOutputStream os, boolean isLast) throws IOException {
+    public void write(final BitOutputStream os, final boolean isLast) throws IOException {
 
         os.writeRawUInt(isLast, STREAM_METADATA_IS_LAST_LEN);
         os.writeRawUInt(METADATA_TYPE_STREAMINFO, STREAM_METADATA_TYPE_LEN);
@@ -120,13 +120,13 @@ public class StreamInfo extends Metadata {
         os.writeByteBlock(md5sum, md5sum.length);
         os.flushByteAligned();
     }
-    
+
     /**
      * Calculate the metadata block size.
      * @return The metadata block size
      */
     public int calcLength() {
-        int bits = STREAMINFO_MIN_BLOCK_SIZE_LEN 
+        final int bits = STREAMINFO_MIN_BLOCK_SIZE_LEN
                    + STREAMINFO_MAX_BLOCK_SIZE_LEN
                    + STREAMINFO_MIN_FRAME_SIZE_LEN
                    + STREAMINFO_MAX_FRAME_SIZE_LEN
@@ -137,26 +137,25 @@ public class StreamInfo extends Metadata {
                    + (md5sum.length * 8);
         return ((bits + 7) / 8);
     }
-    
+
     /**
      * Check for compatiable StreamInfo.
      * Checks if sampleRate, channels, and bitsPerSample are equal
      * @param info  The StreamInfo block to check
      * @return  True if this and info are compatable
      */
-    public boolean compatiable(StreamInfo info) {
-        if (sampleRate != info.sampleRate) return false;
-        if (channels != info.channels) return false;
-        if (bitsPerSample != info.bitsPerSample) return false;
+    public boolean compatiable(final StreamInfo info) {
+        if ((sampleRate != info.sampleRate) || (channels != info.channels) || (bitsPerSample != info.bitsPerSample)) return false;
         return true;
     }
-    
+
     /**
      * Convert to string.
      * @see java.lang.Object#toString()
      */
-    public String toString() {
-        return "StreamInfo:" 
+    @Override
+	public String toString() {
+        return "StreamInfo:"
             + " BlockSize=" + minBlockSize + "-" + maxBlockSize
             + " FrameSize" + minFrameSize + "-" + maxFrameSize
             + " SampleRate=" + sampleRate
@@ -164,77 +163,77 @@ public class StreamInfo extends Metadata {
             + " BPS=" + bitsPerSample
             + " TotalSamples=" + totalSamples;
     }
-    
+
     /**
      * @return Returns the maxBlockSize.
      */
     public int getMaxBlockSize() {
         return maxBlockSize;
     }
-    
+
     /**
      * @return Returns the minBlockSize.
      */
     public int getMinBlockSize() {
         return minBlockSize;
     }
-    
+
     /**
      * @return Returns the totalSamples.
      */
     public long getTotalSamples() {
         return totalSamples;
     }
-    
+
     /**
      * @param totalSamples The totalSamples to set.
      */
-    public void setTotalSamples(long totalSamples) {
+    public void setTotalSamples(final long totalSamples) {
         this.totalSamples = totalSamples;
     }
-    
+
     /**
      * @param totalSamples The totalSamples to add.
      */
-    public void addTotalSamples(long totalSamples) {
+    public void addTotalSamples(final long totalSamples) {
         this.totalSamples += totalSamples;
     }
-    
+
     /**
      * @return Returns the maxFrameSize.
      */
     public int getMaxFrameSize() {
         return maxFrameSize;
     }
-    
+
     /**
      * @return Returns the minFrameSize.
      */
     public int getMinFrameSize() {
         return minFrameSize;
     }
-    
+
     /**
      * @return Returns the sampleRate.
      */
     public int getSampleRate() {
         return sampleRate;
     }
-    
+
     /**
      * @return the Java Sound AudioFormat for this stream info.
      */
     public AudioFormat getAudioFormat() {
         return new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample <= 8) ? false : true, false);
     }
-    
+
     /**
      * @return Returns the bitsPerSample.
      */
     public int getBitsPerSample() {
         return bitsPerSample;
     }
-    
+
     /**
      * @return Returns the channels.
      */

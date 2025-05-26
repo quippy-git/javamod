@@ -1,8 +1,8 @@
 /*
  * @(#) Sample.java
- * 
+ *
  * Created on 21.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,11 +51,11 @@ public class Sample
 	public int type;			// always 1 for a sample, 1-7 AdLib (2:Melody 3:Basedrum 4:Snare 5:Tom 6:Cym 7:HiHat)
 	public String dosFileName;	// DOS File-Name
 	public int flags;			// flag: 1:Looping sample 2:Stereo 4:16Bit-Sample...
-	
+
 	// XM
 	public boolean setPanning;	// set the panning
 	public int defaultPanning;	// default Panning
-	public int vibratoType;		// Vibrato Type 
+	public int vibratoType;		// Vibrato Type
 	public int vibratoSweep;	// Vibrato Sweep
 	public int vibratoDepth;	// Vibrato Depth
 	public int vibratoRate;		// Vibrato Rate
@@ -73,21 +73,21 @@ public class Sample
 	private int interpolationStopSustain;
 	private int interpolationStartLoop;
 	private int interpolationStartSustain;
-	
+
 	// If this is adlib...
 	public byte[] adLib_Instrument;
-	
+
 	// MPT specific cue points
 	private int [] cues;
 	public static final int MAX_CUES = 9;
-	
+
 	public static final int INTERPOLATION_LOOK_AHEAD = 16;
 
 	// The sample data, already converted to signed 32 bit (always)
 	// 8Bit: 0..127,128-255; 16Bit: -32768..0..+32767
 	public long [] sampleL;
 	public long [] sampleR;
-	
+
 	/**
 	 * Constructor for Sample
 	 */
@@ -97,7 +97,7 @@ public class Sample
 		isStereo = false;
 	}
 	/**
-	 * Allocate the sample data inclusive interpolation look ahead buffers 
+	 * Allocate the sample data inclusive interpolation look ahead buffers
 	 * @since 03.07.2020
 	 */
 	public void allocSampleData()
@@ -117,7 +117,7 @@ public class Sample
 	{
 		if (sampleL==null || length==0)
 		{
-			loopType = loopLength = loopStop = loopStart = 
+			loopType = loopLength = loopStop = loopStart =
 			sustainLoopLength = sustainLoopStart = sustainLoopStop = 0;
 			return;
 		}
@@ -126,7 +126,7 @@ public class Sample
 		if (loopStop>length) loopStop = length;
 		if (loopStart<0) loopStart = 0;
 		loopLength = loopStop - loopStart;
-		
+
 		if (sustainLoopStop>length) sustainLoopStop = length;
 		if (sustainLoopStart<0) sustainLoopStart = 0;
 		sustainLoopLength = sustainLoopStop - sustainLoopStart;
@@ -163,13 +163,13 @@ public class Sample
 		int readPosition = (forLoopEnd)? length-1 : 0;
 		final int writeIncrement = isForward?1:-1;
 		int readIncrement = writeIncrement;
-		
+
 		for (int i=0; i<numSamples; i++)
 		{
 			sampleL[destIndex] = sampleL[sourceIndex + readPosition];
 			if (sampleR!=null) sampleR[destIndex] = sampleR[sourceIndex + readPosition];
 			destIndex += writeIncrement;
-			
+
 			if (readPosition == length-1 && readIncrement > 0)
 			{
 				if (isPingPong)
@@ -202,31 +202,31 @@ public class Sample
 	{
 		// At the end, we want to have
 		// [PRE | sample data | POST | 4x endLoop | 4x endSustain]
-		
+
 		final int startSampleData = INTERPOLATION_LOOK_AHEAD;
 		final int afterSampleData = startSampleData + length;
 		interpolationStopLoop = afterSampleData + INTERPOLATION_LOOK_AHEAD;
 		interpolationStopSustain = interpolationStopLoop + (4 * INTERPOLATION_LOOK_AHEAD);
 		interpolationStartLoop = interpolationStopSustain + (4 * INTERPOLATION_LOOK_AHEAD);
 		interpolationStartSustain = interpolationStartLoop + (4 * INTERPOLATION_LOOK_AHEAD);
-		
+
 		// First move sampleData out of the way, as it is loaded at index 0
 		for (int pos=length-1; pos>=0; pos--)
 		{
 			sampleL[startSampleData+pos] = sampleL[pos];
 			if (sampleR!=null) sampleR[startSampleData + pos] = sampleR[pos];
 		}
-		
-		// now add sample data in PRE and POST 
+
+		// now add sample data in PRE and POST
 		for (int pos=0; pos<INTERPOLATION_LOOK_AHEAD; pos++)
 		{
 			sampleL[afterSampleData + pos] = sampleL[afterSampleData - 1];
 			if (sampleR!=null) sampleR[afterSampleData + pos] = sampleR[afterSampleData - 1];
 			sampleL[pos] = sampleL[startSampleData];
 			if (sampleR!=null) sampleR[pos] = sampleR[startSampleData];
-			
+
 		}
-		
+
 		if ((loopType & ModConstants.LOOP_ON)!=0)
 		{
 			addInterpolationLookAheadDataLoop(interpolationStopLoop, loopLength, loopStart + INTERPOLATION_LOOK_AHEAD, true, (loopType&ModConstants.LOOP_IS_PINGPONG)!=0, true);
@@ -256,7 +256,7 @@ public class Sample
 		else
 		if (currentSamplePos - INTERPOLATION_LOOK_AHEAD <= sustainLoopStart && inLoop) // approaching/leaving sustainLoopStart?
 			return interpolationStartSustain - sustainLoopStart + (INTERPOLATION_LOOK_AHEAD<<1);
-		else 
+		else
 			return 0;
 	}
 	/**
@@ -273,12 +273,12 @@ public class Sample
 		else
 		if (currentSamplePos - INTERPOLATION_LOOK_AHEAD <= loopStart && inLoop) // approaching/leaving LoopStart?
 			return interpolationStartLoop - loopStart + (INTERPOLATION_LOOK_AHEAD<<1);
-		else 
+		else
 			return 0;
 	}
 	/**
 	 * @since 12.03.2024
-	 * @return true, if this sample as any sample data. That is, if at least 
+	 * @return true, if this sample as any sample data. That is, if at least
 	 * the left buffer (mono sample) is not null and has a length>0
 	 */
 	public boolean hasSampleData()
@@ -292,7 +292,7 @@ public class Sample
 	@Override
 	public String toString()
 	{
-		StringBuilder bf = new StringBuilder((name==null)?Helpers.EMPTY_STING:name);
+		final StringBuilder bf = new StringBuilder((name==null)?Helpers.EMPTY_STING:name);
 		bf.append('(').
 			append(getSampleTypeString()).append(", ").
 			append("fineTune:").append(fineTune).append(", ").
@@ -307,7 +307,7 @@ public class Sample
 			append("SustainloopStart:").append(sustainLoopStart).append(", ").
 			append("SustainloopStop:").append(sustainLoopStop).append(", ").
 			append("SustainloopLength:").append(sustainLoopLength).append(')');
-		
+
 		return bf.toString();
 	}
 	public String toShortString()
@@ -322,14 +322,14 @@ public class Sample
 	{
 		if (adLib_Instrument!=null) return "OPL Instrument";
 
-		StringBuilder bf = new StringBuilder();
+		final StringBuilder bf = new StringBuilder();
 		bf.append((sampleType&ModConstants.SM_16BIT)!=0		? "16-Bit" : "8-Bit").append(", ");
 		bf.append((sampleType&ModConstants.SM_BigEndian)!=0	? "big" : "little").append(" endian, ");
 		bf.append((sampleType&ModConstants.SM_PCMU)!=0		? "unsigned" : "signed").append(", ");
-		bf.append((sampleType&ModConstants.SM_PCMD)!=0		? "delta packed" : 
-				  (sampleType&ModConstants.SM_IT214)!=0		? "IT V2.14 packed" : 
-				  (sampleType&ModConstants.SM_IT215)!=0		? "IT V2.15 packed" : 
-				  (sampleType&ModConstants.SM_ADPCM)!=0		? "ADPCM packed" : 
+		bf.append((sampleType&ModConstants.SM_PCMD)!=0		? "delta packed" :
+				  (sampleType&ModConstants.SM_IT214)!=0		? "IT V2.14 packed" :
+				  (sampleType&ModConstants.SM_IT215)!=0		? "IT V2.15 packed" :
+				  (sampleType&ModConstants.SM_ADPCM)!=0		? "ADPCM packed" :
 															  "unpacked").append(", ");
 		bf.append((sampleType&ModConstants.SM_STEREO)!=0	? "stereo" : "mono").append(", ");
 		bf.append("length: ").append(length);
@@ -345,23 +345,23 @@ public class Sample
 	 */
 	private void getLinearInterpolated(final long result[], final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
 	{
-		long s1 = ((long)sampleL[currentSamplePos  ])<<ModConstants.SAMPLE_SHIFT;
-		long s2 = 
+		long s1 = (sampleL[currentSamplePos  ])<<ModConstants.SAMPLE_SHIFT;
+		long s2 =
 			(isBackwards)?
-			    ((long)sampleL[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
+			    (sampleL[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
 			:
-				((long)sampleL[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
-		result[0] = (long)((s1 + (((s2-s1)*((long)currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT);
-		
+				(sampleL[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
+		result[0] = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
+
 		if (sampleR!=null)
 		{
-			s1 = ((long)sampleR[currentSamplePos  ])<<ModConstants.SAMPLE_SHIFT;
-			s2 = 
+			s1 = (sampleR[currentSamplePos  ])<<ModConstants.SAMPLE_SHIFT;
+			s2 =
 				(isBackwards)?
-				    ((long)sampleR[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
+				    (sampleR[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
 				:
-					((long)sampleR[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
-			result[1] = (long)((s1 + (((s2-s1)*((long)currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT);
+					(sampleR[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
+			result[1] = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
 		}
 		else
 			result[1] = result[0];
@@ -377,34 +377,34 @@ public class Sample
 	private void getCubicInterpolated(final long result [], final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
 	{
 		final int poslo = (currentTuningPos >> CubicSpline.SPLINE_FRACSHIFT) & CubicSpline.SPLINE_FRACMASK;
-		
-		long v1 = 
+
+		long v1 =
 			(isBackwards)?
-			    ((long)CubicSpline.lut[poslo  ]*(long)sampleL[currentSamplePos+1]) +
-			    ((long)CubicSpline.lut[poslo+1]*(long)sampleL[currentSamplePos  ]) +
-			    ((long)CubicSpline.lut[poslo+2]*(long)sampleL[currentSamplePos-1]) +
-			    ((long)CubicSpline.lut[poslo+3]*(long)sampleL[currentSamplePos-2])
+			    (CubicSpline.lut[poslo  ]*sampleL[currentSamplePos+1]) +
+			    (CubicSpline.lut[poslo+1]*sampleL[currentSamplePos  ]) +
+			    (CubicSpline.lut[poslo+2]*sampleL[currentSamplePos-1]) +
+			    (CubicSpline.lut[poslo+3]*sampleL[currentSamplePos-2])
 			:
-				((long)CubicSpline.lut[poslo  ]*(long)sampleL[currentSamplePos-1]) +
-				((long)CubicSpline.lut[poslo+1]*(long)sampleL[currentSamplePos  ]) +
-				((long)CubicSpline.lut[poslo+2]*(long)sampleL[currentSamplePos+1]) +
-				((long)CubicSpline.lut[poslo+3]*(long)sampleL[currentSamplePos+2]);
-		result[0] =  (long)(v1 >> CubicSpline.SPLINE_QUANTBITS);
+				(CubicSpline.lut[poslo  ]*sampleL[currentSamplePos-1]) +
+				(CubicSpline.lut[poslo+1]*sampleL[currentSamplePos  ]) +
+				(CubicSpline.lut[poslo+2]*sampleL[currentSamplePos+1]) +
+				(CubicSpline.lut[poslo+3]*sampleL[currentSamplePos+2]);
+		result[0] =  v1 >> CubicSpline.SPLINE_QUANTBITS;
 
 		if (sampleR!=null)
 		{
-			v1 = 
+			v1 =
 				(isBackwards)?
-				    ((long)CubicSpline.lut[poslo  ]*(long)sampleR[currentSamplePos+1]) +
-				    ((long)CubicSpline.lut[poslo+1]*(long)sampleR[currentSamplePos  ]) +
-				    ((long)CubicSpline.lut[poslo+2]*(long)sampleR[currentSamplePos-1]) +
-				    ((long)CubicSpline.lut[poslo+3]*(long)sampleR[currentSamplePos-2])
+				    (CubicSpline.lut[poslo  ]*sampleR[currentSamplePos+1]) +
+				    (CubicSpline.lut[poslo+1]*sampleR[currentSamplePos  ]) +
+				    (CubicSpline.lut[poslo+2]*sampleR[currentSamplePos-1]) +
+				    (CubicSpline.lut[poslo+3]*sampleR[currentSamplePos-2])
 				:
-					((long)CubicSpline.lut[poslo  ]*(long)sampleR[currentSamplePos-1]) +
-					((long)CubicSpline.lut[poslo+1]*(long)sampleR[currentSamplePos  ]) +
-					((long)CubicSpline.lut[poslo+2]*(long)sampleR[currentSamplePos+1]) +
-					((long)CubicSpline.lut[poslo+3]*(long)sampleR[currentSamplePos+2]);
-			result[1] = (long)(v1 >> CubicSpline.SPLINE_QUANTBITS);
+					(CubicSpline.lut[poslo  ]*sampleR[currentSamplePos-1]) +
+					(CubicSpline.lut[poslo+1]*sampleR[currentSamplePos  ]) +
+					(CubicSpline.lut[poslo+2]*sampleR[currentSamplePos+1]) +
+					(CubicSpline.lut[poslo+3]*sampleR[currentSamplePos+2]);
+			result[1] = v1 >> CubicSpline.SPLINE_QUANTBITS;
 		}
 		else
 			result[1] = result[0];
@@ -424,50 +424,50 @@ public class Sample
 		final int [] sinc = (currentIncrement>Kaiser.gDownsample2x_Limit )?Kaiser.gDownsample2x:
 							(currentIncrement>Kaiser.gDownsample13x_Limit)?Kaiser.gDownsample13x:
 							Kaiser.gKaiserSinc;
-		
+
 		long v1 =
 			(isBackwards)?
-			    ((long)sinc[poslo  ]*(long)sampleL[currentSamplePos+3]) +
-				((long)sinc[poslo+1]*(long)sampleL[currentSamplePos+2]) +
-				((long)sinc[poslo+2]*(long)sampleL[currentSamplePos+1]) +
-				((long)sinc[poslo+3]*(long)sampleL[currentSamplePos  ]) +
-				((long)sinc[poslo+4]*(long)sampleL[currentSamplePos-1]) +
-				((long)sinc[poslo+5]*(long)sampleL[currentSamplePos-2]) +
-				((long)sinc[poslo+6]*(long)sampleL[currentSamplePos-3]) +
-				((long)sinc[poslo+7]*(long)sampleL[currentSamplePos-4])
+			    (sinc[poslo  ]*sampleL[currentSamplePos+3]) +
+				(sinc[poslo+1]*sampleL[currentSamplePos+2]) +
+				(sinc[poslo+2]*sampleL[currentSamplePos+1]) +
+				(sinc[poslo+3]*sampleL[currentSamplePos  ]) +
+				(sinc[poslo+4]*sampleL[currentSamplePos-1]) +
+				(sinc[poslo+5]*sampleL[currentSamplePos-2]) +
+				(sinc[poslo+6]*sampleL[currentSamplePos-3]) +
+				(sinc[poslo+7]*sampleL[currentSamplePos-4])
 			:
-			    ((long)sinc[poslo  ]*(long)sampleL[currentSamplePos-3]) +
-				((long)sinc[poslo+1]*(long)sampleL[currentSamplePos-2]) +
-				((long)sinc[poslo+2]*(long)sampleL[currentSamplePos-1]) +
-				((long)sinc[poslo+3]*(long)sampleL[currentSamplePos  ]) +
-				((long)sinc[poslo+4]*(long)sampleL[currentSamplePos+1]) +
-				((long)sinc[poslo+5]*(long)sampleL[currentSamplePos+2]) +
-				((long)sinc[poslo+6]*(long)sampleL[currentSamplePos+3]) +
-				((long)sinc[poslo+7]*(long)sampleL[currentSamplePos+4]);
-		result[0] = (long)(v1 >> Kaiser.SINC_QUANTSHIFT);
-		
+			    (sinc[poslo  ]*sampleL[currentSamplePos-3]) +
+				(sinc[poslo+1]*sampleL[currentSamplePos-2]) +
+				(sinc[poslo+2]*sampleL[currentSamplePos-1]) +
+				(sinc[poslo+3]*sampleL[currentSamplePos  ]) +
+				(sinc[poslo+4]*sampleL[currentSamplePos+1]) +
+				(sinc[poslo+5]*sampleL[currentSamplePos+2]) +
+				(sinc[poslo+6]*sampleL[currentSamplePos+3]) +
+				(sinc[poslo+7]*sampleL[currentSamplePos+4]);
+		result[0] = v1 >> Kaiser.SINC_QUANTSHIFT;
+
 		if (sampleR!=null)
 		{
 			v1 =
 				(isBackwards)?
-				    ((long)sinc[poslo  ]*(long)sampleR[currentSamplePos+3]) +
-					((long)sinc[poslo+1]*(long)sampleR[currentSamplePos+2]) +
-					((long)sinc[poslo+2]*(long)sampleR[currentSamplePos+1]) +
-					((long)sinc[poslo+3]*(long)sampleR[currentSamplePos  ]) +
-					((long)sinc[poslo+4]*(long)sampleR[currentSamplePos-1]) +
-					((long)sinc[poslo+5]*(long)sampleR[currentSamplePos-2]) +
-					((long)sinc[poslo+6]*(long)sampleR[currentSamplePos-3]) +
-					((long)sinc[poslo+7]*(long)sampleR[currentSamplePos-4])
+				    (sinc[poslo  ]*sampleR[currentSamplePos+3]) +
+					(sinc[poslo+1]*sampleR[currentSamplePos+2]) +
+					(sinc[poslo+2]*sampleR[currentSamplePos+1]) +
+					(sinc[poslo+3]*sampleR[currentSamplePos  ]) +
+					(sinc[poslo+4]*sampleR[currentSamplePos-1]) +
+					(sinc[poslo+5]*sampleR[currentSamplePos-2]) +
+					(sinc[poslo+6]*sampleR[currentSamplePos-3]) +
+					(sinc[poslo+7]*sampleR[currentSamplePos-4])
 				:
-				    ((long)sinc[poslo  ]*(long)sampleR[currentSamplePos-3]) +
-					((long)sinc[poslo+1]*(long)sampleR[currentSamplePos-2]) +
-					((long)sinc[poslo+2]*(long)sampleR[currentSamplePos-1]) +
-					((long)sinc[poslo+3]*(long)sampleR[currentSamplePos  ]) +
-					((long)sinc[poslo+4]*(long)sampleR[currentSamplePos+1]) +
-					((long)sinc[poslo+5]*(long)sampleR[currentSamplePos+2]) +
-					((long)sinc[poslo+6]*(long)sampleR[currentSamplePos+3]) +
-					((long)sinc[poslo+7]*(long)sampleR[currentSamplePos+4]);
-			result[1] = (long)(v1 >> Kaiser.SINC_QUANTSHIFT);
+				    (sinc[poslo  ]*sampleR[currentSamplePos-3]) +
+					(sinc[poslo+1]*sampleR[currentSamplePos-2]) +
+					(sinc[poslo+2]*sampleR[currentSamplePos-1]) +
+					(sinc[poslo+3]*sampleR[currentSamplePos  ]) +
+					(sinc[poslo+4]*sampleR[currentSamplePos+1]) +
+					(sinc[poslo+5]*sampleR[currentSamplePos+2]) +
+					(sinc[poslo+6]*sampleR[currentSamplePos+3]) +
+					(sinc[poslo+7]*sampleR[currentSamplePos+4]);
+			result[1] = v1 >> Kaiser.SINC_QUANTSHIFT;
 		}
 		else
 			result[1] = result[0];
@@ -481,56 +481,56 @@ public class Sample
 	private void getFIRInterpolated(final long result[], final int currentSamplePos, final int  currentTuningPos, final boolean isBackwards)
 	{
 		final int poslo = ((currentTuningPos+WindowedFIR.WFIR_FRACHALVE)>>WindowedFIR.WFIR_FRACSHIFT) & WindowedFIR.WFIR_FRACMASK;
-		
+
 		long v1 =
 			(isBackwards)?
-			    ((long)WindowedFIR.lut[poslo  ]*(long)sampleL[currentSamplePos+3]) +
-				((long)WindowedFIR.lut[poslo+1]*(long)sampleL[currentSamplePos+2]) +
-				((long)WindowedFIR.lut[poslo+2]*(long)sampleL[currentSamplePos+1]) +
-				((long)WindowedFIR.lut[poslo+3]*(long)sampleL[currentSamplePos  ])
+			    (WindowedFIR.lut[poslo  ]*sampleL[currentSamplePos+3]) +
+				(WindowedFIR.lut[poslo+1]*sampleL[currentSamplePos+2]) +
+				(WindowedFIR.lut[poslo+2]*sampleL[currentSamplePos+1]) +
+				(WindowedFIR.lut[poslo+3]*sampleL[currentSamplePos  ])
 			:
-			    ((long)WindowedFIR.lut[poslo  ]*(long)sampleL[currentSamplePos-3]) +
-				((long)WindowedFIR.lut[poslo+1]*(long)sampleL[currentSamplePos-2]) +
-				((long)WindowedFIR.lut[poslo+2]*(long)sampleL[currentSamplePos-1]) + 
-				((long)WindowedFIR.lut[poslo+3]*(long)sampleL[currentSamplePos  ]);
+			    (WindowedFIR.lut[poslo  ]*sampleL[currentSamplePos-3]) +
+				(WindowedFIR.lut[poslo+1]*sampleL[currentSamplePos-2]) +
+				(WindowedFIR.lut[poslo+2]*sampleL[currentSamplePos-1]) +
+				(WindowedFIR.lut[poslo+3]*sampleL[currentSamplePos  ]);
 		long v2 =
 			(isBackwards)?
-				((long)WindowedFIR.lut[poslo+4]*(long)sampleL[currentSamplePos-1]) +
-				((long)WindowedFIR.lut[poslo+5]*(long)sampleL[currentSamplePos-2]) +
-				((long)WindowedFIR.lut[poslo+6]*(long)sampleL[currentSamplePos-3]) +
-				((long)WindowedFIR.lut[poslo+7]*(long)sampleL[currentSamplePos-4])
+				(WindowedFIR.lut[poslo+4]*sampleL[currentSamplePos-1]) +
+				(WindowedFIR.lut[poslo+5]*sampleL[currentSamplePos-2]) +
+				(WindowedFIR.lut[poslo+6]*sampleL[currentSamplePos-3]) +
+				(WindowedFIR.lut[poslo+7]*sampleL[currentSamplePos-4])
 			:
-				((long)WindowedFIR.lut[poslo+4]*(long)sampleL[currentSamplePos+1]) +
-				((long)WindowedFIR.lut[poslo+5]*(long)sampleL[currentSamplePos+2]) +
-				((long)WindowedFIR.lut[poslo+6]*(long)sampleL[currentSamplePos+3]) +
-				((long)WindowedFIR.lut[poslo+7]*(long)sampleL[currentSamplePos+4]);
-		result[0] = (long)((v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1));
-		
+				(WindowedFIR.lut[poslo+4]*sampleL[currentSamplePos+1]) +
+				(WindowedFIR.lut[poslo+5]*sampleL[currentSamplePos+2]) +
+				(WindowedFIR.lut[poslo+6]*sampleL[currentSamplePos+3]) +
+				(WindowedFIR.lut[poslo+7]*sampleL[currentSamplePos+4]);
+		result[0] = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
+
 		if (sampleR!=null)
 		{
 			v1 =
 				(isBackwards)?
-				    ((long)WindowedFIR.lut[poslo  ]*(long)sampleR[currentSamplePos+3]) +
-					((long)WindowedFIR.lut[poslo+1]*(long)sampleR[currentSamplePos+2]) +
-					((long)WindowedFIR.lut[poslo+2]*(long)sampleR[currentSamplePos+1]) +
-					((long)WindowedFIR.lut[poslo+3]*(long)sampleR[currentSamplePos  ])
+				    (WindowedFIR.lut[poslo  ]*sampleR[currentSamplePos+3]) +
+					(WindowedFIR.lut[poslo+1]*sampleR[currentSamplePos+2]) +
+					(WindowedFIR.lut[poslo+2]*sampleR[currentSamplePos+1]) +
+					(WindowedFIR.lut[poslo+3]*sampleR[currentSamplePos  ])
 				:
-				    ((long)WindowedFIR.lut[poslo  ]*(long)sampleR[currentSamplePos-3]) +
-					((long)WindowedFIR.lut[poslo+1]*(long)sampleR[currentSamplePos-2]) +
-					((long)WindowedFIR.lut[poslo+2]*(long)sampleR[currentSamplePos-1]) + 
-					((long)WindowedFIR.lut[poslo+3]*(long)sampleR[currentSamplePos  ]);
+				    (WindowedFIR.lut[poslo  ]*sampleR[currentSamplePos-3]) +
+					(WindowedFIR.lut[poslo+1]*sampleR[currentSamplePos-2]) +
+					(WindowedFIR.lut[poslo+2]*sampleR[currentSamplePos-1]) +
+					(WindowedFIR.lut[poslo+3]*sampleR[currentSamplePos  ]);
 			v2 =
 				(isBackwards)?
-					((long)WindowedFIR.lut[poslo+4]*(long)sampleR[currentSamplePos-1]) +
-					((long)WindowedFIR.lut[poslo+5]*(long)sampleR[currentSamplePos-2]) +
-					((long)WindowedFIR.lut[poslo+6]*(long)sampleR[currentSamplePos-3]) +
-					((long)WindowedFIR.lut[poslo+7]*(long)sampleR[currentSamplePos-4])
+					(WindowedFIR.lut[poslo+4]*sampleR[currentSamplePos-1]) +
+					(WindowedFIR.lut[poslo+5]*sampleR[currentSamplePos-2]) +
+					(WindowedFIR.lut[poslo+6]*sampleR[currentSamplePos-3]) +
+					(WindowedFIR.lut[poslo+7]*sampleR[currentSamplePos-4])
 				:
-					((long)WindowedFIR.lut[poslo+4]*(long)sampleR[currentSamplePos+1]) +
-					((long)WindowedFIR.lut[poslo+5]*(long)sampleR[currentSamplePos+2]) +
-					((long)WindowedFIR.lut[poslo+6]*(long)sampleR[currentSamplePos+3]) +
-					((long)WindowedFIR.lut[poslo+7]*(long)sampleR[currentSamplePos+4]);
-			result[1] = (long)((v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1));
+					(WindowedFIR.lut[poslo+4]*sampleR[currentSamplePos+1]) +
+					(WindowedFIR.lut[poslo+5]*sampleR[currentSamplePos+2]) +
+					(WindowedFIR.lut[poslo+6]*sampleR[currentSamplePos+3]) +
+					(WindowedFIR.lut[poslo+7]*sampleR[currentSamplePos+4]);
+			result[1] = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
 		}
 		else
 			result[1] = result[0];
@@ -550,7 +550,7 @@ public class Sample
 			// Now return correct sample
 			switch (doISP)
 			{
-				case ModConstants.INTERPOLATION_NONE: 
+				case ModConstants.INTERPOLATION_NONE:
 					result[0] = sampleL[sampleIndex];
 					result[1] = (sampleR!=null)? sampleR[sampleIndex] : result[0];
 					break;
@@ -589,7 +589,7 @@ public class Sample
 	/**
 	 * @param sampleType the sampleType to set
 	 */
-	public void setSampleType(int sampleType)
+	public void setSampleType(final int sampleType)
 	{
 		this.sampleType = sampleType;
 	}
@@ -775,7 +775,7 @@ public class Sample
 	/**
 	 * @param cues the cues to set
 	 */
-	public void setCues(int[] newCues)
+	public void setCues(final int[] newCues)
 	{
 		cues = newCues;
 	}
@@ -821,51 +821,51 @@ public class Sample
 //		}
 //		return false;
 //	}
-	public boolean getAdlibAmplitudeVibrato(int cm)
+	public boolean getAdlibAmplitudeVibrato(final int cm)
 	{
 		return ((adLib_Instrument[0+cm]>>7)&0x01)>0;
 	}
-	public boolean getAdlibFrequencyVibrato(int cm)
+	public boolean getAdlibFrequencyVibrato(final int cm)
 	{
 		return ((adLib_Instrument[0+cm]>>6)&0x01)>0;
 	}
-	public boolean getAdlibSustainSound(int cm)
+	public boolean getAdlibSustainSound(final int cm)
 	{
 		return ((adLib_Instrument[0+cm]>>5)&0x01)>0;
 	}
-	public boolean getAdlibEnvelopeScaling(int cm)
+	public boolean getAdlibEnvelopeScaling(final int cm)
 	{
 		return ((adLib_Instrument[0+cm]>>4)&0x01)>0;
 	}
-	public int getAdlibFrequencyMultiplier(int cm)
+	public int getAdlibFrequencyMultiplier(final int cm)
 	{
 		return adLib_Instrument[0+cm]&0x0F;
 	}
-	public int getAdlibKeyScaleLevel(int cm)
+	public int getAdlibKeyScaleLevel(final int cm)
 	{
 		return (adLib_Instrument[2+cm]>>6)&0x03;
 	}
-	public int getAdlibVolumeLevel(int cm)
+	public int getAdlibVolumeLevel(final int cm)
 	{
 		return adLib_Instrument[2+cm]&0x3F;
 	}
-	public int getAdlibAttackRate(int cm)
+	public int getAdlibAttackRate(final int cm)
 	{
 		return (adLib_Instrument[4+cm]>>4)&0x0F;
 	}
-	public int getAdlibDecaykRate(int cm)
+	public int getAdlibDecaykRate(final int cm)
 	{
 		return adLib_Instrument[4+cm]&0x0F;
 	}
-	public int getAdlibSustainLevel(int cm)
+	public int getAdlibSustainLevel(final int cm)
 	{
 		return (adLib_Instrument[6+cm]>>4)&0x0F;
 	}
-	public int getAdlibReleaseRate(int cm)
+	public int getAdlibReleaseRate(final int cm)
 	{
 		return adLib_Instrument[6+cm]&0x0F;
 	}
-	public int getAdlibWaveSelect(int cm)
+	public int getAdlibWaveSelect(final int cm)
 	{
 		return adLib_Instrument[8+cm]&0x07;
 	}

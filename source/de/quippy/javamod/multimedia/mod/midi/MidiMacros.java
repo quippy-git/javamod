@@ -2,11 +2,11 @@
  * @(#) MidiMacros.java
  *
  * Created on 15.06.2020 by Daniel Becker
- * 
+ *
  * This stuff is inspired by the coding of OpenMPT and originally
  * developed by OpenMPT Devs. Ported to JAVA by me.
- * The OpenMPT source code is released under the BSD license. 
- * 
+ * The OpenMPT source code is released under the BSD license.
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,18 @@ import de.quippy.javamod.system.Helpers;
  */
 public class MidiMacros
 {
+	public enum ParameteredMacroTypes
+	{
+		SFxUnused, SFxCutoff, SFxReso, SFxFltMode, SFxDryWet, SFxCC,
+		SFxPlugParam, SFxChannelAT, SFxPolyAT, SFxPitch, SFxProgChange,
+		SFxCustom,
+	}
+	public enum FixedMacroTypes
+	{
+        ZxxUnused, ZxxReso4Bit, ZxxReso7Bit, ZxxCutoff, ZxxFltMode,
+        ZxxResoFltMode, ZxxChannelAT, ZxxPolyAT, ZxxPitch, ZxxProgChange,
+        ZxxCustom
+	}
 	public static final int MIDIOUT_START	= 0;
 	public static final int MIDIOUT_STOP	= 1;
 	public static final int MIDIOUT_TICK	= 2;
@@ -45,28 +57,16 @@ public class MidiMacros
 	public static final int MIDIOUT_PAN		= 6;
 	public static final int MIDIOUT_BANKSEL	= 7;
 	public static final int MIDIOUT_PROGRAM	= 8;
-	
+
 	private static final int ANZ_GLB = 9;
 	private static final int ANZ_SFX = 16;
 	private static final int ANZ_ZXX = 128;
 	private static final int MACRO_LEN = 32;
 	public static final int SIZE_OF_SCTUCT = (ANZ_GLB+ANZ_SFX+ANZ_ZXX)*MACRO_LEN;
-	
-	private String [] midiGlobal;
-	private String [] midiSFXExt;
-	private String [] midiZXXExt;
-	enum ParameteredMacroTypes
-	{
-		SFxUnused, SFxCutoff, SFxReso, SFxFltMode, SFxDryWet, SFxCC, 
-		SFxPlugParam, SFxChannelAT, SFxPolyAT, SFxPitch, SFxProgChange, 
-		SFxCustom,
-	}
-	enum FixedMacroTypes
-	{
-        ZxxUnused, ZxxReso4Bit, ZxxReso7Bit, ZxxCutoff, ZxxFltMode, 
-        ZxxResoFltMode, ZxxChannelAT, ZxxPolyAT, ZxxPitch, ZxxProgChange, 
-        ZxxCustom
-	}
+
+	private final String [] midiGlobal;
+	private final String [] midiSFXExt;
+	private final String [] midiZXXExt;
 
 	/**
 	 * Constructor for MidiMacros
@@ -78,7 +78,7 @@ public class MidiMacros
 		midiZXXExt = new String[ANZ_ZXX]; // read 128;
 		resetMidiMacros();
 	}
-	
+
 	/**
 	 * @since 15.06.2020
 	 */
@@ -102,7 +102,7 @@ public class MidiMacros
 	 * @param subType
 	 * @return
 	 */
-	public static String createParameteredMacro(ParameteredMacroTypes macroType, int subType)
+	public static String createParameteredMacro(final ParameteredMacroTypes macroType, final int subType)
 	{
 	    switch(macroType)
 	    {
@@ -113,7 +113,7 @@ public class MidiMacros
 		    case SFxDryWet:		return "F0F003z";
 		    case SFxCC:			return String.format("Bc%02X", Integer.valueOf(subType & 0x7F));
 		    case SFxPlugParam:	return String.format("F0F%03X", Integer.valueOf((subType & 0x17F) + 0x80));
-		    case SFxChannelAT:	return "Dcz"; 
+		    case SFxChannelAT:	return "Dcz";
 		    case SFxPolyAT:		return "Acnz";
 		    case SFxPitch:		return "Ec00z";
 		    case SFxProgChange:	return "Ccz";
@@ -127,7 +127,7 @@ public class MidiMacros
 	 * @param macroType
 	 * @return
 	 */
-	public static void createFixedMacro(String[] fixedMacros, FixedMacroTypes macroType)
+	public static void createFixedMacro(final String[] fixedMacros, final FixedMacroTypes macroType)
 	{
 		for (int i = 0; i < ANZ_ZXX; i++)
 		{
@@ -193,9 +193,9 @@ public class MidiMacros
 	 */
 	public static String getSafeMacro(final String macroString)
 	{
-	    StringBuilder sb = new StringBuilder();
-	    for (char c : macroString.toCharArray())
-	       if ("0123456789ABCDEFabchmnopsuvxyz".indexOf(c)!=-1) sb.append(c); 
+	    final StringBuilder sb = new StringBuilder();
+	    for (final char c : macroString.toCharArray())
+	       if ("0123456789ABCDEFabchmnopsuvxyz".indexOf(c)!=-1) sb.append(c);
 	    return sb.toString();
 	}
 	/**
@@ -231,7 +231,7 @@ public class MidiMacros
 	public static int getMacroPlugParam(final String macroString)
 	{
 	    final char [] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
-	    int code = Character.digit(macro[4], 16)<<4 | Character.digit(macro[5], 16);
+	    final int code = Character.digit(macro[4], 16)<<4 | Character.digit(macro[5], 16);
 	    if (macro.length >= 4 && macro[3] == '0')
 	        return (code - 128);
 	    else
@@ -257,7 +257,7 @@ public class MidiMacros
 	public static int getMacroMidiCC(final String macroString)
 	{
 	    final char [] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
-	    int code = Character.digit(macro[2], 16)<<4 | Character.digit(macro[3], 16);
+	    final int code = Character.digit(macro[2], 16)<<4 | Character.digit(macro[3], 16);
 	    return code;
 	}
 	/**
@@ -267,7 +267,7 @@ public class MidiMacros
 	 * @param macroIndex
 	 * @return
 	 */
-	public int getMacroMidiCC(int macroIndex)
+	public int getMacroMidiCC(final int macroIndex)
 	{
 	    return MidiMacros.getMacroMidiCC(midiSFXExt[macroIndex]);
 	}
@@ -290,7 +290,7 @@ public class MidiMacros
 	 * @param inputStream
 	 * @throws IOException
 	 */
-	public void loadFrom(ModfileInputStream inputStream) throws IOException
+	public void loadFrom(final ModfileInputStream inputStream) throws IOException
 	{
 		for (int i=0; i<ANZ_GLB; i++) midiGlobal[i]=inputStream.readString(MACRO_LEN);
 		for (int i=0; i<ANZ_SFX; i++) midiSFXExt[i]=inputStream.readString(MACRO_LEN);

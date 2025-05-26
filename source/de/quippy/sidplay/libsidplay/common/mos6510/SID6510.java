@@ -29,9 +29,9 @@ import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_env_t;
 
 /**
  * Sidplay Specials
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class SID6510 extends MOS6510 {
 
@@ -43,7 +43,7 @@ public class SID6510 extends MOS6510 {
 
 	private boolean m_framelock;
 
-	public SID6510(IEventContext context) {
+	public SID6510(final IEventContext context) {
 		super(context);
 		m_mode = sid2_env_t.sid2_envR;
 		m_framelock = false;
@@ -55,6 +55,7 @@ public class SID6510 extends MOS6510 {
 		// Used to insert busy delays into the CPU emulation
 		delayCycle.func = new IFunc() {
 
+			@Override
 			public void invoke() {
 				sid_delay();
 			}
@@ -66,14 +67,15 @@ public class SID6510 extends MOS6510 {
 	// Standard Functions
 	//
 
+	@Override
 	public void reset() {
 		m_sleeping = false;
 		// Call inherited reset
 		super.reset();
 	}
 
-	public void reset(int /* uint_least16_t */pc, short /* uint8_t */a,
-			short /* uint8_t */x, short /* uint8_t */y) {
+	public void reset(final int /* uint_least16_t */pc, final short /* uint8_t */a,
+			final short /* uint8_t */x, final short /* uint8_t */y) {
 		// Reset the processor
 		reset();
 
@@ -84,7 +86,7 @@ public class SID6510 extends MOS6510 {
 		Register_ProgramCounter = pc;
 	}
 
-	public void environment(sid2_env_t mode) {
+	public void environment(final sid2_env_t mode) {
 		m_mode = mode;
 	}
 
@@ -92,6 +94,7 @@ public class SID6510 extends MOS6510 {
 	// Sidplay compatibility interrupts. Basically wakes CPU if it is m_sleeping
 	//
 
+	@Override
 	public void triggerRST() {
 		// All modes
 		super.triggerRST();
@@ -102,6 +105,7 @@ public class SID6510 extends MOS6510 {
 		}
 	}
 
+	@Override
 	public void triggerNMI() {
 		// Only in Real C64 mode
 		if (m_mode == sid2_env_t.sid2_envR) {
@@ -114,18 +118,17 @@ public class SID6510 extends MOS6510 {
 		}
 	}
 
+	@Override
 	public void triggerIRQ() {
 		switch (m_mode) {
 		default:
-			if (MOS6510.isLoggable(Level.FINE)) {
-				if (dodump) {
+				if (MOS6510.isLoggable(Level.FINE) && dodump) {
 					MOS6510
 							.fine("****************************************************\n");
 					MOS6510.fine(" Fake IRQ Routine\n");
 					MOS6510
 							.fine("****************************************************\n");
 				}
-			}
 			return;
 		case sid2_envR:
 			super.triggerIRQ();
@@ -164,6 +167,7 @@ public class SID6510 extends MOS6510 {
 	/**
 	 * Hack for de.quippy.sidplay.sidplay: Suppresses Illegal Instructions
 	 */
+	@Override
 	protected void illegal_instr() {
 		sid_illegal();
 	}
@@ -171,6 +175,7 @@ public class SID6510 extends MOS6510 {
 	/**
 	 * Hack for de.quippy.sidplay.sidplay: Stop jumps into ROM code
 	 */
+	@Override
 	protected void jmp_instr() {
 		sid_jmp();
 	}
@@ -178,6 +183,7 @@ public class SID6510 extends MOS6510 {
 	/**
 	 * Hack for de.quippy.sidplay.sidplay: No overlapping IRQs allowed
 	 */
+	@Override
 	protected void cli_instr() {
 		sid_cli();
 	}
@@ -186,6 +192,7 @@ public class SID6510 extends MOS6510 {
 	 * Hack for de.quippy.sidplay.sidplay: Since no real IRQs, all RTIs mapped to RTS Required for
 	 * fix bad tunes in old modes
 	 */
+	@Override
 	protected void PopSR_sidplay_rti() {
 		sid_rti();
 	}
@@ -193,6 +200,7 @@ public class SID6510 extends MOS6510 {
 	/**
 	 * Hack for de.quippy.sidplay.sidplay: Support of sidplays BRK functionality
 	 */
+	@Override
 	protected void PushHighPC_sidplay_brk() {
 		sid_brk();
 	}
@@ -200,10 +208,12 @@ public class SID6510 extends MOS6510 {
 	/**
 	 * Hack for de.quippy.sidplay.sidplay: RTI behaves like RTI in sidplay1 modes
 	 */
+	@Override
 	protected void IRQRequest_sidplay_irq() {
 		sid_irq();
 	}
 
+	@Override
 	protected void FetchOpcode() {
 		if (m_mode == sid2_env_t.sid2_envR) {
 			super.FetchOpcode();
@@ -217,7 +227,7 @@ public class SID6510 extends MOS6510 {
 		if (!m_sleeping)
 			super.FetchOpcode();
 
-		if (m_framelock == false) {
+		if (!m_framelock) {
 			int timeout = 6000000;
 			m_framelock = true;
 			// Simulate sidplay1 frame based execution
@@ -235,7 +245,7 @@ public class SID6510 extends MOS6510 {
 		}
 	}
 
-	private ProcessorCycle delayCycle = new ProcessorCycle();
+	private final ProcessorCycle delayCycle = new ProcessorCycle();
 
 	//
 	// For de.quippy.sidplay.sidplay compatibility implement those instructions which don't behave
@@ -256,7 +266,7 @@ public class SID6510 extends MOS6510 {
 	}
 
 	private void sid_delay() {
-		long /* event_clock_t */stolen = eventContext.getTime(m_stealingClk,
+		final long /* event_clock_t */stolen = eventContext.getTime(m_stealingClk,
 				m_phase);
 		long /* event_clock_t */delayed = eventContext.getTime(m_delayClk,
 				m_phase);
@@ -277,11 +287,9 @@ public class SID6510 extends MOS6510 {
 		if (m_sleeping)
 			eventContext.cancel(event);
 		else {
-			long /* event_clock_t */cycle = delayed % 3;
-			if (cycle == 0) {
-				if (interruptPending())
-					return;
-			}
+			final long /* event_clock_t */cycle = delayed % 3;
+			if ((cycle == 0) && interruptPending())
+				return;
 			eventContext.schedule(event, 3 - cycle, m_phase);
 		}
 	}

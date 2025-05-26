@@ -288,25 +288,25 @@ public final class CRC16 {
 
     /**
      * Update the CRC with the byte data.
-     * 
+     *
      * @param data  The byte data
      * @param crc   The starting CRC value
      * @return      The updated CRC value
      */
-    public static short update(byte data, short crc) {
+    public static short update(final byte data, short crc) {
         crc = (short) ((crc << 8) ^ CRC16_TABLE[((crc >> 8) ^ data) & 0xff]);
         return crc;
     }
 
     /**
      * Update the CRC with the byte array data.
-     * 
+     *
      * @param data  The byte array data
      * @param len   The byte array length
      * @param crc   The starting CRC value
      * @return      The updated CRC value
      */
-    public static short updateBlock(byte[] data, int len, short crc) {
+    public static short updateBlock(final byte[] data, final int len, short crc) {
         for (int i = 0; i < len; i++)
             crc = (short) ((crc << 8) ^ CRC16_TABLE[(crc >> 8) ^ data[i]]);
         return crc;
@@ -315,12 +315,12 @@ public final class CRC16 {
 
     /**
      * Calculate the CRC over a byte array.
-     * 
+     *
      * @param data  The byte data
      * @param len   The byte array length
      * @return      The calculated CRC value
      */
-    public static short calc(byte[] data, int len) {
+    public static short calc(final byte[] data, final int len) {
         short crc = 0;
 
         for (int i = 0; i < len; i++)

@@ -21,7 +21,7 @@ public class Buffer_sidtt {
 		kill();
 	}
 
-	public Buffer_sidtt(short[] inBuf, int /* uint_least32_t */inLen) {
+	public Buffer_sidtt(final short[] inBuf, final int /* uint_least32_t */inLen) {
 		dummy = (0);
 		kill();
 		if (inBuf != null && inLen != 0) {
@@ -30,7 +30,7 @@ public class Buffer_sidtt {
 		}
 	}
 
-	public boolean assign(short[] newBuf, int /* uint_least32_t */newLen) {
+	public boolean assign(final short[] newBuf, final int /* uint_least32_t */newLen) {
 		erase();
 		buf = newBuf;
 		bufLen = newLen;
@@ -46,18 +46,18 @@ public class Buffer_sidtt {
 	}
 
 	public short[] xferPtr() {
-		short[] tmpBuf = buf;
+		final short[] tmpBuf = buf;
 		buf = null;
 		return tmpBuf;
 	}
 
 	public int /* uint_least32_t */xferLen() {
-		int /* uint_least32_t */tmpBufLen = bufLen;
+		final int /* uint_least32_t */tmpBufLen = bufLen;
 		bufLen = 0;
 		return tmpBufLen;
 	}
 
-	public short opAt(int /* uint_least32_t */index) {
+	public short opAt(final int /* uint_least32_t */index) {
 		if (index < bufLen)
 			return buf[index];
 		else
@@ -79,7 +79,7 @@ public class Buffer_sidtt {
 
 	private int /* uint_least32_t */bufLen;
 
-	private short dummy;
+	private final short dummy;
 
 	private void kill() {
 		buf = null;

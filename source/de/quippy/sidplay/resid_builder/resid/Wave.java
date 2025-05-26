@@ -2,7 +2,7 @@
  * @(#) Wave.java
  *
  * Created on 09.08.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ public class Wave
 	public static final int wave6581_P_T[] = new int[4096];
 	public static final int wave6581_PS_[] = new int[4096];
 	public static final int wave6581_PST[] = new int[4096];
-	
+
 	public static final int wave8580__ST[] = new int[4096];
 	public static final int wave8580_P_T[] = new int[4096];
 	public static final int wave8580_PS_[] = new int[4096];
@@ -54,7 +54,7 @@ public class Wave
 //		writeArrayToStream(Helpers.HOMEDIR + "/WAVE8580_P_T", IWave8580.wave8580_P_T);
 //		writeArrayToStream(Helpers.HOMEDIR + "/WAVE8580_PS_", IWave8580.wave8580_PS_);
 //		writeArrayToStream(Helpers.HOMEDIR + "/WAVE8580_PST", IWave8580.wave8580_PST);
-		
+
 		//LOAD:
 		readArrayFromStream(RESSOURCE_PATH_6581 + "__ST", wave6581__ST);
 		readArrayFromStream(RESSOURCE_PATH_6581 + "_P_T", wave6581__ST);
@@ -65,7 +65,7 @@ public class Wave
 		readArrayFromStream(RESSOURCE_PATH_8580 + "_PS_", wave8580__ST);
 		readArrayFromStream(RESSOURCE_PATH_8580 + "_PST", wave8580__ST);
 	}
-	
+
 //	private static void writeArrayToStream(final String ressourcePath, final int [] array)
 //	{
 //		File f = new File(ressourcePath);
@@ -101,23 +101,23 @@ public class Wave
 			{
 				for (int i=0; i<len; i++)
 				{
-					array[writePos + i] = (int)(buf[i])&0xFF;
+					array[writePos + i] = (buf[i])&0xFF;
 				}
 				writePos += len;
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			ex.printStackTrace(System.err);
 		}
 		finally
 		{
-			if (iStream!=null) try { iStream.close(); } catch (IOException e) { /*NOOP*/ }
+			if (iStream!=null) try { iStream.close(); } catch (final IOException e) { /*NOOP*/ }
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @since 09.08.2012
 	 */
 	private Wave()

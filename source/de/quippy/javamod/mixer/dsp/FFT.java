@@ -2,7 +2,7 @@
  * @(#) FFT.java
  *
  * Created on 30.09.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class FFT
 {
 	private static final int FRAC_BITS = 16;
 	public static final int FRAC_FAC = 1<<FRAC_BITS;
-	
+
 	private final long xre[];
 	private final long xim[];
 	private final float mag[];
@@ -44,17 +44,17 @@ public class FFT
 	/**
 	 * Constructor for FFT
 	 */
-	public FFT(int pSampleSize)
+	public FFT(final int pSampleSize)
 	{
 		ss = pSampleSize;
 		ss2 = ss >> 1;
-		
+
 		nu = (int) (Math.log(ss) / Math.log(2.0D));
 
 		xre = new long[ss];
 		xim = new long[ss];
 		mag = new float[ss2];
-		
+
 		fftSin = new long[nu * ss2];
 		fftCos = new long[nu * ss2];
 
@@ -80,8 +80,8 @@ public class FFT
 			{
 				for (int i=1; i<=n2; i++)
 				{
-					double p = (double)bitrev(k >> nu1, nu);
-					double arg = (Math.PI * p * 2.0D) / (double) ss;
+					final double p = bitrev(k >> nu1, nu);
+					final double arg = (Math.PI * p * 2.0D) / ss;
 					fftSin[x] = (long) (Math.sin(arg) * FRAC_FAC);
 					fftCos[x] = (long) (Math.cos(arg) * FRAC_FAC);
 					k++;
@@ -104,7 +104,7 @@ public class FFT
 	 * @param value
 	 * @return
 	 */
-	private static long longSqrt(long value)
+	private static long longSqrt(final long value)
 	{
 		final int scale = 8;
 		int bits = 64;
@@ -115,29 +115,29 @@ public class FFT
 			bits -= 8;
 			rest = (rest<<8) | ((value>>bits)&0xFF);
 			long i2 = (sqrt<<5)+1;
-			
+
 			int k0=0;
 			while (true)
 			{
-				long i3 = rest-i2;
+				final long i3 = rest-i2;
 				if (i3<0) break;
-				
+
 				rest=i3;
 				i2+=2;
 				k0++;
 			}
 			sqrt=(sqrt<<4)+k0;
 		}
-		
+
 		return sqrt;
 	}
-	private static int bitrev(int j, int nu)
+	private static int bitrev(final int j, final int nu)
 	{
 		int j1 = j;
 		int k = 0;
 		for (int i=1; i<=nu; i++)
 		{
-			int j2 = j1 >> 1;
+			final int j2 = j1 >> 1;
 			k = ((k << 1) + j1) - (j2 << 1);
 			j1 = j2;
 		}
@@ -151,7 +151,7 @@ public class FFT
 	 * @param pSample
 	 * @return
 	 */
-	public float[] calculate(float pSample[])
+	public float[] calculate(final float pSample[])
 	{
 		final int wAps = pSample.length / ss;
 		int n2 = ss2;

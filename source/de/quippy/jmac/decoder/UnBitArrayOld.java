@@ -39,12 +39,12 @@ public class UnBitArrayOld extends UnBitArrayBase {
     public final static long K_SUM_MAX_BOUNDARY[] = {32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, 67108864, 134217728, 268435456, 536870912, 1073741824, 2147483648L, 0, 0, 0, 0, 0};
 
     //construction/destruction
-    public UnBitArrayOld(IAPEDecompress pAPEDecompress, int nVersion) {
+    public UnBitArrayOld(final IAPEDecompress pAPEDecompress, final int nVersion) {
         int nBitArrayBytes = 262144;
 
         //calculate the bytes
         if (nVersion <= 3880) {
-            int nMaxFrameBytes = (pAPEDecompress.getApeInfoBlocksPerFrame() * 50) / 8;
+            final int nMaxFrameBytes = (pAPEDecompress.getApeInfoBlocksPerFrame() * 50) / 8;
             nBitArrayBytes = 65536;
             while (nBitArrayBytes < nMaxFrameBytes)
                 nBitArrayBytes <<= 1;
@@ -63,14 +63,16 @@ public class UnBitArrayOld extends UnBitArrayBase {
     }
 
     //functions
-    public void GenerateArray(int[] pOutputArray, int nElements, int nBytesRequired) throws IOException {
+    @Override
+	public void GenerateArray(final int[] pOutputArray, final int nElements, final int nBytesRequired) throws IOException {
         if (m_nVersion < 3860)
             GenerateArrayOld(pOutputArray, nElements, nBytesRequired);
         else if (m_nVersion <= 3890)
             GenerateArrayRice(pOutputArray, nElements, nBytesRequired);
     }
 
-    public long DecodeValue(int DecodeMethod, int nParam1, int nParam2) throws IOException {
+    @Override
+	public long DecodeValue(final int DecodeMethod, final int nParam1, final int nParam2) throws IOException {
         switch (DecodeMethod) {
             case DecodeValueMethod.DECODE_VALUE_METHOD_UNSIGNED_INT:
                 return DecodeValueXBits(32);
@@ -83,7 +85,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
         return 0;
     }
 
-    private void GenerateArrayOld(int[] Output_Array, long Number_of_Elements, int Minimum_nCurrentBitIndex_Array_Bytes) throws IOException {
+    private void GenerateArrayOld(final int[] Output_Array, final long Number_of_Elements, final int Minimum_nCurrentBitIndex_Array_Bytes) throws IOException {
         //variable declarations
         long K_Sum;
         long q;
@@ -150,7 +152,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
         // the primary loop
         for (p1 = 64, p2 = 0; p1 < Number_of_Elements; p1++, p2++) {
             // plug through the string of 0's (the overflow)
-            long Bit_Initial = m_nCurrentBitIndex;
+            final long Bit_Initial = m_nCurrentBitIndex;
             while ((m_pBitArray[(int) (m_nCurrentBitIndex >> 5)] & Powers_of_Two_Reversed[(int) (m_nCurrentBitIndex++ & 31)]) == 0) {}
 
             // if k = 0, your done
@@ -162,12 +164,12 @@ public class UnBitArrayOld extends UnBitArrayBase {
 
                 // store the bit information and incement the bit pointer by 'k'
                 Bit_Array_Index = m_nCurrentBitIndex >> 5;
-                long Bit_Index = m_nCurrentBitIndex & 31;
+                final long Bit_Index = m_nCurrentBitIndex & 31;
                 m_nCurrentBitIndex += k;
 
                 //figure the extra bits on the left and the left value
-                int Left_Extra_Bits = (int) ((32 - k) - Bit_Index);
-                long Left_Value = m_pBitArray[(int) Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[(int) Bit_Index];
+                final int Left_Extra_Bits = (int) ((32 - k) - Bit_Index);
+                final long Left_Value = m_pBitArray[(int) Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[(int) Bit_Index];
 
                 if (Left_Extra_Bits >= 0)
                     v |= (Left_Value >> Left_Extra_Bits);
@@ -197,7 +199,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
             Output_Array[p2] = (Output_Array[p2] & 1) > 0 ? (Output_Array[p2] >> 1) + 1 : -(Output_Array[p2] >> 1);
     }
 
-    private void GenerateArrayRice(int[] pOutputArray, long NumberOfElements, int MinimumBitArrayBytes) throws IOException {
+    private void GenerateArrayRice(final int[] pOutputArray, final long NumberOfElements, final int MinimumBitArrayBytes) throws IOException {
         /////////////////////////////////////////////////////////////////////////////
         //decode the bit array
         /////////////////////////////////////////////////////////////////////////////
@@ -216,12 +218,12 @@ public class UnBitArrayOld extends UnBitArrayBase {
         }
     }
 
-    private long DecodeValueRiceUnsigned(long k) throws IOException {
+    private long DecodeValueRiceUnsigned(final long k) throws IOException {
         //variable declares
         long v;
 
         //plug through the string of 0's (the overflow)
-        long BitInitial = m_nCurrentBitIndex;
+        final long BitInitial = m_nCurrentBitIndex;
         while ((m_pBitArray[(int) (m_nCurrentBitIndex >> 5)] & Powers_of_Two_Reversed[(int) (m_nCurrentBitIndex++ & 31)]) == 0) {}
 
         //if k = 0, your done
@@ -240,7 +242,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
     private long m_nRefillBitThreshold;
 
     //functions
-    private int DecodeValueNew(boolean bCapOverflow) throws IOException {
+    private int DecodeValueNew(final boolean bCapOverflow) throws IOException {
         //make sure there is room for the data
         //this is a little slower than ensuring a huge block to start with, but it's safer
         if (m_nCurrentBitIndex > m_nRefillBitThreshold)
@@ -249,7 +251,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
         long v;
 
         //plug through the string of 0's (the overflow)
-        long Bit_Initial = m_nCurrentBitIndex;
+        final long Bit_Initial = m_nCurrentBitIndex;
         while ((m_pBitArray[(int) (m_nCurrentBitIndex >> 5)] & Powers_of_Two_Reversed[(int) (m_nCurrentBitIndex++ & 31)]) == 0) {}
 
         int nOverflow = (int) (m_nCurrentBitIndex - Bit_Initial - 1);
@@ -267,13 +269,13 @@ public class UnBitArrayOld extends UnBitArrayBase {
             v = nOverflow << k;
 
             //store the bit information and incement the bit pointer by 'k'
-            long Bit_Array_Index = m_nCurrentBitIndex >> 5;
-            long Bit_Index = m_nCurrentBitIndex & 31;
+            final long Bit_Array_Index = m_nCurrentBitIndex >> 5;
+            final long Bit_Index = m_nCurrentBitIndex & 31;
             m_nCurrentBitIndex += k;
 
             //figure the extra bits on the left and the left value
-            int Left_Extra_Bits = (int) ((32 - k) - Bit_Index);
-            long Left_Value = m_pBitArray[(int) Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[(int) Bit_Index];
+            final int Left_Extra_Bits = (int) ((32 - k) - Bit_Index);
+            final long Left_Value = m_pBitArray[(int) Bit_Array_Index] & Powers_of_Two_Minus_One_Reversed[(int) Bit_Index];
 
             if (Left_Extra_Bits >= 0)
                 v |= (Left_Value >> Left_Extra_Bits);
@@ -299,7 +301,7 @@ public class UnBitArrayOld extends UnBitArrayBase {
         return (m_nElements * 32 - m_nCurrentBitIndex);
     }
 
-    private long Get_K(long x) {
+    private long Get_K(final long x) {
         if (x == 0) return 0;
 
         long k = 0;

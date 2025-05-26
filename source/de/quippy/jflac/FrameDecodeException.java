@@ -28,7 +28,7 @@ public class FrameDecodeException extends Exception {
      * Constructor.
      * @param msg Error message
      */
-    public FrameDecodeException(String msg) {
+    public FrameDecodeException(final String msg) {
         super(msg);
     }
 
@@ -36,7 +36,7 @@ public class FrameDecodeException extends Exception {
      * Constructor.
      * @param err The causing error
      */
-    public FrameDecodeException(Throwable err) {
+    public FrameDecodeException(final Throwable err) {
         super(err);
     }
 
@@ -45,7 +45,7 @@ public class FrameDecodeException extends Exception {
      * @param msg The error message
      * @param err The causing error
      */
-    public FrameDecodeException(String msg, Throwable err) {
+    public FrameDecodeException(final String msg, final Throwable err) {
         super(msg, err);
     }
 

@@ -28,7 +28,8 @@ package de.quippy.jmac.decoder;
 public class AntiPredictorNormal3800ToCurrent extends AntiPredictor {
     private final static int FIRST_ELEMENT = 4;
 
-    public void antiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements) {
+    @Override
+	public void antiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements) {
         //short frame handling
         if (NumberOfElements < 8) {
             System.arraycopy(pInputArray, 0, pOutputArray, 0, NumberOfElements);
@@ -57,7 +58,8 @@ public class AntiPredictorNormal3800ToCurrent extends AntiPredictor {
         //pump the primary loop
         for (; op < NumberOfElements; op++, ip++) {
 
-            int o = pOutputArray[op], i = pInputArray[ip];
+            int o = pOutputArray[op];
+			final int i = pInputArray[ip];
 
             /////////////////////////////////////////////
             o = i + (((p2 * m2) + (p3 * m3) + (p4 * m4)) >> 11);

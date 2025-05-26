@@ -46,11 +46,11 @@ public class PP20 {
 	/**
 	 * If successful, allocates a new buffer containing the uncompresse data and
 	 * returns the uncompressed length. Else, returns 0.
-	 * 
+	 *
 	 * @return
 	 */
 	public int /* udword_ppt */decompress(
-			final short[] /* const void* */source, int /* udword_ppt */size,
+			final short[] /* const void* */source, final int /* udword_ppt */size,
 			final Decompressed decomp) {
 		this.source = source;
 		globalError = false; // assume no error
@@ -65,7 +65,7 @@ public class PP20 {
 		// Backwards decompression.
 		readPtr += (size - 4);
 
-		int /* udword_ppt */lastDword = readBEdword(source, readPtr);
+		final int /* udword_ppt */lastDword = readBEdword(source, readPtr);
 		// Uncompressed length in bits 31-8 of last dword.
 		int /* udword_ppt */outputLen = lastDword >> 8;
 
@@ -112,7 +112,7 @@ public class PP20 {
 		return statusString;
 	}
 
-	private boolean checkEfficiency(final short[] source, int pos) {
+	private boolean checkEfficiency(final short[] source, final int pos) {
 		final int /* udword_ppt */PP_BITS_FAST = 0x09090909;
 		final int /* udword_ppt */PP_BITS_MEDIOCRE = 0x090a0a0a;
 		final int /* udword_ppt */PP_BITS_GOOD = 0x090a0b0b;
@@ -120,9 +120,9 @@ public class PP20 {
 		final int /* udword_ppt */PP_BITS_BEST = 0x090a0c0d;
 
 		// Copy efficiency table.
-		System.arraycopy((short[] /* ubyte_ppt* */) source, pos, efficiency,
+		System.arraycopy(source, pos, efficiency,
 				0, 4);
-		int /* udword_ppt */eff = readBEdword(efficiency, 0);
+		final int /* udword_ppt */eff = readBEdword(efficiency, 0);
 		if ((eff != PP_BITS_FAST) && (eff != PP_BITS_MEDIOCRE)
 				&& (eff != PP_BITS_GOOD) && (eff != PP_BITS_VERYGOOD)
 				&& (eff != PP_BITS_BEST)) {
@@ -199,7 +199,7 @@ public class PP20 {
 	private void sequence() {
 		int /* udword_ppt */offset, add;
 		int /* udword_ppt */length = readBits(2); // is length-2
-		int offsetBitLen = (int) efficiency[length];
+		int offsetBitLen = efficiency[length];
 		length += 2;
 		if (length != 5)
 			offset = readBits(offsetBitLen);
@@ -236,7 +236,7 @@ public class PP20 {
 
 	private static final String PP_ID = "PP20";
 
-	private short /* ubyte_ppt */efficiency[] = new short[4];
+	private final short /* ubyte_ppt */efficiency[] = new short[4];
 
 	private short[] source;
 	short[] /* ubyte_ppt* */dest;
@@ -264,15 +264,15 @@ public class PP20 {
 	/**
 	 * Read a big-endian 32-bit word from four bytes in memory. No
 	 * endian-specific optimizations applied.
-	 * 
+	 *
 	 * @param ptr
 	 * @param pos
 	 * @return
 	 */
 	int /* udword_ppt */readBEdword(final short[] /* ubyte_ppt[4] */ptr,
-			int pos) {
-		return (((((short /* udword_ppt */) ptr[pos + 0]) << 24)
-				+ (((short /* udword_ppt */) ptr[pos + 1]) << 16)
-				+ (((short /* udword_ppt */) ptr[pos + 2]) << 8) + ((short /* udword_ppt */) ptr[pos + 3])) << 0);
+			final int pos) {
+		return ((((ptr[pos + 0]) << 24)
+				+ ((ptr[pos + 1]) << 16)
+				+ ((ptr[pos + 2]) << 8) + (ptr[pos + 3])) << 0);
 	}
 }

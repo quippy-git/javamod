@@ -1,19 +1,19 @@
 /*
  * @(#) FFT2.java
- * 
+ *
  * Created on 21.01.2012 by Daniel Becker
- * 
+ *
  * -----------------------------------------------------------------------
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -36,7 +36,7 @@ public class FFT2
 	private int bits = 0;
 	private int flip[] = null;
 
-	public FFT2(int frameSize)
+	public FFT2(final int frameSize)
 	{
 		this.frameSize = frameSize;
 		bits = (int) (Math.log(frameSize) / Math.log(2D));
@@ -59,7 +59,7 @@ public class FFT2
 		}
 	}
 
-	public void smsFft(float fftBuffer[], int sign)
+	public void smsFft(final float fftBuffer[], final int sign)
 	{
 		if (sign != FORWARD && sign != REVERSE) throw new IllegalArgumentException("invalid sign: " + sign);
 		for (int i = 1; i < frameSize - 1; i++)
@@ -87,9 +87,9 @@ public class FFT2
 			final int le2 = le >> 1;
 			float ur = 1.0f;
 			float ui = 0.0f;
-			final float arg = (float) Math.PI / (float) (le2 >> 1);
+			final float arg = (float) Math.PI / (le2 >> 1);
 			final float wr = (float) FastMath.fastCos(arg);
-			final float wi = (float) sign * (float) FastMath.fastSin(arg);
+			final float wi = sign * (float) FastMath.fastSin(arg);
 //			int idx = 0;
 			for (int j = 0; j < le2; j += 2)
 			{
@@ -99,8 +99,8 @@ public class FFT2
 				int p2i = p2r + 1;
 				for (int i = j; i<frameSize<<1; i += le)
 				{
-					float tr = fftBuffer[p2r] * ur - fftBuffer[p2i] * ui;
-					float ti = fftBuffer[p2r] * ui + fftBuffer[p2i] * ur;
+					final float tr = fftBuffer[p2r] * ur - fftBuffer[p2i] * ui;
+					final float ti = fftBuffer[p2r] * ui + fftBuffer[p2i] * ur;
 //					idx++;
 					fftBuffer[p2r] = fftBuffer[p1r] - tr;
 					fftBuffer[p2i] = fftBuffer[p1i] - ti;

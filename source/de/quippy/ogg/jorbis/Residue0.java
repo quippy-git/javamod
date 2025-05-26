@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -29,13 +29,14 @@ package de.quippy.ogg.jorbis;
 import de.quippy.ogg.jogg.Buffer;
 
 class Residue0 extends FuncResidue{
-  void pack(Object vr, Buffer opb){
-    InfoResidue0 info=(InfoResidue0)vr;
+  @Override
+void pack(final Object vr, final Buffer opb){
+    final InfoResidue0 info=(InfoResidue0)vr;
     int acc=0;
     opb.write(info.begin, 24);
     opb.write(info.end, 24);
 
-    opb.write(info.grouping-1, 24); /* residue vectors to group and 
+    opb.write(info.grouping-1, 24); /* residue vectors to group and
           			     code with a partitioned book */
     opb.write(info.partitions-1, 6); /* possible partition choices */
     opb.write(info.groupbook, 8); /* group huffman book */
@@ -44,7 +45,7 @@ class Residue0 extends FuncResidue{
        bitmask of one indicates this partition class has bits to write
        this pass */
     for(int j=0; j<info.partitions; j++){
-      int i=info.secondstages[j];
+      final int i=info.secondstages[j];
       if(Util.ilog(i)>3){
         /* yes, this is a minor hack due to not thinking ahead */
         opb.write(i, 3);
@@ -61,9 +62,10 @@ class Residue0 extends FuncResidue{
     }
   }
 
-  Object unpack(Info vi, Buffer opb){
+  @Override
+Object unpack(final Info vi, final Buffer opb){
     int acc=0;
-    InfoResidue0 info=new InfoResidue0();
+    final InfoResidue0 info=new InfoResidue0();
     info.begin=opb.read(24);
     info.end=opb.read(24);
     info.grouping=opb.read(24)+1;
@@ -97,9 +99,10 @@ class Residue0 extends FuncResidue{
     return (info);
   }
 
-  Object look(DspState vd, InfoMode vm, Object vr){
-    InfoResidue0 info=(InfoResidue0)vr;
-    LookResidue0 look=new LookResidue0();
+  @Override
+Object look(final DspState vd, final InfoMode vm, final Object vr){
+    final InfoResidue0 info=(InfoResidue0)vr;
+    final LookResidue0 look=new LookResidue0();
     int acc=0;
     int dim;
     int maxstage=0;
@@ -115,8 +118,8 @@ class Residue0 extends FuncResidue{
     look.partbooks=new int[look.parts][];
 
     for(int j=0; j<look.parts; j++){
-      int i=info.secondstages[j];
-      int stages=Util.ilog(i);
+      final int i=info.secondstages[j];
+      final int stages=Util.ilog(i);
       if(stages!=0){
         if(stages>maxstage)
           maxstage=stages;
@@ -138,7 +141,7 @@ class Residue0 extends FuncResidue{
       look.decodemap[j]=new int[dim];
 
       for(int k=0; k<dim; k++){
-        int deco=val/mult;
+        final int deco=val/mult;
         val-=deco*mult;
         mult/=look.parts;
         look.decodemap[j][k]=deco;
@@ -147,28 +150,30 @@ class Residue0 extends FuncResidue{
     return (look);
   }
 
-  void free_info(Object i){
+  @Override
+void free_info(final Object i){
   }
 
-  void free_look(Object i){
+  @Override
+void free_look(final Object i){
   }
 
   private static int[][][] _01inverse_partword=new int[2][][]; // _01inverse is synchronized for
 
   // re-using partword
-  synchronized static int _01inverse(Block vb, Object vl, float[][] in, int ch,
-      int decodepart){
+  synchronized static int _01inverse(final Block vb, final Object vl, final float[][] in, final int ch,
+      final int decodepart){
     int i, j, k, l, s;
-    LookResidue0 look=(LookResidue0)vl;
-    InfoResidue0 info=look.info;
+    final LookResidue0 look=(LookResidue0)vl;
+    final InfoResidue0 info=look.info;
 
     // move all this setup out later
-    int samples_per_partition=info.grouping;
-    int partitions_per_word=look.phrasebook.dim;
-    int n=info.end-info.begin;
+    final int samples_per_partition=info.grouping;
+    final int partitions_per_word=look.phrasebook.dim;
+    final int n=info.end-info.begin;
 
-    int partvals=n/samples_per_partition;
-    int partwords=(partvals+partitions_per_word-1)/partitions_per_word;
+    final int partvals=n/samples_per_partition;
+    final int partwords=(partvals+partitions_per_word-1)/partitions_per_word;
 
     if(_01inverse_partword.length<ch){
       _01inverse_partword=new int[ch][][];
@@ -181,13 +186,13 @@ class Residue0 extends FuncResidue{
     }
 
     for(s=0; s<look.stages; s++){
-      // each loop decodes on partition codeword containing 
+      // each loop decodes on partition codeword containing
       // partitions_pre_word partitions
       for(i=0, l=0; i<partvals; l++){
         if(s==0){
           // fetch the partition word for each channel
           for(j=0; j<ch; j++){
-            int temp=look.phrasebook.decode(vb.opb);
+            final int temp=look.phrasebook.decode(vb.opb);
             if(temp==-1){
               return (0);
             }
@@ -201,10 +206,10 @@ class Residue0 extends FuncResidue{
         // now we decode residual values for the partitions
         for(k=0; k<partitions_per_word&&i<partvals; k++, i++)
           for(j=0; j<ch; j++){
-            int offset=info.begin+i*samples_per_partition;
-            int index=_01inverse_partword[j][l][k];
+            final int offset=info.begin+i*samples_per_partition;
+            final int index=_01inverse_partword[j][l][k];
             if((info.secondstages[index]&(1<<s))!=0){
-              CodeBook stagebook=look.fullbooks[look.partbooks[index][s]];
+              final CodeBook stagebook=look.fullbooks[look.partbooks[index][s]];
               if(stagebook!=null){
                 if(decodepart==0){
                   if(stagebook.decodevs_add(in[j], offset, vb.opb,
@@ -212,12 +217,10 @@ class Residue0 extends FuncResidue{
                     return (0);
                   }
                 }
-                else if(decodepart==1){
-                  if(stagebook.decodev_add(in[j], offset, vb.opb,
-                      samples_per_partition)==-1){
+				else if((decodepart==1) && (stagebook.decodev_add(in[j], offset, vb.opb,
+                      samples_per_partition)==-1)){
                     return (0);
                   }
-                }
               }
             }
           }
@@ -228,18 +231,18 @@ class Residue0 extends FuncResidue{
 
   static int[][] _2inverse_partword=null;
 
-  synchronized static int _2inverse(Block vb, Object vl, float[][] in, int ch){
+  synchronized static int _2inverse(final Block vb, final Object vl, final float[][] in, final int ch){
     int i, k, l, s;
-    LookResidue0 look=(LookResidue0)vl;
-    InfoResidue0 info=look.info;
+    final LookResidue0 look=(LookResidue0)vl;
+    final InfoResidue0 info=look.info;
 
     // move all this setup out later
-    int samples_per_partition=info.grouping;
-    int partitions_per_word=look.phrasebook.dim;
-    int n=info.end-info.begin;
+    final int samples_per_partition=info.grouping;
+    final int partitions_per_word=look.phrasebook.dim;
+    final int n=info.end-info.begin;
 
-    int partvals=n/samples_per_partition;
-    int partwords=(partvals+partitions_per_word-1)/partitions_per_word;
+    final int partvals=n/samples_per_partition;
+    final int partwords=(partvals+partitions_per_word-1)/partitions_per_word;
 
     if(_2inverse_partword==null||_2inverse_partword.length<partwords){
       _2inverse_partword=new int[partwords][];
@@ -248,7 +251,7 @@ class Residue0 extends FuncResidue{
       for(i=0, l=0; i<partvals; l++){
         if(s==0){
           // fetch the partition word for each channel
-          int temp=look.phrasebook.decode(vb.opb);
+          final int temp=look.phrasebook.decode(vb.opb);
           if(temp==-1){
             return (0);
           }
@@ -260,16 +263,14 @@ class Residue0 extends FuncResidue{
 
         // now we decode residual values for the partitions
         for(k=0; k<partitions_per_word&&i<partvals; k++, i++){
-          int offset=info.begin+i*samples_per_partition;
-          int index=_2inverse_partword[l][k];
+          final int offset=info.begin+i*samples_per_partition;
+          final int index=_2inverse_partword[l][k];
           if((info.secondstages[index]&(1<<s))!=0){
-            CodeBook stagebook=look.fullbooks[look.partbooks[index][s]];
-            if(stagebook!=null){
-              if(stagebook.decodevv_add(in, offset, ch, vb.opb,
-                  samples_per_partition)==-1){
+            final CodeBook stagebook=look.fullbooks[look.partbooks[index][s]];
+            if((stagebook!=null) && (stagebook.decodevv_add(in, offset, ch, vb.opb,
+                  samples_per_partition)==-1)){
                 return (0);
               }
-            }
           }
         }
       }
@@ -277,7 +278,8 @@ class Residue0 extends FuncResidue{
     return (0);
   }
 
-  int inverse(Block vb, Object vl, float[][] in, int[] nonzero, int ch){
+  @Override
+int inverse(final Block vb, final Object vl, final float[][] in, final int[] nonzero, final int ch){
     int used=0;
     for(int i=0; i<ch; i++){
       if(nonzero[i]!=0){

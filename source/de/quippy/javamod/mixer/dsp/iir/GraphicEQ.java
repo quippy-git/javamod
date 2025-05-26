@@ -2,7 +2,7 @@
  * @(#) GraphicEQ.java
  *
  * Created on 09.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,22 +37,22 @@ import de.quippy.javamod.mixer.dsp.iir.filter.IIRFilterBase;
 public class GraphicEQ implements DSPEffekt
 {
 	private static final float Q = 1.4f;
-	private static final int [] CENTER_FREQUENCIES = 
+	private static final int [] CENTER_FREQUENCIES =
 	{
 	 	60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000
 	};
 	private int usedBands;
-	private IIRFilter theFilter;
+	private final IIRFilter theFilter;
 	private boolean isActive;
 
 	/**
-	 * 
+	 *
 	 * @since 09.01.2012
 	 */
 	public GraphicEQ()
 	{
 		super();
-		IIRFilterBase [] filters = new IIRBandpassFilter[CENTER_FREQUENCIES.length];
+		final IIRFilterBase [] filters = new IIRBandpassFilter[CENTER_FREQUENCIES.length];
 		for (int i=0; i<CENTER_FREQUENCIES.length; i++)
 		{
 			filters[i] = new IIRBandpassFilter();
@@ -65,11 +65,12 @@ public class GraphicEQ implements DSPEffekt
 	 * @see de.quippy.javamod.mixer.dsp.DSPEffekt#initialize(javax.sound.sampled.AudioFormat)
 	 * @since 09.01.2012
 	 */
+	@Override
 	public void initialize(final AudioFormat audioFormat, final int sampleBufferSize)
 	{
 		final int currentSampleRate = (int)audioFormat.getSampleRate();
-		int breakFreq = currentSampleRate>>1;
-		IIRFilterBase [] filters = theFilter.getFilters();
+		final int breakFreq = currentSampleRate>>1;
+		final IIRFilterBase [] filters = theFilter.getFilters();
 		for (int i=0; i<CENTER_FREQUENCIES.length; i++)
 		{
 			filters[i].initialize(currentSampleRate, audioFormat.getChannels(), CENTER_FREQUENCIES[i], Q);
@@ -84,7 +85,8 @@ public class GraphicEQ implements DSPEffekt
 	 * @param active
 	 * @see de.quippy.javamod.mixer.dsp.DSPEffekt#setIsActive(boolean)
 	 */
-	public void setIsActive(boolean active)
+	@Override
+	public void setIsActive(final boolean active)
 	{
 		isActive = active;
 	}
@@ -92,6 +94,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @return
 	 * @see de.quippy.javamod.mixer.dsp.DSPEffekt#isActive()
 	 */
+	@Override
 	public boolean isActive()
 	{
 		return isActive;
@@ -109,7 +112,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @param bandIndex
 	 * @return
 	 */
-	public int getCenterFreq(int bandIndex)
+	public int getCenterFreq(final int bandIndex)
 	{
 		return CENTER_FREQUENCIES[bandIndex];
 	}
@@ -118,7 +121,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @param bandIndex
 	 * @param newDB
 	 */
-	public void setBand(int bandIndex, float newDB)
+	public void setBand(final int bandIndex, final float newDB)
 	{
 		theFilter.setBand(bandIndex, newDB);
 	}
@@ -127,7 +130,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @param bandIndex
 	 * @return
 	 */
-	public float getBand(int bandIndex)
+	public float getBand(final int bandIndex)
 	{
 		return theFilter.getBand(bandIndex);
 	}
@@ -135,7 +138,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @since 14.01.2012
 	 * @param newPreAmpDB
 	 */
-	public void setPreAmp(float newPreAmpDB)
+	public void setPreAmp(final float newPreAmpDB)
 	{
 		theFilter.setPreAmp(newPreAmpDB);
 	}
@@ -154,6 +157,7 @@ public class GraphicEQ implements DSPEffekt
 	 * @see de.quippy.javamod.mixer.dsp.DSPEffekt#doEffekt(float[], int, int)
 	 * @since 09.01.2012
 	 */
+	@Override
 	public int doEffekt(final float[] buffer, final int start, final int length)
 	{
 		if (!isActive) return length;

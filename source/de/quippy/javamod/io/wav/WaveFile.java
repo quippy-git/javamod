@@ -8,7 +8,7 @@
  * RIFF file format classes.
  * See Chapter 8 of "Multimedia Programmer's Reference" in
  * the Microsoft Windows SDK.
- *  
+ *
  *-----------------------------------------------------------------------
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as published
@@ -52,7 +52,7 @@ public class WaveFile extends RiffFile
 			config(44100, (short) 16, (short) 1);
 		}
 
-		public void config(int NewSamplingRate, short NewBitsPerSample, short NewNumChannels)
+		public void config(final int NewSamplingRate, final short NewBitsPerSample, final short NewNumChannels)
 		{
 			nSamplesPerSec = NewSamplingRate;
 			nChannels = NewNumChannels;
@@ -75,11 +75,11 @@ public class WaveFile extends RiffFile
 		}
 	}
 
-	private WaveFormat_Chunk wave_format;
-	private RiffChunkHeader pcm_data;
+	private final WaveFormat_Chunk wave_format;
+	private final RiffChunkHeader pcm_data;
 	private long pcm_data_offset;
 	/**
-	 * Constructs a new WaveFile instance. 
+	 * Constructs a new WaveFile instance.
 	 */
 	public WaveFile()
 	{
@@ -90,21 +90,21 @@ public class WaveFile extends RiffFile
 		pcm_data.ckSize = 0;
 	}
 
-	public int openForWrite(File file, AudioFormat format)
+	public int openForWrite(final File file, final AudioFormat format)
 	{
 		return openForWrite(file.getAbsolutePath(), (int)format.getSampleRate(), (short)format.getSampleSizeInBits(), (short)format.getChannels());
 	}
 	/**
 	 * Open for write using another wave file's parameters...
 	 */
-	public int openForWrite(String Filename, WaveFile OtherWave)
+	public int openForWrite(final String Filename, final WaveFile OtherWave)
 	{
 		return openForWrite(Filename, OtherWave.getSamplingRate(), OtherWave.getBitsPerSample(), OtherWave.getNumChannels());
 	}
 	/**
 	 *
 	 */
-	public int openForWrite(String Filename, int SamplingRate, short BitsPerSample, short NumChannels)
+	public int openForWrite(final String Filename, final int SamplingRate, final short BitsPerSample, final short NumChannels)
 	{
 		// Verify parameters...
 		if (Filename == null)
@@ -118,7 +118,7 @@ public class WaveFile extends RiffFile
 
 		if (retcode == DDC_SUCCESS)
 		{
-			byte[] theWave =
+			final byte[] theWave =
 			{
 					(byte) 'W', (byte) 'A', (byte) 'V', (byte) 'E'
 			};
@@ -152,7 +152,7 @@ public class WaveFile extends RiffFile
 	 * @return
 	 * @see javazoom.jl.converter.RiffFile#write(byte[], int, int)
 	 */
-	public int writeSamples(byte[] data, int start, int numBytes)
+	public int writeSamples(final byte[] data, final int start, final int numBytes)
 	{
 		pcm_data.ckSize += numBytes;
 		return write(data, start, numBytes);
@@ -164,7 +164,7 @@ public class WaveFile extends RiffFile
 	 * @return
 	 * @see javazoom.jl.converter.RiffFile#write(byte[], int)
 	 */
-	public int writeSamples(byte[] data, int numBytes)
+	public int writeSamples(final byte[] data, final int numBytes)
 	{
 		pcm_data.ckSize += numBytes;
 		return write(data, numBytes);
@@ -172,10 +172,10 @@ public class WaveFile extends RiffFile
 	/**
 	 * Write 16-bit audio
 	 */
-	public int writeSamples(short[] data, int numSamples)
+	public int writeSamples(final short[] data, final int numSamples)
 	{
-		int numBytes = numSamples<<1;
-		byte[] theData = new byte[numBytes];
+		final int numBytes = numSamples<<1;
+		final byte[] theData = new byte[numBytes];
 		for (int y = 0, yc=0; y<numBytes; y+=2)
 		{
 			theData[y] = (byte) (data[yc] & 0x00FF);
@@ -186,6 +186,7 @@ public class WaveFile extends RiffFile
 	/**
 	 *
 	 */
+	@Override
 	public int close()
 	{
 		int rc = DDC_SUCCESS;

@@ -2,7 +2,7 @@
  * @(#) ID3v2Tag.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ import de.quippy.javamod.multimedia.mp3.id3.exceptions.ID3v2FormatException;
 import de.quippy.javamod.system.Log;
 
 /**
- * Description: 
+ * Description:
  *  This class reads and writes id3v2 tags from a file.
  *
  * @author:  Jonathan Hilliker modified by Daniel Becker
@@ -61,9 +61,9 @@ public class ID3v2Tag
 	 * @exception IOException if an error occurs
 	 * @exception ID3v2FormatException if an exisiting id3v2 tag isn't correct
 	 */
-	public ID3v2Tag(RandomAccessInputStream raf) throws FileNotFoundException, IOException, ID3v2FormatException
+	public ID3v2Tag(final RandomAccessInputStream raf) throws FileNotFoundException, IOException, ID3v2FormatException
 	{
-		frames = new ID3v2Frames<String, ID3v2Frame>();
+		frames = new ID3v2Frames<>();
 		head = new ID3v2Header(raf);
 		padding = 0;
 		exists = head.headerExists();
@@ -99,7 +99,7 @@ public class ID3v2Tag
 	 */
 	public static byte [] convertIntToDWord(final int value)
 	{
-		byte[] buf = new byte[4];
+		final byte[] buf = new byte[4];
 		buf[0] = (byte)((value>>24)&0xFF);
 		buf[1] = (byte)((value>>16)&0xFF);
 		buf[2] = (byte)((value>> 8)&0xFF);
@@ -117,7 +117,7 @@ public class ID3v2Tag
 	{
 		return ((buf[offset]&0xFF)<<24) | ((buf[offset+1]&0xFF)<<16) | ((buf[offset+2]&0xFF)<<8) | (buf[offset+3]&0xFF);
 	}
-	
+
 	/**
 	 * Read the frames from the file and create ID3v2Frame objects from the
 	 * data found.
@@ -127,7 +127,7 @@ public class ID3v2Tag
 	 * @exception IOException if an error occurs
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	private void parseFrames(RandomAccessInputStream raf) throws FileNotFoundException, IOException, ID3v2FormatException
+	private void parseFrames(final RandomAccessInputStream raf) throws FileNotFoundException, IOException, ID3v2FormatException
 	{
 		int offset = head.getHeaderSize();
 		int framesLength = head.getTagSize();
@@ -144,19 +144,19 @@ public class ID3v2Tag
 		boolean done = false;
 		while ((bytesRead < framesLength) && !done)
 		{
-			byte[] buf = new byte[4];
+			final byte[] buf = new byte[4];
 			bytesRead += raf.read(buf);
 
 			if (buf[0] != 0)
 			{
-				String id = new String(buf);
+				final String id = new String(buf);
 				bytesRead += raf.read(buf);
-				int curLength = ID3v2Tag.convertDWordToInt(buf, 0);
-				byte [] flags = new byte[2];
+				final int curLength = ID3v2Tag.convertDWordToInt(buf, 0);
+				final byte [] flags = new byte[2];
 				bytesRead += raf.read(flags);
-				byte [] data = new byte[curLength];
+				final byte [] data = new byte[curLength];
 				bytesRead += raf.read(data);
-				ID3v2Frame frame = new ID3v2Frame(id, flags, data);
+				final ID3v2Frame frame = new ID3v2Frame(id, flags, data);
 				frames.put(id, frame);
 			}
 			else
@@ -168,7 +168,7 @@ public class ID3v2Tag
 	}
 
 	/**
-	 * Saves all the information in the tag to the file passed to the 
+	 * Saves all the information in the tag to the file passed to the
 	 * constructor.  If a tag doesn't exist, a tag is prepended to the file.
 	 * If the padding has not changed since the creation of this object and
 	 * the size is less than the original size + the original padding, then
@@ -179,9 +179,9 @@ public class ID3v2Tag
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public void writeTag(RandomAccessFile raf) throws FileNotFoundException, IOException
+	public void writeTag(final RandomAccessFile raf) throws FileNotFoundException, IOException
 	{
-		int curSize = getSize();
+		final int curSize = getSize();
 		origPadding = padding;
 		padding = getUpdatedPadding();
 
@@ -189,19 +189,19 @@ public class ID3v2Tag
 		if ((padding > origPadding) || ((padding == origPadding) && (curSize == origSize)))
 		{
 
-			byte[] out = getBytes();
+			final byte[] out = getBytes();
 			raf.seek(0);
 			raf.write(out);
 		}
 		else
 		{
 			//TODO: This needs copying without full loading
-			int bufSize = (int)(raf.length() + curSize);
-			byte[] out = new byte[bufSize];
+			final int bufSize = (int)(raf.length() + curSize);
+			final byte[] out = new byte[bufSize];
 			System.arraycopy(getBytes(), 0, out, 0, curSize);
-			
-			int bufSize2 = (int)(raf.length() - origSize);
-			byte[] in = new byte[bufSize2];
+
+			final int bufSize2 = (int)(raf.length() - origSize);
+			final byte[] in = new byte[bufSize2];
 			raf.seek(origSize);
 
 			if (raf.read(in) != in.length)
@@ -215,7 +215,7 @@ public class ID3v2Tag
 			raf.seek(0);
 			raf.write(out);
 		}
-		
+
 		origSize = curSize;
 		exists = true;
 	}
@@ -227,12 +227,12 @@ public class ID3v2Tag
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public void removeTag(RandomAccessFile raf) throws FileNotFoundException, IOException
+	public void removeTag(final RandomAccessFile raf) throws FileNotFoundException, IOException
 	{
 		if (exists)
 		{
-			int bufSize = (int)(raf.length() - origSize);
-			byte[] buf = new byte[bufSize];
+			final int bufSize = (int)(raf.length() - origSize);
+			final byte[] buf = new byte[bufSize];
 
 			raf.seek(origSize);
 
@@ -252,14 +252,14 @@ public class ID3v2Tag
 	/**
 	 * Return a binary representation of this object to be written to a file.
 	 * This is in the format of the id3v2 specifications.  This includes the
-	 * header, extended header (if it exists), the frames, padding (if it 
+	 * header, extended header (if it exists), the frames, padding (if it
 	 * exists), and a footer (if it exists).
 	 *
 	 * @return a binary representation of this id3v2 tag
 	 */
 	public byte[] getBytes()
 	{
-		byte[] b = new byte[getSize() + padding];
+		final byte[] b = new byte[getSize() + padding];
 		int bytesCopied = 0;
 		int length = 0;
 
@@ -291,16 +291,16 @@ public class ID3v2Tag
 	}
 
 	/**
-	 * Determines the new amount of padding to use.  If the user has not 
+	 * Determines the new amount of padding to use.  If the user has not
 	 * changed the amount of padding then existing padding will be overwritten
-	 * instead of increasing the size of the file.  That is only if there is 
+	 * instead of increasing the size of the file.  That is only if there is
 	 * a sufficient amount of padding for the updated tag.
 	 *
 	 * @return the new amount of padding
 	 */
 	private int getUpdatedPadding()
 	{
-		int curSize = getSize();
+		final int curSize = getSize();
 		int pad = 0;
 
 		if ((origPadding == padding) && (curSize > origSize) && (padding >= (curSize - origSize)))
@@ -323,20 +323,20 @@ public class ID3v2Tag
 	 * @param id the id of the frame to set the data for
 	 * @param data the data for the frame
 	 */
-	public void setTextFrame(String id, String data)
+	public void setTextFrame(final String id, final String data)
 	{
 		if ((id.charAt(0) == 'T') && !id.equals(ID3v2Frames.USER_DEFINED_TEXT_INFO))
 		{
 
 			try
 			{
-				byte[] b = new byte[data.length() + 1];
+				final byte[] b = new byte[data.length() + 1];
 				b[0] = 0;
 				System.arraycopy(data.getBytes(ENC_TYPE), 0, b, 1, data.length());
 
 				updateFrameData(id, b);
 			}
-			catch (UnsupportedEncodingException e)
+			catch (final UnsupportedEncodingException e)
 			{
 				e.printStackTrace();
 			}
@@ -351,7 +351,7 @@ public class ID3v2Tag
 	 * @param id the id of the frame to set the data for
 	 * @param data the data for the frame
 	 */
-	public void setURLFrame(String id, String data)
+	public void setURLFrame(final String id, final String data)
 	{
 		if ((id.charAt(0) == 'W') && !id.equals(ID3v2Frames.USER_DEFINED_URL))
 		{
@@ -365,11 +365,11 @@ public class ID3v2Tag
 	 * @param description a description of the data
 	 * @param value the data for the frame
 	 */
-	public void setUserDefinedTextFrame(String description, String value)
+	public void setUserDefinedTextFrame(final String description, final String value)
 	{
 		try
 		{
-			byte[] b = new byte[description.length() + value.length() + 2];
+			final byte[] b = new byte[description.length() + value.length() + 2];
 			int bytesCopied = 0;
 			b[bytesCopied++] = 0;
 			System.arraycopy(description.getBytes(ENC_TYPE), 0, b, bytesCopied, description.length());
@@ -380,7 +380,7 @@ public class ID3v2Tag
 
 			updateFrameData(ID3v2Frames.USER_DEFINED_TEXT_INFO, b);
 		}
-		catch (UnsupportedEncodingException e)
+		catch (final UnsupportedEncodingException e)
 		{
 			e.printStackTrace();
 		}
@@ -392,11 +392,11 @@ public class ID3v2Tag
 	 * @param description a description of the url
 	 * @param value the url for the frame
 	 */
-	public void setUserDefinedURLFrame(String description, String value)
+	public void setUserDefinedURLFrame(final String description, final String value)
 	{
 		try
 		{
-			byte[] b = new byte[description.length() + value.length() + 2];
+			final byte[] b = new byte[description.length() + value.length() + 2];
 			int bytesCopied = 0;
 			b[bytesCopied++] = 0;
 			System.arraycopy(description.getBytes(ENC_TYPE), 0, b, bytesCopied, description.length());
@@ -407,7 +407,7 @@ public class ID3v2Tag
 
 			updateFrameData(ID3v2Frames.USER_DEFINED_URL, b);
 		}
-		catch (UnsupportedEncodingException e)
+		catch (final UnsupportedEncodingException e)
 		{
 			e.printStackTrace();
 		}
@@ -419,11 +419,11 @@ public class ID3v2Tag
 	 * @param description a description of the comment
 	 * @param comment the comment
 	 */
-	public void setCommentFrame(String description, String comment)
+	public void setCommentFrame(final String description, final String comment)
 	{
 		try
 		{
-			byte[] b = new byte[description.length() + comment.length() + 5];
+			final byte[] b = new byte[description.length() + comment.length() + 5];
 			int bytesCopied = 0;
 			b[bytesCopied++] = 0;
 			b[bytesCopied++] = 'e';
@@ -437,7 +437,7 @@ public class ID3v2Tag
 
 			updateFrameData(ID3v2Frames.COMMENTS, b);
 		}
-		catch (UnsupportedEncodingException e)
+		catch (final UnsupportedEncodingException e)
 		{
 			e.printStackTrace();
 		}
@@ -449,7 +449,7 @@ public class ID3v2Tag
 	 *
 	 * @param id the id of the frame to remove
 	 */
-	public void removeFrame(String id)
+	public void removeFrame(final String id)
 	{
 		frames.remove(id);
 		updateSize();
@@ -462,15 +462,15 @@ public class ID3v2Tag
 	 * @param id the id of the frame to update
 	 * @param data the data for the frame
 	 */
-	public void updateFrameData(String id, byte[] data)
+	public void updateFrameData(final String id, final byte[] data)
 	{
 		if (frames.containsKey(id))
 		{
-			((ID3v2Frame) frames.get(id)).setFrameData(data);
+			frames.get(id).setFrameData(data);
 		}
 		else
 		{
-			ID3v2Frame frame = new ID3v2Frame(id, data);
+			final ID3v2Frame frame = new ID3v2Frame(id, data);
 			frames.put(id, frame);
 		}
 
@@ -479,23 +479,23 @@ public class ID3v2Tag
 
 	/**
 	 * Returns the textual information contained in the frame specified by the
-	 * id.  Not every type of frame has textual information.  If an id is 
+	 * id.  Not every type of frame has textual information.  If an id is
 	 * specified that will not work, the empty string is returned.
 	 *
 	 * @param id the id of the frame to get text from
 	 * @return the text information contained in the frame
 	 * @exception ID3v2FormatException if an error is encountered parsing data
 	 */
-	public String getFrameDataString(String id)
+	public String getFrameDataString(final String id)
 	{
 		try
 		{
 			if (frames.containsKey(id))
 			{
-				return ((ID3v2Frame) frames.get(id)).getDataString();
+				return frames.get(id).getDataString();
 			}
 		}
-		catch (ID3v2FormatException ex)
+		catch (final ID3v2FormatException ex)
 		{
 			Log.error("ID3v2Tag:", ex);
 		}
@@ -509,19 +509,19 @@ public class ID3v2Tag
 	 * @param id the id of the frame to get the data from
 	 * @return the data found in the frame
 	 */
-	public byte[] getFrameData(String id)
+	public byte[] getFrameData(final String id)
 	{
 		if (frames.containsKey(id))
 		{
-			return ((ID3v2Frame) frames.get(id)).getFrameData();
+			return frames.get(id).getFrameData();
 		}
 
 		return null;
 	}
 
 	/**
-	 * Updates the size field of the id3 header and footer (if it exists) 
-	 * from the current size of the id3v2 frames plus the extended header 
+	 * Updates the size field of the id3 header and footer (if it exists)
+	 * from the current size of the id3v2 frames plus the extended header
 	 * size (if it exists).
 	 *
 	 */
@@ -543,7 +543,7 @@ public class ID3v2Tag
 	}
 
 	/**
-	 * Returns true if an id3v2 tag exists in the file that was passed to the 
+	 * Returns true if an id3v2 tag exists in the file that was passed to the
 	 * constructor and false otherwise
 	 *
 	 * @return true if an id3v2 tag exists in the file passed to the ctor
@@ -554,7 +554,7 @@ public class ID3v2Tag
 	}
 
 	/**
-	 * Returns the size of this id3v2 tag.  This includes the header, 
+	 * Returns the size of this id3v2 tag.  This includes the header,
 	 * extended header, frames, padding, and footer.
 	 *
 	 * @return the size (in bytes) of the entire id3v2 tag
@@ -588,7 +588,7 @@ public class ID3v2Tag
 	 *
 	 * @param pad the amount of padding to use when writing this tag
 	 */
-	public void setPadding(int pad)
+	public void setPadding(final int pad)
 	{
 		if (!head.getFooter() && (pad >= 0))
 		{
@@ -602,25 +602,26 @@ public class ID3v2Tag
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
-		String str = head.toString();
+		StringBuilder str = new StringBuilder().append(head.toString());
 
-		str += "\nPadding:\t\t\t" + getPadding() + " bytes";
+		str.append("\nPadding:\t\t\t").append(getPadding()).append(" bytes");
 
 		if (head.getExtendedHeader())
 		{
-			str += "\n" + ext_head.toString();
+			str.append("\n").append(ext_head.toString());
 		}
 
-		str += "\n" + frames.toString();
+		str.append("\n").append(frames.toString());
 
 		if (head.getFooter())
 		{
-			str += foot.toString();
+			str.append(foot.toString());
 		}
 
-		return str;
+		return str.toString();
 	}
 
 } // ID3v2Tag

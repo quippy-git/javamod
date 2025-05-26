@@ -2,7 +2,7 @@
  * @(#) MidiMixer.java
  *
  * Created on 28.12.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -53,31 +53,30 @@ import de.quippy.javamod.system.Log;
  */
 public class MidiMixer extends BasicMixer
 {
-	private boolean capture;
-	private Mixer.Info mixerInfo;
-	
+	private final boolean capture;
+	private final Mixer.Info mixerInfo;
+
 	private long seekPosition;
-	
+
 	private int bufferSize;
 	private byte [] output;
 
-	private int sampleSizeInBits;
 	private int sampleSizeInBytes;
 	private int channels;
 	private int sampleRate;
 	private int frameCalc;
 	private TargetDataLine targetDataLine;
 
-	private Sequence sequence;
+	private final Sequence sequence;
 	private Sequencer sequencer;
 	private MidiDevice midiOutput;
-	private MidiDevice.Info outputDeviceInfo;
-	private File soundBankFile;
+	private final MidiDevice.Info outputDeviceInfo;
+	private final File soundBankFile;
 
 	/**
 	 * Constructor for MidiMixer
 	 */
-	public MidiMixer(Sequence sequence, MidiDevice.Info outputDeviceInfo, File soundBankFile, boolean capture, Mixer.Info mixerInfo)
+	public MidiMixer(final Sequence sequence, final MidiDevice.Info outputDeviceInfo, final File soundBankFile, final boolean capture, final Mixer.Info mixerInfo)
 	{
 		super();
 		this.seekPosition = 0;
@@ -94,13 +93,13 @@ public class MidiMixer extends BasicMixer
 		{
 			this.setAudioFormat(new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, 44100.0F, 16, 2, 4, 44100.0F, false));
 			this.channels = getAudioFormat().getChannels();
-			this.sampleSizeInBits = getAudioFormat().getSampleSizeInBits();
-			this.sampleSizeInBytes = this.sampleSizeInBits>>3;
+			int sampleSizeInBits = getAudioFormat().getSampleSizeInBits();
+			this.sampleSizeInBytes = sampleSizeInBits>>3;
 			this.sampleRate = (int)getAudioFormat().getSampleRate();
 			this.frameCalc = channels * sampleSizeInBytes;
-			
+
 			this.bufferSize = 250 * channels * sampleSizeInBytes * sampleRate / 1000; // 250ms buffer
-			
+
 			// Now for the bits (linebuffer):
 			bufferSize *= sampleSizeInBytes;
 			output = new byte[bufferSize];
@@ -110,45 +109,42 @@ public class MidiMixer extends BasicMixer
 	{
 		if (capture)
 		{
-			DataLine.Info info = new DataLine.Info(TargetDataLine.class, getAudioFormat());
+			final DataLine.Info info = new DataLine.Info(TargetDataLine.class, getAudioFormat());
 			try
 			{
 				if (mixerInfo!=null)
 				{
-					Mixer mixer = AudioSystem.getMixer(mixerInfo);
+					final Mixer mixer = AudioSystem.getMixer(mixerInfo);
 					targetDataLine = (TargetDataLine) mixer.getLine(info);
 				}
 				else
 					targetDataLine = (TargetDataLine) AudioSystem.getLine(info);
-				
+
 				targetDataLine.open();
 				// Now for some rediculous programming - the interfaces do not provide anything good...
-				Control controles[] = targetDataLine.getControls();
+				final Control controles[] = targetDataLine.getControls();
 				for (int i=0; i<controles.length; i++)
 				{
 					if (controles[i] instanceof CompoundControl) // Found it...
 					{
-						Control[] children = ((CompoundControl) controles[i]).getMemberControls();
+						final Control[] children = ((CompoundControl) controles[i]).getMemberControls();
 						for (int j=0; j<children.length; j++)
 						{
-							if (children[i] instanceof BooleanControl)
-							{
-								if (children[i].getType().getClass().getName().endsWith("BCT")) // this is so far the "Select"
-									((BooleanControl)children[i]).setValue(true);
-							}
+							if ((children[i] instanceof BooleanControl) && children[i].getType().getClass().getName().endsWith("BCT")) // this is so far the "Select"
+								((BooleanControl)children[i]).setValue(true);
 						}
 					}
 				}
 				targetDataLine.close();
 			}
-			catch (LineUnavailableException ex)
+			catch (final LineUnavailableException ex)
 			{
 				targetDataLine = null;
 			}
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#isSeekSupported()
 	 */
 	@Override
@@ -157,7 +153,7 @@ public class MidiMixer extends BasicMixer
 		return true;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getMillisecondPosition()
 	 */
 	@Override
@@ -174,7 +170,8 @@ public class MidiMixer extends BasicMixer
 	 * @see de.quippy.javamod.mixer.BasicMixer#seek(long)
 	 * @since 13.02.2012
 	 */
-	protected void seek(long milliseconds)
+	@Override
+	protected void seek(final long milliseconds)
 	{
 		if (sequencer!=null)
 			sequencer.setMicrosecondPosition(milliseconds*1000L);
@@ -182,11 +179,11 @@ public class MidiMixer extends BasicMixer
 			seekPosition = milliseconds;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#setMillisecondPosition(long)
 	 */
 	@Override
-	public void setMillisecondPosition(long milliseconds)
+	public void setMillisecondPosition(final long milliseconds)
 	{
 		if (!isPlaying())
 			super.setMillisecondPosition(milliseconds); // save for later!
@@ -194,7 +191,7 @@ public class MidiMixer extends BasicMixer
 			seek(milliseconds);
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getLengthInMilliseconds()
 	 */
 	@Override
@@ -211,7 +208,7 @@ public class MidiMixer extends BasicMixer
 	{
 		if (sequencer!=null)
 		{
-			Sequence sequence = sequencer.getSequence();
+			final Sequence sequence = sequencer.getSequence();
 			if (sequence!=null)
 			{
 				return sequence.getTracks().length;
@@ -237,9 +234,9 @@ public class MidiMixer extends BasicMixer
 	{
 		return 44100; // sampleRate is only for capture
 	}
-	public void setNewOutputDevice(MidiDevice.Info newDeviceInfo)
+	public void setNewOutputDevice(final MidiDevice.Info newDeviceInfo)
 	{
-		boolean isPlaying = isPlaying();
+		final boolean isPlaying = isPlaying();
 		if (isPlaying) stopLine(false);
 		try
 		{
@@ -261,27 +258,27 @@ public class MidiMixer extends BasicMixer
 			{
 				try
 				{
-					Soundbank bank = MidiSystem.getSoundbank(soundBankFile);
+					final Soundbank bank = MidiSystem.getSoundbank(soundBankFile);
 					((Synthesizer)midiOutput).loadAllInstruments(bank);
 				}
-				catch (Exception ex)
+				catch (final Exception ex)
 				{
 					Log.error("Error occured when opening soundfont bank", ex);
 				}
 			}
-			Receiver    synthReceiver  = midiOutput.getReceiver();
-			Transmitter seqTransmitter = sequencer.getTransmitter();
+			final Receiver    synthReceiver  = midiOutput.getReceiver();
+			final Transmitter seqTransmitter = sequencer.getTransmitter();
 			seqTransmitter.setReceiver(synthReceiver);
 			if (isPlaying) startLine(false);
 		}
-		catch (MidiUnavailableException ex)
+		catch (final MidiUnavailableException ex)
 		{
 			closeAudioDevice();
 			Log.error("Error occured when opening midi device", ex);
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#openAudioDevice()
 	 */
 	@Override
@@ -295,7 +292,7 @@ public class MidiMixer extends BasicMixer
 				super.openAudioDevice(); // Does closeAudioDevice himself
 				targetDataLine.open();
 			}
-			catch (LineUnavailableException ex)
+			catch (final LineUnavailableException ex)
 			{
 				closeAudioDevice();
 				Log.error("[MidiMixer]: TargetDataLine", ex);
@@ -303,13 +300,14 @@ public class MidiMixer extends BasicMixer
 		}
 		else
 			closeAudioDevice();
-		
+
 		try
 		{
 			sequencer = MidiSystem.getSequencer(false); // get an unconnected sequencer
 			sequencer.addMetaEventListener(new MetaEventListener()
 			{
-				public void meta(MetaMessage event)
+				@Override
+				public void meta(final MetaMessage event)
 				{
 					if (event.getType() == 47) // Song finished
 					{
@@ -327,13 +325,13 @@ public class MidiMixer extends BasicMixer
 				setNewOutputDevice(outputDeviceInfo);
 			}
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[MidiMixer]", ex);
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#closeAudioDevice()
 	 */
 	@Override
@@ -352,7 +350,7 @@ public class MidiMixer extends BasicMixer
 		super.fullyCloseAudioDevice();
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startLine()
 	 */
 	@Override
@@ -362,7 +360,7 @@ public class MidiMixer extends BasicMixer
 		if (sequencer!=null) sequencer.start();
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#stopLine()
 	 */
 	@Override
@@ -386,7 +384,7 @@ public class MidiMixer extends BasicMixer
 		return sequencer!=null;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -410,7 +408,7 @@ public class MidiMixer extends BasicMixer
 				{
 					int amount = targetDataLine.available();
 					if (amount>bufferSize) amount = bufferSize;
-					int byteCount = targetDataLine.read(output, 0, amount);
+					final int byteCount = targetDataLine.read(output, 0, amount);
 					if (byteCount>0)
 					{
 						writeSampleDataToLine(output, 0, byteCount);
@@ -418,10 +416,10 @@ public class MidiMixer extends BasicMixer
 						framePosition += (byteCount / frameCalc);
 					}
 				}
-				try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+				try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 
 				if (stopPositionIsReached()) setIsStopping();
-				
+
 				if (isStopping())
 				{
 					setIsStopped();
@@ -431,13 +429,13 @@ public class MidiMixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
-			while (isPlaying()); 
+			while (isPlaying());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

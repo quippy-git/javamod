@@ -2,7 +2,7 @@
  * @(#) PowerPackerFile.java
  *
  * Created on 06.01.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -124,7 +124,7 @@ BOOL PP20_Unpack(LPCBYTE *ppMemFile, LPDWORD pdwMemLength)
 	*pdwMemLength = dwDstLen;
 	return TRUE;
 }
- 
+
  */
 package de.quippy.javamod.io;
 
@@ -139,7 +139,7 @@ import java.io.IOException;
  */
 public class PowerPackerFile
 {
-	private byte [] buffer;
+	private final byte [] buffer;
 	/**
 	 * Will read n bits from a file
 	 * @author Daniel Becker
@@ -147,12 +147,12 @@ public class PowerPackerFile
 	 */
 	private static class BitBuffer
 	{
-		private RandomAccessInputStream source;
+		private final RandomAccessInputStream source;
 		private int filePointer;
 		private int bitCount;
 		private int bitBuffer;
-		
-		public BitBuffer(RandomAccessInputStream source, int filePointer)
+
+		public BitBuffer(final RandomAccessInputStream source, final int filePointer)
 		{
 			this.source = source;
 			this.filePointer = filePointer;
@@ -160,7 +160,7 @@ public class PowerPackerFile
 			bitBuffer = 0;
 		}
 
-		public int getBits(int n) throws IOException
+		public int getBits(final int n) throws IOException
 		{
 			int result = 0;
 
@@ -183,7 +183,7 @@ public class PowerPackerFile
 	/**
 	 * Constructor for PowerPackerInputStream
 	 */
-	public PowerPackerFile(RandomAccessInputStream input) throws IOException
+	public PowerPackerFile(final RandomAccessInputStream input) throws IOException
 	{
 		buffer = readAndUnpack(input);
 	}
@@ -202,13 +202,13 @@ public class PowerPackerFile
 	 * @return true if this file is a powerpacker file
 	 * @throws IOException
 	 */
-	public static boolean isPowerPacker(RandomAccessInputStream input) throws IOException
+	public static boolean isPowerPacker(final RandomAccessInputStream input) throws IOException
 	{
-		long pos = input.getFilePointer();
+		final long pos = input.getFilePointer();
 		input.seek(0);
 		final int PP20ID = input.read()<<24 | input.read()<<16 | input.read()<<8 | input.read();
 		input.seek(pos);
-		return PP20ID == 0x50503230; 
+		return PP20ID == 0x50503230;
 	}
 	/**
 	 * Will unpack powerpacker 2.0 packed contend while reading from the packed Stream
@@ -218,11 +218,11 @@ public class PowerPackerFile
 	 * @param buffer
 	 * @throws IOException
 	 */
-	private void pp20DoUnpack(RandomAccessInputStream source, final int srcLen, byte [] buffer, final int dstLen) throws IOException
+	private void pp20DoUnpack(final RandomAccessInputStream source, final int srcLen, final byte [] buffer, final int dstLen) throws IOException
 	{
-		BitBuffer bitBuffer = new BitBuffer(source, srcLen-4);
+		final BitBuffer bitBuffer = new BitBuffer(source, srcLen-4);
 		source.seek(srcLen-1);
-		int skip = source.read();
+		final int skip = source.read();
 		bitBuffer.getBits(skip);
 		int nBytesLeft = dstLen;
 		while (nBytesLeft > 0)
@@ -243,26 +243,26 @@ public class PowerPackerFile
 				}
 				if (nBytesLeft == 0) break;
 			}
-			
+
 			int n = bitBuffer.getBits(2) + 1;
 			source.seek(n+3);
-			int nbits = source.read();
+			final int nbits = source.read();
 			int nofs;
 			if (n==4)
 			{
 				nofs = bitBuffer.getBits( (bitBuffer.getBits(1)!=0) ? nbits : 7 );
 				while (n <= nBytesLeft)
 				{
-					int code = bitBuffer.getBits(3);
+					final int code = bitBuffer.getBits(3);
 					n += code;
 					if (code != 7) break;
 				}
-			} 
+			}
 			else
 			{
 				nofs = bitBuffer.getBits(nbits);
 			}
-			
+
 			if (n>nBytesLeft) n=nBytesLeft;
 			for (int i=0; i<=n; i++)
 			{
@@ -272,7 +272,7 @@ public class PowerPackerFile
 		}
 	}
 
-	private byte[] readAndUnpack(RandomAccessInputStream source) throws IOException
+	private byte[] readAndUnpack(final RandomAccessInputStream source) throws IOException
 	{
 		source.seek(0); // Just in case...
 		final int PP20ID = source.read()<<24 | source.read()<<16 | source.read()<<8 | source.read();
@@ -284,7 +284,7 @@ public class PowerPackerFile
 		if (destLen < 512 || destLen > 0x400000 || destLen > (srcLen<<3)) throw new IOException("Length of " + srcLen + " is not supported!");
 		final byte [] dstBuffer = new byte[destLen];
 		pp20DoUnpack(source, srcLen, dstBuffer, destLen);
-//		// Debug - write buffer to disc		
+//		// Debug - write buffer to disc
 //		try
 //		{
 //			File f = new File("test.mod");
@@ -295,7 +295,7 @@ public class PowerPackerFile
 //		catch (Exception ex)
 //		{
 //		}
-		
+
 		return dstBuffer;
 	}
 }

@@ -1,8 +1,8 @@
 /*
  * @(#) JavaModAbout.java
- * 
+ *
  * Created on 22.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public class JavaModAbout extends JDialog
 	private static final long serialVersionUID = 134421312687144510L;
 
 	private static final String DEFAULTICONPATH = "ressources/quippy_the_kangaroo_about.gif";
-	
+
 	private JPanel baseContentPane = null;
 	private javax.swing.JButton button_GIF = null;
 	private javax.swing.JLabel textLine1 = null;
@@ -56,12 +56,12 @@ public class JavaModAbout extends JDialog
 	private javax.swing.JLabel versionRunTime = null;
 	private javax.swing.JLabel versionJDK = null;
 	private JButton btn_OK = null;
-	private Frame parent;
+	private final Frame parent;
 
 	/**
 	 * Constructor for JavaModAbout
 	 */
-	public JavaModAbout(Frame parent, boolean modal)
+	public JavaModAbout(final Frame parent, final boolean modal)
 	{
 		super(parent, "About JavaMod", modal);
 		setIconImages(parent.getIconImages());
@@ -73,7 +73,7 @@ public class JavaModAbout extends JDialog
 	{
 		setContentPane(getBaseContentPane());
 		setName("Player About");
-		java.awt.Insets insets = getInsets();
+		final java.awt.Insets insets = getInsets();
 		setSize(450 + insets.left + insets.right, 400 + insets.top + insets.bottom);
 		setPreferredSize(getSize());
 		setMinimumSize(getSize());
@@ -83,7 +83,7 @@ public class JavaModAbout extends JDialog
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
@@ -104,7 +104,7 @@ public class JavaModAbout extends JDialog
 			baseContentPane.setBounds(0, 0, 0, 0);
 			baseContentPane.setMinimumSize(new java.awt.Dimension(0, 0));
 
-			java.awt.GridBagConstraints constraintsButton_GIF = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsButton_GIF = new java.awt.GridBagConstraints();
 			constraintsButton_GIF.gridx = 0;
 			constraintsButton_GIF.gridy = 0;
 			constraintsButton_GIF.gridheight = 13;
@@ -115,7 +115,7 @@ public class JavaModAbout extends JDialog
 			constraintsButton_GIF.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getButton_GIF(), constraintsButton_GIF);
 
-			java.awt.GridBagConstraints constraintsl_TextLine1 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine1 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine1.gridx = 1;
 			constraintsl_TextLine1.gridy = 0;
 			constraintsl_TextLine1.gridwidth = 0;
@@ -126,7 +126,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine1.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine1(), constraintsl_TextLine1);
 
-			java.awt.GridBagConstraints constraintsl_TextLine2 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine2 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine2.gridx = 1;
 			constraintsl_TextLine2.gridy = 1;
 			constraintsl_TextLine2.gridwidth = 0;
@@ -137,7 +137,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine2.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine2(), constraintsl_TextLine2);
 
-			java.awt.GridBagConstraints constraintsl_TextLine3 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine3 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine3.gridx = 1;
 			constraintsl_TextLine3.gridy = 2;
 			constraintsl_TextLine3.gridwidth = 0;
@@ -148,7 +148,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine3.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine3(), constraintsl_TextLine3);
 
-			java.awt.GridBagConstraints constraintsl_TextLine4 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine4 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine4.gridx = 1;
 			constraintsl_TextLine4.gridy = 3;
 			constraintsl_TextLine4.gridwidth = 0;
@@ -159,7 +159,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine4.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine4(), constraintsl_TextLine4);
 
-			java.awt.GridBagConstraints constraintsl_TextLine5 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine5 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine5.gridx = 1;
 			constraintsl_TextLine5.gridy = 4;
 			constraintsl_TextLine5.gridwidth = 0;
@@ -170,7 +170,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine5.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine5(), constraintsl_TextLine5);
 
-			java.awt.GridBagConstraints constraintsl_TextLine6 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine6 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine6.gridx = 1;
 			constraintsl_TextLine6.gridy = 5;
 			constraintsl_TextLine6.gridwidth = 0;
@@ -181,7 +181,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine6.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine6(), constraintsl_TextLine6);
 
-			java.awt.GridBagConstraints constraintsl_TextLine7 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine7 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine7.gridx = 1;
 			constraintsl_TextLine7.gridy = 6;
 			constraintsl_TextLine7.gridwidth = 0;
@@ -192,7 +192,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine7.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine7(), constraintsl_TextLine7);
 
-			java.awt.GridBagConstraints constraintsl_TextLine8 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine8 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine8.gridx = 1;
 			constraintsl_TextLine8.gridy = 7;
 			constraintsl_TextLine8.gridwidth = 0;
@@ -203,7 +203,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine8.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine8(), constraintsl_TextLine8);
 
-			java.awt.GridBagConstraints constraintsl_TextLine9 = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_TextLine9 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine9.gridx = 1;
 			constraintsl_TextLine9.gridy = 8;
 			constraintsl_TextLine9.gridwidth = 0;
@@ -214,7 +214,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine9.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine9(), constraintsl_TextLine9);
 
-			java.awt.GridBagConstraints constraintsl_NameRunTime = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_NameRunTime = new java.awt.GridBagConstraints();
 			constraintsl_NameRunTime.gridx = 1;
 			constraintsl_NameRunTime.gridy = 9;
 			constraintsl_NameRunTime.gridwidth = 0;
@@ -225,7 +225,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_NameRunTime.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_NameRunTime(), constraintsl_NameRunTime);
 
-			java.awt.GridBagConstraints constraintsl_VersionRunTime = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_VersionRunTime = new java.awt.GridBagConstraints();
 			constraintsl_VersionRunTime.gridx = 1;
 			constraintsl_VersionRunTime.gridy = 10;
 			constraintsl_VersionRunTime.gridwidth = 0;
@@ -236,7 +236,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_VersionRunTime.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_VersionRunTime(), constraintsl_VersionRunTime);
 
-			java.awt.GridBagConstraints constraintsl_VersionJDK = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsl_VersionJDK = new java.awt.GridBagConstraints();
 			constraintsl_VersionJDK.gridx = 1;
 			constraintsl_VersionJDK.gridy = 11;
 			constraintsl_VersionJDK.gridwidth = 0;
@@ -247,7 +247,7 @@ public class JavaModAbout extends JDialog
 			constraintsl_VersionJDK.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_VersionJDK(), constraintsl_VersionJDK);
 
-			java.awt.GridBagConstraints constraintsBtn_OK = new java.awt.GridBagConstraints();
+			final java.awt.GridBagConstraints constraintsBtn_OK = new java.awt.GridBagConstraints();
 			constraintsBtn_OK.gridx = 1;
 			constraintsBtn_OK.gridy = 12;
 			constraintsBtn_OK.gridwidth = 0;
@@ -358,7 +358,7 @@ public class JavaModAbout extends JDialog
 		}
 		return textLine7;
 	}
-	
+
 	private javax.swing.JLabel getl_TextLine8()
 	{
 		if (textLine8 == null)
@@ -429,7 +429,8 @@ public class JavaModAbout extends JDialog
 			btn_OK.setActionCommand("Ende");
 			btn_OK.addActionListener(new ActionListener()
 			{
-				public void actionPerformed(ActionEvent e)
+				@Override
+				public void actionPerformed(final ActionEvent e)
 				{
 					doClose();
 				}
@@ -444,6 +445,6 @@ public class JavaModAbout extends JDialog
 		setVisible(false);
 		dispose();
 		//if we are alone in the world, exit the vm
-		if (getParent() == null) System.exit(0); // this should not be needed! 
+		if (getParent() == null) System.exit(0); // this should not be needed!
 	}
 }

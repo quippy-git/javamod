@@ -1,8 +1,8 @@
 /*
  * @(#) ImpulseTrackerMod.java
- * 
+ *
  * Created on 26.05.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,14 +44,14 @@ import de.quippy.javamod.system.Log;
 public class ImpulseTrackerMod extends ScreamTrackerMod
 {
 	private static final int [] autovibit2xm = new int [] { 0, 3, 1, 4, 2, 0, 0, 0 };
-	private static final String[] MODFILEEXTENSION = new String [] 
+	private static final String[] MODFILEEXTENSION = new String []
  	{
  		"it", "mptm"
  	};
 
 	private static final int MAX_CHANNELS = 127;
 	private static final int CHANNEL_MASK = 0x7F;
-	
+
 	private static final int sampleDataPresent   = 0x01;
 	private static final int sample16Bit         = 0x02;
 	private static final int sampleStereo        = 0x04;
@@ -83,7 +83,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	protected String songMessage;
 	protected MidiMacros midiMacros;
 	protected int pwDepth;
-	
+
 	/**
 	 * Constructor for ImpulseTrackerMod
 	 */
@@ -95,7 +95,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * Constructor for ImpulseTrackerMod
 	 * @param fileExtension
 	 */
-	protected ImpulseTrackerMod(String fileName)
+	protected ImpulseTrackerMod(final String fileName)
 	{
 		super(fileName);
 	}
@@ -183,7 +183,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	private void readEnvelopeData(final Envelope env, final int add, final int maxValue, final ModfileInputStream inputStream) throws IOException
 	{
 		final long pos = inputStream.getFilePointer();
-		
+
 		env.setITType(inputStream.read());
 		int nPoints = inputStream.read();
 		if (nPoints>25) nPoints=25;
@@ -192,21 +192,21 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		env.setLoopEndPoint(inputStream.read());
 		env.setSustainStartPoint(inputStream.read());
 		env.setSustainEndPoint(inputStream.read());
-		
-		int [] values = new int[nPoints];
-		int [] points = new int[nPoints];
-		
+
+		final int [] values = new int[nPoints];
+		final int [] points = new int[nPoints];
+
 		for (int i=0; i<nPoints; i++)
 		{
 			values[i] = (inputStream.read() + add)&0xFF;
 			points[i] = inputStream.readIntelUnsignedWord();
 		}
-		
+
 		env.setPositions(points);
 		env.setValue(values);
-		
+
 		env.sanitize(maxValue);
-		
+
 		inputStream.seek(pos+82L);
 	}
 	private String[] readNames(final ModfileInputStream inputStream, final int marker, final int stringSize) throws IOException
@@ -223,7 +223,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		}
 		else
 			inputStream.skipBack(4);
-		
+
 		return result;
 	}
 	/**
@@ -234,7 +234,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	@Override
 	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
 	{
-		String id = inputStream.readString(4);
+		final String id = inputStream.readString(4);
 		inputStream.seek(0);
 		return id.equals("IMPM");
 	}
@@ -269,11 +269,11 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 
 		// Songname
 		setSongName(inputStream.readString(26));
-		
+
 		//PHiliht = Pattern row highlight information
 		final int loadedRowsPerBeat = inputStream.read();
 		final int loadedRowsPerMeasure = inputStream.read();
-		
+
 		//OrdNum:   Number of orders in song
 		setSongLength(inputStream.readIntelUnsignedWord());
 		//InsNum:   Number of instruments in song
@@ -339,9 +339,9 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		special = inputStream.readIntelUnsignedWord();
 		final boolean hasSongMessage = ((special&0x01)!=0);
 		final boolean hasEditHistory = ((special&0x02)!=0);
-		final boolean hasHighlight   = ((special&0x04)!=0); // was reserved, is now defining presence of rowHighlights 
+		final boolean hasHighlight   = ((special&0x04)!=0); // was reserved, is now defining presence of rowHighlights
 		final boolean hasMidiMacros  = ((flags&0x80)!=0) || ((special&0x08)!=0);
-		
+
 		//GV:       Global volume. (0->128) All volumes are adjusted by this
 		int headerGlobalVolume = inputStream.read();
 		if (headerGlobalVolume==0 || headerGlobalVolume>ModConstants.MAXGLOBALVOLUME) headerGlobalVolume = ModConstants.MAXGLOBALVOLUME;
@@ -358,7 +358,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		panningSeparation = inputStream.read();
 		//PWD:      Pitch wheel depth for MIDI controllers
 		pwDepth = inputStream.read();
-		
+
 		// We read the Message later...
 		//MsgLgth
 		final int msgLength = inputStream.readIntelUnsignedWord();
@@ -379,7 +379,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		for (int i=0; i<64; i++)
 		{
 			int panValue = inputStream.read();
-			
+
 			if (panValue==100 || panValue==0xFF || (panValue & 0x80)!=0)
 			{
 				// we simply store those, as mixer responds to these in "initializeMixer()"
@@ -390,10 +390,10 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			{
 				panValue = (panValue&0x7F)<<2;
 				if (panValue>256) panValue = 256;
-				panningValue[i]=panValue; 
+				panningValue[i]=panValue;
 			}
 		}
-		
+
 		// Checking for (Open) ModPlug Tracker
 		if ((version & 0xF000)==0x5000)
 		{
@@ -404,7 +404,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			if (mptVersion>=0x01290000)
 				mptVersion |= reserved & 0xFFFF;
 			lastSavedWithVersion = mptVersion;
-			if ((getModType()&ModConstants.MODTYPE_OMPT)==0) setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion) + ModConstants.COMPAT_MODE); 
+			if ((getModType()&ModConstants.MODTYPE_OMPT)==0) setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion) + ModConstants.COMPAT_MODE);
 		}
 		else
 		if (version==0x0888 || cmwt==0x888)
@@ -465,7 +465,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		allocArrangement(getSongLength());
 		final int [] arrangement = getArrangement();
 		for (int i=0; i<getSongLength(); i++) arrangement[i]=inputStream.read();
-		
+
 		// Now read the pointers
 		long minFilePointer = (hasSongMessage && msgLength>0)?msgPointer:inputStream.getLength(); // this is for sanity checks later
 		final int [] instrumentParaPointer = new int [getNInstruments()];
@@ -473,7 +473,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		{
 			instrumentParaPointer[i] = inputStream.readIntelDWord();
 			if (instrumentParaPointer[i]<minFilePointer) minFilePointer=instrumentParaPointer[i];
-		} 
+		}
 		final int [] samplesParaPointer = new int [getNSamples()];
 		for (int i=0; i<getNSamples(); i++)
 		{
@@ -486,7 +486,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			patternParaPointer[i] = inputStream.readIntelDWord();
 			if (patternParaPointer[i]<minFilePointer) minFilePointer=patternParaPointer[i];
 		}
-		
+
 		// Reading IT edit history Info (well, we do not read it, but need to skip it...)
 		long histSize = 0;
 		if (hasEditHistory && inputStream.getFilePointer()+2<inputStream.getLength())
@@ -513,7 +513,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// Apart from that, there's an unknown XM conversion tool declaring a lower compatible version, which naturally also does not support filters, so it's okay that it is caught here.
 		if ((version<0x0214 && cmwt<0x214) || (lastSavedWithVersion>0 && lastSavedWithVersion<0x10000A6))
 			midiMacros.clearZxxMacros();
-		
+
 		boolean isBeRoTracker = false;
 		if (histSize<=0)
 		{
@@ -523,25 +523,21 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			else
 				inputStream.skipBack(4);
 		}
-		else
-		if ((version & 0xF000)==0x6000)
-		{
-			if ((version&0x0FFF)==0) isBeRoTracker = true;
-		}
-		
+		else if (((version & 0xF000)==0x6000) && ((version&0x0FFF)==0)) isBeRoTracker = true;
+
 		// read Pattern Names:
 		final String [] patNames = readNames(inputStream, 0x4D414E50, 32); // PNAM - LE saved
 		// Read Channel Names
 		final String [] chnNames = readNames(inputStream, 0x4D414E43, 20); // CNAM - LE saved
 
 		hasModPlugExtensions = patNames!=null || chnNames!=null;
-		
+
 		//TODO: read mix plugins information
 
 		// now for some disguised MPTs
 		if (version==0x0217 && cmwt==0x200 && reserved==0)
 		{
-			if (hasModPlugExtensions || 
+			if (hasModPlugExtensions ||
 				arrangement!=null && arrangement[arrangement.length-1]==0xFF ||
 				hasFFPanningValue)
 			{
@@ -562,15 +558,15 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			inputStream.seek(msgPointer);
 			songMessage = inputStream.readString(msgLength);
 		}
-		
-		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, getNInstruments(), getNSamples());
+
+		final InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, getNInstruments(), getNSamples());
 		this.setInstrumentContainer(instrumentContainer);
 		for (int i=0; i<getNInstruments(); i++)
 		{
 			inputStream.seek(instrumentParaPointer[i]);
 
 			if (inputStream.readMotorolaDWord()!=0x494D5049 /*IMPI*/) continue; //throw new IOException("Unsupported IT Instrument Header!");
-			
+
 			final Instrument currentIns = new Instrument();
 			currentIns.setDosFileName(inputStream.readString(13));
 
@@ -620,7 +616,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				if (currentIns.randomPanningVariation>64) currentIns.randomVolumeVariation = 64;
 				inputStream.skip(4);
 			}
-			
+
 			currentIns.setName(inputStream.readString(26));
 			if (cmwt<0x200) // Old Instrument format
 			{
@@ -632,7 +628,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				currentIns.setInitialFilterResonance(inputStream.read());
 				inputStream.skip(4);
 			}
-			
+
 			final int [] sampleIndex = new int[120];
 			final int [] noteIndex = new int[120];
 			for (int j=0; j<120; j++)
@@ -642,22 +638,22 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			}
 			currentIns.setIndexArray(sampleIndex);
 			currentIns.setNoteArray(noteIndex);
-			
+
 			if (cmwt<0x200) // Old Instrument format
 			{
 				// now 200 bytes of volume envelope data follow, according to ITTECH.TXT,
 				// but we have no idea, what exactly that is and what it is used for.
 				// Educated guess: it is a pre-calculation of the volume envelope
 				// however, we read it, but do not use it (yet...)
-				// neither Schism nor ModPlug use it, do life calculations instead 
+				// neither Schism nor ModPlug use it, do life calculations instead
 				// we are in good company :)
-				byte [] volEnvelope = new byte[200];
+				final byte [] volEnvelope = new byte[200];
 				inputStream.read(volEnvelope);
 				volumeEnvelope.setOldITVolumeEnvelope(volEnvelope);
 
 				// now for the envelope data
-				int [] volumeEnvelopePosition = new int[25];
-				int [] volumeEnvelopeValue = new int[25];
+				final int [] volumeEnvelopePosition = new int[25];
+				final int [] volumeEnvelopeValue = new int[25];
 				int maxValues = 25;
 				for (int nPoints=0; nPoints<maxValues; nPoints++)
 				{
@@ -665,7 +661,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 					volumeEnvelopeValue[nPoints] = inputStream.read();
 					// end point indication: we can stop reading
 					// this is last data, file pointer is set to next instrument
-					if (volumeEnvelopePosition[nPoints]==0xFF) maxValues = nPoints; 
+					if (volumeEnvelopePosition[nPoints]==0xFF) maxValues = nPoints;
 				}
 				volumeEnvelope.setNPoints(maxValues);
 				volumeEnvelope.setPositions(volumeEnvelopePosition);
@@ -678,25 +674,25 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				readEnvelopeData(panningEnvelope, 32, 64, inputStream); //-32..+32 - transformed to 0-64
 				readEnvelopeData(pitchEnvelope, 32, 64, inputStream); //-32..+32 - transformed to 0-64
 			}
-			
+
 			// We need the global IT pitchWeelDepth at all instruments for MPT files
 			currentIns.pitchWheelDepth = pwDepth;
-			
+
 			instrumentContainer.setInstrument(i, currentIns);
 		}
-		
+
 		for (int i=0; i<getNSamples(); i++)
 		{
 			inputStream.seek(samplesParaPointer[i]);
 
 			if (inputStream.readMotorolaDWord()!=0x494D5053 /*IMPS*/) continue;//throw new IOException("Unsupported IT Sample Header!");
-			
-			Sample currentSample = new Sample();
+
+			final Sample currentSample = new Sample();
 
 			currentSample.setDosFileName(inputStream.readString(13));
 			final int globalVolume = inputStream.read();
 			currentSample.setGlobalVolume((globalVolume>64)?64:globalVolume);
-			
+
 			final int flags = inputStream.read();
 			currentSample.setFlags(flags);
             /*Bit 4. On = Use loop
@@ -704,10 +700,10 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
             Bit 6. On = Ping Pong loop, Off = Forwards loop
             Bit 7. On = Ping Pong Sustain loop, Off = Forwards Sustain loop*/
 			int loopType = 0;
-			if ((flags&sampleLoop)!=0) 			loopType |= ModConstants.LOOP_ON; 
-			if ((flags&sampleSustain)!=0)		loopType |= ModConstants.LOOP_SUSTAIN_ON; 
-			if ((flags&sampleBidiLoop)!=0)		loopType |= ModConstants.LOOP_IS_PINGPONG; 
-			if ((flags&sampleBidiSustain)!=0)	loopType |= ModConstants.LOOP_SUSTAIN_IS_PINGPONG; 
+			if ((flags&sampleLoop)!=0) 			loopType |= ModConstants.LOOP_ON;
+			if ((flags&sampleSustain)!=0)		loopType |= ModConstants.LOOP_SUSTAIN_ON;
+			if ((flags&sampleBidiLoop)!=0)		loopType |= ModConstants.LOOP_IS_PINGPONG;
+			if ((flags&sampleBidiSustain)!=0)	loopType |= ModConstants.LOOP_SUSTAIN_IS_PINGPONG;
 			currentSample.setLoopType(loopType);
 
 			int volume = inputStream.read();
@@ -734,16 +730,16 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			currentSample.setFineTune(0);
 			currentSample.setTranspose(0);
 			final int c4Speed = inputStream.readIntelDWord();
-			currentSample.setBaseFrequency((c4Speed==0)?ModConstants.BASEFREQUENCY:(c4Speed<256)?256:c4Speed); 
-			
+			currentSample.setBaseFrequency((c4Speed==0)?ModConstants.BASEFREQUENCY:(c4Speed<256)?256:c4Speed);
+
 			final int sustainLoopStart = inputStream.readIntelDWord();
 			final int sustainLoopStop = inputStream.readIntelDWord();
 			currentSample.setSustainLoopStart(sustainLoopStart);
 			currentSample.setSustainLoopStop(sustainLoopStop);
 			currentSample.setSustainLoopLength(sustainLoopStop - sustainLoopStart);
-			
+
 			final int sampleOffset = inputStream.readIntelDWord();
-			
+
 			currentSample.setVibratoRate(inputStream.read());
 			currentSample.setVibratoDepth(inputStream.read() & 0x7F);
 			currentSample.setVibratoSweep(inputStream.read()); // +3)>>2 was copied from old ModPlug - in autoVib than sweep<<3
@@ -776,7 +772,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 						final int strLen = inputStream.read();
 						if (strLen>0)
 						{
-							final String fileName = inputStream.readString(strLen); 
+							final String fileName = inputStream.readString(strLen);
 							Log.info(fileName + " --> loading external sample \""+currentSample.name+"\" not supported");
 						}
 						else
@@ -797,16 +793,16 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				else
 					currentSample.setLength(0);
 			}
-			
+
 			instrumentContainer.setSample(i, currentSample);
 		}
-		
+
 		final long beyondLastSample = inputStream.getFilePointer();
 
-		PatternContainer patternContainer = new PatternContainer(this, getNPattern());
+		final PatternContainer patternContainer = new PatternContainer(this, getNPattern());
 		setPatternContainer(patternContainer);
 		int maxChannelIndex = 0;
-		
+
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
 			final long seek = patternParaPointer[pattNum];
@@ -814,29 +810,29 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			{
 				patternContainer.createPattern(pattNum, 1); // PatternElements will get created when we know the amount of channels.
 				continue;
-			} 
+			}
 			inputStream.seek(seek);
-			
+
 			int patternDataLength = inputStream.readIntelUnsignedWord();
-			int rows = inputStream.readIntelUnsignedWord();
+			final int rows = inputStream.readIntelUnsignedWord();
 			if (rows<4 || rows>0x400) continue;
-			
+
 			inputStream.skip(4); // RESERVED
-			
+
 			// First, clear them:
 			patternContainer.createPattern(pattNum, rows);
 
 			int row = 0;
 			// reserving 127 ints for all memories is easier than to resize the array afterwards...
-			int [] lastMask= new int[MAX_CHANNELS];
-			int [] lastNote= new int[MAX_CHANNELS];
-			int [] lastIns= new int[MAX_CHANNELS];
-			int [] lastVolCmd = new int[MAX_CHANNELS];
-			int [] lastVolOp = new int[MAX_CHANNELS];
-			int [] lastCmd= new int[MAX_CHANNELS];
-			int [] lastData= new int[MAX_CHANNELS];
+			final int [] lastMask= new int[MAX_CHANNELS];
+			final int [] lastNote= new int[MAX_CHANNELS];
+			final int [] lastIns= new int[MAX_CHANNELS];
+			final int [] lastVolCmd = new int[MAX_CHANNELS];
+			final int [] lastVolOp = new int[MAX_CHANNELS];
+			final int [] lastCmd= new int[MAX_CHANNELS];
+			final int [] lastData= new int[MAX_CHANNELS];
 			patternContainer.createPatternRow(pattNum, row, MAX_CHANNELS);
-			while (patternDataLength>0) 
+			while (patternDataLength>0)
 			{
 				final int channelByte = inputStream.read(); patternDataLength--;
 				if (channelByte==0) // end of row marker
@@ -848,8 +844,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				}
 				final int channel = (channelByte & CHANNEL_MASK) - 1;
 				if (channel>maxChannelIndex) maxChannelIndex = channel;
-				PatternElement element = patternContainer.createPatternElement(pattNum, row, channel);
-				
+				final PatternElement element = patternContainer.createPatternElement(pattNum, row, channel);
+
 				if ((channelByte & 0x80)!=0)
 				{
 					lastMask[channel] = inputStream.read(); patternDataLength--;
@@ -860,7 +856,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 					{
 						lastNote[channel] = inputStream.read(); patternDataLength--;
 					}
-					int noteIndex = lastNote[channel]; 
+					int noteIndex = lastNote[channel];
 					int period;
 					if (noteIndex==0xFF) // Note Off!
 					{
@@ -904,7 +900,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				{
 					if ((lastMask[channel]&0x04)!=0)
 					{
-						int vol = inputStream.read(); patternDataLength--;
+						final int vol = inputStream.read(); patternDataLength--;
 						int volCmd=0, volOp=0;
 
 						// 0-64: Set Volume
@@ -927,7 +923,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 						if ((vol >= 193) && (vol <= 202)) { volCmd = 0x0B; volOp = vol - 193; } else
 						// 203-212: Vibrato depth
 						if ((vol >= 203) && (vol <= 212))
-						{ 
+						{
 							volCmd = 0x07; volOp = vol - 203;
 							// Old versions of ModPlug saved this as "set vibrato speed" instead, so let's fix that.
 							if (volOp!=0 && lastSavedWithVersion!=-1 && lastSavedWithVersion<=0x01170254)
@@ -954,7 +950,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				}
 			}
 		}
-		
+
 		inputStream.seek(beyondLastSample);
 		boolean hasExtraInstrumentInfos = false;
 		boolean hasExtraSongProperties = false;
@@ -975,23 +971,23 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				if (maxChannels > 0) maxChannelIndex = maxChannels-1;
 			}
 		}
-		
+
 		setNChannels(maxChannelIndex+1);
 		patternContainer.setToChannels(getNChannels());
 		patternContainer.setChannelNames(chnNames);
 		patternContainer.setChannelActiveStatus(panningValue);
-		
+
 		// Correct the songlength for playing, skip markerpattern... (do not want to skip them during playing!)
 		cleanUpArrangement();
-		
+
 		if (lastSavedWithVersion==-1 && version==0x0888) lastSavedWithVersion = 0x01170000;
-		if (lastSavedWithVersion!=-1 && (getTrackerName()==null || getTrackerName().length()==0))
+		if (lastSavedWithVersion!=-1 && (getTrackerName()==null || getTrackerName().isEmpty()))
 		{
 			setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion));
 			boolean isCompatMode = reserved!=0x54504D4F && (version & 0xF000)==0x5000;
 			if (lastSavedWithVersion==0x01170000)
 				isCompatMode = !hasExtraInstrumentInfos && !hasExtraSongProperties && !hasModPlugExtensions;
-			
+
 			if (isCompatMode)
 			{
 				setTrackerName(getTrackerName() + ModConstants.COMPAT_MODE);
@@ -1000,7 +996,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			}
 			else
 				setModType(getModType() | ModConstants.MODTYPE_OMPT);
-			
+
 			if (createdWithVersion!=-1) setTrackerName(getTrackerName() + " (first created with " + ModConstants.getModPlugVersionString(createdWithVersion)+")");
 		}
 		else
@@ -1013,8 +1009,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 						setTrackerName("BeRoTracker");
 					}
 					else
-					if(version==0x0202 && cmwt==0x0200 && rowsPerBeat==0 && rowsPerMeasure==0 && reserved==0 && 
-						patternParaPointer.length>0 && samplesParaPointer.length>0 && 
+					if(version==0x0202 && cmwt==0x0200 && rowsPerBeat==0 && rowsPerMeasure==0 && reserved==0 &&
+						patternParaPointer.length>0 && samplesParaPointer.length>0 &&
 						patternParaPointer[0]!=0 && patternParaPointer[0]<samplesParaPointer[0])
 					{
 						lastSavedWithVersion=0x10000A0;
@@ -1058,7 +1054,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 						setTrackerName("CheeseTracker");
 					}
 					else
-					if (version>0 && cmwt<0x300 && (getTrackerName()==null || getTrackerName().length()==0))
+					if (version>0 && cmwt<0x300 && (getTrackerName()==null || getTrackerName().isEmpty()))
 					{
 						if (cmwt>0x0214)
 						{
@@ -1094,13 +1090,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				case 0xD:
 					if (version==0xDAEB)
 						setTrackerName("spc2it");
-					else 
+					else
 					if (version==0xD1CE)
 						setTrackerName("itwriter");
 					break;
 			}
 		}
-		if (getTrackerName()==null || getTrackerName().length()==0)
+		if (getTrackerName()==null || getTrackerName().isEmpty())
 			setTrackerName("Unknown Tracker V" + ModConstants.getAsHex((version>>8)&0xF, 1) + "." + ModConstants.getAsHex(version&0xFF, 2) + "(ID: "+((version&0xF000)>>12)+" CmwT: " + ModConstants.getAsHex((cmwt>>8)&0xF, 1) + "." + ModConstants.getAsHex(cmwt&0xFF, 2) + ")");
 
 		// With OpenModPlug Files we create default channel colors if none are set

@@ -1,8 +1,8 @@
 /*
  * @(#) Envelope.java
- * 
+ *
  * Created on 19.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import de.quippy.javamod.system.Helpers;
 public class Envelope
 {
 	public enum EnvelopeType { volume, panning, pitch }
-	
+
 	public int [] positions;
 	public int [] value;
 	public int nPoints;
@@ -43,7 +43,7 @@ public class Envelope
 	public EnvelopeType envelopeType;
 	public boolean on, sustain, loop, carry, filter, xm_style;
 	public byte[] oldITVolumeEnvelope;
-	
+
 	private static final int SHIFT = 16;
 	private static final int MAXVALUE = 64<<SHIFT;
 	private static final int BACKSHIFT = SHIFT - 3;
@@ -70,7 +70,7 @@ public class Envelope
 	{
 		int tick = currentTick + 1;
 		int envPos = currentXMPosition;
-		
+
 		// XM does this way more complicated + sustain is only one point (start==end)
 		// + XM not only has ticks but stores the position as well - which leads to some quirks
 		if (xm_style)
@@ -82,30 +82,24 @@ public class Envelope
 				if (loop)
 				{
 					envPos--;
-					if (envPos==loopEndPoint)
+					if ((envPos==loopEndPoint) && (!sustain || envPos!=sustainStartPoint || !aktMemo.keyOff))
 					{
-						if (!sustain || envPos!=sustainStartPoint || !aktMemo.keyOff)
-						{
-							envPos = loopStartPoint;
-							tick = positions[loopStartPoint];
-						}
+						envPos = loopStartPoint;
+						tick = positions[loopStartPoint];
 					}
 					envPos++;
 				}
-				
+
 				if (envPos < nPoints)
 				{
 					copyBack = true;
-					if (sustain && !aktMemo.keyOff)
+					if ((sustain && !aktMemo.keyOff) && (envPos-1 == sustainStartPoint))
 					{
-						if (envPos-1 == sustainStartPoint)
-						{
-							envPos--; // silly, as we do not copy back...
-							copyBack = false;
-						}
+						envPos--; // silly, as we do not copy back...
+						copyBack = false;
 					}
 				}
-				
+
 				if (!copyBack) envPos = currentXMPosition;
 			}
 		}
@@ -128,7 +122,7 @@ public class Envelope
 			}
 			else
 				start = end = positions[endPoint];
-			
+
 			if (tick>=end)
 			{
 				if (fade_flag && value[endPoint]==0)
@@ -137,8 +131,8 @@ public class Envelope
 				if (fade_flag) aktMemo.keyOff = true;
 			}
 		}
-		
-		return (long)((((long)envPos)<<32) | (long)tick);
+
+		return (((long)envPos)<<32) | tick;
 	}
 	/**
 	 * get the value at the positions
@@ -153,34 +147,34 @@ public class Envelope
 		// and stays on the envPos value.
 		// Releasing of sustain is then done with "getXMResetPosition"
 		// This is to simulate that "zero delta value"
-		if (xm_style && (sustain && tick>=positions[sustainStartPoint] && xmEnvPos==sustainStartPoint)) 
+		if (xm_style && (sustain && tick>=positions[sustainStartPoint] && xmEnvPos==sustainStartPoint))
 			return value[sustainStartPoint]<<(SHIFT-BACKSHIFT);
-		
+
 		int index = endPoint;
 		for (int i=0; i<index; i++)
 			if (positions[i]>tick) index = i; // results in a break
 
-		int x2 = positions[index];
+		final int x2 = positions[index];
 		int y1 = 0;
 
 		// if we land directly on an envelope point, do nothing
-		if (tick>=x2) 
+		if (tick>=x2)
 			y1 = value[index]<<SHIFT;
 		else
 		{
 			// if we are somewhere in between two points, do a linear interpolation
 			int x1 = 0;
-			
+
 			// get previous point, if any
 			if (index>0)
 			{
-				y1 = value[index - 1]<<SHIFT; 
+				y1 = value[index - 1]<<SHIFT;
 				x1 = positions[index - 1];
 			}
 
 			if(x2>x1 && tick>x1)
 			{
-				int y2 = value[index]<<SHIFT;
+				final int y2 = value[index]<<SHIFT;
 				y1 += ((y2 - y1) * (tick - x1)) / (x2 - x1);
 			}
 		}

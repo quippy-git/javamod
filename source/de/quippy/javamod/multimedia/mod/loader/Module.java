@@ -1,8 +1,8 @@
 /*
  * @(#) Module.java
- * 
+ *
  * Created on 21.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 
 import de.quippy.javamod.io.ModfileInputStream;
 import de.quippy.javamod.multimedia.mod.ModConstants;
@@ -44,7 +45,7 @@ public abstract class Module
 	private String fileName;
 	private String trackerName;
 	private String modID;
-	
+
 	private int modType;
 	protected int version;
 
@@ -66,9 +67,9 @@ public abstract class Module
 	private int baseVolume; // 0..128
 	private int mixingPreAmp; //0..256 (see ModConstants.MAX_MIXING_PREAMP)
 	private int synthMixingPreAmp; // 0..256 like mixingPreAmp but for synth Channels
-	
+
 	protected int songFlags;
-	
+
 	// OMPT specific (or S3M and IT), but manipulated in extended song messages
 	protected int [] panningValue;
 	protected int [] channelVolume;
@@ -80,7 +81,7 @@ public abstract class Module
 	protected int lastSavedWithVersion;
 	protected String author;
 	protected int resampling;
-	
+
 	protected int needsOPL;
 	protected static final int NO_OPL = 0;
 	protected static final int OPL2 = 0x01;
@@ -90,18 +91,18 @@ public abstract class Module
 	 * This class is used to decrompress the IT>=2.14 samples
 	 * It is a mix from open cubic player and mod plug tracker adopted for
 	 * Java by Daniel Becker
-	 * 
+	 *
 	 * Read, what Tammo Hinrichs (OCP) wrote to this:
 	 * ********************************************************
 	 * And to make it even worse: A short (?) description of what the routines
 	 * in this file do.
-	 * 
+	 *
 	 * It's all about sample compression. Due to the rather "analog" behaviour
 	 * of audio streams, it's not always possible to gain high reduction rates
 	 * with generic compression algorithms. So the idea is to find an algorithm
 	 * which is specialized for the kind of data we're actually dealing with:
 	 * mono sample data.
-	 * 
+	 *
 	 * in fact, PKZIP etc. is still somewhat better than this algorithm in most
 	 * cases, but the advantage of this is it's decompression speed which might
 	 * enable sometimes players or even synthesizer chips to decompress IT
@@ -140,17 +141,17 @@ public abstract class Module
 	 *   signal.
 	 * - then, we assume that the "-1"st sample value is always 0 to avoid nasty
 	 *   DC offsets when integrating.
-	 *   
+	 *
 	 * ok. now we have a sample stream which definitely contains more low than
 	 * high values. How do we compress it now?
-	 * 
+	 *
 	 * Pulse had chosen a quite unusual, but effective solution: He encodes the
 	 * values with a specific "bit width" and places markers between the values
 	 * which indicate if this width would change. He implemented three different
 	 * methods for that, depending on the bit width we actually have (i'll write
 	 * it down for 8 bit samples, values which change for 16bit ones are in these
 	 * brackets [] ;):
-	 * 
+	 *
 	 * * method 1: 1 to 6 bits
 	 *   there are two possibilities (example uses a width of 6)
 	 *   - 100000 (a one with (width-1) zeroes ;) :
@@ -175,7 +176,7 @@ public abstract class Module
 	 *   - if 1, the last 8 [16] bits (+1) will be used as new bit width.
 	 * any other width isnt supposed to exist and will result in a premature
 	 * exit of the decompressor.
-	 * 
+	 *
 	 * Few annotations:
 	 * - The compressed data is processed in blocks of 0x8000 bytes. I dont
 	 *   know the reason of this (it's definitely NOT better concerning compres-
@@ -187,7 +188,7 @@ public abstract class Module
 	 *   of the signal, thus eliminating low frequencies some more and turning
 	 *   the signal phase to 180° instead of 90° which can eliminate some sig-
 	 *   nal peaks here and there - all resulting in a somewhat better ratio.
-	 * 
+	 *
 	 * ok, but now lets start... but think before you easily somehow misuse
 	 * this code, the algorithm is (C) Jeffrey Lim aka Pulse... and my only
 	 * intention is to make IT's file format more open to the Tracker Community
@@ -195,30 +196,30 @@ public abstract class Module
 	 * which everyone was able (and WELCOME) to adopt, and I don't think this
 	 * should change. There are enough other things in the computer world
 	 * which did, let's just not be mainstream, but open-minded. Thanks.
-	 * 
+	 *
 	 *                     Tammo Hinrichs [ KB / T.O.M / PuRGE / Smash Designs ]
-	 * 
+	 *
 	 * @author Daniel Becker
 	 * @since 03.11.2007
 	 */
 	private static class ITDeCompressor
 	{
 		// StreamData
-		private ModfileInputStream input;
+		private final ModfileInputStream input;
 		// Block of Data
 		private byte[] sourceBuffer;
 		private int sourceIndex;
 		// Destination (24Bit signed mono!)
-		private long[] destBuffer;
+		private final long[] destBuffer;
 		private int destIndex;
 		// Samples to fill
 		private int anzSamples;
 		// Bits remaining
 		private int bitsRemain;
 		// true, if we have IT Version >2.15 packed Data
-		private boolean isIT215;
+		private final boolean isIT215;
 
-		public ITDeCompressor(final long [] buffer, final int length, boolean isIT215, ModfileInputStream inputStream)
+		public ITDeCompressor(final long [] buffer, final int length, final boolean isIT215, final ModfileInputStream inputStream)
 		{
 			this.input = inputStream;
 			this.sourceBuffer = null;
@@ -237,7 +238,7 @@ public abstract class Module
 		 * @param b
 		 * @return
 		 */
-		private int readbits(int b)
+		private int readbits(final int b)
 		{
 			// Slow version but always working and easy to understand
 //			long value = 0;
@@ -282,7 +283,7 @@ public abstract class Module
 
 		/**
 		 * gets block of compressed data from file
-		 * 
+		 *
 		 * @since 03.11.2007
 		 * @return
 		 */
@@ -292,7 +293,7 @@ public abstract class Module
 			int size = input.readIntelWord();
 			if (size == 0) return false;
 			if (input.available()<size) size = input.available(); // Dirty Hack - should never happen
-			
+
 			sourceBuffer = new byte[size];
 			input.read(sourceBuffer, 0, size);
 			sourceIndex = 0;
@@ -340,7 +341,7 @@ public abstract class Module
 					}
 					else if (width < 9) // method 2 (7-8 bits)
 					{
-						int border = (0xFF >> (9 - width)) - 4; // lower border for width chg
+						final int border = (0xFF >> (9 - width)) - 4; // lower border for width chg
 
 						if (value > border && value <= (border + 8))
 						{
@@ -366,7 +367,7 @@ public abstract class Module
 					byte v; // sample value
 					if (width < 8)
 					{
-						int shift = 8 - width;
+						final int shift = 8 - width;
 						v = (byte)((value << shift)&0xFF);
 						v >>= shift;
 					}
@@ -428,7 +429,7 @@ public abstract class Module
 					}
 					else if (width < 17) // method 2 (7-16 bits)
 					{
-						int border = (0xFFFF >> (17 - width)) - 8; // lower border for width chg
+						final int border = (0xFFFF >> (17 - width)) - 8; // lower border for width chg
 
 						if (value > border && value <= (border + 16))
 						{
@@ -454,7 +455,7 @@ public abstract class Module
 					short v; // sample value
 					if (width < 16)
 					{
-						int shift = 16 - width;
+						final int shift = 16 - width;
 						v = (short) ((value << shift) & 0xFFFF);
 						v >>= shift;
 					}
@@ -477,7 +478,7 @@ public abstract class Module
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Constructor for Module
 	 */
@@ -503,7 +504,7 @@ public abstract class Module
 	}
 	/**
 	 * Loads a Module. This Method will delegate the task to loadModFile(InputStream)
-	 * 
+	 *
 	 * @param fileName
 	 * @return
 	 */
@@ -536,7 +537,7 @@ public abstract class Module
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream!=null) try { inputStream.close(); } catch (final Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 	/**
@@ -547,7 +548,7 @@ public abstract class Module
 	 */
 	public Module loadModFile(final ModfileInputStream inputStream) throws IOException
 	{
-		Module mod = this.getNewInstance(inputStream.getFileName());
+		final Module mod = this.getNewInstance(inputStream.getFileName());
 		mod.loadModFileInternal(inputStream);
 		return mod;
 	}
@@ -568,7 +569,7 @@ public abstract class Module
 		final boolean is16Bit = (flags&ModConstants.SM_16BIT)!=0;
 		final boolean isBigEndian = (flags&ModConstants.SM_BigEndian)!=0;
 		//current.setStereo(isStereo); // just to be sure...
-		
+
 		if (current.length>0)
 		{
 			current.allocSampleData();
@@ -576,14 +577,14 @@ public abstract class Module
 			{
 				final boolean isIT215 = (flags & ModConstants.SM_IT215)!=0;
 				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.length, isIT215, inputStream);
-				if (is16Bit) 
+				if (is16Bit)
 					reader.decompress16();
 				else
 					reader.decompress8();
 				if (isStereo)
 				{
 					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, isIT215, inputStream);
-					if (is16Bit) 
+					if (is16Bit)
 						reader2.decompress16();
 					else
 						reader.decompress8();
@@ -592,20 +593,20 @@ public abstract class Module
 			else
 			if ((flags&ModConstants.SM_ADPCM)!=0)
 			{
-				byte [] deltaLUT = new byte[16];
+				final byte [] deltaLUT = new byte[16];
 				inputStream.read(deltaLUT);
-				
+
 				final int length = (current.length + 1)>>1;
 				byte currentSample = 0;
 				for (int i=0,s=0; i<length; i++)
 				{
 					final int nibble = inputStream.read();
-					
+
 					currentSample += deltaLUT[nibble & 0x0F];
-					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit((long)currentSample); 
-					
+					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit(currentSample);
+
 					currentSample += deltaLUT[nibble >> 4];
-					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit((long)currentSample); 
+					current.sampleL[s++] = ModConstants.promoteSigned8BitToSigned32Bit(currentSample);
 				}
 			}
 			else
@@ -617,7 +618,7 @@ public abstract class Module
 					for (int s=0; s<current.length; s++)
 					{
 						final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += sample));
+						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += sample);
 					}
 					if (isStereo)
 					{
@@ -625,7 +626,7 @@ public abstract class Module
 						for (int s=0; s<current.length; s++)
 						{
 							final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit((long)(delta += sample));
+							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += sample);
 						}
 					}
 				}
@@ -633,12 +634,12 @@ public abstract class Module
 				{
 					byte delta = 0;
 					for (int s=0; s<current.length; s++)
-						current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+						current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit(delta += inputStream.readByte());
 					if (isStereo)
 					{
 						delta = 0;
 						for (int s=0; s<current.length; s++)
-							current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit((long)(delta += inputStream.readByte()));
+							current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit(delta += inputStream.readByte());
 					}
 				}
 			}
@@ -649,9 +650,9 @@ public abstract class Module
 				{
 					final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 					if (isUnsigned) // unsigned
-						current.sampleL[s]=ModConstants.promoteUnsigned16BitToSigned32Bit((long)sample);
+						current.sampleL[s]=ModConstants.promoteUnsigned16BitToSigned32Bit(sample);
 					else
-						current.sampleL[s]=ModConstants.promoteSigned16BitToSigned32Bit((long)sample);
+						current.sampleL[s]=ModConstants.promoteSigned16BitToSigned32Bit(sample);
 				}
 				if (isStereo)
 				{
@@ -659,9 +660,9 @@ public abstract class Module
 					{
 						final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 						if (isUnsigned) // unsigned
-							current.sampleR[s]=ModConstants.promoteUnsigned16BitToSigned32Bit((long)sample);
+							current.sampleR[s]=ModConstants.promoteUnsigned16BitToSigned32Bit(sample);
 						else
-							current.sampleR[s]=ModConstants.promoteSigned16BitToSigned32Bit((long)sample);
+							current.sampleR[s]=ModConstants.promoteSigned16BitToSigned32Bit(sample);
 					}
 				}
 			}
@@ -671,9 +672,9 @@ public abstract class Module
 				{
 					final byte sample = inputStream.readByte();
 					if (isUnsigned) // unsigned
-						current.sampleL[s]=ModConstants.promoteUnsigned8BitToSigned32Bit((long)sample);
+						current.sampleL[s]=ModConstants.promoteUnsigned8BitToSigned32Bit(sample);
 					else
-						current.sampleL[s]=ModConstants.promoteSigned8BitToSigned32Bit((long)sample);
+						current.sampleL[s]=ModConstants.promoteSigned8BitToSigned32Bit(sample);
 				}
 				if (isStereo)
 				{
@@ -681,12 +682,12 @@ public abstract class Module
 					{
 						final byte sample = inputStream.readByte();
 						if (isUnsigned) // unsigned
-							current.sampleR[s]=ModConstants.promoteUnsigned8BitToSigned32Bit((long)sample);
+							current.sampleR[s]=ModConstants.promoteUnsigned8BitToSigned32Bit(sample);
 						else
-							current.sampleR[s]=ModConstants.promoteSigned8BitToSigned32Bit((long)sample);
+							current.sampleR[s]=ModConstants.promoteSigned8BitToSigned32Bit(sample);
 					}
 				}
-				
+
 			}
 			current.fixSampleLoops(getModType());
 		}
@@ -818,7 +819,7 @@ public abstract class Module
 	}
 	public void resetLoopRecognition()
 	{
-		for (int i=0; i<arrangementPositionPlayed.length; i++) arrangementPositionPlayed[i] = false;
+		Arrays.fill(arrangementPositionPlayed, false);
 		getPatternContainer().resetRowsPlayed();
 	}
 	public boolean isArrangementPositionPlayed(final int position)
@@ -1176,7 +1177,7 @@ public abstract class Module
 	 */
 	public String toShortInfoString()
 	{
-		StringBuilder modInfo = new StringBuilder(getTrackerName());
+		final StringBuilder modInfo = new StringBuilder(getTrackerName());
 		modInfo.append(isStereo()?" stereo":" mono").append(" mod with ");
 		if (instrumentContainer!=null && instrumentContainer.hasInstruments()) modInfo.append(getNInstruments()).append(" instruments mapping ");
 		modInfo.append(getNSamples()).append(" samples and ").append(getNChannels()).append(" channels using ")
@@ -1191,14 +1192,14 @@ public abstract class Module
 	@Override
 	public String toString()
 	{
-		StringBuilder modInfo = new StringBuilder(toShortInfoString());
+		final StringBuilder modInfo = new StringBuilder(toShortInfoString());
 		modInfo.append("\n\nSong named: ")
 				.append(getSongName()).append('\n')
 				.append(getSongMessage()).append('\n')
 				.append(getInstrumentContainer().toString());
 		return modInfo.toString();
 	}
-	
+
 	// Flags for readExtendedFlags
 	private static final int dFdd_VOLUME 		= 0x0001;
 	private static final int dFdd_VOLSUSTAIN 	= 0x0002;
@@ -1237,13 +1238,13 @@ public abstract class Module
 		if ((flag & dFdd_PANSUSTAIN)	!=0) ins.panningEnvelope.sustain = true;
 		if ((flag & dFdd_PANLOOP)		!=0) ins.panningEnvelope.loop = true;
 		if ((flag & dFdd_PANCARRY)		!=0) ins.panningEnvelope.carry = true;
-		
+
 		if ((flag & dFdd_PITCH)			!=0) ins.pitchEnvelope.on = true;
 		if ((flag & dFdd_PITCHSUSTAIN)	!=0) ins.pitchEnvelope.sustain = true;
 		if ((flag & dFdd_PITCHLOOP)		!=0) ins.pitchEnvelope.loop = true;
 		if ((flag & dFdd_PITCHCARRY)	!=0) ins.pitchEnvelope.carry = true;
 		if ((flag & dFdd_FILTER)		!=0) ins.pitchEnvelope.filter = true;
-		
+
 		if ((flag & dFdd_SETPANNING)	!=0) ins.setPanning = true;
 		if ((flag & dFdd_MUTE)			!=0) ins.mute = true;
 	}
@@ -1399,7 +1400,7 @@ public abstract class Module
 			{
 				readInstrumentExtensionField(inputStream, getInstrumentContainer().getInstrument(i), code, size);
 			}
-		}			
+		}
 		return true;
 	}
 	/**
@@ -1423,7 +1424,7 @@ public abstract class Module
 			final int code = inputStream.readIntelDWord();
 //			System.out.println("case 0x"+ModConstants.getAsHex(code, 8) + ": //\"" + Helpers.retrieveAsString(new byte[] {(byte)((code>>24)&0xFF), (byte)((code>>16)&0xFF), (byte)((code>>8)&0xFF), (byte)(code&0xFF)}, 0, 4)+"\"");
 			final int size = inputStream.readIntelWord();
-			
+
 			if (code==0x04383232) // Start of MPTM extensions, non-ASCII ID or truncated field
 			{
 				inputStream.skipBack(6);
@@ -1434,7 +1435,7 @@ public abstract class Module
 			{
 				break;
 			}
-			
+
 			switch (code)
 			{
 				case 0x44542E2E: //"DT.." - default BPM
@@ -1487,7 +1488,7 @@ public abstract class Module
 					{
 						final int numChannels = size>>2;
 						final Color [] chnColors = new Color[numChannels];
-						
+
 						final byte [] rgb = new byte[4];
 						for (int c=0; c<numChannels; c++)
 						{
@@ -1495,7 +1496,7 @@ public abstract class Module
 							if (rgb[3]!=0)
 								chnColors[c] = null;
 							else
-								chnColors[c] = new Color((int)(rgb[0]&0xFF) | ((int)(rgb[1]&0xFF) << 8) | ((int)(rgb[2]&0xFF) << 16));
+								chnColors[c] = new Color(rgb[0]&0xFF | ((rgb[1]&0xFF) << 8) | ((rgb[2]&0xFF) << 16));
 						}
 					}
 					else
@@ -1529,11 +1530,11 @@ public abstract class Module
 								{
 									pan = (pan&0x7F)<<2;
 									if (pan>256) pan = 256;
-									newPanningValues[c]=pan; 
+									newPanningValues[c]=pan;
 								}
 							}
 						}
-						
+
 						panningValue = newPanningValues;
 						channelVolume = newChannelVolume;
 					}
@@ -1543,7 +1544,7 @@ public abstract class Module
 				case 0x53455543: //"CUES" - Sample Cues - written as MagicLE
 					if (size>2)
 					{
-						int cues = (size - 2)>>2; // should be MAX_CUES (or less)
+						final int cues = (size - 2)>>2; // should be MAX_CUES (or less)
 						final int sampleIndex = inputStream.readIntelWord();
 						if (sampleIndex>0 && sampleIndex<=getNSamples())
 						{
@@ -1567,7 +1568,7 @@ public abstract class Module
 					{
 						final int anzNums = inputStream.readIntelWord();
 						tempoSwing = new double[anzNums];
-						for (int i=0; i<anzNums; i++) tempoSwing[i] = (double)inputStream.readIntelDWord();
+						for (int i=0; i<anzNums; i++) tempoSwing[i] = inputStream.readIntelDWord();
 					}
 					else
 						inputStream.skip(size);

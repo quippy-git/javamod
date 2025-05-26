@@ -26,7 +26,8 @@ package de.quippy.jmac.decoder;
  * Time: 14:51:31
  */
 public class AntiPredictorNormal0000To3320 extends AntiPredictor {
-    public void antiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements) {
+    @Override
+	public void antiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements) {
         //variable declares
         int ip, op, op1, op2;
         int p, pw;

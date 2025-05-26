@@ -17,9 +17,9 @@ package de.quippy.sidplay.libsidplay.common;
 
 public abstract class SIDEmu implements IComponent {
 
-	private SIDBuilder m_builder;
+	private final SIDBuilder m_builder;
 
-	public SIDEmu(SIDBuilder builder) {
+	public SIDEmu(final SIDBuilder builder) {
 		m_builder = (builder);
 	}
 
@@ -27,17 +27,21 @@ public abstract class SIDEmu implements IComponent {
 	// Standard component functions
 	//
 
+	@Override
 	public void reset() {
 		reset((short) 0);
 	}
 
 	public abstract void reset(short /* uint8_t */volume);
 
+	@Override
 	public abstract short /* uint8_t */read(short /* uint_least8_t */addr);
 
+	@Override
 	public abstract void write(short /* uint_least8_t */addr,
 			short /* uint8_t */data);
 
+	@Override
 	public abstract String credits();
 
 	//
@@ -52,8 +56,8 @@ public abstract class SIDEmu implements IComponent {
 
 	public abstract void gain(short /* uint_least8_t */precent);
 
-	public void optimisation(byte /* uint_least8_t */level) {
-		
+	public void optimisation(final byte /* uint_least8_t */level) {
+
 	}
 
 	final public SIDBuilder builder() {

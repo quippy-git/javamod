@@ -57,7 +57,7 @@ public class WaveHeader {
     public String cDataHeader;
     public long nDataBytes;
 
-    public static void FillWaveHeader(WaveHeader pWAVHeader, int nAudioBytes, WaveFormat pWaveFormatEx, int nTerminatingBytes) {
+    public static void FillWaveHeader(final WaveHeader pWAVHeader, final int nAudioBytes, final WaveFormat pWaveFormatEx, final int nTerminatingBytes) {
         // RIFF header
         pWAVHeader.cRIFFHeader = "RIFF";
         pWAVHeader.nRIFFBytes = (nAudioBytes + 44) - 8 + nTerminatingBytes;
@@ -84,7 +84,7 @@ public class WaveHeader {
         try {
             final ByteArrayReader reader = new ByteArrayReader(file, WAVE_HEADER_BYTES);
             return read(reader);
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             return null;
         }
     }

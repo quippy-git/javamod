@@ -22,9 +22,9 @@ package de.quippy.sidplay.libsidplay.common;
  */
 public abstract class C64Env {
 
-	private IEventContext m_context;
+	private final IEventContext m_context;
 
-	public C64Env(IEventContext context) {
+	public C64Env(final IEventContext context) {
 		m_context = (context);
 	}
 

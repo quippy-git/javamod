@@ -30,19 +30,19 @@ public class Prg {
 
 	private static final String _sidtune_truncated = "ERROR: File is most likely truncated";
 
-	private SidTune sidtune;
+	private final SidTune sidtune;
 
-	private SidTuneInfo info;
+	private final SidTuneInfo info;
 
-	public Prg(SidTune sidTune) {
+	public Prg(final SidTune sidTune) {
 		this.sidtune = sidTune;
 		this.info = sidTune.info;
 	}
 
 	protected LoadStatus PRG_fileSupport(final String fileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
-		int lastIndexOf = fileName.lastIndexOf(".");
-		String ext = lastIndexOf != -1 ? fileName.substring(lastIndexOf) : "";
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+		final int lastIndexOf = fileName.lastIndexOf(".");
+		final String ext = lastIndexOf != -1 ? fileName.substring(lastIndexOf) : "";
 		if (!ext.equalsIgnoreCase(".prg") && !ext.equalsIgnoreCase(".c64")) {
 			return LOAD_NOT_MINE;
 		}

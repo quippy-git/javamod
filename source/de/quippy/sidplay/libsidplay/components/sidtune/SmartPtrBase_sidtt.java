@@ -2,8 +2,8 @@ package de.quippy.sidplay.libsidplay.components.sidtune;
 
 public class SmartPtrBase_sidtt {
 
-	public SmartPtrBase_sidtt(short[] /* T* */buffer,
-			int /* ulint_smartpt */bufferLen, boolean bufOwner)
+	public SmartPtrBase_sidtt(final short[] /* T* */buffer,
+			final int /* ulint_smartpt */bufferLen, final boolean bufOwner)
 	{
 		dummy = (0);
 		doFree = bufOwner;
@@ -30,10 +30,10 @@ public class SmartPtrBase_sidtt {
 	}
 
 	public int /* ulint_smartpt */tellPos() {
-		return (int /* ulint_smartpt */) (pBufCurrent);
+		return (pBufCurrent);
 	}
 
-	public boolean checkIndex(int /* ulint_smartpt */index) {
+	public boolean checkIndex(final int /* ulint_smartpt */index) {
 		return ((pBufCurrent + index) < bufEnd);
 	}
 
@@ -70,7 +70,7 @@ public class SmartPtrBase_sidtt {
 		}
 	}
 
-	public void operatorPlusGleich(int /* ulint_smartpt */offset) {
+	public void operatorPlusGleich(final int /* ulint_smartpt */offset) {
 		if (checkIndex(offset)) {
 			pBufCurrent += offset;
 		} else {
@@ -78,7 +78,7 @@ public class SmartPtrBase_sidtt {
 		}
 	}
 
-	public void operatorMinusGleich(int /* ulint_smartpt */offset) {
+	public void operatorMinusGleich(final int /* ulint_smartpt */offset) {
 		if ((pBufCurrent - offset) >= 0) {
 			pBufCurrent -= offset;
 		} else {
@@ -95,7 +95,7 @@ public class SmartPtrBase_sidtt {
 		}
 	}
 
-	public short operatorAt(int /* ulint_smartpt */index) {// &
+	public short operatorAt(final int /* ulint_smartpt */index) {// &
 		if (checkIndex(index)) {
 			return bufBegin[pBufCurrent + index];
 		} else {

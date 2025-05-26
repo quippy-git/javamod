@@ -2,7 +2,7 @@
  * @(#) ModDSP.java
  *
  * Created on 25.01.2022 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,24 +48,22 @@ public class ModDSP
 	private long nDCRFlt_X1l;
 	private long nDCRFlt_Y1r;
 	private long nDCRFlt_X1r;
-	
+
 	// Noise Reduction
 	private long leftNR;
 	private long rightNR;
-	
+
 //	// Wide Stereo Mix
 //	private int maxWideStereo;
 //	private long[] wideLBuffer;
 //	private long[] wideRBuffer;
 //	private int readPointer;
 //	private int writePointer;
-	
+
 	// Surround Mix
 	// Surround Encoding: 1 delay line + low-pass filter + high-pass filter
 	private int nSurroundSize;
 	private int nSurroundPos;
-	private int nDolbyDepth;
-
 	// Surround Biquads
 	private long nDolbyHP_Y1;
 	private long nDolbyHP_X1;
@@ -78,7 +76,7 @@ public class ModDSP
 	private long nDolbyLP_A1;
 
 	private long surroundBuffer[];
-	
+
 
 	/**
 	 * Constructor for ModDSP
@@ -100,9 +98,9 @@ public class ModDSP
 //		initWideStereo(sampleFreq);
 		initSurround(sampleFreq);
 	}
-	private static double sgn(double x)
+	private static double sgn(final double x)
 	{
-		return (x >= 0) ? 1.0d : -1.0d; 
+		return (x >= 0) ? 1.0d : -1.0d;
 	}
 	/**
 	 * @since 25.01.2022
@@ -132,7 +130,7 @@ public class ModDSP
 
 		if (quad != 0)
 		{
-			double lambda = (gainPI2 - gainDC2) / quad;
+			final double lambda = (gainPI2 - gainDC2) / quad;
 			alpha  = lambda - sgn(lambda)*Math.sqrt(lambda*lambda - 1.0d);
 		}
 
@@ -159,18 +157,18 @@ public class ModDSP
 		nXBassFlt_Y1 = 0;
 		nXBassFlt_X1 = 0;
 
-		long nXBassCutOff = 50 + (DEFAULT_XBASS_RANGE+2) * 20;
-		long nXBassGain = DEFAULT_XBASS_DEPTH;
+		final long nXBassCutOff = 50 + (DEFAULT_XBASS_RANGE+2) * 20;
+		final long nXBassGain = DEFAULT_XBASS_DEPTH;
 		// because of defaults we do not need to check this
 		//if (nXBassGain<2) nXBassGain=1; else if (nXBassGain>8) nXBassGain=8;
 		//if (nXBassCutOff<60) nXBassCutOff=60; else if (nXBassCutOff>600) nXBassCutOff=600;
-		
-		long [] result = new long[3];
+
+		final long [] result = new long[3];
 		shelfEQ(1024, result, nXBassCutOff, sampleFreq,
 				1.0d + (1.0d/16.0d) * (0x300 >> nXBassGain),
 				1.0d,
 				0.0000001d);
-		
+
 		if (nXBassGain > 5)
 		{
 			result[1] >>= (nXBassGain-5);
@@ -188,7 +186,7 @@ public class ModDSP
 	{
 		long x1 = nXBassFlt_X1;
 		long y1 = nXBassFlt_Y1;
-		
+
 		final long x_m = (sample[0]+sample[1]+0x100)>>9;
 		y1 = (nXBassFlt_B0 * x_m + nXBassFlt_B1 * x1 + nXBassFlt_A1 * y1) >> (10-8);
 		x1 = x_m;
@@ -219,14 +217,14 @@ public class ModDSP
 		long y1l = nDCRFlt_Y1l, x1l = nDCRFlt_X1l;
 		long y1r = nDCRFlt_Y1r, x1r = nDCRFlt_X1r;
 
-		long inL = sample[0];
-		long inR = sample[1];
-		long diffL = x1l - inL;
-		long diffR = x1r - inR;
+		final long inL = sample[0];
+		final long inR = sample[1];
+		final long diffL = x1l - inL;
+		final long diffR = x1r - inR;
 		x1l = inL;
 		x1r = inR;
-		long outL = diffL / (1 << (DCR_AMOUNT + 1)) - diffL + y1l;
-		long outR = diffR / (1 << (DCR_AMOUNT + 1)) - diffR + y1r;
+		final long outL = diffL / (1 << (DCR_AMOUNT + 1)) - diffL + y1l;
+		final long outR = diffR / (1 << (DCR_AMOUNT + 1)) - diffR + y1r;
 		sample[0] = outL;
 		sample[1] = outR;
 		y1l = outL - outL / (1 << DCR_AMOUNT);
@@ -254,7 +252,7 @@ public class ModDSP
 		long vnr = sample[0]>>1;
 		sample[0] = vnr + leftNR;
 		leftNR = vnr;
-		
+
 		vnr = sample[1]>>1;
 		sample[1] = vnr + rightNR;
 		rightNR = vnr;
@@ -298,14 +296,14 @@ public class ModDSP
 		nSurroundSize = (DEFAULT_SURROUND_MS * sampleFreq) / 1000;
 		surroundBuffer = new long[nSurroundSize];
 
-		nDolbyDepth = DEFAULT_SURROUND_DEPTH;
+		int nDolbyDepth = DEFAULT_SURROUND_DEPTH;
 		// because of defaults we do not need to check this
 		//if (nDolbyDepth < 1) nDolbyDepth = 1; else if (nDolbyDepth > 16) nDolbyDepth = 16;
 
 		nSurroundPos = 0;
 
 		// Setup biquad filters
-		long [] result = new long[3];
+		final long [] result = new long[3];
 		shelfEQ(1024, result, 200, sampleFreq, 0, 0.5d, 1);
 		nDolbyHP_A1 = result[0];
 		nDolbyHP_B0 = result[1];
@@ -335,14 +333,14 @@ public class ModDSP
 
 		// High-pass
 		final long v0 = (nDolbyHP_B0 * sEcho + nDolbyHP_B1 * nDolbyHP_X1 + nDolbyHP_A1 * nDolbyHP_Y1) >> 10;
-		
+
 		// Low-pass
 		final long v = (nDolbyLP_B0 * v0 + nDolbyLP_B1 * nDolbyHP_Y1 + nDolbyLP_A1 * nDolbyLP_Y1) >> (10-8);
-		
+
 		// Add echo
 		sample[0] += v;
 		sample[1] -= v;
-		
+
 		// and remember
 		nDolbyHP_Y1 = v0;
 		nDolbyHP_X1 = sEcho;

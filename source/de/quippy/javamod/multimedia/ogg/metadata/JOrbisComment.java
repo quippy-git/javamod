@@ -2,7 +2,7 @@
  * @(#) OggMetaData.java
  *
  * Created on 01.11.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,18 +51,18 @@ class State
 
 	private int prevW;
 
-	private Page og;
-	
+	private final Page og;
+
 	public State()
 	{
 		super();
 		og = new Page();
 	}
 
-	public int blocksize(Packet p)
+	public int blocksize(final Packet p)
 	{
-		int _this = vi.blocksize(p);
-		int ret = (_this + prevW) / 4;
+		final int _this = vi.blocksize(p);
+		final int ret = (_this + prevW) / 4;
 
 		if (prevW == 0)
 		{
@@ -74,26 +74,26 @@ class State
 		return ret;
 	}
 
-	public int fetch_next_packet(Packet p)
+	public int fetch_next_packet(final Packet p)
 	{
-		int result = os.packetout(p);
+		final int result = os.packetout(p);
 
 		if (result > 0) return 1;
 
 		while (oy.pageout(og) <= 0)
 		{
-			int index = oy.buffer(JOrbisComment.CHUNKSIZE);
-			byte [] buffer = oy.data;
+			final int index = oy.buffer(JOrbisComment.CHUNKSIZE);
+			final byte [] buffer = oy.data;
 			try
 			{
-				int bytes = in.read(buffer, index, JOrbisComment.CHUNKSIZE);
+				final int bytes = in.read(buffer, index, JOrbisComment.CHUNKSIZE);
 				if (bytes > 0) oy.wrote(bytes);
 				if (bytes == 0 || bytes == -1)
 				{
 					return 0;
 				}
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				return 0;
 			}
@@ -125,11 +125,11 @@ public class JOrbisComment
 		else
 			return 0;
 	}
-	public void read(InputStream in)
+	public void read(final InputStream in)
 	{
 		state.in = in;
-		
-		Page og = new Page();
+
+		final Page og = new Page();
 
 		state.oy = new SyncState();
 		state.oy.init();
@@ -141,7 +141,7 @@ public class JOrbisComment
 		{
 			bytes = state.in.read(buffer, index, CHUNKSIZE);
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			Log.error("[JOrbisComment]", e);
 			return;
@@ -179,7 +179,7 @@ public class JOrbisComment
 			return;
 		}
 
-		Packet header_main = new Packet();
+		final Packet header_main = new Packet();
 
 		if (state.os.packetout(header_main) != 1)
 		{
@@ -200,8 +200,8 @@ public class JOrbisComment
 		System.arraycopy(header_main.packet_base, header_main.packet, state.mainbuf, 0, state.mainlen);
 
 		int i = 0;
-		Packet header_comments = new Packet();
-		Packet header_codebooks = new Packet();
+		final Packet header_comments = new Packet();
+		final Packet header_codebooks = new Packet();
 
 		Packet header = header_comments;
 		while (i < 2)
@@ -243,7 +243,7 @@ public class JOrbisComment
 			{
 				bytes = state.in.read(buffer, index, CHUNKSIZE);
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				Log.error("[JOrbisComment]", e);
 				return;
@@ -263,13 +263,13 @@ public class JOrbisComment
 			/*int result = */state.oy.pageout(og);
 			index = state.oy.buffer(CHUNKSIZE);
 			buffer = state.oy.data;
-			if (index==-1) 
+			if (index==-1)
 			{
 				state.pcmLength = og.granulepos();
 				break;
 			}
 //			repeat++;
-//			if (repeat>16) // Stop just once - no endless loop!! 
+//			if (repeat>16) // Stop just once - no endless loop!!
 //			{
 //				state.pcmLength = og.granulepos();
 //				break;
@@ -278,7 +278,7 @@ public class JOrbisComment
 			{
 				bytes = state.in.read(buffer, index, CHUNKSIZE);
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				Log.error("[JOrbisComment]", e);
 				break;
@@ -292,16 +292,16 @@ public class JOrbisComment
 		}
 	}
 
-	public int write(OutputStream out)
+	public int write(final OutputStream out)
 	{
-		StreamState streamout = new StreamState();
-		Packet header_main = new Packet();
-		Packet header_comments = new Packet();
-		Packet header_codebooks = new Packet();
+		final StreamState streamout = new StreamState();
+		final Packet header_main = new Packet();
+		final Packet header_comments = new Packet();
+		final Packet header_codebooks = new Packet();
 
-		Page ogout = new Page();
+		final Page ogout = new Page();
 
-		Packet op = new Packet();
+		final Packet op = new Packet();
 		long granpos = 0;
 
 		int result;
@@ -341,7 +341,7 @@ public class JOrbisComment
 				out.write(ogout.header_base, ogout.header, ogout.header_len);
 				out.flush();
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				break;
 			}
@@ -350,7 +350,7 @@ public class JOrbisComment
 				out.write(ogout.body_base, ogout.body, ogout.body_len);
 				out.flush();
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				break;
 			}
@@ -358,7 +358,7 @@ public class JOrbisComment
 
 		while (state.fetch_next_packet(op) != 0)
 		{
-			int size = state.blocksize(op);
+			final int size = state.blocksize(op);
 			granpos += size;
 			if (needflush != 0)
 			{
@@ -369,7 +369,7 @@ public class JOrbisComment
 						out.write(ogout.header_base, ogout.header, ogout.header_len);
 						out.flush();
 					}
-					catch (Exception e)
+					catch (final Exception e)
 					{
 						Log.error("[JOrbisComment]", e);
 						return -1;
@@ -379,37 +379,34 @@ public class JOrbisComment
 						out.write(ogout.body_base, ogout.body, ogout.body_len);
 						out.flush();
 					}
-					catch (Exception e)
+					catch (final Exception e)
 					{
 						Log.error("[JOrbisComment]", e);
 						return -1;
 					}
 				}
 			}
-			else if (needout != 0)
+			else if ((needout != 0) && (streamout.pageout(ogout) != 0))
 			{
-				if (streamout.pageout(ogout) != 0)
+				try
 				{
-					try
-					{
-						out.write(ogout.header_base, ogout.header, ogout.header_len);
-						out.flush();
-					}
-					catch (Exception e)
-					{
-						Log.error("[JOrbisComment]", e);
-						return -1;
-					}
-					try
-					{
-						out.write(ogout.body_base, ogout.body, ogout.body_len);
-						out.flush();
-					}
-					catch (Exception e)
-					{
-						Log.error("[JOrbisComment]", e);
-						return -1;
-					}
+					out.write(ogout.header_base, ogout.header, ogout.header_len);
+					out.flush();
+				}
+				catch (final Exception e)
+				{
+					Log.error("[JOrbisComment]", e);
+					return -1;
+				}
+				try
+				{
+					out.write(ogout.body_base, ogout.body, ogout.body_len);
+					out.flush();
+				}
+				catch (final Exception e)
+				{
+					Log.error("[JOrbisComment]", e);
+					return -1;
 				}
 			}
 
@@ -444,7 +441,7 @@ public class JOrbisComment
 				out.write(ogout.header_base, ogout.header, ogout.header_len);
 				out.flush();
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				Log.error("[JOrbisComment]", e);
 				return -1;
@@ -454,7 +451,7 @@ public class JOrbisComment
 				out.write(ogout.body_base, ogout.body, ogout.body_len);
 				out.flush();
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				Log.error("[JOrbisComment]", e);
 				return -1;
@@ -489,7 +486,7 @@ public class JOrbisComment
 						out.write(ogout.header_base, ogout.header, ogout.header_len);
 						out.flush();
 					}
-					catch (Exception e)
+					catch (final Exception e)
 					{
 						Log.error("[JOrbisComment]", e);
 						return -1;
@@ -499,7 +496,7 @@ public class JOrbisComment
 						out.write(ogout.body_base, ogout.body, ogout.body_len);
 						out.flush();
 					}
-					catch (Exception e)
+					catch (final Exception e)
 					{
 						Log.error("[JOrbisComment]", e);
 						return -1;
@@ -513,7 +510,7 @@ public class JOrbisComment
 			{
 				bytes = state.in.read(buffer, index, CHUNKSIZE);
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				Log.error("[JOrbisComment]", e);
 				return -1;

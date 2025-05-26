@@ -47,29 +47,35 @@ public class RandomAccessFile extends File {
         this.file = new RandomAccessInputStreamImpl(url);
     }
 
-    public void mark(int readlimit) throws IOException {
+    @Override
+	public void mark(final int readlimit) throws IOException {
         markPosition = file.getFilePointer();
     }
 
-    public void reset() throws IOException {
+    @Override
+	public void reset() throws IOException {
         if (markPosition >= 0)
             file.seek(markPosition);
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
         return file.read();
     }
 
-    public short readShortBack() throws IOException {
+    @Override
+	public short readShortBack() throws IOException {
         return (short) (read() | (read() << 8));
     }
 
-    public int readIntBack() throws IOException {
+    @Override
+	public int readIntBack() throws IOException {
         return read() | (read() << 8) | (read() << 16) | (read() << 24);
     }
 
-    public long readLongBack() throws IOException {
-        return  ((long)(read()) |
+    @Override
+	public long readLongBack() throws IOException {
+        return  ((read()) |
                 ((long)(read()) << 8) |
                 ((long)(read()) << 16) |
                 ((long)(read()) << 24) |
@@ -79,95 +85,118 @@ public class RandomAccessFile extends File {
                 ((long)(read()) << 56));
     }
 
-    public int read(byte[] b) throws IOException {
+    @Override
+	public int read(final byte[] b) throws IOException {
         return file.read(b);
     }
 
-    public int read(byte[] b, int offs, int len) throws IOException {
+    @Override
+	public int read(final byte[] b, final int offs, final int len) throws IOException {
         return file.read(b, offs, len);
     }
 
-    public void readFully(byte[] b) throws IOException {
+    @Override
+	public void readFully(final byte[] b) throws IOException {
         file.read(b);
     }
 
-    public void readFully(byte[] b, int offs, int len) throws IOException {
+    @Override
+	public void readFully(final byte[] b, final int offs, final int len) throws IOException {
         file.read(b, offs, len);
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
         file.close();
     }
 
-    public boolean readBoolean() throws IOException {
+    @Override
+	public boolean readBoolean() throws IOException {
         return file.readBoolean();
     }
 
-    public byte readByte() throws IOException {
+    @Override
+	public byte readByte() throws IOException {
         return file.readByte();
     }
 
-    public char readChar() throws IOException {
+    @Override
+	public char readChar() throws IOException {
         return file.readChar();
     }
 
-    public double readDouble() throws IOException {
+    @Override
+	public double readDouble() throws IOException {
         return file.readDouble();
     }
 
-    public float readFloat() throws IOException {
+    @Override
+	public float readFloat() throws IOException {
         return file.readFloat();
     }
 
-    public int readInt() throws IOException {
+    @Override
+	public int readInt() throws IOException {
         return file.readInt();
     }
 
-    public String readLine() throws IOException {
+    @Override
+	public String readLine() throws IOException {
         return file.readLine();
     }
 
-    public long readLong() throws IOException {
+    @Override
+	public long readLong() throws IOException {
         return file.readLong();
     }
 
-    public short readShort() throws IOException {
+    @Override
+	public short readShort() throws IOException {
         return file.readShort();
     }
 
-    public int readUnsignedByte() throws IOException {
+    @Override
+	public int readUnsignedByte() throws IOException {
         return file.readUnsignedByte();
     }
 
-    public int readUnsignedShort() throws IOException {
+    @Override
+	public int readUnsignedShort() throws IOException {
         return file.readUnsignedShort();
     }
 
-    public String readUTF() throws IOException {
+    @Override
+	public String readUTF() throws IOException {
         return file.readUTF();
     }
 
-    public int skipBytes(int n) throws IOException {
+    @Override
+	public int skipBytes(final int n) throws IOException {
         return file.skipBytes(n);
     }
 
-    public long length() throws IOException {
+    @Override
+	public long length() throws IOException {
         return file.length();
     }
 
-    public void seek(long pos) throws IOException {
+    @Override
+	public void seek(final long pos) throws IOException {
         file.seek(pos);
     }
 
-    public long getFilePointer() throws IOException {
+    @Override
+	public long getFilePointer() throws IOException {
         return file.getFilePointer();
     }
 
-    public boolean isLocal() {
+    @Override
+	public boolean isLocal() {
         return true;
     }
 
-    public String getFilename() {
+    @Override
+	public String getFilename() {
         return f.getName();
     }
 }

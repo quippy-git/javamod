@@ -2,7 +2,7 @@
  * @(#) OPL3Mixer.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public class OPL3Mixer extends BasicMixer
 	private static int COOL_DOWN = 2; // 2 seconds of cool down for OPL
 	private static int RAMP_DOWN_SHIFT = 14;
 	private static int RAMP_DOWN_START = 1<<RAMP_DOWN_SHIFT;
-	
+
 	// Wide Stereo Vars
 	private boolean doVirtualStereo;
 	private int maxWideStereo;
@@ -48,18 +48,18 @@ public class OPL3Mixer extends BasicMixer
 	private long[] wideRBuffer;
 	private int readPointer;
 	private int writePointer;
-	
-	private OPL3Sequence opl3Sequence;
+
+	private final OPL3Sequence opl3Sequence;
 	private EmuOPL opl;
-	
+
 	private byte [] buffer;
 	private int bufferSize;
 	private long samplesWritten = 0;
 	private int rampDownVolume;
 
-	private float sampleRate;
-	private EmuOPL.version OPLVersion; 
-	
+	private final float sampleRate;
+	private final EmuOPL.version OPLVersion;
+
 	/**
 	 * Constructor for OPL3Mixer
 	 */
@@ -75,7 +75,7 @@ public class OPL3Mixer extends BasicMixer
 	protected void initialize()
 	{
 		opl = EmuOPL.createInstance(OPLVersion, sampleRate, opl3Sequence.getOPLType());
-		
+
 		bufferSize = (int)((MS_BUFFER_SIZE * ANZ_CHANNELS * sampleRate + 500) / 1000);
 		while ((bufferSize%4)!=0) bufferSize++;
 		buffer = new byte[bufferSize];
@@ -88,7 +88,7 @@ public class OPL3Mixer extends BasicMixer
 		wideRBuffer = new long[maxWideStereo];
 		readPointer = 0;
 		writePointer=maxWideStereo-1;
-		
+
 		opl3Sequence.initialize(opl);
 
 		setAudioFormat(new AudioFormat(sampleRate, BITS_PER_SAMPLE, ANZ_CHANNELS, true, false));
@@ -169,17 +169,17 @@ public class OPL3Mixer extends BasicMixer
 		this.doVirtualStereo = doVirtualStereo;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
 	public void startPlayback()
 	{
 		initialize();
-		final int [] fromOPL3 = new int[2]; 		
+		final int [] fromOPL3 = new int[2];
 		samplesWritten = 0;
 		int bufferIndex = 0;
-		
+
 		setIsPlaying();
 
 		if (getSeekPosition()>0) seek(getSeekPosition());
@@ -195,11 +195,11 @@ public class OPL3Mixer extends BasicMixer
 				final boolean newData = opl3Sequence.updateToOPL(opl);
 
 				final double refresh = (newData) ? 1.0d / opl3Sequence.getRefresh() : (double)COOL_DOWN;
-				int samples = (int)(((double)sampleRate * refresh) + 0.5);
+				int samples = (int)((sampleRate * refresh) + 0.5);
 				if (hasStopPosition())
 				{
 					final long bytesToWrite = getSamplesToWriteLeft();
-					if ((long)(samples)>bytesToWrite) samples = (int)bytesToWrite;
+					if ((samples)>bytesToWrite) samples = (int)bytesToWrite;
 				}
 				for (int s=0; s<samples; s++)
 				{
@@ -219,7 +219,7 @@ public class OPL3Mixer extends BasicMixer
 						samplel+=(wideRBuffer[readPointer++]>>1);
 						if (readPointer>=maxWideStereo) readPointer=0;
 					}
-					
+
 					// let's do a fast ramp down at the end, to avoid clicking
 					if (!newData && samples-s<=RAMP_DOWN_START)
 					{
@@ -228,11 +228,11 @@ public class OPL3Mixer extends BasicMixer
 						rampDownVolume--;
 						if (rampDownVolume<=0) rampDownVolume = 0;
 					}
-					
+
 					// Clipping - always a good idea (sample is 32bit (int), but 16 bit is border):
 					if (samplel>0x00007FFF) samplel=0x00007FFF; else if (samplel<0xFFFF8000) samplel = 0xFFFF8000;
 					if (sampler>0x00007FFF) sampler=0x00007FFF; else if (sampler<0xFFFF8000) sampler = 0xFFFF8000;
-										
+
 					buffer[bufferIndex  ] = (byte)( samplel    &0xFF);
 					buffer[bufferIndex+1] = (byte)((samplel>>8)&0xFF);
 					buffer[bufferIndex+2] = (byte)( sampler    &0xFF);
@@ -257,7 +257,7 @@ public class OPL3Mixer extends BasicMixer
 					}
 					finished = true;
 				}
-				
+
 				if (stopPositionIsReached()) setIsStopping();
 
 				if (isStopping())
@@ -270,7 +270,7 @@ public class OPL3Mixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 				if (isInSeeking())
@@ -278,13 +278,13 @@ public class OPL3Mixer extends BasicMixer
 					setIsSeeking();
 					while (isInSeeking())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
 			if (finished) setHasFinished();
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

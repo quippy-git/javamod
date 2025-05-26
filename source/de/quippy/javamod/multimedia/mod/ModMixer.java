@@ -1,8 +1,8 @@
 /*
  * @(#) ModMixer.java
- * 
+ *
  * Created on 30.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ public class ModMixer extends BasicMixer
 {
 	private final Module mod;
 	private final BasicModMixer modMixer;
-	
-	private int bufferSize, outputBufferSize;
+
+	private int bufferSize;
 	private int sampleSizeInBits;
 	private int channels;
 	private int sampleRate;
@@ -52,7 +52,7 @@ public class ModMixer extends BasicMixer
 	private long [] LBuffer;
 	private long [] RBuffer;
 	private byte [] output;
-	
+
 	// Dithering
 	private Dither dither;
 	private int ditherFilterType;
@@ -64,11 +64,11 @@ public class ModMixer extends BasicMixer
 	private int shift;
 	private long maximum;
 	private long minimum;
-	
+
 	private long currentSamplesWritten;
-	
-	private ModDSP modDSP = new ModDSP();
-	
+
+	private final ModDSP modDSP = new ModDSP();
+
 	/**
 	 * Constructor for ModMixer
 	 */
@@ -98,14 +98,14 @@ public class ModMixer extends BasicMixer
 		RBuffer = new long[bufferSize];
 
 		// For the DSP-Output
-		outputBufferSize = bufferSize*channels; // For each channel!
+		int outputBufferSize = bufferSize*channels; // For each channel!
 
 		// Now for the bits (linebuffer):
 		final int bytesPerSample = sampleSizeInBits>>3; // DIV 8;
 		outputBufferSize *= bytesPerSample;
 		output = new byte[outputBufferSize];
 		setSourceLineBufferSize(outputBufferSize);
-		
+
 		// initialize the dithering for lower sample rates
 		// always for maximum channels
 		dither = new Dither(2, sampleSizeInBits, ditherFilterType, ditherType, ditherByPass);
@@ -115,10 +115,10 @@ public class ModMixer extends BasicMixer
 		shift = 32 - sampleSizeInBits;
 		maximum = ModConstants.CLIPP32BIT_MAX >> shift;
 		minimum = ModConstants.CLIPP32BIT_MIN >> shift;
-		
+
 		// and init the modDSP (full!)
 		modDSP.initModDSP(sampleRate);
-		
+
 		setAudioFormat(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false)); // signed, little endian
 	}
 	/**
@@ -149,7 +149,7 @@ public class ModMixer extends BasicMixer
 	/**
 	 * @param doDCRemoval the doDCRemoval to set
 	 */
-	public void setDoDCRemoval(boolean doDCRemoval)
+	public void setDoDCRemoval(final boolean doDCRemoval)
 	{
 		this.doDCRemoval = doDCRemoval;
 	}
@@ -174,7 +174,7 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldMsBufferSize = this.msBufferSize;
 
-		final boolean wasPaused = isPaused(); 
+		final boolean wasPaused = isPaused();
 		final boolean wasPlaying = isPlaying();
 		if (wasPlaying && !wasPaused) pausePlayback();
 
@@ -189,7 +189,7 @@ public class ModMixer extends BasicMixer
 				initialize();
 				openAudioDevice();
 			}
-	
+
 			if (!wasPaused) pausePlayback();
 		}
 	}
@@ -200,7 +200,7 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldSampleRate = this.sampleRate;
 
-		final boolean wasPaused = isPaused(); 
+		final boolean wasPaused = isPaused();
 		final boolean wasPlaying = isPlaying();
 		if (wasPlaying && !wasPaused) pausePlayback();
 
@@ -216,7 +216,7 @@ public class ModMixer extends BasicMixer
 				initialize();
 				openAudioDevice();
 			}
-	
+
 			if (!wasPaused) pausePlayback();
 		}
 	}
@@ -227,7 +227,7 @@ public class ModMixer extends BasicMixer
 	{
 		final int oldsampleSizeInBits = this.sampleSizeInBits;
 
-		final boolean wasPaused = isPaused(); 
+		final boolean wasPaused = isPaused();
 		final boolean wasPlaying = isPlaying();
 		if (wasPlaying && !wasPaused) pausePlayback();
 
@@ -242,7 +242,7 @@ public class ModMixer extends BasicMixer
 				initialize();
 				openAudioDevice();
 			}
-	
+
 			if (!wasPaused) pausePlayback();
 		}
 	}
@@ -296,7 +296,7 @@ public class ModMixer extends BasicMixer
 	public void setDitherFilterType(final int newDitherFilterType)
 	{
 		final int oldDitherFilterType = ditherFilterType;
-		
+
 		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
 
@@ -311,7 +311,7 @@ public class ModMixer extends BasicMixer
 				initialize();
 				openAudioDevice();
 			}
-	
+
 			pausePlayback();
 		}
 	}
@@ -321,7 +321,7 @@ public class ModMixer extends BasicMixer
 	public void setDitherType(final int newDitherType)
 	{
 		final int oldDitherType = ditherType;
-		
+
 		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
 
@@ -336,7 +336,7 @@ public class ModMixer extends BasicMixer
 				initialize();
 				openAudioDevice();
 			}
-	
+
 			pausePlayback();
 		}
 	}
@@ -363,7 +363,7 @@ public class ModMixer extends BasicMixer
 		return modMixer;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#isSeekSupported()
 	 */
 	@Override
@@ -372,13 +372,13 @@ public class ModMixer extends BasicMixer
 		return true;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getMillisecondPosition()
 	 */
 	@Override
 	public long getMillisecondPosition()
 	{
-		return currentSamplesWritten * 1000L / (long)sampleRate;
+		return currentSamplesWritten * 1000L / sampleRate;
 	}
 	/**
 	 * @param milliseconds
@@ -391,7 +391,7 @@ public class ModMixer extends BasicMixer
 		currentSamplesWritten = modMixer.seek(milliseconds);
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getLengthInMilliseconds()
 	 */
 	@Override
@@ -447,24 +447,24 @@ public class ModMixer extends BasicMixer
 	{
 		initialize();
 		currentSamplesWritten = 0; // not in initialize which is also called at freq. changes
-		
+
 		setIsPlaying();
 
 		if (getSeekPosition()>0) seek(getSeekPosition());
-		
+
 		final long[] samples = new long[2];
-		
+
 		// how many Samples can we write out? We will need that to reset the currentSamplesWritten if MOD is looped.
 		final long allSamplesWritten = (getLengthInMilliseconds()!=-1)?getLengthInMilliseconds() * sampleRate / 1000L:-1;
-		
+
 		try
 		{
 			openAudioDevice();
 			if (!isInitialized()) return;
-			
+
 			// If we do export to wave and do not want to play during that, do not fire any updates
 			modMixer.setFireUpdates(exportFile==null || playDuringExport);
-			
+
 			int count;
 			do
 			{
@@ -479,16 +479,16 @@ public class ModMixer extends BasicMixer
 						samples[0] = LBuffer[ix]; LBuffer[ix]=0;
 						samples[1] = RBuffer[ix]; RBuffer[ix]=0;
 						ix++;
-						
+
 						// DC Removal
 						if (doDCRemoval) modDSP.processDCRemoval(samples);
-						
+
 						// Noise Reduction with a simple high pass filter:
 						if (doNoiseReduction) modDSP.processNoiseReduction(samples);
 
 						// MegaBass
 						if (doMegaBass) modDSP.processMegaBass(samples);
-						
+
 						// WideStrereo Mixing - but only with stereo
 						//if (doWideStereoMix && channels>1) modDSP.processWideStereo(samples);
 						if (doWideStereoMix && channels>1) modDSP.processStereoSurround(samples);
@@ -496,8 +496,8 @@ public class ModMixer extends BasicMixer
 						// Reduce to sample size by dithering - if necessary!
 						if (sampleSizeInBits<32) // our maximum - no dithering needed
 						{
-							samples[0] = (long)((dither.process((double)samples[0]/(double)(0x7FFFFFFFL), 0)*(double)maximum) + 0.5d);
-							samples[1] = (long)((dither.process((double)samples[1]/(double)(0x7FFFFFFFL), 1)*(double)maximum) + 0.5d);
+							samples[0] = (long)((dither.process((double)samples[0]/(double)(0x7FFFFFFFL), 0)*maximum) + 0.5d);
+							samples[1] = (long)((dither.process((double)samples[1]/(double)(0x7FFFFFFFL), 1)*maximum) + 0.5d);
 						}
 
 						// Clip the values to target:
@@ -505,7 +505,7 @@ public class ModMixer extends BasicMixer
 						else if (samples[0] < minimum) samples[0] = minimum;
 						if (samples[1] > maximum) samples[1] = maximum;
 						else if (samples[1] < minimum) samples[1] = minimum;
-						
+
 						// and after that put them into the outputbuffer
 						// to write to the soundstream
 						if (channels==2)
@@ -522,7 +522,7 @@ public class ModMixer extends BasicMixer
 						}
 						else
 						{
-							long sample = (samples[0] + samples[1])>>1; 
+							long sample = (samples[0] + samples[1])>>1;
 							for (int i=0; i<rounds; i++)
 							{
 								output[ox++] = (byte)sample;
@@ -530,7 +530,7 @@ public class ModMixer extends BasicMixer
 							}
 						}
 					}
-					
+
 					writeSampleDataToLine(output, 0, ox);
 
 					currentSamplesWritten += count;
@@ -538,7 +538,7 @@ public class ModMixer extends BasicMixer
 					if (allSamplesWritten!=-1 && currentSamplesWritten>allSamplesWritten) currentSamplesWritten -= allSamplesWritten;
 
 				}
-				
+
 				if (stopPositionIsReached()) setIsStopping();
 
 				if (isStopping())
@@ -551,7 +551,7 @@ public class ModMixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 				if (isInSeeking())
@@ -559,14 +559,14 @@ public class ModMixer extends BasicMixer
 					setIsSeeking();
 					while (isInSeeking())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
 			while (count!=-1);
 			if (count<=0) setHasFinished(); // Piece was finished!
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

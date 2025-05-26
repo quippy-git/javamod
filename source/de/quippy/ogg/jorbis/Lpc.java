@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -39,8 +39,8 @@ class Lpc{
   // Input : n elements of time doamin data
   // Output: m lpc coefficients, excitation energy
 
-  static float lpc_from_data(float[] data, float[] lpc, int n, int m){
-    float[] aut=new float[m+1];
+  static float lpc_from_data(final float[] data, final float[] lpc, final int n, final int m){
+    final float[] aut=new float[m+1];
     float error;
     int i, j;
 
@@ -86,7 +86,7 @@ class Lpc{
 
       lpc[i]=r;
       for(j=0; j<i/2; j++){
-        float tmp=lpc[j];
+        final float tmp=lpc[j];
         lpc[j]+=r*lpc[i-1-j];
         lpc[i-1-j]+=r*tmp;
       }
@@ -105,10 +105,10 @@ class Lpc{
   // Input : n element envelope spectral curve
   // Output: m lpc coefficients, excitation energy
 
-  float lpc_from_curve(float[] curve, float[] lpc){
+  float lpc_from_curve(final float[] curve, final float[] lpc){
     int n=ln;
-    float[] work=new float[n+n];
-    float fscale=(float)(.5/n);
+    final float[] work=new float[n+n];
+    final float fscale=(float)(.5/n);
     int i, j;
 
     // input is a real curve. make it complex-real
@@ -126,7 +126,7 @@ class Lpc{
     // most of the power in the edges.
 
     for(i=0, j=n/2; i<n/2;){
-      float temp=work[i];
+      final float temp=work[i];
       work[i++]=work[j];
       work[j++]=temp;
     }
@@ -134,7 +134,7 @@ class Lpc{
     return (lpc_from_data(work, lpc, n, m));
   }
 
-  void init(int mapped, int m){
+  void init(final int mapped, final int m){
     ln=mapped;
     this.m=m;
 
@@ -146,18 +146,18 @@ class Lpc{
     fft.clear();
   }
 
-  static float FAST_HYPOT(float a, float b){
+  static float FAST_HYPOT(final float a, final float b){
     return (float)Math.sqrt((a)*(a)+(b)*(b));
   }
 
   // One can do this the long way by generating the transfer function in
   // the time domain and taking the forward FFT of the result.  The
-  // results from direct calculation are cleaner and faster. 
+  // results from direct calculation are cleaner and faster.
   //
   // This version does a linear curve generation and then later
   // interpolates the log curve from the linear curve.
 
-  void lpc_to_curve(float[] curve, float[] lpc, float amp){
+  void lpc_to_curve(final float[] curve, final float[] lpc, final float amp){
 
     for(int i=0; i<ln*2; i++)
       curve[i]=0.0f;
@@ -173,14 +173,14 @@ class Lpc{
     fft.backward(curve);
 
     {
-      int l2=ln*2;
-      float unit=(float)(1./amp);
+      final int l2=ln*2;
+      final float unit=(float)(1./amp);
       curve[0]=(float)(1./(curve[0]*2+unit));
       for(int i=1; i<ln; i++){
-        float real=(curve[i]+curve[l2-i]);
-        float imag=(curve[i]-curve[l2-i]);
+        final float real=(curve[i]+curve[l2-i]);
+        final float imag=(curve[i]-curve[l2-i]);
 
-        float a=real+unit;
+        final float a=real+unit;
         curve[i]=(float)(1.0/FAST_HYPOT(a, imag));
       }
     }

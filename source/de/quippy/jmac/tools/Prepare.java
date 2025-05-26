@@ -30,13 +30,13 @@ import de.quippy.jmac.info.WaveFormat;
  */
 public class Prepare {
 
-    public void prepare(ByteArrayReader pRawData, int nBytes, final WaveFormat pWaveFormatEx, int[] pOutputX, int[] pOutputY, Crc32 pCRC, IntegerPointer pSpecialCodes, IntegerPointer pPeakLevel) {
+    public void prepare(final ByteArrayReader pRawData, final int nBytes, final WaveFormat pWaveFormatEx, final int[] pOutputX, final int[] pOutputY, final Crc32 pCRC, final IntegerPointer pSpecialCodes, final IntegerPointer pPeakLevel) {
         // initialize the pointers that got passed in
         pCRC.init();
         pSpecialCodes.value = 0;
 
         // variables
-        int nTotalBlocks = nBytes / pWaveFormatEx.nBlockAlign;
+        final int nTotalBlocks = nBytes / pWaveFormatEx.nBlockAlign;
         int R, L;
 
         // the prepare code
@@ -44,8 +44,8 @@ public class Prepare {
         if (pWaveFormatEx.wBitsPerSample == 8) {
             if (pWaveFormatEx.nChannels == 2) {
                 for (int nBlockIndex = 0; nBlockIndex < nTotalBlocks; nBlockIndex++) {
-                    short b1 = pRawData.readUnsignedByte();
-                    short b2 = pRawData.readUnsignedByte();
+                    final short b1 = pRawData.readUnsignedByte();
+                    final short b2 = pRawData.readUnsignedByte();
                     R = b1 - 128;
                     L = b2 - 128;
 
@@ -64,7 +64,7 @@ public class Prepare {
                 }
             } else if (pWaveFormatEx.nChannels == 1) {
                 for (int nBlockIndex = 0; nBlockIndex < nTotalBlocks; nBlockIndex++) {
-                    short b1 = pRawData.readUnsignedByte();
+                    final short b1 = pRawData.readUnsignedByte();
                     R = b1 - 128;
 
                     pCRC.append((byte) b1);
@@ -225,22 +225,22 @@ public class Prepare {
             pCRC.doSpecial();
     }
 
-    public void unprepare(int X, int Y, final WaveFormat waveFormat, final ByteBuffer output, final Crc32 crc) {
+    public void unprepare(int X, final int Y, final WaveFormat waveFormat, final ByteBuffer output, final Crc32 crc) {
         // decompress and convert from (x,y) -> (l,r)
         // sort of long and ugly.... sorry
-        int channels = waveFormat.nChannels;
-        int bitsPerSample = waveFormat.wBitsPerSample;
+        final int channels = waveFormat.nChannels;
+        final int bitsPerSample = waveFormat.wBitsPerSample;
         if (channels == 2) {
             if (bitsPerSample == 16) {
                 // get the right and left values
-                short nR = (short) (X - (Y / 2));
-                short nL = (short) (nR + Y);
+                final short nR = (short) (X - (Y / 2));
+                final short nL = (short) (nR + Y);
 
                 output.append(nR, nL);
                 crc.append(nR, nL);
             } else if (bitsPerSample == 8) {
-                byte R = (byte) (X - (Y / 2) + 128);
-                byte L = (byte) (R + Y);
+                final byte R = (byte) (X - (Y / 2) + 128);
+                final byte L = (byte) (R + Y);
 
                 output.append(R, L);
                 crc.append(R, L);
@@ -261,7 +261,7 @@ public class Prepare {
                 output.append((short) X);
                 crc.append((short) X);
             } else if (bitsPerSample == 8) {
-                byte R = (byte) (X + 128);
+                final byte R = (byte) (X + 128);
 
                 output.append(R);
                 crc.append(R);
@@ -275,14 +275,14 @@ public class Prepare {
         }
     }
 
-    public void unprepareOld(int[] pInputX, int[] pInputY, int nBlocks, WaveFormat pWaveFormatEx, ByteBuffer output, Crc32 crc, int nFileVersion) {
+    public void unprepareOld(final int[] pInputX, final int[] pInputY, final int nBlocks, final WaveFormat pWaveFormatEx, final ByteBuffer output, final Crc32 crc, final int nFileVersion) {
         //the CRC that will be figured during decompression
         crc.init();
 
         //decompress and convert from (x,y) -> (l,r)
         //sort of int and ugly.... sorry
-        int channels = pWaveFormatEx.nChannels;
-        int bitsPerSample = pWaveFormatEx.wBitsPerSample;
+        final int channels = pWaveFormatEx.nChannels;
+        final int bitsPerSample = pWaveFormatEx.wBitsPerSample;
         if (channels == 2) {
             //convert the x,y data to raw data
             if (bitsPerSample == 16) {

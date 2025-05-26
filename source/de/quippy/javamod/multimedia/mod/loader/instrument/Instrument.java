@@ -1,8 +1,8 @@
 /*
  * @(#) Instrument.java
- * 
+ *
  * Created on 19.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public class Instrument
 	public int [] noteIndex;
 
 	public String name;
-	
+
 	public String dosFileName;
 	public int dublicateNoteCheck = -1;
 	public int dublicateNoteAction = -1;
@@ -50,14 +50,14 @@ public class Instrument
 	// Either 0x7F / 0 for off or both 0 (no change)
 	public int initialFilterCutoff = 0;
 	public int initialFilterResonance = 0;
-	
+
 	// The envelopes
 	public Envelope volumeEnvelope = null;
 	public Envelope panningEnvelope = null;
 	public Envelope pitchEnvelope = null;
-	
+
 	public int volumeFadeOut = -1;
-	
+
 	// Midi and Plugin stuff
 	public int midiBank = 0;		// MIDI Bank (1...16384). 0 = Don't send.
 	public int midiProgram = 0;		// MIDI Program (1...128). 0 = Don't send.
@@ -69,10 +69,10 @@ public class Instrument
 	public int volRampUp = -1;		// ys of volRamping up, -1 || 0 == use default
 	public int resampling = -1;		// resampling - we support -1: default: 0:none, 1: linear, 2: cubic, 3&>:Windowed FIR
 	public boolean mute = false;	// MPT seems to have supported the muting of instruments. Is not written anymore
-	
+
 	// MadTracker
 	public int filterMode = ModConstants.FLTMODE_UNCHANGED;
-	
+
 	/**
 	 * Constructor for Instrument
 	 */
@@ -85,33 +85,33 @@ public class Instrument
 	 * @since 19.06.2006
 	 * @param sampleIndexArray
 	 */
-	public void setIndexArray(int [] sampleIndexArray)
+	public void setIndexArray(final int [] sampleIndexArray)
 	{
 		this.sampleIndex = sampleIndexArray;
 	}
-	public void setNoteArray(int [] noteIndexArray)
+	public void setNoteArray(final int [] noteIndexArray)
 	{
 		this.noteIndex = noteIndexArray;
 	}
-	public int getSampleIndex(int noteIndex)
+	public int getSampleIndex(final int noteIndex)
 	{
 		if (sampleIndex==null) return -1;
 		return this.sampleIndex[noteIndex]-1;
 	}
-	public int getNoteIndex(int noteIndex)
+	public int getNoteIndex(final int noteIndex)
 	{
 		if (this.noteIndex==null) return noteIndex;
 		return this.noteIndex[noteIndex];
 	}
-	public void setPanningEnvelope(Envelope panningEnvelope)
+	public void setPanningEnvelope(final Envelope panningEnvelope)
 	{
 		this.panningEnvelope = panningEnvelope;
 	}
-	public void setVolumeEnvelope(Envelope volumeEnvelope)
+	public void setVolumeEnvelope(final Envelope volumeEnvelope)
 	{
 		this.volumeEnvelope = volumeEnvelope;
 	}
-	public void setPitchEnvelope(Envelope pitchEnvelope)
+	public void setPitchEnvelope(final Envelope pitchEnvelope)
 	{
 		this.pitchEnvelope = pitchEnvelope;
 	}

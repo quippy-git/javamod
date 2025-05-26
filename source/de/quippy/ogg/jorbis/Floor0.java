@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -26,12 +26,15 @@
 
 package de.quippy.ogg.jorbis;
 
+import java.util.Arrays;
+
 import de.quippy.ogg.jogg.Buffer;
 
 class Floor0 extends FuncFloor{
 
-  void pack(Object i, Buffer opb){
-    InfoFloor0 info=(InfoFloor0)i;
+  @Override
+void pack(final Object i, final Buffer opb){
+    final InfoFloor0 info=(InfoFloor0)i;
     opb.write(info.order, 8);
     opb.write(info.rate, 16);
     opb.write(info.barkmap, 16);
@@ -42,8 +45,9 @@ class Floor0 extends FuncFloor{
       opb.write(info.books[j], 8);
   }
 
-  Object unpack(Info vi, Buffer opb){
-    InfoFloor0 info=new InfoFloor0();
+  @Override
+Object unpack(final Info vi, final Buffer opb){
+    final InfoFloor0 info=new InfoFloor0();
     info.order=opb.read(8);
     info.rate=opb.read(16);
     info.barkmap=opb.read(16);
@@ -64,11 +68,12 @@ class Floor0 extends FuncFloor{
     return (info);
   }
 
-  Object look(DspState vd, InfoMode mi, Object i){
+  @Override
+Object look(final DspState vd, final InfoMode mi, final Object i){
     float scale;
-    Info vi=vd.vi;
-    InfoFloor0 info=(InfoFloor0)i;
-    LookFloor0 look=new LookFloor0();
+    final Info vi=vd.vi;
+    final InfoFloor0 info=(InfoFloor0)i;
+    final LookFloor0 look=new LookFloor0();
     look.m=info.order;
     look.n=vi.blocksizes[mi.blockflag]/2;
     look.ln=info.barkmap;
@@ -94,7 +99,7 @@ class Floor0 extends FuncFloor{
     return look;
   }
 
-  static float toBARK(float f){
+  static float toBARK(final float f){
     return (float)(13.1*Math.atan(.00074*(f))+2.24*Math.atan((f)*(f)*1.85e-8)+1e-4*(f));
   }
 
@@ -109,30 +114,34 @@ class Floor0 extends FuncFloor{
 //    return (state);
 //  }
 
-  void free_info(Object i){
+  @Override
+void free_info(final Object i){
   }
 
-  void free_look(Object i){
+  @Override
+void free_look(final Object i){
   }
 
-  void free_state(Object vs){
+  @Override
+void free_state(final Object vs){
   }
 
-  int forward(Block vb, Object i, float[] in, float[] out, Object vs){
+  @Override
+int forward(final Block vb, final Object i, final float[] in, final float[] out, final Object vs){
     return 0;
   }
 
   float[] lsp=null;
 
-  int inverse(Block vb, Object i, float[] out){
+  int inverse(final Block vb, final Object i, final float[] out){
     //System.err.println("Floor0.inverse "+i.getClass()+"]");
-    LookFloor0 look=(LookFloor0)i;
-    InfoFloor0 info=look.vi;
-    int ampraw=vb.opb.read(info.ampbits);
+    final LookFloor0 look=(LookFloor0)i;
+    final InfoFloor0 info=look.vi;
+    final int ampraw=vb.opb.read(info.ampbits);
     if(ampraw>0){ // also handles the -1 out of data case
-      int maxval=(1<<info.ampbits)-1;
-      float amp=(float)ampraw/maxval*info.ampdB;
-      int booknum=vb.opb.read(Util.ilog(info.numbooks));
+      final int maxval=(1<<info.ampbits)-1;
+      final float amp=(float)ampraw/maxval*info.ampdB;
+      final int booknum=vb.opb.read(Util.ilog(info.numbooks));
 
       if(booknum!=-1&&booknum<info.numbooks){
 
@@ -145,7 +154,7 @@ class Floor0 extends FuncFloor{
               lsp[j]=0.f;
           }
 
-          CodeBook b=vb.vd.fullbooks[info.books[booknum]];
+          final CodeBook b=vb.vd.fullbooks[info.books[booknum]];
           float last=0.f;
 
           for(int j=0; j<look.m; j++)
@@ -174,30 +183,30 @@ class Floor0 extends FuncFloor{
     return (0);
   }
 
-  Object inverse1(Block vb, Object i, Object memo){
-    LookFloor0 look=(LookFloor0)i;
-    InfoFloor0 info=look.vi;
+  @Override
+Object inverse1(final Block vb, final Object i, final Object memo){
+    final LookFloor0 look=(LookFloor0)i;
+    final InfoFloor0 info=look.vi;
     float[] lsp=null;
     if(memo instanceof float[]){
       lsp=(float[])memo;
     }
 
-    int ampraw=vb.opb.read(info.ampbits);
+    final int ampraw=vb.opb.read(info.ampbits);
     if(ampraw>0){ // also handles the -1 out of data case
-      int maxval=(1<<info.ampbits)-1;
-      float amp=(float)ampraw/maxval*info.ampdB;
-      int booknum=vb.opb.read(Util.ilog(info.numbooks));
+      final int maxval=(1<<info.ampbits)-1;
+      final float amp=(float)ampraw/maxval*info.ampdB;
+      final int booknum=vb.opb.read(Util.ilog(info.numbooks));
 
       if(booknum!=-1&&booknum<info.numbooks){
-        CodeBook b=vb.vd.fullbooks[info.books[booknum]];
+        final CodeBook b=vb.vd.fullbooks[info.books[booknum]];
         float last=0.f;
 
         if(lsp==null||lsp.length<look.m+1){
           lsp=new float[look.m+1];
         }
         else{
-          for(int j=0; j<lsp.length; j++)
-            lsp[j]=0.f;
+          Arrays.fill(lsp, 0.f);
         }
 
         for(int j=0; j<look.m; j+=b.dim){
@@ -218,13 +227,14 @@ class Floor0 extends FuncFloor{
     return (null);
   }
 
-  int inverse2(Block vb, Object i, Object memo, float[] out){
-    LookFloor0 look=(LookFloor0)i;
-    InfoFloor0 info=look.vi;
+  @Override
+int inverse2(final Block vb, final Object i, final Object memo, final float[] out){
+    final LookFloor0 look=(LookFloor0)i;
+    final InfoFloor0 info=look.vi;
 
     if(memo!=null){
-      float[] lsp=(float[])memo;
-      float amp=lsp[look.m];
+      final float[] lsp=(float[])memo;
+      final float amp=lsp[look.m];
 
       Lsp.lsp_to_curve(out, look.linearmap, look.n, look.ln, lsp, look.m, amp,
           info.ampdB);
@@ -236,20 +246,21 @@ class Floor0 extends FuncFloor{
     return (0);
   }
 
-  static float fromdB(float x){
+  static float fromdB(final float x){
     return (float)(Math.exp((x)*.11512925));
   }
 
-  static void lsp_to_lpc(float[] lsp, float[] lpc, int m){
-    int i, j, m2=m/2;
-    float[] O=new float[m2];
-    float[] E=new float[m2];
+  static void lsp_to_lpc(final float[] lsp, final float[] lpc, final int m){
+    int i, j;
+	final int m2=m/2;
+    final float[] O=new float[m2];
+    final float[] E=new float[m2];
     float A;
-    float[] Ae=new float[m2+1];
-    float[] Ao=new float[m2+1];
+    final float[] Ae=new float[m2+1];
+    final float[] Ao=new float[m2+1];
     float B;
-    float[] Be=new float[m2];
-    float[] Bo=new float[m2];
+    final float[] Be=new float[m2];
+    final float[] Bo=new float[m2];
     float temp;
 
     // even/odd roots setup
@@ -288,10 +299,10 @@ class Floor0 extends FuncFloor{
     }
   }
 
-  static void lpc_to_curve(float[] curve, float[] lpc, float amp, LookFloor0 l,
-      String name, int frameno){
+  static void lpc_to_curve(final float[] curve, final float[] lpc, final float amp, final LookFloor0 l,
+      final String name, final int frameno){
     // l->m+1 must be less than l->ln, but guard in case we get a bad stream
-    float[] lcurve=new float[Math.max(l.ln*2, l.m*2+2)];
+    final float[] lcurve=new float[Math.max(l.ln*2, l.m*2+2)];
 
     if(amp==0){
       for(int j=0; j<l.n; j++)

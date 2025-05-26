@@ -2,7 +2,7 @@
  * @(#) DoubleProgressDialog.java
  *
  * Created on 24.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ import de.quippy.javamod.system.Helpers;
 public class DoubleProgressDialog extends JDialog implements ProgressDialog
 {
 	private static final long serialVersionUID = 6413406398889206437L;
-	
+
 	protected JPanel downloadPane = null;
 	private JLabel currentFileName = null;
 	private JProgressBar downloadProgressBar = null;
@@ -51,7 +51,7 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public DoubleProgressDialog(Frame owner, String title)
+	public DoubleProgressDialog(final Frame owner, final String title)
 	{
 		super(owner, title, false);
 		initialize();
@@ -61,7 +61,7 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public DoubleProgressDialog(Dialog owner, String title)
+	public DoubleProgressDialog(final Dialog owner, final String title)
 	{
 		super(owner, title, false);
 		initialize();
@@ -71,7 +71,7 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param modalityType
 	 */
-	public DoubleProgressDialog(Window owner, ModalityType modalityType)
+	public DoubleProgressDialog(final Window owner, final ModalityType modalityType)
 	{
 		super(owner, modalityType);
 		initialize();
@@ -81,7 +81,7 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public DoubleProgressDialog(Window owner, String title)
+	public DoubleProgressDialog(final Window owner, final String title)
 	{
 		super(owner, title, ModalityType.MODELESS);
 		initialize();
@@ -115,7 +115,7 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 		}
 		return currentFileName;
 	}
-	public void setCurrentFileName(String newFileName)
+	public void setCurrentFileName(final String newFileName)
 	{
 		getCurrentFileName().setText(newFileName);
 	}
@@ -153,14 +153,17 @@ public class DoubleProgressDialog extends JDialog implements ProgressDialog
 		}
 		return downloadDetailProgressBar;
 	}
+	@Override
 	public void setDetailMinimum(final int minValue)
 	{
 		getDownloadDetailProgressBar().setMinimum(minValue);
 	}
+	@Override
 	public void setDetailMaximum(final int maxValue)
 	{
 		getDownloadDetailProgressBar().setMaximum(maxValue);
 	}
+	@Override
 	public void setDetailValue(final int value)
 	{
 		getDownloadDetailProgressBar().setValue(value);

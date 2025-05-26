@@ -2,7 +2,7 @@
  * @(#) CueTrack.java
  *
  * Created on 14.02.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,16 +34,16 @@ public class CueTrack
 	private String title;
 	private String performer;
 	private String songwriter;
-	private ArrayList<CueIndex> indexes;
+	private final ArrayList<CueIndex> indexes;
 
 	/**
-	 * 
+	 *
 	 * @since 14.02.2012
 	 */
 	public CueTrack()
 	{
 		super();
-		indexes = new ArrayList<CueIndex>();
+		indexes = new ArrayList<>();
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class CueTrack
 	 * @param trackNo the trackNo to set
 	 * @since 14.02.2012
 	 */
-	public void setTrackNo(int trackNo)
+	public void setTrackNo(final int trackNo)
 	{
 		this.trackNo = trackNo;
 	}
@@ -75,7 +75,7 @@ public class CueTrack
 	 * @param format the format to set
 	 * @since 14.02.2012
 	 */
-	public void setFormat(String format)
+	public void setFormat(final String format)
 	{
 		this.format = format;
 	}
@@ -92,7 +92,7 @@ public class CueTrack
 	 * @param title the title to set
 	 * @since 14.02.2012
 	 */
-	public void setTitle(String title)
+	public void setTitle(final String title)
 	{
 		this.title = title;
 	}
@@ -108,7 +108,7 @@ public class CueTrack
 	 * @param performer the performer to set
 	 * @since 14.02.2012
 	 */
-	public void setPerformer(String performer)
+	public void setPerformer(final String performer)
 	{
 		this.performer = performer;
 	}
@@ -124,7 +124,7 @@ public class CueTrack
 	 * @param songwriter the songwriter to set
 	 * @since 14.02.2012
 	 */
-	public void setSongwriter(String songwriter)
+	public void setSongwriter(final String songwriter)
 	{
 		this.songwriter = songwriter;
 	}
@@ -132,7 +132,7 @@ public class CueTrack
 	 * @param cueTrack
 	 * @since 14.02.2012
 	 */
-	public void addIndex(CueIndex index)
+	public void addIndex(final CueIndex index)
 	{
 		indexes.add(index);
 	}

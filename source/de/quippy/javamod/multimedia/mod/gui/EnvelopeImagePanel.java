@@ -2,7 +2,7 @@
  * @(#) EnvelopeImagePanel.java
  *
  * Created on 31.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Envelope;
 public class EnvelopeImagePanel extends JComponent
 {
 	private static final long serialVersionUID = 2409671172691613794L;
-    
+
 	private static final Color GRID_COLOR = Color.lightGray;
     private static final Color GRIDSUB1_COLOR = Color.gray;
     private static final Color GRIDSUB2_COLOR = Color.darkGray;
@@ -50,7 +50,7 @@ public class EnvelopeImagePanel extends JComponent
     private static final int BOXWIDTH = 2;
 
 	private Envelope envelope;
-	
+
 	/**
 	 * Constructor for EnvelopeImagePanel
 	 */
@@ -74,10 +74,10 @@ public class EnvelopeImagePanel extends JComponent
 
 		g.setColor(GRID_COLOR);
 		g.drawLine(left, top + halfHeight, left + width, top + halfHeight);
-		
+
 		for (int i=0; i<MAX_WIDTH; i++)
 		{
-			int x = getX(i);
+			final int x = getX(i);
 			if ((i % (SMALLESTGRID*4*4))==0)
 			{
 				g.setColor(GRID_COLOR);
@@ -118,9 +118,9 @@ public class EnvelopeImagePanel extends JComponent
 
 		g.setColor(BACKGROUND_COLOR);
 		g.fillRect(0, 0, width, height);
-		
+
 		drawGrid(g, 0, 0, width, height);
-		
+
 		if (envelope!=null)
 		{
 			int oldx = 0;
@@ -129,15 +129,15 @@ public class EnvelopeImagePanel extends JComponent
 			{
 				int x = getX(envelope.positions[i]);
 				if (x<0) x=0; else if (x>width) x=width;
-			
+
 				int y = getY(envelope.value[i]);
 				if (y<0) y=0; else if (y>height) y=height;
-				
+
 				g.setColor(ENVELOPE_COLOR);
 				if (i>0) g.drawLine(oldx, oldy, x, y);
 				g.setColor(RECT_COLOR);
 				g.drawRect(x-BOXWIDTH, y-BOXWIDTH, (BOXWIDTH<<1)+1, (BOXWIDTH<<1)+1);
-				
+
 				oldx = x;
 				oldy = y;
 			}
@@ -150,10 +150,10 @@ public class EnvelopeImagePanel extends JComponent
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
-	public void paintComponent(Graphics g)
+	public void paintComponent(final Graphics g)
 	{
 		super.paintComponent(g);
-		Graphics gfx = g.create();
+		final Graphics gfx = g.create();
 		try
 		{
 			drawEnvelope(gfx);
@@ -163,7 +163,7 @@ public class EnvelopeImagePanel extends JComponent
 			g.dispose();
 		}
 	}
-	public void setEnvelope(Envelope envelope)
+	public void setEnvelope(final Envelope envelope)
 	{
 		this.envelope = envelope;
 		repaint();

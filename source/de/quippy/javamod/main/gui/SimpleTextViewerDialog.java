@@ -2,7 +2,7 @@
  * @(#) SimpleTextViewerDialog.java
  *
  * Created on 24.01.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ import de.quippy.javamod.system.Log;
 public class SimpleTextViewerDialog extends JDialog
 {
 	private static final long serialVersionUID = -5666092255473846658L;
-	
+
 	private static final String DEFAULT_CODING = "ISO-8859-1";
 
 	private javax.swing.JButton closeButton;
@@ -56,28 +56,28 @@ public class SimpleTextViewerDialog extends JDialog
 	 * @param owner
 	 * @throws HeadlessException
 	 */
-	public SimpleTextViewerDialog(JFrame owner, boolean modal)
+	public SimpleTextViewerDialog(final JFrame owner, final boolean modal)
 	{
 		super(owner, modal);
 		url = null;
 		coding = DEFAULT_CODING;
 		initialize();
 	}
-	public SimpleTextViewerDialog(JFrame owner, boolean modal, URL url, String coding)
+	public SimpleTextViewerDialog(final JFrame owner, final boolean modal, final URL url, final String coding)
 	{
 		this(owner, modal);
 		this.coding = coding;
 		setDisplayTextFromURL(url);
 	}
-	public SimpleTextViewerDialog(JFrame owner, boolean modal, String url, String coding)
+	public SimpleTextViewerDialog(final JFrame owner, final boolean modal, final String url, final String coding)
 	{
 		this(owner, modal, Helpers.createURLfromString(url), coding);
 	}
-	public SimpleTextViewerDialog(JFrame owner, boolean modal, URL url)
+	public SimpleTextViewerDialog(final JFrame owner, final boolean modal, final URL url)
 	{
 		this(owner, modal, url, DEFAULT_CODING);
 	}
-	public SimpleTextViewerDialog(JFrame owner, boolean modal, String url)
+	public SimpleTextViewerDialog(final JFrame owner, final boolean modal, final String url)
 	{
 		this(owner, modal, url, DEFAULT_CODING);
 	}
@@ -92,14 +92,14 @@ public class SimpleTextViewerDialog extends JDialog
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
 		});
 
 		setLayout(new java.awt.GridBagLayout());
-		Container panel = getContentPane();
+		final Container panel = getContentPane();
 
 		panel.add(getScrollPane(), Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
 		panel.add(getCloseButton(), Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
@@ -140,7 +140,8 @@ public class SimpleTextViewerDialog extends JDialog
 	        closeButton.setFont(Helpers.getDialogFont());
 	        closeButton.addActionListener(new java.awt.event.ActionListener()
 	        {
-	            public void actionPerformed(java.awt.event.ActionEvent evt)
+	            @Override
+				public void actionPerformed(final java.awt.event.ActionEvent evt)
 	            {
 	                doClose();
 	            }
@@ -153,7 +154,7 @@ public class SimpleTextViewerDialog extends JDialog
 		setVisible(false);
 		dispose();
 		//if we are alone in the world, exit the vm
-		if (getParent() == null) System.exit(0); // this should not be needed! 
+		if (getParent() == null) System.exit(0); // this should not be needed!
 	}
 	private void fillTextArea(final String text)
 	{
@@ -168,7 +169,7 @@ public class SimpleTextViewerDialog extends JDialog
 			try
 			{
 				reader = new BufferedReader(new InputStreamReader(url.openStream(), coding));
-				StringBuilder fullText = new StringBuilder();
+				final StringBuilder fullText = new StringBuilder();
 				String line;
 				while ((line=reader.readLine())!=null)
 				{
@@ -176,13 +177,13 @@ public class SimpleTextViewerDialog extends JDialog
 				}
 				fillTextArea(fullText.toString());
 			}
-			catch (Throwable ex)
+			catch (final Throwable ex)
 			{
 				Log.error("reading text failed", ex);
 			}
 			finally
 			{
-				if (reader!=null) try { reader.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+				if (reader!=null) try { reader.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 	}

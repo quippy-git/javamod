@@ -57,7 +57,7 @@ public class ID3Tag {
             tag.Track = reader.readUnsignedByte();
             tag.Genre = reader.readUnsignedByte();
             return tag.Header.equals("TAG") ? tag : null;
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             return null;
         }
     }

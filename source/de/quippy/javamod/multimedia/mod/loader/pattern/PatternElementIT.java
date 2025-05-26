@@ -2,7 +2,7 @@
  * @(#) PatternElementIT.java
  *
  * Created on 09.01.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -136,7 +136,7 @@ public class PatternElementIT extends PatternElement
 					case 0xF: if ((parentMod.getModType()&ModConstants.MODTYPE_IT)!=0) return "Set Active Macro"; else return "Funk Repeat";
 				}
 				break;
-			case 0x14: return 
+			case 0x14: return
 				(effektOp>>4==0)? 	// 0x0X
 					"Set BPM (slower)":
 				(effektOp>>4==1)? 	// 0x1X
@@ -286,7 +286,7 @@ public class PatternElementIT extends PatternElement
 	{
 		switch (volumeEffekt)
 		{
-			case 0x00: return Helpers.EMPTY_STING; 
+			case 0x00: return Helpers.EMPTY_STING;
 			case 0x01: return "Set Volume";
 			case 0x02: return "Volslide down";
 			case 0x03: return "Volslide up";
@@ -314,14 +314,14 @@ public class PatternElementIT extends PatternElement
 	{
 		switch (volumeEffekt)
 		{
-			case 0x00: return EFFECT_NORMAL; 
+			case 0x00: return EFFECT_NORMAL;
 			case 0x01: return EFFECT_VOLUME;
 			case 0x02: return EFFECT_VOLUME;
 			case 0x03: return EFFECT_VOLUME;
 			case 0x04: return EFFECT_VOLUME;
 			case 0x05: return EFFECT_VOLUME;
 			case 0x06: return EFFECT_UNKNOWN; // normally not existent with IT
-			case 0x07: return EFFECT_PITCH; 
+			case 0x07: return EFFECT_PITCH;
 			case 0x08: return EFFECT_PANNING;
 			case 0x09: return EFFECT_PANNING;
 			case 0x0A: return EFFECT_PANNING;

@@ -2,7 +2,7 @@
  * @(#) FileOrPackedInputStream.java
  *
  * Created on 04.01.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,20 +43,20 @@ public class FileOrPackedInputStream extends InputStream
 {
 	protected InputStream stream;
 	private ZipEntry entry;
-	
+
 	/**
 	 * Constructor for FileOrPackedInputStream
 	 */
-	public FileOrPackedInputStream(File file) throws IOException, FileNotFoundException
+	public FileOrPackedInputStream(final File file) throws IOException, FileNotFoundException
 	{
 		super();
-		if (!file.exists()) 
+		if (!file.exists())
 		{
 			try
 			{
 				stream = tryForZippedFile(file.toURI().toURL());
 			}
-			catch (MalformedURLException ex)
+			catch (final MalformedURLException ex)
 			{
 				throw new FileNotFoundException(file.getCanonicalPath());
 			}
@@ -67,40 +67,40 @@ public class FileOrPackedInputStream extends InputStream
 	/**
 	 * Constructor for FileOrPackedInputStream
 	 */
-	public FileOrPackedInputStream(String fileName) throws IOException, FileNotFoundException
+	public FileOrPackedInputStream(final String fileName) throws IOException, FileNotFoundException
 	{
 		this(new File(fileName));
 	}
 	/**
 	 * Constructor for FileOrPackedInputStream
 	 */
-	public FileOrPackedInputStream(URL fromUrl) throws IOException, FileNotFoundException
+	public FileOrPackedInputStream(final URL fromUrl) throws IOException, FileNotFoundException
 	{
 		super();
 		try
 		{
 			stream = fromUrl.openStream();
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			//Log.error("[FileOrPackedInputStream] Checking if "+fromUrl.toString()+" is a zipped file location", ex);
 			stream = tryForZippedFile(fromUrl);
 		}
 	}
-	private InputStream tryForZippedFile(URL fromUrl) throws IOException
+	private InputStream tryForZippedFile(final URL fromUrl) throws IOException
 	{
 		String path = fromUrl.toString();
-		String fileNamePortion = Helpers.EMPTY_STING;
-		while (path!=null && path.length()!=0)
+		final StringBuilder fileNamePortion = new StringBuilder(Helpers.EMPTY_STING);
+		while (path!=null && !path.isEmpty())
 		{
-			int slashIndex = path.lastIndexOf('/');
+			final int slashIndex = path.lastIndexOf('/');
 			if (slashIndex<0) break;
-			fileNamePortion = Helpers.createStringFromURLString(path.substring(slashIndex)) + fileNamePortion;
+			fileNamePortion.insert(0, Helpers.createStringFromURLString(path.substring(slashIndex)));
 			path = path.substring(0, slashIndex);
-			URL newUrl = Helpers.createURLfromString(path);
+			final URL newUrl = Helpers.createURLfromString(path);
 			if (newUrl == null) continue;
-			ZipInputStream input = new ZipInputStream(newUrl.openStream());
-			String zipEntryName = fileNamePortion.substring(1);
+			final ZipInputStream input = new ZipInputStream(newUrl.openStream());
+			final String zipEntryName = fileNamePortion.substring(1);
 			ZipEntry entry;
 			while ((entry = input.getNextEntry())!=null)
 			{
@@ -130,7 +130,7 @@ public class FileOrPackedInputStream extends InputStream
 	@Override
 	public int available() throws IOException
 	{
-		if (entry==null) 
+		if (entry==null)
 			return stream.available();
 		else
 			return (int)entry.getSize();
@@ -150,7 +150,7 @@ public class FileOrPackedInputStream extends InputStream
 	 * @see java.io.InputStream#mark(int)
 	 */
 	@Override
-	public synchronized void mark(int readlimit)
+	public synchronized void mark(final int readlimit)
 	{
 		stream.mark(readlimit);
 	}
@@ -179,7 +179,7 @@ public class FileOrPackedInputStream extends InputStream
 	 * @see java.io.InputStream#skip(long)
 	 */
 	@Override
-	public long skip(long n) throws IOException
+	public long skip(final long n) throws IOException
 	{
 		return stream.skip(n);
 	}
@@ -200,7 +200,7 @@ public class FileOrPackedInputStream extends InputStream
 	 * @see java.io.InputStream#read(byte[])
 	 */
 	@Override
-	public int read(byte[] b) throws IOException
+	public int read(final byte[] b) throws IOException
 	{
 		return stream.read(b);
 //		return read(b, 0, b.length);
@@ -214,7 +214,7 @@ public class FileOrPackedInputStream extends InputStream
 	 * @see java.io.InputStream#read(byte[], int, int)
 	 */
 	@Override
-	public int read(byte[] b, int off, int len) throws IOException
+	public int read(final byte[] b, final int off, final int len) throws IOException
 	{
 		return stream.read(b, off, len);
 //		int fullSize = 0;

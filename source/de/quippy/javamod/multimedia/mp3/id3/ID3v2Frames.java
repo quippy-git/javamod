@@ -2,7 +2,7 @@
  * @(#) ID3v2Frames.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Description: 
+ * Description:
  *  This class is a collection that is used to hold the ID3v2Frames.
  *
  * @author:  Jonathan Hilliker modified by Daniel Becker
@@ -127,11 +127,12 @@ public class ID3v2Frames<K,V> extends HashMap<K,V>
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
-		StringBuilder str = new StringBuilder();
+		final StringBuilder str = new StringBuilder();
 
-		Iterator<V> it = this.values().iterator();
+		final Iterator<V> it = this.values().iterator();
 		while (it.hasNext())
 		{
 			str.append(it.next().toString()).append('\n');
@@ -149,7 +150,7 @@ public class ID3v2Frames<K,V> extends HashMap<K,V>
 	{
 		int length = 0;
 
-		Iterator<V> it = this.values().iterator();
+		final Iterator<V> it = this.values().iterator();
 		while (it.hasNext())
 		{
 			length += ((ID3v2Frame) it.next()).getFrameLength();
@@ -166,13 +167,13 @@ public class ID3v2Frames<K,V> extends HashMap<K,V>
 	 */
 	public byte[] getBytes()
 	{
-		byte b[] = new byte[getLength()];
+		final byte b[] = new byte[getLength()];
 		int bytesCopied = 0;
 
-		Iterator<V> it = this.values().iterator();
+		final Iterator<V> it = this.values().iterator();
 		while (it.hasNext())
 		{
-			ID3v2Frame frame = (ID3v2Frame) it.next();
+			final ID3v2Frame frame = (ID3v2Frame) it.next();
 			System.arraycopy(frame.getFrameBytes(), 0, b, bytesCopied, frame.getFrameLength());
 			bytesCopied += frame.getFrameLength();
 		}

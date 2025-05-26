@@ -2,7 +2,7 @@
  * @(#) OPL3ConfigPanel.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ public class OPL3ConfigPanel extends JPanel
 	 * Constructor for OPL3ConfigPanel
 	 * @param layout
 	 */
-	public OPL3ConfigPanel(LayoutManager layout)
+	public OPL3ConfigPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -81,7 +81,7 @@ public class OPL3ConfigPanel extends JPanel
 	 * Constructor for OPL3ConfigPanel
 	 * @param isDoubleBuffered
 	 */
-	public OPL3ConfigPanel(boolean isDoubleBuffered)
+	public OPL3ConfigPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -91,7 +91,7 @@ public class OPL3ConfigPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public OPL3ConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public OPL3ConfigPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -106,7 +106,7 @@ public class OPL3ConfigPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(OPL3Container parent)
+	public void setParentContainer(final OPL3Container parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -114,7 +114,7 @@ public class OPL3ConfigPanel extends JPanel
 	{
 		setName("OPL3ConfigPanel");
 		setLayout(new GridBagLayout());
-		
+
 		add(getCheckboxConfigPanel(),Helpers.getGridBagConstraint(0, 0, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getRolSoundBankLabel(),  Helpers.getGridBagConstraint(0, 1, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getRolSoundBankURL(),	 Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
@@ -127,7 +127,7 @@ public class OPL3ConfigPanel extends JPanel
 			checkboxConfigPanel = new JPanel();
 			checkboxConfigPanel.setName("checkboxConfigPanel");
 			checkboxConfigPanel.setLayout(new GridBagLayout());
-			
+
 			checkboxConfigPanel.add(getVirtualStereo(), 	Helpers.getGridBagConstraint(0, 0, 2, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 			checkboxConfigPanel.add(getOplVersionLabel(), 	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 			checkboxConfigPanel.add(getOplVersion(), 		Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -144,14 +144,15 @@ public class OPL3ConfigPanel extends JPanel
 			virtualStereo.setFont(Helpers.getDialogFont());
 			virtualStereo.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						OPL3Container parent = getParentContainer();
+						final OPL3Container parent = getParentContainer();
 						if (parent!=null)
 						{
-							OPL3Mixer currentMixer = parent.getCurrentMixer();
+							final OPL3Mixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoVirtualSereoMix(getVirtualStereo().isSelected());
 						}
@@ -176,10 +177,10 @@ public class OPL3ConfigPanel extends JPanel
 	{
 		if (oplVersion==null)
 		{
-			oplVersion = new JComboBox<String>();
+			oplVersion = new JComboBox<>();
 			oplVersion.setName("oplVersion");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(EmuOPL.versionNames);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(EmuOPL.versionNames);
 			oplVersion.setModel(theModel);
 			oplVersion.setFont(Helpers.getDialogFont());
 			oplVersion.setEnabled(true);
@@ -207,11 +208,11 @@ public class OPL3ConfigPanel extends JPanel
 	}
 	private void doSelectSoundbankFile()
 	{
-		FileFilter[] fileFilter = new FileFilter[] { new FileChooserFilter("*", "All files"), new FileChooserFilter("bnk", "AdLib Soundbank file (*.bnk)") };
-		FileChooserResult selectedFile = Helpers.selectFileNameFor(this, null, "Select soundbank file", fileFilter, false, 0, false, false);
+		final FileFilter[] fileFilter = new FileFilter[] { new FileChooserFilter("*", "All files"), new FileChooserFilter("bnk", "AdLib Soundbank file (*.bnk)") };
+		final FileChooserResult selectedFile = Helpers.selectFileNameFor(this, null, "Select soundbank file", fileFilter, false, 0, false, false);
 		if (selectedFile!=null)
 		{
-			File select = selectedFile.getSelectedFile();
+			final File select = selectedFile.getSelectedFile();
 			getRolSoundBankURL().setText(select.toString());
 		}
 	}
@@ -226,7 +227,8 @@ public class OPL3ConfigPanel extends JPanel
 			searchButton.setToolTipText("Search an AdLib soundbank file for the ROL synthesizer");
 			searchButton.addActionListener(new java.awt.event.ActionListener()
 	        {
-	            public void actionPerformed(java.awt.event.ActionEvent evt)
+	            @Override
+				public void actionPerformed(final java.awt.event.ActionEvent evt)
 	            {
 	            	doSelectSoundbankFile();
 	            }
@@ -249,7 +251,7 @@ public class OPL3ConfigPanel extends JPanel
 	{
 		getRolSoundBankURL().setText(newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_SOUNDBANK, OPL3Container.DEFAULT_SOUNDBANKURL));
 		getVirtualStereo().setSelected(Boolean.parseBoolean(newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, OPL3Container.DEFAULT_VIRTUAL_STEREO)));
-		EmuOPL.version version = Enum.valueOf(EmuOPL.version.class, newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_OPLVERSION, OPL3Container.DEFAULT_OPLVERSION));
+		final EmuOPL.version version = Enum.valueOf(EmuOPL.version.class, newProps.getProperty(OPL3Container.PROPERTY_OPL3PLAYER_OPLVERSION, OPL3Container.DEFAULT_OPLVERSION));
 		setOPLVersion(version);
 	}
 	public void configurationSave(final Properties props)

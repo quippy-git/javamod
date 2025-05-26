@@ -2,7 +2,7 @@
  * @(#) SampleImagePanel.java
  *
  * Created on 25.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ public class SampleImagePanel extends JComponent
     private static final Color LINE_COLOR = Color.darkGray;
     private static final Color WAVE_COLOR = Color.red;
     private static final Color BACKGROUND_COLOR = Color.black;
-    
+
     private Sample sample;
 
 	/**
@@ -61,42 +61,42 @@ public class SampleImagePanel extends JComponent
 		if (buffer!=null)
 		{
 			final int anzSamples = sample.length; //-1; // with this we show the first sample for interpolation as well - but is needed for loopEnd display
-			
+
 			int xpOld = 0;
 			int ypOld = 0;
 			g.setColor(WAVE_COLOR);
 			for (int i=0; i<=anzSamples; i++)
 			{
-				int xp = (int)(((long)i*(long)width)/(long)anzSamples);
-				int yp = halfHeight - (int)((buffer[i + Sample.INTERPOLATION_LOOK_AHEAD]*(long)halfHeight)>>31);
+				int xp = (int)(((long)i*(long)width)/anzSamples);
+				int yp = halfHeight - (int)((buffer[i + Sample.INTERPOLATION_LOOK_AHEAD]*halfHeight)>>31);
 
 				if (xp<0) xp=0; else if (xp>width) xp=width;
 				if (yp<0) yp=0; else if (yp>height) yp=height;
-				
+
 				if (i>0) g.drawLine(left + xpOld, top + ypOld, left + xp, top + yp);
-				
+
 				xpOld = xp;
 				ypOld = yp;
 			}
 			if (loopStart!=-1)
 			{
 				g.setColor(LOOP_COLOR);
-				int xp = (int)(((long)loopStart*(long)width)/(long)anzSamples);
+				int xp = (int)(((long)loopStart*(long)width)/anzSamples);
 				if (xp<0) xp=0; else if (xp>width) xp=width;
 				g.drawLine(left + xp, top, left + xp, top + height);
 
-				xp = (int)(((long)loopEnd*(long)width)/(long)anzSamples);
+				xp = (int)(((long)loopEnd*(long)width)/anzSamples);
 				if (xp<0) xp=0; else if (xp>width) xp=width;
 				g.drawLine(left + xp, top, left + xp, top + height);
 			}
 			if (sustainStart!=-1)
 			{
 				g.setColor(SUSTAINLOOP_COLOR);
-				int xp = (int)(((long)sustainStart*(long)width)/(long)anzSamples);
+				int xp = (int)(((long)sustainStart*(long)width)/anzSamples);
 				if (xp<0) xp=0; else if (xp>width) xp=width;
 				g.drawLine(left + xp, top, left + xp, top + height);
 
-				xp = (int)(((long)sustainEnd*(long)width)/(long)anzSamples);
+				xp = (int)(((long)sustainEnd*(long)width)/anzSamples);
 				if (xp<0) xp=0; else if (xp>width) xp=width;
 				g.drawLine(left + xp, top, left + xp, top + height);
 			}
@@ -106,7 +106,7 @@ public class SampleImagePanel extends JComponent
 	 * @since 07.01.2024
 	 * @param gfx
 	 */
-	private void drawSample(Graphics g)
+	private void drawSample(final Graphics g)
 	{
 		int top = 0;
 		int left = 0;
@@ -117,10 +117,10 @@ public class SampleImagePanel extends JComponent
 
 		g.setColor(BACKGROUND_COLOR);
 		g.fillRect(left, top, width, height);
-		
+
 		// We need some insets
 		left+=1; top+=1; width-=2; height-=2;
-		
+
 		if (sample==null)
 		{
 			g.setColor(LINE_COLOR);
@@ -142,7 +142,7 @@ public class SampleImagePanel extends JComponent
 				loopStart = sample.loopStart;
 				loopEnd = sample.loopStop;
 			}
-			
+
 			if (sample.isStereo)
 			{
 				drawSample(g, top, left, width, halfHeight-1, loopStart, loopEnd, sustainLoopStart, sustainLoopEnd, sample.sampleL);
@@ -159,10 +159,10 @@ public class SampleImagePanel extends JComponent
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
-	public void paintComponent(Graphics g)
+	public void paintComponent(final Graphics g)
 	{
 		super.paintComponent(g);
-		Graphics gfx = g.create();
+		final Graphics gfx = g.create();
 		try
 		{
 			drawSample(gfx);
@@ -172,7 +172,7 @@ public class SampleImagePanel extends JComponent
 			g.dispose();
 		}
 	}
-	public void setSample(Sample sample)
+	public void setSample(final Sample sample)
 	{
 		this.sample = sample;
 		repaint();

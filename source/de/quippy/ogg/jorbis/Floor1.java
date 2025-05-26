@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -26,18 +26,21 @@
 
 package de.quippy.ogg.jorbis;
 
+import java.util.Arrays;
+
 import de.quippy.ogg.jogg.Buffer;
 
 class Floor1 extends FuncFloor{
   static final int floor1_rangedb=140;
   static final int VIF_POSIT=63;
 
-  void pack(Object i, Buffer opb){
-    InfoFloor1 info=(InfoFloor1)i;
+  @Override
+void pack(final Object i, final Buffer opb){
+    final InfoFloor1 info=(InfoFloor1)i;
 
     int count=0;
     int rangebits;
-    int maxposit=info.postlist[1];
+    final int maxposit=info.postlist[1];
     int maxclass=-1;
 
     /* save out partitions */
@@ -73,9 +76,10 @@ class Floor1 extends FuncFloor{
     }
   }
 
-  Object unpack(Info vi, Buffer opb){
+  @Override
+Object unpack(final Info vi, final Buffer opb){
     int count=0, maxclass=-1, rangebits;
-    InfoFloor1 info=new InfoFloor1();
+    final InfoFloor1 info=new InfoFloor1();
 
     /* read partitions */
     info.partitions=opb.read(5); /* only 0 to 31 legal */
@@ -116,7 +120,7 @@ class Floor1 extends FuncFloor{
     for(int j=0, k=0; j<info.partitions; j++){
       count+=info.class_dim[info.partitionclass[j]];
       for(; k<count; k++){
-        int t=info.postlist[k+2]=opb.read(rangebits);
+        final int t=info.postlist[k+2]=opb.read(rangebits);
         if(t<0||t>=(1<<rangebits)){
           info.free();
           return (null);
@@ -129,15 +133,16 @@ class Floor1 extends FuncFloor{
     return (info);
   }
 
-  Object look(DspState vd, InfoMode mi, Object i){
+  @Override
+Object look(final DspState vd, final InfoMode mi, final Object i){
     int _n=0;
 
-    int[] sortpointer=new int[VIF_POSIT+2];
+    final int[] sortpointer=new int[VIF_POSIT+2];
 
     //    Info vi=vd.vi;
 
-    InfoFloor1 info=(InfoFloor1)i;
-    LookFloor1 look=new LookFloor1();
+    final InfoFloor1 info=(InfoFloor1)i;
+    final LookFloor1 look=new LookFloor1();
     look.vi=info;
     look.n=info.postlist[1];
 
@@ -209,9 +214,9 @@ class Floor1 extends FuncFloor{
       int hi=1;
       int lx=0;
       int hx=look.n;
-      int currentx=info.postlist[j+2];
+      final int currentx=info.postlist[j+2];
       for(int k=0; k<j+2; k++){
-        int x=info.postlist[k];
+        final int x=info.postlist[k];
         if(x>lx&&x<currentx){
           lo=k;
           lx=x;
@@ -228,23 +233,28 @@ class Floor1 extends FuncFloor{
     return look;
   }
 
-  void free_info(Object i){
+  @Override
+void free_info(final Object i){
   }
 
-  void free_look(Object i){
+  @Override
+void free_look(final Object i){
   }
 
-  void free_state(Object vs){
+  @Override
+void free_state(final Object vs){
   }
 
-  int forward(Block vb, Object i, float[] in, float[] out, Object vs){
+  @Override
+int forward(final Block vb, final Object i, final float[] in, final float[] out, final Object vs){
     return 0;
   }
 
-  Object inverse1(Block vb, Object ii, Object memo){
-    LookFloor1 look=(LookFloor1)ii;
-    InfoFloor1 info=look.vi;
-    CodeBook[] books=vb.vd.fullbooks;
+  @Override
+Object inverse1(final Block vb, final Object ii, final Object memo){
+    final LookFloor1 look=(LookFloor1)ii;
+    final InfoFloor1 info=look.vi;
+    final CodeBook[] books=vb.vd.fullbooks;
 
     /* unpack wrapped/predicted values from stream */
     if(vb.opb.read(1)==1){
@@ -256,8 +266,7 @@ class Floor1 extends FuncFloor{
         fit_value=new int[look.posts];
       }
       else{
-        for(int i=0; i<fit_value.length; i++)
-          fit_value[i]=0;
+        Arrays.fill(fit_value, 0);
       }
 
       fit_value[0]=vb.opb.read(Util.ilog(look.quant_q-1));
@@ -265,10 +274,10 @@ class Floor1 extends FuncFloor{
 
       /* partition by partition */
       for(int i=0, j=2; i<info.partitions; i++){
-        int clss=info.partitionclass[i];
-        int cdim=info.class_dim[clss];
-        int csubbits=info.class_subs[clss];
-        int csub=1<<csubbits;
+        final int clss=info.partitionclass[i];
+        final int cdim=info.class_dim[clss];
+        final int csubbits=info.class_subs[clss];
+        final int csub=1<<csubbits;
         int cval=0;
 
         /* decode the partition's first stage cascade value */
@@ -281,7 +290,7 @@ class Floor1 extends FuncFloor{
         }
 
         for(int k=0; k<cdim; k++){
-          int book=info.class_subbook[clss][cval&(csub-1)];
+          final int book=info.class_subbook[clss][cval&(csub-1)];
           cval>>>=csubbits;
           if(book>=0){
             if((fit_value[j+k]=books[book].decode(vb.opb))==-1){
@@ -297,13 +306,13 @@ class Floor1 extends FuncFloor{
 
       /* unwrap positive values and reconsitute via linear interpolation */
       for(int i=2; i<look.posts; i++){
-        int predicted=render_point(info.postlist[look.loneighbor[i-2]],
+        final int predicted=render_point(info.postlist[look.loneighbor[i-2]],
             info.postlist[look.hineighbor[i-2]],
             fit_value[look.loneighbor[i-2]], fit_value[look.hineighbor[i-2]],
             info.postlist[i]);
-        int hiroom=look.quant_q-predicted;
-        int loroom=predicted;
-        int room=(hiroom<loroom ? hiroom : loroom)<<1;
+        final int hiroom=look.quant_q-predicted;
+        final int loroom=predicted;
+        final int room=(hiroom<loroom ? hiroom : loroom)<<1;
         int val=fit_value[i];
 
         if(val!=0){
@@ -338,36 +347,37 @@ class Floor1 extends FuncFloor{
     return (null);
   }
 
-  private static int render_point(int x0, int x1, int y0, int y1, int x){
+  private static int render_point(final int x0, final int x1, int y0, int y1, final int x){
     y0&=0x7fff; /* mask off flag */
     y1&=0x7fff;
 
     {
-      int dy=y1-y0;
-      int adx=x1-x0;
-      int ady=Math.abs(dy);
-      int err=ady*(x-x0);
+      final int dy=y1-y0;
+      final int adx=x1-x0;
+      final int ady=Math.abs(dy);
+      final int err=ady*(x-x0);
 
-      int off=(int)(err/adx);
+      final int off=err/adx;
       if(dy<0)
         return (y0-off);
       return (y0+off);
     }
   }
 
-  int inverse2(Block vb, Object i, Object memo, float[] out){
-    LookFloor1 look=(LookFloor1)i;
-    InfoFloor1 info=look.vi;
-    int n=vb.vd.vi.blocksizes[vb.mode]/2;
+  @Override
+int inverse2(final Block vb, final Object i, final Object memo, final float[] out){
+    final LookFloor1 look=(LookFloor1)i;
+    final InfoFloor1 info=look.vi;
+    final int n=vb.vd.vi.blocksizes[vb.mode]/2;
 
     if(memo!=null){
       /* render the lines */
-      int[] fit_value=(int[])memo;
+      final int[] fit_value=(int[])memo;
       int hx=0;
       int lx=0;
       int ly=fit_value[0]*info.mult;
       for(int j=1; j<look.posts; j++){
-        int current=look.forward_index[j];
+        final int current=look.forward_index[j];
         int hy=fit_value[current]&0x7fff;
         if(hy==fit_value[current]){
           hy*=info.mult;
@@ -452,12 +462,12 @@ class Floor1 extends FuncFloor{
       0.64356699F, 0.68538959F, 0.72993007F, 0.77736504F, 0.82788260F,
       0.88168307F, 0.9389798F, 1.F};
 
-  private static void render_line(int x0, int x1, int y0, int y1, float[] d){
-    int dy=y1-y0;
-    int adx=x1-x0;
+  private static void render_line(final int x0, final int x1, final int y0, final int y1, final float[] d){
+    final int dy=y1-y0;
+    final int adx=x1-x0;
     int ady=Math.abs(dy);
-    int base=dy/adx;
-    int sy=(dy<0 ? base-1 : base+1);
+    final int base=dy/adx;
+    final int sy=(dy<0 ? base-1 : base+1);
     int x=x0;
     int y=y0;
     int err=0;
@@ -524,8 +534,8 @@ class Floor1 extends FuncFloor{
     }
 
     Object copy_info(){
-      InfoFloor1 info=this;
-      InfoFloor1 ret=new InfoFloor1();
+      final InfoFloor1 info=this;
+      final InfoFloor1 ret=new InfoFloor1();
 
       ret.partitions=info.partitions;
       System

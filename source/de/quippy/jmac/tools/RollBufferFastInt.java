@@ -27,7 +27,7 @@ import java.util.Arrays;
  * Time: 14:51:31
  */
 public class RollBufferFastInt {
-    public RollBufferFastInt(int nWindowElements, int nHistoryElements) {
+    public RollBufferFastInt(final int nWindowElements, final int nHistoryElements) {
         m_pData = new int[nWindowElements + nHistoryElements];
         m_nWindowElements = nWindowElements;
         m_nHistoryElements = nHistoryElements;

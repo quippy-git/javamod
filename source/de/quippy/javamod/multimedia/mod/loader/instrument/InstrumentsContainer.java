@@ -1,8 +1,8 @@
 /*
  * @(#) InstrumentContainer.java
- * 
+ *
  * Created on 28.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,23 +29,23 @@ import de.quippy.javamod.multimedia.mod.loader.Module;
  */
 public class InstrumentsContainer
 {
-	private Module parent;
+	private final Module parent;
 	private Instrument [] instruments;
 	private Sample [] samples;
 
 	/**
 	 * Constructor for InstrumentsContainer
 	 */
-	public InstrumentsContainer(Module module, int anzInstruments, int anzSamples)
+	public InstrumentsContainer(final Module module, final int anzInstruments, final int anzSamples)
 	{
 		super();
 		this.parent = module;
-		
-		if (anzInstruments!=0) 
-			this.instruments = new Instrument[anzInstruments]; 
-		else 
+
+		if (anzInstruments!=0)
+			this.instruments = new Instrument[anzInstruments];
+		else
 			this.instruments = null;
-		
+
 		if (anzSamples!=0)
 			this.samples = new Sample[anzSamples];
 		else
@@ -57,9 +57,9 @@ public class InstrumentsContainer
 	 * @since 01.11.2007
 	 * @param newAmount
 	 */
-	public void reallocSampleSpace(int newAmount)
+	public void reallocSampleSpace(final int newAmount)
 	{
-		Sample [] newSamples = new Sample[newAmount];
+		final Sample [] newSamples = new Sample[newAmount];
 		if (this.samples!=null)
 		{
 			//System.arraycopy(this.samples, 0, newSamples, this.samples.length);
@@ -68,7 +68,7 @@ public class InstrumentsContainer
 		}
 		this.samples = newSamples;
 	}
-	public void setInstrument(int index, Instrument instrument)
+	public void setInstrument(final int index, final Instrument instrument)
 	{
 		instruments[index] = instrument;
 	}
@@ -78,7 +78,7 @@ public class InstrumentsContainer
 	 * @param index
 	 * @param sample
 	 */
-	public void setSample(int index, Sample sample)
+	public void setSample(final int index, final Sample sample)
 	{
 		this.samples[index] = sample;
 	}
@@ -88,7 +88,7 @@ public class InstrumentsContainer
 	 * @param sampleIndex
 	 * @return
 	 */
-	public Sample getSample(int sampleIndex)
+	public Sample getSample(final int sampleIndex)
 	{
 		if (samples==null || sampleIndex>=samples.length || sampleIndex<0)
 			return null;
@@ -104,8 +104,8 @@ public class InstrumentsContainer
 	public int getFullSampleLength()
 	{
 		int fullSampleLength=0;
-		for (int i=0; i<samples.length; i++)
-			fullSampleLength+=samples[i].length;
+		for (final Sample sample : samples)
+			fullSampleLength+=sample.length;
 		return fullSampleLength;
 	}
 	/**
@@ -114,12 +114,12 @@ public class InstrumentsContainer
 	 * @param sampleIndex
 	 * @return
 	 */
-	public Instrument getInstrument(int index)
+	public Instrument getInstrument(final int index)
 	{
 		if (instruments==null)
 			return null;
 		else
-		if (index<0 || index>=instruments.length) 
+		if (index<0 || index>=instruments.length)
 			return null;
 		else
 			return instruments[index];
@@ -147,16 +147,16 @@ public class InstrumentsContainer
 	}
 	public boolean hasInstruments()
 	{
-		return instruments!=null && instruments.length>0; 
+		return instruments!=null && instruments.length>0;
 	}
 	public String getInstrumentNames()
 	{
-		StringBuilder bf = new StringBuilder();
+		final StringBuilder bf = new StringBuilder();
 		if (instruments!=null && instruments.length>0)
 		{
-			for (int i=0; i<instruments.length; i++)
+			for (final Instrument instrument : instruments)
 			{
-				if (instruments[i]!=null) bf.append(instruments[i].toString());
+				if (instrument!=null) bf.append(instrument.toString());
 				bf.append('\n');
 			}
 		}
@@ -164,12 +164,12 @@ public class InstrumentsContainer
 	}
 	public String getSampleNames()
 	{
-		StringBuilder bf = new StringBuilder();
+		final StringBuilder bf = new StringBuilder();
 		if (samples!=null && samples.length>0)
 		{
-			for (int i=0; i<samples.length; i++)
+			for (final Sample sample : samples)
 			{
-				if (samples[i]!=null) bf.append(samples[i].toShortString());
+				if (sample!=null) bf.append(sample.toShortString());
 				bf.append('\n');
 			}
 		}
@@ -182,7 +182,7 @@ public class InstrumentsContainer
 	@Override
 	public String toString()
 	{
-		StringBuilder bf = new StringBuilder();
+		final StringBuilder bf = new StringBuilder();
 		final boolean hasInstruments = hasInstruments();
 		if (hasInstruments)
 		{

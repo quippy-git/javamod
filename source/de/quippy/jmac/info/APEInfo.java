@@ -37,35 +37,35 @@ import de.quippy.jmac.tools.RandomAccessFile;
 public class APEInfo {
 
     // construction and destruction
-    public APEInfo(URL url) throws IOException {
+    public APEInfo(final URL url) throws IOException {
         this(url, null);
     }
 
-    public APEInfo(URL url, APETag pTag) throws IOException {
+    public APEInfo(final URL url, final APETag pTag) throws IOException {
         this(url.openStream(), pTag);
     }
 
-    public APEInfo(java.io.File file) throws IOException {
+    public APEInfo(final java.io.File file) throws IOException {
         this(file, null);
     }
 
-    public APEInfo(java.io.File file, APETag pTag) throws IOException {
+    public APEInfo(final java.io.File file, final APETag pTag) throws IOException {
         this(new RandomAccessFile(file, "r"), pTag);
     }
 
-    public APEInfo(InputStream pIO) throws IOException {
+    public APEInfo(final InputStream pIO) throws IOException {
         this(pIO, null);
     }
 
-    public APEInfo(InputStream pIO, APETag pTag) throws IOException {
+    public APEInfo(final InputStream pIO, final APETag pTag) throws IOException {
         this(new InputStreamFile(pIO), pTag);
     }
 
-    public APEInfo(File pIO) throws IOException {
+    public APEInfo(final File pIO) throws IOException {
         this(pIO, null);
     }
 
-    public APEInfo(File pIO, APETag pTag) throws IOException {
+    public APEInfo(final File pIO, final APETag pTag) throws IOException {
         // open the file
         m_spIO = pIO;
 
@@ -170,11 +170,11 @@ public class APEInfo {
         return m_APEFileInfo.nAverageBitrate;
     }
 
-    public int getApeInfoSeekByte(int nFrame) {
+    public int getApeInfoSeekByte(final int nFrame) {
         return (nFrame < 0 || nFrame >= m_APEFileInfo.nTotalFrames) ? 0 : m_APEFileInfo.spSeekByteTable[nFrame] + m_APEFileInfo.nJunkHeaderBytes;
     }
 
-    public int getApeInfoFrameBytes(int nFrame) throws IOException {
+    public int getApeInfoFrameBytes(final int nFrame) throws IOException {
         if ((nFrame < 0) || (nFrame >= m_APEFileInfo.nTotalFrames))
             return -1;
         else {
@@ -191,7 +191,7 @@ public class APEInfo {
         }
     }
 
-    public int getApeInfoFrameBlocks(int nFrame) {
+    public int getApeInfoFrameBlocks(final int nFrame) {
         if ((nFrame < 0) || (nFrame >= m_APEFileInfo.nTotalFrames))
             return -1;
         else {
@@ -202,11 +202,11 @@ public class APEInfo {
         }
     }
 
-    public int getApeInfoFrameBitrate(int nFrame) throws IOException {
-        int nFrameBytes = getApeInfoFrameBytes(nFrame);
-        int nFrameBlocks = getApeInfoFrameBlocks(nFrame);
+    public int getApeInfoFrameBitrate(final int nFrame) throws IOException {
+        final int nFrameBytes = getApeInfoFrameBytes(nFrame);
+        final int nFrameBlocks = getApeInfoFrameBlocks(nFrame);
         if ((nFrameBytes > 0) && (nFrameBlocks > 0) && m_APEFileInfo.nSampleRate > 0) {
-            int nFrameMS = (nFrameBlocks * 1000) / m_APEFileInfo.nSampleRate;
+            final int nFrameMS = (nFrameBlocks * 1000) / m_APEFileInfo.nSampleRate;
             if (nFrameMS != 0) {
                 return (nFrameBytes * 8) / nFrameMS;
             }
@@ -222,7 +222,7 @@ public class APEInfo {
         return m_APEFileInfo.nPeakLevel;
     }
 
-    public int getApeInfoSeekBit(int nFrame) {
+    public int getApeInfoSeekBit(final int nFrame) {
         if (getApeInfoFileVersion() > 3800)
             return 0;
         else {
@@ -239,13 +239,13 @@ public class APEInfo {
         return pWaveFormatEx;
     }
 
-    public byte[] getApeInfoWavHeaderData(int nMaxBytes) {
+    public byte[] getApeInfoWavHeaderData(final int nMaxBytes) {
         if ((m_APEFileInfo.nFormatFlags & APEHeader.MAC_FORMAT_FLAG_CREATE_WAV_HEADER) > 0) {
             if (WaveHeader.WAVE_HEADER_BYTES > nMaxBytes)
                 return null;
             else {
-                WaveFormat wfeFormat = getApeInfoWaveFormatEx();
-                WaveHeader WAVHeader = new WaveHeader();
+                final WaveFormat wfeFormat = getApeInfoWaveFormatEx();
+                final WaveHeader WAVHeader = new WaveHeader();
                 WaveHeader.FillWaveHeader(WAVHeader, m_APEFileInfo.nWAVDataBytes, wfeFormat, m_APEFileInfo.nWAVTerminatingBytes);
                 return WAVHeader.write();
             }
@@ -253,7 +253,7 @@ public class APEInfo {
             if (m_APEFileInfo.nWAVHeaderBytes > nMaxBytes)
                 return null;
             else {
-                byte[] pBuffer = new byte[m_APEFileInfo.nWAVHeaderBytes];
+                final byte[] pBuffer = new byte[m_APEFileInfo.nWAVHeaderBytes];
                 System.arraycopy(m_APEFileInfo.spWaveHeaderData, 0, pBuffer, 0, m_APEFileInfo.nWAVHeaderBytes);
                 return pBuffer;
             }
@@ -268,20 +268,20 @@ public class APEInfo {
         return m_spAPETag;
     }
 
-    public byte[] getApeInfoWavTerminatingData(int nMaxBytes) throws IOException {
+    public byte[] getApeInfoWavTerminatingData(final int nMaxBytes) throws IOException {
         if (m_APEFileInfo.nWAVTerminatingBytes > nMaxBytes)
             return null;
         else {
             if (m_APEFileInfo.nWAVTerminatingBytes > 0) {
                 // variables
-                long nOriginalFileLocation = m_spIO.getFilePointer();
+                final long nOriginalFileLocation = m_spIO.getFilePointer();
 
                 // check for a tag
                 m_spIO.seek(m_spIO.length() - (m_spAPETag.GetTagBytes() + m_APEFileInfo.nWAVTerminatingBytes));
-                byte[] pBuffer = new byte[m_APEFileInfo.nWAVTerminatingBytes];
+                final byte[] pBuffer = new byte[m_APEFileInfo.nWAVTerminatingBytes];
                 try {
                     m_spIO.readFully(pBuffer);
-                } catch (EOFException e) {
+                } catch (final EOFException e) {
                     throw new JMACException("Can't Read WAV Terminating Bytes");
                 }
 
@@ -303,7 +303,7 @@ public class APEInfo {
             return;
 
         // use a CAPEHeader class to help us analyze the file
-        APEHeader APEHeader = new APEHeader(m_spIO);
+        final APEHeader APEHeader = new APEHeader(m_spIO);
         APEHeader.Analyze(m_APEFileInfo);
 
         m_bHasFileInformationLoaded = true;
@@ -311,7 +311,7 @@ public class APEInfo {
 
     // internal variables
     private boolean m_bHasFileInformationLoaded;
-    private File m_spIO;
+    private final File m_spIO;
     private APETag m_spAPETag;
-    private APEFileInfo m_APEFileInfo = new APEFileInfo();
+    private final APEFileInfo m_APEFileInfo = new APEFileInfo();
 }

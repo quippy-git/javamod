@@ -2,7 +2,7 @@
  * @(#) BasicMixer.java
  *
  * Created on 30.12.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public abstract class BasicMixer extends Mixer
 	private static final int ISNOTHING = 0;
 	private static final int ISDOING = 1;
 	private static final int ISDONE = 2;
-	
+
 	private volatile int paused;
 	private volatile int stopped;
 	private volatile int seeking;
@@ -127,31 +127,31 @@ public abstract class BasicMixer extends Mixer
 	}
 	protected void setIsPausing()
 	{
-		paused = ISDOING; 
+		paused = ISDOING;
 		stopped = ISNOTHING;
 		seeking = ISNOTHING;
 	}
 	protected void setIsPaused()
 	{
-		paused = ISDONE; 
+		paused = ISDONE;
 		stopped = ISNOTHING;
 		seeking = ISNOTHING;
 	}
 	protected void setIsStopping()
 	{
-		paused = ISNOTHING; 
+		paused = ISNOTHING;
 		stopped = ISDOING;
 		seeking = ISNOTHING;
 	}
 	protected void setIsStopped()
 	{
-		paused = ISNOTHING; 
+		paused = ISNOTHING;
 		stopped = ISDONE;
 		seeking = ISNOTHING;
 	}
 	protected void setIsPlaying()
 	{
-		paused = ISNOTHING; 
+		paused = ISNOTHING;
 		stopped = ISNOTHING;
 		seeking = ISNOTHING;
 	}
@@ -172,14 +172,17 @@ public abstract class BasicMixer extends Mixer
 	{
 		return seekPosition;
 	}
+	@Override
 	public boolean isNotSeeking()
 	{
 		return seeking == ISNOTHING;
 	}
+	@Override
 	public boolean isInSeeking()
 	{
 		return seeking != ISNOTHING;
 	}
+	@Override
 	public boolean isSeeking()
 	{
 		return seeking == ISDOING;
@@ -193,7 +196,7 @@ public abstract class BasicMixer extends Mixer
 	 * @see de.quippy.javamod.mixer.Mixer#setMillisecondPosition(long)
 	 */
 	@Override
-	public void setMillisecondPosition(long milliseconds)
+	public void setMillisecondPosition(final long milliseconds)
 	{
 		if (!isPlaying())
 			seekPosition = milliseconds;
@@ -206,11 +209,11 @@ public abstract class BasicMixer extends Mixer
 				// stop playback and prepare seeking
 				// ONLY difference is with midi, as there is no separate digital data send
 				seeking = ISDOING;
-				while (isSeeking()) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP */ }
+				while (isSeeking()) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP */ }
 				stopLine(true);
 				seek(milliseconds);
 			}
-			catch (Exception ex)
+			catch (final Exception ex)
 			{
 				Log.error("BasicMixer::setMillisecondPosition", ex);
 			}
@@ -232,7 +235,7 @@ public abstract class BasicMixer extends Mixer
 		if (isNotStoppingNorStopped())
 		{
 			setIsStopping();
-			while (!isStopped()) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+			while (!isStopped()) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 			stopLine(true);
 		}
 	}
@@ -247,7 +250,7 @@ public abstract class BasicMixer extends Mixer
 		if (isNotPausingNorPaused() && isNotStoppingNorStopped())
 		{
 			setIsPausing();
-			while (!isPaused() && !isStopped()) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+			while (!isPaused() && !isStopped()) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 			stopLine(true);
 		}
 		else
@@ -299,7 +302,7 @@ public abstract class BasicMixer extends Mixer
 	public long getSamplesToWriteLeft()
 	{
 		if (hasStopPosition())
-			return getMillisecondsToWriteLeft() * (long)getCurrentSampleRate() / 1000L;
+			return getMillisecondsToWriteLeft() * getCurrentSampleRate() / 1000L;
 		else
 			return -1;
 	}
@@ -308,7 +311,7 @@ public abstract class BasicMixer extends Mixer
 	 * @see de.quippy.javamod.mixer.Mixer#setStopMillisecondPosition(long)
 	 */
 	@Override
-	public void setStopMillisecondPosition(long milliseconds)
+	public void setStopMillisecondPosition(final long milliseconds)
 	{
 		if (!isPlaying()) stopPosition = milliseconds;
 	}

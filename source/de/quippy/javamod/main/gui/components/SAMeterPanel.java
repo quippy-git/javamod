@@ -2,7 +2,7 @@
  * @(#) SAMeterPanel.java
  *
  * Created on 30.09.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,51 +44,51 @@ public class SAMeterPanel extends MeterPanelBase
 	protected static final int DRAW_SA_METER = 0;
     protected static final int DRAW_WAVE_METER = 1;
     protected static final int DRAW_SK_METER = 2;
-    
+
     private static final Color WAVEMETER_LINE_COLOR = Color.darkGray;
     private static final Color WAVEMETER_WAVE_COLOR = Color.green;
 
-	private FFT fftCalc;
+	private final FFT fftCalc;
 	private Color [] color;
 	private Color [] SKcolor;
 	private int SKMax;
-	private float [] fftLevels;
-	private float [] maxFFTLevels;
-	
+	private final float [] fftLevels;
+	private final float [] maxFFTLevels;
+
 	private float [] floatSamples;
 	private int anzSamples;
 
-	private int bands;
-	private int multiplier;
+	private final int bands;
+	private final int multiplier;
 	private float rampDownValue;
-	private float [] maxPeakLevelRampDownValue;
+	private final float [] maxPeakLevelRampDownValue;
 	private float maxPeakLevelRampDownDelay;
-	
+
 	private int myBottom;
 	private float myHalfHeight;
 	private int barWidth;
-	
+
 	private int drawWhat;
 	private boolean switched;
-    
+
 	/**
 	 * Constructor for SAMeterPanel
 	 */
-	public SAMeterPanel(int updateRate, int bands)
+	public SAMeterPanel(final int updateRate, final int bands)
 	{
 		super(updateRate);
-		
+
 		this.bands = bands;
 		this.fftCalc = new FFT(SAMeterPanel.FFT_SAMPLE_SIZE);
 		this.multiplier = (SAMeterPanel.FFT_SAMPLE_SIZE>>1) / bands;
-		
+
 		this.fftLevels = new float[this.bands];
 		this.maxFFTLevels = new float[this.bands];
 		this.maxPeakLevelRampDownValue = new float[this.bands];
 
 		this.drawWhat = DRAW_SA_METER;
 		this.switched = true;
-		
+
 		this.prepareDisplayToggleListener();
 
 		startThread();
@@ -101,7 +101,8 @@ public class SAMeterPanel extends MeterPanelBase
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent pEvent)
+			@Override
+			public void mouseClicked(final MouseEvent pEvent)
 			{
 				if (pEvent.getButton() == MouseEvent.BUTTON1)
 				{
@@ -112,7 +113,7 @@ public class SAMeterPanel extends MeterPanelBase
 			}
 		});
 	}
-    public void setDrawWhatTo(int newDrawWhat)
+    public void setDrawWhatTo(final int newDrawWhat)
     {
     	drawWhat = newDrawWhat;
     }
@@ -128,22 +129,22 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#componentWasResized()
 	 */
 	@Override
-    protected void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
+    protected void componentWasResized(final int newTop, final int newLeft, final int newWidth, final int newHeight)
     {
-		rampDownValue = 1.25f / (float)getDesiredFPS();
+		rampDownValue = 1.25f / getDesiredFPS();
 		maxPeakLevelRampDownDelay = rampDownValue / 50f;
-		
+
 		if (newTop<0 || newLeft<0 || newWidth<0 || newHeight<0) return;
 
 		myBottom = newTop + newHeight;
-		myHalfHeight = (float)newHeight/2f;
+		myHalfHeight = newHeight/2f;
 		barWidth = newWidth/bands;
 
 		color = new Color[newHeight+1];
 		for (int i=0; i<=newHeight; i++)
 		{
-			int color1 = i*255/newHeight;
-			int color2 = 255-color1;
+			final int color1 = i*255/newHeight;
+			final int color2 = 255-color1;
 			color[i] = new Color(color1, color2, 0);
 		}
 		SKMax = 1024;
@@ -170,22 +171,22 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param newSamples
 	 */
-	public void setMeter(float [] newSamples)
+	public void setMeter(final float [] newSamples)
 	{
 		if (newSamples!=null)
 		{
 			anzSamples = newSamples.length;
 			if (floatSamples==null || floatSamples.length != anzSamples) floatSamples = new float[anzSamples];
 			System.arraycopy(newSamples, 0, floatSamples, 0, anzSamples);
-			float [] resultFFTSamples = fftCalc.calculate(floatSamples);
-	        
+			final float [] resultFFTSamples = fftCalc.calculate(floatSamples);
+
 			for (int a=0, bd=0; bd<bands; a+=multiplier, bd++)
 	        {
 	            float wFs = resultFFTSamples[a];
 
 	            for (int b=1; b<multiplier; b++) wFs+=resultFFTSamples[a+b];
 	            wFs *= (float)FastMath.log(bd + 2);
-	            
+
 	            if (wFs > 1.0F) wFs = 1.0F;
 	            if (wFs>fftLevels[bd])
 	            {
@@ -208,7 +209,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		drawMeter(g, newTop, newLeft, newWidth, newHeight, true);
 	}
@@ -222,23 +223,23 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @param doClear
 	 * @since 06.05.2011
 	 */
-	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	protected void drawMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight, final boolean doClear)
 	{
 		switch (drawWhat)
 		{
 			default:
-			case DRAW_SA_METER: drawSAMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
-			case DRAW_WAVE_METER: drawWaveMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break; 
-			case DRAW_SK_METER: drawSKMeter(g, newTop, newLeft, newWidth, newHeight); break; 
+			case DRAW_SA_METER: drawSAMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break;
+			case DRAW_WAVE_METER: drawWaveMeter(g, newTop, newLeft, newWidth, newHeight, doClear); break;
+			case DRAW_SK_METER: drawSKMeter(g, newTop, newLeft, newWidth, newHeight); break;
 		}
-		
+
 		for (int i=0; i<bands; i++)
 		{
 			fftLevels[i]-=rampDownValue;
 			if (fftLevels[i]<0.0F) fftLevels[i]=0.0F;
-			
+
 			maxFFTLevels[i] -= maxPeakLevelRampDownValue[i];
-			if (maxFFTLevels[i]<0.0F) 
+			if (maxFFTLevels[i]<0.0F)
 				maxFFTLevels[i]=0.0F;
 			else
 				maxPeakLevelRampDownValue[i] += maxPeakLevelRampDownDelay;
@@ -248,22 +249,22 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param g
 	 */
-	private void drawWaveMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	private void drawWaveMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight, final boolean doClear)
 	{
 		if (doClear)
 		{
 			g.setColor(Color.BLACK);
 			g.fillRect(newLeft, newTop, newWidth, newHeight);
 		}
-		
+
 		g.setColor(WAVEMETER_LINE_COLOR);
 		g.drawLine(newLeft, newTop + (int)myHalfHeight, newLeft + newWidth, newTop + (int)myHalfHeight);
 
 		if (floatSamples==null) return;
-		
+
 		int add = (anzSamples / newWidth)>>1;
 		if (add<=0) add=1;
-		
+
 		int xpOld = 0;
 		int ypOld = (int)(myHalfHeight-(floatSamples[0]*myHalfHeight));
 		if (ypOld<0) ypOld=0; else if (ypOld>newHeight) ypOld=newHeight;
@@ -273,10 +274,10 @@ public class SAMeterPanel extends MeterPanelBase
 		{
 			int xp = (i*newWidth)/anzSamples;
 			if (xp<0) xp=0; else if (xp>newWidth) xp=newWidth;
-				
+
 			int yp = (int)(myHalfHeight-(floatSamples[i]*myHalfHeight));
 			if (yp<0) yp=0; else if (yp>newHeight) yp=newHeight;
-			
+
 			g.drawLine(newLeft + xpOld, newTop + ypOld, newLeft + xp, newTop + yp);
 			xpOld = xp;
 			ypOld = yp;
@@ -286,24 +287,24 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param g
 	 */
-	private void drawSAMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight, boolean doClear)
+	private void drawSAMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight, final boolean doClear)
 	{
 		if (doClear)
 		{
 			g.setColor(Color.BLACK);
 			g.fillRect(newLeft, newTop, newWidth, newHeight);
 		}
-		
+
 		for (int i=0; i<bands; i++)
 		{
 			// Let's Draw it...
-			int barX = i*barWidth;
-			int barX1 = barX + barWidth - 2;
-			int barHeight = (int)(((float)newHeight)*fftLevels[i]);
-			int maxBarHeight = (int)(((float)newHeight)*maxFFTLevels[i]);
+			final int barX = i*barWidth;
+			final int barX1 = barX + barWidth - 2;
+			final int barHeight = (int)((newHeight)*fftLevels[i]);
+			final int maxBarHeight = (int)((newHeight)*maxFFTLevels[i]);
 //			if (barHeight >= color.length) barHeight = color.length-1;
 //			if (maxBarHeight >= color.length) maxBarHeight = color.length-1;
-			
+
 			int c = barHeight;
 			for (int y=myBottom-barHeight; y<myBottom; y++)
 			{
@@ -321,7 +322,7 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 26.10.2007
 	 * @param g
 	 */
-	private void drawSKMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
+	private void drawSKMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		if (switched)
 		{
@@ -330,11 +331,11 @@ public class SAMeterPanel extends MeterPanelBase
 			switched = false;
 		}
 		g.copyArea(newLeft, newTop, newWidth-1, newHeight, 1, 0);
-		int max = bands-1;
+		final int max = bands-1;
 		for (int i=0; i<=max; i++)
 		{
-			int bary = (newHeight * (max-i)) / bands;
-			g.setColor(SKcolor[(int)(((float)(SKMax-1))*fftLevels[i])]);
+			final int bary = (newHeight * (max-i)) / bands;
+			g.setColor(SKcolor[(int)((SKMax-1)*fftLevels[i])]);
 			g.drawLine(newLeft, newTop + bary, newLeft, newTop + bary + 2);
 		}
 	}

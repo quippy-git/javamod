@@ -2,7 +2,7 @@
  * @(#) PitchShiftGUI.java
  *
  * Created on 21.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -45,14 +46,14 @@ import de.quippy.javamod.system.Helpers;
 public class PitchShiftGUI extends JPanel
 {
 	private static final long serialVersionUID = 4300230957744752568L;
-	
+
 	private static final int SHIFT = 100;
 	private static final int SLIDER_MAX = +1 * SHIFT;
 	private static final int SLIDER_MIN = -1 * SHIFT;
 	private static final double factor = Math.log10(2d);
 
-	private PitchShift thePitcher;
-	
+	private final PitchShift thePitcher;
+
 	private JCheckBox pitchShiftActive = null;
 	private JPanel pitchShiftPanel = null;
 	private JPanel scaleShiftPanel = null;
@@ -88,7 +89,7 @@ public class PitchShiftGUI extends JPanel
 	/**
 	 * Constructor for PitchShiftGUI
 	 */
-	public PitchShiftGUI(PitchShift pitchShift)
+	public PitchShiftGUI(final PitchShift pitchShift)
 	{
 		super();
 		thePitcher = pitchShift;
@@ -119,21 +120,22 @@ public class PitchShiftGUI extends JPanel
 	{
 		if (presetOversampling == null)
 		{
-			presetOversampling = new JComboBox<Integer>();
+			presetOversampling = new JComboBox<>();
 			presetOversampling.setName("presetOversampling");
 
-			DefaultComboBoxModel<Integer> theModel = new DefaultComboBoxModel<Integer>(OVERSAMPLINGS);
+			final DefaultComboBoxModel<Integer> theModel = new DefaultComboBoxModel<>(OVERSAMPLINGS);
 			presetOversampling.setModel(theModel);
 			presetOversampling.setFont(Helpers.getDialogFont());
 			presetOversampling.setEditable(true);
 			if (thePitcher!=null) presetOversampling.setSelectedItem(Integer.valueOf(thePitcher.getFFTOversampling()));
 			presetOversampling.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						int oversampling = ((Integer)getPresetOversampling().getSelectedItem()).intValue();
+						final int oversampling = ((Integer)getPresetOversampling().getSelectedItem()).intValue();
 						if (thePitcher!=null) thePitcher.setFFTOversampling(oversampling);
 					}
 				}
@@ -154,21 +156,22 @@ public class PitchShiftGUI extends JPanel
 	{
 		if (presetFrameSize == null)
 		{
-			presetFrameSize = new JComboBox<Integer>();
+			presetFrameSize = new JComboBox<>();
 			presetFrameSize.setName("presetFrameSize");
 
-			DefaultComboBoxModel<Integer> theModel = new DefaultComboBoxModel<Integer>(FRAMESIZE);
+			final DefaultComboBoxModel<Integer> theModel = new DefaultComboBoxModel<>(FRAMESIZE);
 			presetFrameSize.setModel(theModel);
 			presetFrameSize.setFont(Helpers.getDialogFont());
 			presetFrameSize.setEditable(true);
 			if (thePitcher!=null) presetFrameSize.setSelectedItem(Integer.valueOf(thePitcher.getFftFrameSize()));
 			presetFrameSize.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						int framesize = ((Integer)getPresetFramesize().getSelectedItem()).intValue();
+						final int framesize = ((Integer)getPresetFramesize().getSelectedItem()).intValue();
 						if (thePitcher!=null) thePitcher.setFFTFrameSize(framesize);
 					}
 				}
@@ -217,12 +220,10 @@ public class PitchShiftGUI extends JPanel
 			if (thePitcher!=null) pitchShiftActive.setSelected(thePitcher.isActive());
 			pitchShiftActive.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
-					{
-						if (thePitcher!=null) thePitcher.setIsActive(getPitchShiftActive().isSelected());
-					}
+					if ((e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED) && (thePitcher!=null)) thePitcher.setIsActive(getPitchShiftActive().isSelected());
 				}
 			});
 		}
@@ -232,11 +233,11 @@ public class PitchShiftGUI extends JPanel
 	{
 		if (pitchSlider==null)
 		{
-			int value = (int)(Math.log10((double)thePitcher.getPitchScale()) / factor * (double)SHIFT);
+			int value = (int)(Math.log10(thePitcher.getPitchScale()) / factor * SHIFT);
 			if (value>SLIDER_MAX) value = SLIDER_MAX;
-			else 
+			else
 			if (value<SLIDER_MIN) value = SLIDER_MIN;
-			pitchSlider = new JSlider(JSlider.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, value);
+			pitchSlider = new JSlider(SwingConstants.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, value);
 			pitchSlider.setFont(Helpers.getDialogFont());
 			pitchSlider.setMinorTickSpacing((int)(0.1f*SHIFT));
 			pitchSlider.setMajorTickSpacing((int)(0.5f*SHIFT));
@@ -247,7 +248,8 @@ public class PitchShiftGUI extends JPanel
 			pitchSlider.setToolTipText(Float.toString(Math.round(value*10f)/(SHIFT*10f)));
 			pitchSlider.addMouseListener(new MouseAdapter()
 			{
-				public void mouseClicked(MouseEvent e)
+				@Override
+				public void mouseClicked(final MouseEvent e)
 				{
 					if (e.getClickCount()>1)
 					{
@@ -258,9 +260,10 @@ public class PitchShiftGUI extends JPanel
 			});
 			pitchSlider.addChangeListener(new ChangeListener()
 			{
-				public void stateChanged(ChangeEvent e)
+				@Override
+				public void stateChanged(final ChangeEvent e)
 				{
-					double value = (double)getPitchSlider().getValue() / (double)SHIFT;
+					final double value = (double)getPitchSlider().getValue() / (double)SHIFT;
 					thePitcher.setPitchScale((float)Math.pow(10d, value*factor));
 					pitchSlider.setToolTipText(Float.toString(Math.round(value*10f)/10f));
 				}
@@ -299,11 +302,11 @@ public class PitchShiftGUI extends JPanel
 	{
 		if (sampleScaleSlider==null)
 		{
-			int value = (int)(Math.log10((double)thePitcher.getSampleScale()) / factor * (double)SHIFT);
+			int value = (int)(Math.log10(thePitcher.getSampleScale()) / factor * SHIFT);
 			if (value>SLIDER_MAX) value = SLIDER_MAX;
-			else 
+			else
 			if (value<SLIDER_MIN) value = SLIDER_MIN;
-			sampleScaleSlider = new JSlider(JSlider.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, value);
+			sampleScaleSlider = new JSlider(SwingConstants.HORIZONTAL, SLIDER_MIN, SLIDER_MAX, value);
 			sampleScaleSlider.setFont(Helpers.getDialogFont());
 			sampleScaleSlider.setMinorTickSpacing((int)(0.1f*SHIFT));
 			sampleScaleSlider.setMajorTickSpacing((int)(0.5f*SHIFT));
@@ -314,7 +317,8 @@ public class PitchShiftGUI extends JPanel
 			sampleScaleSlider.setToolTipText(Float.toString(Math.round(value*10f)/(SHIFT*10f)));
 			sampleScaleSlider.addMouseListener(new MouseAdapter()
 			{
-				public void mouseClicked(MouseEvent e)
+				@Override
+				public void mouseClicked(final MouseEvent e)
 				{
 					if (e.getClickCount()>1)
 					{
@@ -325,12 +329,13 @@ public class PitchShiftGUI extends JPanel
 			});
 			sampleScaleSlider.addChangeListener(new ChangeListener()
 			{
-				public void stateChanged(ChangeEvent e)
+				@Override
+				public void stateChanged(final ChangeEvent e)
 				{
-					double value = (double)getScaleSlider().getValue() / (double)SHIFT;
+					final double value = (double)getScaleSlider().getValue() / (double)SHIFT;
 					thePitcher.setPitchAndSampleScale((float)Math.pow(10d, -value*factor), (float)Math.pow(10d, value*factor));
 					sampleScaleSlider.setToolTipText(Float.toString(Math.round(value*10f)/10f));
-					getPitchSlider().setValue((int)((-value) * (double)SHIFT));
+					getPitchSlider().setValue((int)((-value) * SHIFT));
 				}
 			});
 		}

@@ -2,7 +2,7 @@
  * @(#) SoundOutputStreamImpl.java
  *
  * Created on 30.12.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.SourceDataLine;
 
+import de.quippy.javamod.io.wav.RiffFile;
 import de.quippy.javamod.io.wav.WaveFile;
 import de.quippy.javamod.mixer.dsp.AudioProcessor;
 import de.quippy.javamod.system.Helpers;
@@ -45,7 +46,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	protected AudioProcessor audioProcessor;
 	protected AudioFormat audioFormat;
 	protected File exportFile;
-	
+
 	protected float currentVolume;
 	protected float currentBalance;
 
@@ -54,7 +55,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	protected boolean playDuringExport;
 	protected boolean keepSilent;
 	protected int sourceLineBufferSize;
-	
+
 	public SoundOutputStreamImpl()
 	{
 		super();
@@ -82,7 +83,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	public SoundOutputStreamImpl(final AudioFormat audioFormat, final AudioProcessor audioProcessor, final File exportFile, final boolean playDuringExport, final boolean keepSilent, final int sourceLineBufferSize)
 	{
 		this(audioFormat, audioProcessor, exportFile, playDuringExport, keepSilent);
-		this.sourceLineBufferSize = sourceLineBufferSize; 
+		this.sourceLineBufferSize = sourceLineBufferSize;
 	}
 	/**
 	 * @since 30.12.2007
@@ -95,7 +96,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			{
 				closeSourceLine();
 				closeAudioProcessor();
-				DataLine.Info sourceLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+				final DataLine.Info sourceLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
 				if (AudioSystem.isLineSupported(sourceLineInfo))
 				{
 					//sourceLineInfo.getFormats();
@@ -113,7 +114,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 				else
 					Log.info("Audioformat is not supported");
 			}
-			catch (Exception ex)
+			catch (final Exception ex)
 			{
 				sourceLine = null;
 				Log.error("Error occured when opening audio device", ex);
@@ -147,8 +148,8 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		if (exportFile!=null)
 		{
 			waveExportFile = new WaveFile();
-			final int result = waveExportFile.openForWrite(exportFile, audioFormat); 
-			if (result!=WaveFile.DDC_SUCCESS)
+			final int result = waveExportFile.openForWrite(exportFile, audioFormat);
+			if (result!=RiffFile.DDC_SUCCESS)
 			{
 				waveExportFile = null;
 				Log.error("Creation of exportfile was NOT successfull! " + exportFile.getAbsolutePath());
@@ -235,7 +236,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	@Override
 	public synchronized void startLine(final boolean flushOrDrain)
 	{
-		// if there is a line, flush or drain it 
+		// if there is a line, flush or drain it
 		if (sourceLine!=null && flushOrDrain)
 		{
 			stopLine(flushOrDrain); // if running, drain or flush and close the line
@@ -260,7 +261,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			// play, whatever is left in the buffers. Caution! Will block, until everything is played
 			if (flushOrDrain)
 			{
-				if (sourceLine.isOpen() && sourceLine.isRunning()) 
+				if (sourceLine.isOpen() && sourceLine.isRunning())
 					drainLine();
 				else
 					flushLine();
@@ -302,7 +303,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	@Override
 	public int getLineBufferSize()
 	{
-		if (sourceLine!=null) 
+		if (sourceLine!=null)
 			return sourceLine.getBufferSize();
 		else
 			return -1;
@@ -333,7 +334,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 			int startFrom = start;
 			while (bytesToWrite>0)
 			{
-				int anzSamples = audioProcessor.writeSampleData(samples, startFrom, bytesToWrite);
+				final int anzSamples = audioProcessor.writeSampleData(samples, startFrom, bytesToWrite);
 				writeSampleDataInternally(audioProcessor.getResultSampleBuffer(), 0, anzSamples);
 				startFrom += anzSamples;
 				bytesToWrite -= anzSamples;
@@ -374,7 +375,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		currentVolume = gain;
 		if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.MASTER_GAIN))
 		{
-	    	FloatControl gainControl = (FloatControl)sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
+	    	final FloatControl gainControl = (FloatControl)sourceLine.getControl(FloatControl.Type.MASTER_GAIN);
 	        float dB = (float)(Helpers.getDBValueFrom(gain));
 	        if (dB > gainControl.getMaximum()) dB = gainControl.getMaximum();
 	        else
@@ -392,7 +393,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 		currentBalance = balance;
 	    if (sourceLine!=null && sourceLine.isControlSupported(FloatControl.Type.BALANCE))
 	    {
-	    	FloatControl balanceControl = (FloatControl)sourceLine.getControl(FloatControl.Type.BALANCE);
+	    	final FloatControl balanceControl = (FloatControl)sourceLine.getControl(FloatControl.Type.BALANCE);
 	    	if (balance <= balanceControl.getMaximum() && balance >= balanceControl.getMinimum())
 	    		balanceControl.setValue(balance);
 	    }
@@ -468,7 +469,7 @@ public class SoundOutputStreamImpl implements SoundOutputStream
 	@Override
 	public synchronized void changeAudioFormatTo(final AudioFormat newAudioFormat)
 	{
-		boolean reOpen = sourceLine!=null && sourceLine.isOpen();
+		final boolean reOpen = sourceLine!=null && sourceLine.isOpen();
 		close();
 		audioFormat = newAudioFormat;
 		if (reOpen) open();

@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -49,15 +49,16 @@ public class Buffer{
     storage=BUFFER_INCREMENT;
   }
 
-  public void write(byte[] s){
-    for(int i=0; i<s.length; i++){
-      if(s[i]==0)
+  public void write(final byte[] s){
+    for (final byte element : s)
+	{
+      if(element==0)
         break;
-      write(s[i], 8);
+      write(element, 8);
     }
   }
 
-  public void read(byte[] s, int bytes){
+  public void read(final byte[] s, int bytes){
     int i=0;
     while(bytes--!=0){
       s[i++]=(byte)(read(8));
@@ -74,11 +75,11 @@ public class Buffer{
     buffer=null;
   }
 
-  public void readinit(byte[] buf, int bytes){
+  public void readinit(final byte[] buf, final int bytes){
     readinit(buf, 0, bytes);
   }
 
-  public void readinit(byte[] buf, int start, int bytes){
+  public void readinit(final byte[] buf, final int start, final int bytes){
     ptr=start;
     buffer=buf;
     endbit=endbyte=0;
@@ -87,7 +88,7 @@ public class Buffer{
 
   public void write(int value, int bits){
     if(endbyte+4>=storage){
-      byte[] foo=new byte[storage+BUFFER_INCREMENT];
+      final byte[] foo=new byte[storage+BUFFER_INCREMENT];
       System.arraycopy(buffer, 0, foo, 0, storage);
       buffer=foo;
       storage+=BUFFER_INCREMENT;
@@ -120,14 +121,12 @@ public class Buffer{
 
   public int look(int bits){
     int ret;
-    int m=mask[bits];
+    final int m=mask[bits];
 
     bits+=endbit;
 
-    if(endbyte+4>=storage){
-      if(endbyte+(bits-1)/8>=storage)
+    if((endbyte+4>=storage) && (endbyte+(bits-1)/8>=storage))
         return (-1);
-    }
 
     ret=((buffer[ptr])&0xff)>>>endbit;
     if(bits>8){
@@ -169,7 +168,7 @@ public class Buffer{
 
   public int read(int bits){
     int ret;
-    int m=mask[bits];
+    final int m=mask[bits];
 
     bits+=endbit;
 
@@ -207,7 +206,7 @@ public class Buffer{
 
   public int readB(int bits){
     int ret;
-    int m=32-bits;
+    final int m=32-bits;
 
     bits+=endbit;
 
@@ -287,7 +286,7 @@ public class Buffer{
     return (ret);
   }
 
-  public static void report(String in){
+  public static void report(final String in){
     System.err.println(in);
     //System.exit(1);
   }

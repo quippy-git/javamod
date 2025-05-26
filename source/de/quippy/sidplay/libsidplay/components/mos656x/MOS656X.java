@@ -27,9 +27,9 @@ import de.quippy.sidplay.libsidplay.common.SIDEndian;
  * References below are from: <BR>
  * The MOS 6567/6569 video controller (VIC-II) and its application in the
  * Commodore 64 http://www.uni-mainz.de/~bauec002/VIC-Article.gz
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public abstract class MOS656X extends Event implements IComponent {
 
@@ -99,7 +99,7 @@ public abstract class MOS656X extends Event implements IComponent {
 
 	protected event_phase_t m_phase;
 
-	protected MOS656X(IEventContext context) {
+	protected MOS656X(final IEventContext context) {
 		super("VIC Raster");
 		event_context = context;
 		m_phase = event_phase_t.EVENT_CLOCK_PHI1;
@@ -108,8 +108,9 @@ public abstract class MOS656X extends Event implements IComponent {
 		chip(mos656x_model_t.MOS6569);
 	}
 
+	@Override
 	public void event() {
-		long /* event_clock_t */cycles = event_context.getTime(m_rasterClk,
+		final long /* event_clock_t */cycles = event_context.getTime(m_rasterClk,
 				event_context.phase());
 
 		// Cycle already executed check
@@ -127,7 +128,7 @@ public abstract class MOS656X extends Event implements IComponent {
 
 		switch (cycle) {
 		case 0: { // Calculate sprite DMA
-			short /* uint8_t */y = (short) (raster_y & 0xff);
+			final short /* uint8_t */y = (short) (raster_y & 0xff);
 			short /* uint8_t */mask = 1;
 			sprite_expand_y ^= regs[0x17] /* sprite_y_expansion */; // 3.8.1-2
 			for (int i = 1; i < 0x10; i += 2, mask <<= 1) {
@@ -321,7 +322,7 @@ public abstract class MOS656X extends Event implements IComponent {
 						: 1), m_phase);
 	}
 
-	protected void trigger(int irq) {
+	protected void trigger(final int irq) {
 		if (irq == 0) { // Clear any requested IRQs
 			if ((idr & MOS656X_INTERRUPT_REQUEST) != 0)
 				interrupt(false);
@@ -330,11 +331,9 @@ public abstract class MOS656X extends Event implements IComponent {
 		}
 
 		idr |= irq;
-		if ((icr & idr) != 0) {
-			if ((idr & MOS656X_INTERRUPT_REQUEST) == 0) {
-				idr |= MOS656X_INTERRUPT_REQUEST;
-				interrupt(true);
-			}
+		if (((icr & idr) != 0) && ((idr & MOS656X_INTERRUPT_REQUEST) == 0)) {
+			idr |= MOS656X_INTERRUPT_REQUEST;
+			interrupt(true);
 		}
 	}
 
@@ -346,7 +345,7 @@ public abstract class MOS656X extends Event implements IComponent {
 
 	protected abstract void addrctrl(boolean state);
 
-	public void chip(mos656x_model_t model) {
+	public void chip(final mos656x_model_t model) {
 		switch (model) {
 		// Seems to be an older NTSC chip
 		case MOS6567R56A:
@@ -395,6 +394,7 @@ public abstract class MOS656X extends Event implements IComponent {
 	// Component Standard Calls
 	//
 
+	@Override
 	public void reset() {
 		icr = idr = ctrl1 = 0;
 		raster_irq = 0;
@@ -416,7 +416,8 @@ public abstract class MOS656X extends Event implements IComponent {
 		event_context.schedule(this, 0, m_phase);
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 		if (addr > 0x3f)
 			return 0;
 		if (addr > 0x2e)
@@ -443,7 +444,8 @@ public abstract class MOS656X extends Event implements IComponent {
 		}
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data) {
 		if (addr > 0x3f)
 			return;
 
@@ -499,6 +501,7 @@ public abstract class MOS656X extends Event implements IComponent {
 		}
 	}
 
+	@Override
 	public String credits() {
 		return credit;
 	}

@@ -22,42 +22,42 @@ package de.quippy.mp3.decoder;
 
 /**
  * The <code>DecoderException</code> represents the class of
- * errors that can occur when decoding MPEG audio. 
- * 
+ * errors that can occur when decoding MPEG audio.
+ *
  * @author MDM
  */
 public class DecoderException extends JavaLayerException
 	implements DecoderErrors
-{	
+{
 	private static final long serialVersionUID = 739129173366217466L;
 
 	private int		errorcode = UNKNOWN_ERROR;
-	
-	public DecoderException(String msg, Throwable t)
+
+	public DecoderException(final String msg, final Throwable t)
 	{
-		super(msg, t);	
+		super(msg, t);
 	}
-	
-	public DecoderException(int errorcode, Throwable t)
+
+	public DecoderException(final int errorcode, final Throwable t)
 	{
 		this(getErrorString(errorcode), t);
 		this.errorcode = errorcode;
 	}
-	
+
 	public int getErrorCode()
 	{
-		return errorcode;	
+		return errorcode;
 	}
-	
-	
-	static public String getErrorString(int errorcode)
+
+
+	static public String getErrorString(final int errorcode)
 	{
 		// REVIEW: use resource file to map error codes
-		// to locale-sensitive strings. 
-		
+		// to locale-sensitive strings.
+
 		return "Decoder errorcode "+Integer.toHexString(errorcode);
 	}
-	
-	
+
+
 }
 

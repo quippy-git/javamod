@@ -39,21 +39,22 @@ public class VorbisString {
      * @param is                The InputBitStream
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public VorbisString(BitInputStream is) throws IOException {
-        int elen = is.readRawIntLittleEndian();
+    public VorbisString(final BitInputStream is) throws IOException {
+        final int elen = is.readRawIntLittleEndian();
         if (elen == 0) return;
         entry = new byte[elen];
         is.readByteBlockAlignedNoCRC(entry, entry.length);
     }
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         String s;
         try {
             s = new String(entry, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             s = "";
         }
         return s;

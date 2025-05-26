@@ -1,8 +1,8 @@
 /*
  * @(#) PatternElement.java
- * 
+ *
  * Created on 28.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,10 +37,10 @@ public abstract class PatternElement
 	public static final int EFFECT_GLOBAL	= 4;
 	public static final int EFFECT_UNKNOWN	= 5;
 	public static final int EFFECT_NONE		= 6;
-	
+
 	protected Module parentMod;
 	protected PatternRow parentPatternRow;
-	
+
 	protected int patternIndex;
 	protected int row;
 	protected int channel;
@@ -51,7 +51,7 @@ public abstract class PatternElement
 	protected int effektOp;
 	protected int volumeEffekt;
 	protected int volumeEffektOp;
-	
+
 	/**
 	 * Constructor for PatternElement
 	 */
@@ -93,7 +93,7 @@ public abstract class PatternElement
 	public abstract char getVolumeColumEffektChar();
 	/**
 	 * @since 09.01.2024
-	 * @return the name of the volume effect op 
+	 * @return the name of the volume effect op
 	 */
 	public abstract String getVolEffectName();
 	/**
@@ -121,11 +121,11 @@ public abstract class PatternElement
 	public void addToStringBuilder(final StringBuilder sb)
 	{
 		sb.append(ModConstants.getNoteNameForIndex(noteIndex)).append(' ');
-		if (instrument==0) 
+		if (instrument==0)
 			sb.append("..");
-		else 
-			sb.append(ModConstants.getAsHex(instrument, 2)); 
-		
+		else
+			sb.append(ModConstants.getAsHex(instrument, 2));
+
 		if (volumeEffekt==0)
 			sb.append(" ..");
 		else
@@ -133,7 +133,7 @@ public abstract class PatternElement
 			sb.append(getVolumeColumEffektChar());
 			sb.append(ModConstants.getAsHex(volumeEffektOp, 2));
 		}
-		
+
 		sb.append(' ');
 		if (effekt==0 && effektOp==0)
 			sb.append("...");

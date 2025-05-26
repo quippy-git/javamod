@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -57,11 +57,11 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  * centered around the switching threshold.
  * <P>
  * Qualified guesses at SID filter schematics are depicted below.
- * 
+ *
  * <pre>
  * SID filter
  * ----------
- * 
+ *
  *     -----------------------------------------------
  *    |                                               |
  *    |            ---Rq--                            |
@@ -70,15 +70,15 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  *    | |                               |             |
  *    | |                        ---C---|      ---C---|
  *    | |                       |       |     |       |
- *    |  --R1--    ---R1--      |---Rs--|     |---Rs--| 
+ *    |  --R1--    ---R1--      |---Rs--|     |---Rs--|
  *    |        |  |       |     |       |     |       |
  *     ----R1--|-----[A&gt;--|--R-----[A&gt;--|--R-----[A&gt;--|
  *             |          |             |             |
  * vi -----R1--           |             |             |
- * 
+ *
  *                       vhp           vbp           vlp
- * 
- * 
+ *
+ *
  * vi  - input voltage
  * vhp - highpass output
  * vbp - bandpass output
@@ -89,14 +89,14 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  * R   - NMOS FET voltage controlled resistor controlling cutoff frequency
  * Rs  - shunt resitor
  * C   - capacitor
- * 
- * 
- * 
+ *
+ *
+ *
  * SID integrator
  * --------------
- * 
+ *
  *                                   V+
- * 
+ *
  *                                   |
  *                                   |
  *                              -----|
@@ -118,11 +118,11 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  *          R1                       V-
  *          |
  *          |
- * 
+ *
  *          Vw
  * ----------------------------------------------------------------------------
  * </pre>
- * 
+ *
  * @author Ken H�ndel
  */
 public class Filter {
@@ -220,7 +220,7 @@ public class Filter {
 	protected int /* sound_sample */f0[];
 
 	/**
-	 * 
+	 *
 	 * Maximum cutoff frequency is specified as FCmax = 2.6e-5/C =
 	 * 2.6e-5/2200e-12 = 11818.
 	 * <P>
@@ -280,26 +280,26 @@ public class Filter {
 	};
 
 	/**
-	 * 
+	 *
 	 * Maximum cutoff frequency is specified as FCmax = 2.6e-5/C =
 	 * 2.6e-5/2200e-12 = 11818.
-	 * 
+	 *
 	 * Measurements indicate a cutoff frequency range of approximately 220Hz -
 	 * 18kHz on a MOS6581 fitted with 470pF capacitors. The function mapping FC
 	 * to cutoff frequency has the shape of the tanh function, with a
 	 * discontinuity at FCHI = 0x80. In contrast, the MOS8580 almost perfectly
 	 * corresponds with the specification of a linear mapping from 30Hz to
 	 * 12kHz.
-	 * 
+	 *
 	 * The mappings have been measured by feeding the SID with an external
 	 * signal since the chip itself is incapable of generating waveforms of
 	 * higher fundamental frequency than 4kHz. It is best to use the bandpass
 	 * output at full resonance to pick out the cutoff frequency at any given FC
 	 * setting.
-	 * 
+	 *
 	 * The mapping function is specified with spline interpolation points and
 	 * the function values are retrieved via table lookup.
-	 * 
+	 *
 	 * NB! Cutoff frequency characteristics may vary, we have modeled two
 	 * particular Commodore 64s.
 	 */
@@ -339,7 +339,7 @@ public class Filter {
 
 	/**
 	 * SID clocking - 1 cycle
-	 * 
+	 *
 	 * @param voice1
 	 * @param voice2
 	 * @param voice3
@@ -498,8 +498,8 @@ public class Filter {
 			// dVbp = -w0*vhp*dt;
 			// dVlp = -w0*vbp*dt;
 
-			int /* sound_sample */dVbp = (w0_ceil_1 * vhp >> 20);
-			int /* sound_sample */dVlp = (w0_ceil_1 * vbp >> 20);
+			final int /* sound_sample */dVbp = (w0_ceil_1 * vhp >> 20);
+			final int /* sound_sample */dVlp = (w0_ceil_1 * vbp >> 20);
 			vbp -= dVbp;
 			vlp -= dVlp;
 			vhp = (vbp * _1024_div_Q >> 10) - vlp - Vi;
@@ -508,7 +508,7 @@ public class Filter {
 
 	/**
 	 * SID clocking - delta_t cycles.
-	 * 
+	 *
 	 * @param delta_t
 	 * @param voice1
 	 * @param voice2
@@ -654,10 +654,10 @@ public class Filter {
 			// vhp = vbp/Q - vlp - Vi;
 			// dVbp = -w0*vhp*dt;
 			// dVlp = -w0*vbp*dt;
-			int /* sound_sample */w0_delta_t = w0_ceil_dt * delta_t_flt >> 6;
+			final int /* sound_sample */w0_delta_t = w0_ceil_dt * delta_t_flt >> 6;
 
-			int /* sound_sample */dVbp = (w0_delta_t * vhp >> 14);
-			int /* sound_sample */dVlp = (w0_delta_t * vbp >> 14);
+			final int /* sound_sample */dVbp = (w0_delta_t * vhp >> 14);
+			final int /* sound_sample */dVlp = (w0_delta_t * vbp >> 14);
 			vbp -= dVbp;
 			vlp -= dVlp;
 			vhp = (vbp * _1024_div_Q >> 10) - vlp - Vi;
@@ -668,7 +668,7 @@ public class Filter {
 
 	/**
 	 * SID audio output (16 bits). SID audio output (20 bits).
-	 * 
+	 *
 	 * @return
 	 */
 	public int /* sound_sample */output() {
@@ -780,19 +780,19 @@ public class Filter {
 
 	/**
 	 * Enable filter.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void enable_filter(boolean enable) {
+	public void enable_filter(final boolean enable) {
 		enabled = enable;
 	}
 
 	/**
 	 * Set chip model.
-	 * 
+	 *
 	 * @param model
 	 */
-	public void set_chip_model(chip_model model) {
+	public void set_chip_model(final chip_model model) {
 		if (model == chip_model.MOS6581) {
 			// The mixer has a small input DC offset. This is found as follows:
 			//
@@ -822,9 +822,9 @@ public class Filter {
 		set_Q();
 	}
 
-	void set_distortion_properties(int Lthreshold, int Lsteepness, int Llp,
-			int Lbp, int Lhp, int Hthreshold, int Hsteepness, int Hlp, int Hbp,
-			int Hhp) {
+	void set_distortion_properties(final int Lthreshold, int Lsteepness, final int Llp,
+			final int Lbp, final int Lhp, final int Hthreshold, int Hsteepness, final int Hlp, final int Hbp,
+			final int Hhp) {
 		DLthreshold = Lthreshold;
 		if (Lsteepness < 16)
 			Lsteepness = 16; /* avoid division by zero */
@@ -870,30 +870,30 @@ public class Filter {
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param fc_lo
 	 */
-	public void writeFC_LO(int /* reg8 */fc_lo) {
+	public void writeFC_LO(final int /* reg8 */fc_lo) {
 		fc = fc & 0x7f8 | fc_lo & 0x007;
 		set_w0();
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param fc_hi
 	 */
-	public void writeFC_HI(int /* reg8 */fc_hi) {
+	public void writeFC_HI(final int /* reg8 */fc_hi) {
 		fc = (fc_hi << 3) & 0x7f8 | fc & 0x007;
 		set_w0();
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param res_filt
 	 */
-	public void writeRES_FILT(int /* reg8 */res_filt) {
+	public void writeRES_FILT(final int /* reg8 */res_filt) {
 		res = (res_filt >> 4) & 0x0f;
 		set_Q();
 
@@ -902,10 +902,10 @@ public class Filter {
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param mode_vol
 	 */
-	public void writeMODE_VOL(int /* reg8 */mode_vol) {
+	public void writeMODE_VOL(final int /* reg8 */mode_vol) {
 		voice3off = mode_vol & 0x80;
 
 		hp_bp_lp = (mode_vol >> 4) & 0x07;
@@ -959,11 +959,11 @@ public class Filter {
 	/**
 	 * Return the array of spline interpolation points used to map the FC
 	 * register to filter cutoff frequency.
-	 * 
+	 *
 	 * @param fcp
 	 *            IN/OUT parameter points and count
 	 */
-	public void fc_default(SID.FCPoints fcp) {
+	public void fc_default(final SID.FCPoints fcp) {
 		fcp.points = f0_points;
 		fcp.count = f0_count;
 	}
@@ -1021,7 +1021,7 @@ public class Filter {
 	//
 	// Solving using Gaussian elimination and back substitution, setting
 	// dy = yj - yi, dx = xj - xi, we get
-	//	 
+	//
 	// a = ((ki + kj) - 2*dy/dx)/(dx*dx);
 	// b = ((kj - ki)/dx - 3*(xi + xj)*a)/2;
 	// c = ki - (3*xi*a + 2*b)*xi;
@@ -1041,7 +1041,7 @@ public class Filter {
 	// dy = (3*a*(x1 + res) + 2*b)*x1*res + ((a*res + b)*res + c)*res;
 	// d2y = (6*a*(x1 + res) + 2*b)*res*res;
 	// d3y = 6*a*res*res*res;
-	//	     
+	//
 	// for (x = x1; x <= x2; x += res) {
 	// plot(x, y);
 	// y += dy; dy += d2y; d2y += d3y;
@@ -1091,7 +1091,7 @@ public class Filter {
 
 	/**
 	 * Calculation of coefficients.
-	 * 
+	 *
 	 * @param x1
 	 * @param y1
 	 * @param x2
@@ -1100,9 +1100,9 @@ public class Filter {
 	 * @param k2
 	 * @param coeff
 	 */
-	protected void cubic_coefficients(double x1, double y1, double x2,
-			double y2, double k1, double k2, Coefficients coeff) {
-		double dx = x2 - x1, dy = y2 - y1;
+	protected void cubic_coefficients(final double x1, final double y1, final double x2,
+			final double y2, final double k1, final double k2, final Coefficients coeff) {
+		final double dx = x2 - x1, dy = y2 - y1;
 
 		coeff.a = ((k1 + k2) - 2 * dy / dx) / (dx * dx);
 		coeff.b = ((k2 - k1) / dx - 3 * (x1 + x2) * coeff.a) / 2;
@@ -1112,7 +1112,7 @@ public class Filter {
 
 	/**
 	 * Evaluation of cubic polynomial by brute force.
-	 * 
+	 *
 	 * @param x1
 	 * @param y1
 	 * @param x2
@@ -1122,21 +1122,21 @@ public class Filter {
 	 * @param plotter
 	 * @param res
 	 */
-	protected void interpolate_brute_force(double x1, double y1, double x2,
-			double y2, double k1, double k2, PointPlotter plotter, double res) {
-		Coefficients coeff = new Coefficients();
+	protected void interpolate_brute_force(final double x1, final double y1, final double x2,
+			final double y2, final double k1, final double k2, final PointPlotter plotter, final double res) {
+		final Coefficients coeff = new Coefficients();
 		cubic_coefficients(x1, y1, x2, y2, k1, k2, coeff);
 
 		// Calculate each point.
 		for (double x = x1; x <= x2; x += res) {
-			double y = ((coeff.a * x + coeff.b) * x + coeff.c) * x + coeff.d;
+			final double y = ((coeff.a * x + coeff.b) * x + coeff.c) * x + coeff.d;
 			plotter.plot(x, y);
 		}
 	}
 
 	/**
 	 * Evaluation of cubic polynomial by forward differencing.
-	 * 
+	 *
 	 * @param x1
 	 * @param y1
 	 * @param x2
@@ -1146,17 +1146,17 @@ public class Filter {
 	 * @param plotter
 	 * @param res
 	 */
-	protected void interpolate_forward_difference(double x1, double y1,
-			double x2, double y2, double k1, double k2, PointPlotter plotter,
-			double res) {
-		Coefficients coeff = new Coefficients();
+	protected void interpolate_forward_difference(final double x1, final double y1,
+			final double x2, final double y2, final double k1, final double k2, final PointPlotter plotter,
+			final double res) {
+		final Coefficients coeff = new Coefficients();
 		cubic_coefficients(x1, y1, x2, y2, k1, k2, coeff);
 
 		double y = ((coeff.a * x1 + coeff.b) * x1 + coeff.c) * x1 + coeff.d;
 		double dy = (3 * coeff.a * (x1 + res) + 2 * coeff.b) * x1 * res
 				+ ((coeff.a * res + coeff.b) * res + coeff.c) * res;
 		double d2y = (6 * coeff.a * (x1 + res) + 2 * coeff.b) * res * res;
-		double d3y = 6 * coeff.a * res * res * res;
+		final double d3y = 6 * coeff.a * res * res * res;
 
 		// Calculate each point.
 		for (double x = x1; x <= x2; x += res) {
@@ -1167,11 +1167,11 @@ public class Filter {
 		}
 	}
 
-	protected double x(int[] /* fc_point */f0_base[], int p) {
+	protected double x(final int[] /* fc_point */f0_base[], final int p) {
 		return (f0_base[p])[0];
 	}
 
-	protected double y(int[] /* fc_point */f0_base[], int p) {
+	protected double y(final int[] /* fc_point */f0_base[], final int p) {
 		return (f0_base[p])[1];
 	}
 
@@ -1182,14 +1182,14 @@ public class Filter {
 	 * can simply be repeated to ensure interpolation. Note also that points of
 	 * non-differentiability and discontinuity can be introduced by repeating
 	 * points.
-	 * 
+	 *
 	 * @param p0
 	 * @param pn
 	 * @param plotter
 	 * @param res
 	 */
-	public void interpolate(int[] /* fc_point */f0_base[], int p0, int pn,
-			PointPlotter plotter, double res) {
+	public void interpolate(final int[] /* fc_point */f0_base[], int p0, final int pn,
+			final PointPlotter plotter, final double res) {
 		double k1, k2;
 
 		// Set up points for first curve segment.

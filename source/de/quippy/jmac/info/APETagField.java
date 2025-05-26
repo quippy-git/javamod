@@ -40,11 +40,11 @@ public class APETagField {
     public final static int TAG_FIELD_FLAG_DATA_TYPE_RESERVED = (3 << 1);
 
     // create a tag field (use nFieldBytes = -1 for null-terminated strings)
-    public APETagField(String pFieldName, byte[] pFieldValue) {
+    public APETagField(final String pFieldName, final byte[] pFieldValue) {
         this(pFieldName, pFieldValue, 0);
     }
 
-    public APETagField(String pFieldName, byte[] pFieldValue, int nFlags) {
+    public APETagField(final String pFieldName, final byte[] pFieldValue, final int nFlags) {
         m_spFieldName = pFieldName;
         m_spFieldValue = pFieldValue;
         m_nFieldFlags = nFlags;
@@ -60,7 +60,7 @@ public class APETagField {
     public int GetFieldSize() {
         try {
             return m_spFieldName.getBytes("US-ASCII").length + 1 + m_spFieldValue.length + 4 + 4;
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new JMACException("Unsupported Encoding", e);
         }
     }
@@ -85,7 +85,7 @@ public class APETagField {
     }
 
     // output the entire field to a buffer (GetFieldSize() bytes)
-    public int SaveField(ByteArrayWriter writer) {
+    public int SaveField(final ByteArrayWriter writer) {
         writer.writeInt(m_spFieldValue.length);
         writer.writeInt(m_nFieldFlags);
         writer.writeZString(m_spFieldName, "US-ASCII");
@@ -104,11 +104,11 @@ public class APETagField {
     }
 
     // set helpers (use with EXTREME caution)
-    void SetFieldFlags(int nFlags) {
+    void SetFieldFlags(final int nFlags) {
         m_nFieldFlags = nFlags;
     }
 
-    private String m_spFieldName;
+    private final String m_spFieldName;
     private byte[] m_spFieldValue;
     private int m_nFieldFlags;
 }

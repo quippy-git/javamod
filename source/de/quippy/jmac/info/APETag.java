@@ -76,22 +76,22 @@ public class APETag {
     // create an APE tag
     // bAnalyze determines whether it will analyze immediately or on the first request
     // be careful with multiple threads / file pointer movement if you don't analyze immediately
-    public APETag(File pIO) throws IOException {
+    public APETag(final File pIO) throws IOException {
         this(pIO, true);
     }
 
-    public APETag(File pIO, boolean bAnalyze) throws IOException {
+    public APETag(final File pIO, final boolean bAnalyze) throws IOException {
         m_spIO = pIO; // we don't own the IO source
 
         if (bAnalyze)
             Analyze();
     }
 
-    public APETag(String pFilename) throws IOException {
+    public APETag(final String pFilename) throws IOException {
         this(pFilename, true);
     }
 
-    public APETag(String pFilename, boolean bAnalyze) throws IOException {
+    public APETag(final String pFilename, final boolean bAnalyze) throws IOException {
         m_spIO = new RandomAccessFile(new java.io.File(pFilename), "r");
 
         if (bAnalyze)
@@ -99,20 +99,20 @@ public class APETag {
     }
 
 
-    public void SetFieldString(String pFieldName, String pFieldValue) throws IOException {
+    public void SetFieldString(final String pFieldName, final String pFieldValue) throws IOException {
         // remove if empty
-        if ((pFieldValue == null) || (pFieldValue.length() <= 0))
+        if (pFieldValue == null || pFieldValue.isEmpty())
             RemoveField(pFieldName);
         else
         {
-	        byte[] fieldValue = pFieldValue.getBytes("UTF-8");
-	        byte[] value = new byte[fieldValue.length];
+	        final byte[] fieldValue = pFieldValue.getBytes("UTF-8");
+	        final byte[] value = new byte[fieldValue.length];
 	        System.arraycopy(fieldValue, 0, value, 0, fieldValue.length);
 	        SetFieldBinary(pFieldName, value, APETagField.TAG_FIELD_FLAG_DATA_TYPE_TEXT_UTF8);
         }
     }
 
-    public void SetFieldBinary(String pFieldName, byte[] pFieldValue, int nFieldFlags) throws IOException {
+    public void SetFieldBinary(final String pFieldName, final byte[] pFieldValue, final int nFieldFlags) throws IOException {
         if (!m_bAnalyzed)
             Analyze();
 
@@ -120,15 +120,15 @@ public class APETag {
             return;
 
         // check to see if we're trying to remove the field (by setting it to NULL or an empty string)
-        boolean bRemoving = (pFieldValue == null) || (pFieldValue.length <= 0);
+        final boolean bRemoving = (pFieldValue == null) || (pFieldValue.length <= 0);
 
         // get the index
-        int nFieldIndex = GetTagFieldIndex(pFieldName);
+        final int nFieldIndex = GetTagFieldIndex(pFieldName);
         if (nFieldIndex >= 0) {
             // existing field
 
             // fail if we're read-only (and not ignoring the read-only flag)
-            if ((!m_bIgnoreReadOnly) && ((APETagField) m_aryFields.get(nFieldIndex)).GetIsReadOnly())
+            if ((!m_bIgnoreReadOnly) && m_aryFields.get(nFieldIndex).GetIsReadOnly())
                 return;
 
             // erase the existing field
@@ -145,26 +145,26 @@ public class APETag {
     }
 
     // gets the value of a field (returns -1 and an empty buffer if the field doesn't exist)
-    public byte[] GetFieldBinary(String pFieldName) throws IOException {
+    public byte[] GetFieldBinary(final String pFieldName) throws IOException {
         if (!m_bAnalyzed)
             Analyze();
 
-        APETagField pAPETagField = GetTagField(pFieldName);
+        final APETagField pAPETagField = GetTagField(pFieldName);
         if (pAPETagField == null)
             return null;
         else
             return pAPETagField.GetFieldValue();
     }
 
-    public String GetFieldString(String pFieldName) throws IOException {
+    public String GetFieldString(final String pFieldName) throws IOException {
         if (!m_bAnalyzed)
             Analyze();
 
         String ret = null;
 
-        APETagField pAPETagField = GetTagField(pFieldName);
+        final APETagField pAPETagField = GetTagField(pFieldName);
         if (pAPETagField != null) {
-            byte[] b = pAPETagField.GetFieldValue();
+            final byte[] b = pAPETagField.GetFieldValue();
             int boundary = 0;
             int index = b.length - 1;
             while (index >= 0 && b[index] == 0) {
@@ -187,11 +187,11 @@ public class APETag {
     }
 
     // remove a specific field
-    public void RemoveField(String pFieldName) throws IOException {
+    public void RemoveField(final String pFieldName) throws IOException {
         RemoveField(GetTagFieldIndex(pFieldName));
     }
 
-    public void RemoveField(int nIndex) {
+    public void RemoveField(final int nIndex) {
         m_aryFields.remove(nIndex);
     }
 
@@ -228,27 +228,27 @@ public class APETag {
 
     // gets a desired tag field (returns NULL if not found)
     // again, be careful, because this a pointer to the actual field in this class
-    public APETagField GetTagField(String pFieldName) throws IOException {
-        int nIndex = GetTagFieldIndex(pFieldName);
+    public APETagField GetTagField(final String pFieldName) throws IOException {
+        final int nIndex = GetTagFieldIndex(pFieldName);
         return (nIndex != -1) ? (APETagField) m_aryFields.get(nIndex) : null;
     }
 
-    public APETagField GetTagField(int nIndex) throws IOException {
+    public APETagField GetTagField(final int nIndex) throws IOException {
         if (!m_bAnalyzed)
             Analyze();
 
         if ((nIndex >= 0) && (nIndex < m_aryFields.size()))
-            return (APETagField) m_aryFields.get(nIndex);
+            return m_aryFields.get(nIndex);
 
         return null;
     }
 
-    public void SetIgnoreReadOnly(boolean bIgnoreReadOnly) {
+    public void SetIgnoreReadOnly(final boolean bIgnoreReadOnly) {
         m_bIgnoreReadOnly = bIgnoreReadOnly;
     }
 
     // fills in an ID3_TAG using the current fields (useful for quickly converting the tag)
-    public void CreateID3Tag(ID3Tag pID3Tag) throws IOException {
+    public void CreateID3Tag(final ID3Tag pID3Tag) throws IOException {
         if (pID3Tag == null)
             return;
 
@@ -264,10 +264,10 @@ public class APETag {
         pID3Tag.Title = GetFieldID3String(APE_TAG_FIELD_TITLE);
         pID3Tag.Comment = GetFieldID3String(APE_TAG_FIELD_COMMENT);
         pID3Tag.Year = GetFieldID3String(APE_TAG_FIELD_YEAR);
-        String track = GetFieldString(APE_TAG_FIELD_TRACK);
+        final String track = GetFieldString(APE_TAG_FIELD_TRACK);
         try {
             pID3Tag.Track = Short.parseShort(track);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pID3Tag.Track = 255;
         }
         pID3Tag.Genre = (short) (new ID3Genre(GetFieldString(APE_TAG_FIELD_GENRE)).getGenre());
@@ -282,7 +282,7 @@ public class APETag {
         m_bAnalyzed = true;
 
         // store the original location
-        long nOriginalPosition = m_spIO.getFilePointer();
+        final long nOriginalPosition = m_spIO.getFilePointer();
 
         // check for a tag
         m_bHasID3Tag = false;
@@ -317,7 +317,7 @@ public class APETag {
                 m_bHasAPETag = true;
                 m_nAPETagVersion = m_footer.GetVersion();
 
-                int nRawFieldBytes = m_footer.GetFieldBytes();
+                final int nRawFieldBytes = m_footer.GetFieldBytes();
                 m_nTagBytes += m_footer.GetTotalTagBytes();
 
                 m_spIO.seek(m_spIO.length() - m_footer.GetTotalTagBytes() + m_footer.GetFieldsOffset());
@@ -328,7 +328,7 @@ public class APETag {
                     // parse out the raw fields
                     for (int z = 0; z < m_footer.GetNumberFields(); z++)
                         LoadField(reader);
-                } catch (EOFException e) {
+                } catch (final EOFException e) {
                     throw new JMACException("Can't Read APE Tag Fields");
                 }
             }
@@ -338,28 +338,28 @@ public class APETag {
         m_spIO.seek(nOriginalPosition);
     }
 
-    private int GetTagFieldIndex(String pFieldName) throws IOException {
+    private int GetTagFieldIndex(final String pFieldName) throws IOException {
         if (!m_bAnalyzed)
             Analyze();
         if (pFieldName == null) return -1;
 
         for (int z = 0; z < m_aryFields.size(); z++) {
-            if (pFieldName.toLowerCase().equals(((APETagField) m_aryFields.get(z)).GetFieldName().toLowerCase()))
+            if (pFieldName.toLowerCase().equals(m_aryFields.get(z).GetFieldName().toLowerCase()))
                 return z;
         }
 
         return -1;
     }
 
-    private void LoadField(ByteArrayReader reader) throws IOException {
+    private void LoadField(final ByteArrayReader reader) throws IOException {
         // size and flags
-        int nFieldValueSize = reader.readInt();
-        int nFieldFlags = reader.readInt();
+        final int nFieldValueSize = reader.readInt();
+        final int nFieldFlags = reader.readInt();
 
-        String fieldName = reader.readString("UTF-8");
+        final String fieldName = reader.readString("UTF-8");
 
         // value
-        byte[] fieldValue = new byte[nFieldValueSize];
+        final byte[] fieldValue = new byte[nFieldValueSize];
         reader.readFully(fieldValue);
 
         // set
@@ -379,11 +379,11 @@ public class APETag {
 //    }
 
     // helper set / get field functions
-    private String GetFieldID3String(String pFieldName) throws IOException {
+    private String GetFieldID3String(final String pFieldName) throws IOException {
         return GetFieldString(pFieldName);
     }
 
-    private void SetFieldID3String(String pFieldName, String pFieldValue) throws IOException {
+    private void SetFieldID3String(final String pFieldName, final String pFieldValue) throws IOException {
         SetFieldString(pFieldName, pFieldValue.trim());
     }
 
@@ -392,10 +392,10 @@ public class APETag {
     }
 
     // private data
-    private File m_spIO;
+    private final File m_spIO;
     private boolean m_bAnalyzed = false;
     private int m_nTagBytes = 0;
-    private List<APETagField> m_aryFields = new ArrayList<APETagField>();
+    private final List<APETagField> m_aryFields = new ArrayList<>();
     private boolean m_bHasAPETag;
     private int m_nAPETagVersion;
     private boolean m_bHasID3Tag;

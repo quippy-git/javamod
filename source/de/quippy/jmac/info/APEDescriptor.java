@@ -49,7 +49,7 @@ public class APEDescriptor {
 
     public static APEDescriptor read(final File file) throws IOException {
         try {
-            APEDescriptor header = new APEDescriptor();
+            final APEDescriptor header = new APEDescriptor();
             final ByteArrayReader reader = new ByteArrayReader(file, APE_DESCRIPTOR_BYTES - 16);
             header.cID = reader.readString(4, "US-ASCII");
             header.nVersion = reader.readUnsignedShort();
@@ -63,12 +63,12 @@ public class APEDescriptor {
             header.nTerminatingDataBytes = reader.readUnsignedInt();
             file.readFully(header.cFileMD5);
             return header;
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             throw new JMACException("Unsupported Format");
         }
     }
 
-    public void write(ByteArrayWriter writer) {
+    public void write(final ByteArrayWriter writer) {
         writer.writeString(cID, 4, "US-ASCII");
         writer.writeUnsignedShort(nVersion);
         writer.writeUnsignedShort(0);

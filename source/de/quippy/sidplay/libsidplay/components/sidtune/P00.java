@@ -41,14 +41,14 @@ public class P00 {
 	 * filename becomes <= 8. The removal of characters occurs in three passes,
 	 * the first removes all '_', then vowels and finally numerics. If the
 	 * filename is still greater than 8 it is truncated. struct X00Header
-	 * 
+	 *
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 */
 	private static class X00Header {
 		public static final int SIZE = 26;
 
-		public X00Header(short[] s) {
+		public X00Header(final short[] s) {
 			int off = 0;
 			for (int i = 0; i < X00_ID_LEN; i++) {
 				id[i] = (char) s[off++];
@@ -93,27 +93,25 @@ public class P00 {
 
 	private static final String _sidtune_truncated = "ERROR: File is most likely truncated";
 
-	private SidTune sidtune;
+	private final SidTune sidtune;
 
-	private SidTuneInfo info;
+	private final SidTuneInfo info;
 
-	public P00(SidTune sidtune) {
+	public P00(final SidTune sidtune) {
 		this.sidtune = sidtune;
 		this.info = sidtune.info;
 	}
 
 	protected LoadStatus X00_fileSupport(final String fileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
-		int lastIndexOf = fileName.lastIndexOf(".");
-		String ext = lastIndexOf != -1 ? fileName.substring(lastIndexOf) : "";
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+		final int lastIndexOf = fileName.lastIndexOf(".");
+		final String ext = lastIndexOf != -1 ? fileName.substring(lastIndexOf) : "";
 		String format = null;
 		final X00Header pHeader = new X00Header(dataBuf.get());
-		int /* uint_least32_t */bufLen = dataBuf.len();
+		final int /* uint_least32_t */bufLen = dataBuf.len();
 
 		// Combined extension & magic field identification
-		if (ext.length() != 4)
-			return LOAD_NOT_MINE;
-		if (!Character.isDigit(ext.charAt(2))
+		if ((ext.length() != 4) || !Character.isDigit(ext.charAt(2))
 				|| !Character.isDigit(ext.charAt(3)))
 			return LOAD_NOT_MINE;
 
@@ -170,13 +168,13 @@ public class P00 {
 			if (nameLen == -1) {
 				nameLen = pHeader.name.length;
 			}
-			short[] buf = new short[nameLen];
+			final short[] buf = new short[nameLen];
 			for (int j = 0; j < nameLen; j++) {
 				buf[j] = (short) pHeader.name[j];
 			}
-			SmartPtr_sidtt /* SmartPtr_sidtt<const uint8_t> */spPet = new SmartPtr_sidtt(
+			final SmartPtr_sidtt /* SmartPtr_sidtt<const uint8_t> */spPet = new SmartPtr_sidtt(
 					buf, nameLen, false);
-			StringBuffer lineInfo = new StringBuffer();
+			final StringBuffer lineInfo = new StringBuffer();
 			sidtune.convertPetsciiToAscii(spPet, lineInfo);
 			sidtune.infoString[0] = lineInfo.toString();
 		}

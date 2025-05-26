@@ -2,7 +2,7 @@
  * @(#) DROSequence.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  *
  * As a proof of concept this was taken from dro.cpp and dro2.cpp
  * of the adplug project and ported to java.
- * Corrections and additions by to work with OPL3.java 
+ * Corrections and additions by to work with OPL3.java
  * 2008 Robson Cozendey
  * 2020 Daniel Becker
  */
@@ -44,7 +44,7 @@ public class DROSequence extends OPL3Sequence
 {
 	private URL url;
 	private int [] data = null;
-	
+
 	private int version;
 	private boolean isOldVersion;
 	private String magic;
@@ -53,17 +53,16 @@ public class DROSequence extends OPL3Sequence
 	private EmuOPL.oplType oplType;
 	private int cmdDelayL;
 	private int cmdDelayH;
-	private int conversionTableLen;
 	private int [] conversionTable;
-	
+
 	private String title;
 	private String author;
 	private String description;
-	
+
 	private int delay;
 	private int pos;
 	private int bank;
-	
+
 	/**
 	 * Constructor for DROSequence
 	 */
@@ -77,28 +76,28 @@ public class DROSequence extends OPL3Sequence
 	 * @see de.quippy.javamod.multimedia.opl3.sequencer.OPL3Sequence#readOPL3Sequence(de.quippy.javamod.io.RandomAccessInputStreamImpl)
 	 */
 	@Override
-	protected void readOPL3Sequence(RandomAccessInputStreamImpl inputStream) throws IOException
+	protected void readOPL3Sequence(final RandomAccessInputStreamImpl inputStream) throws IOException
 	{
 		if (inputStream==null || inputStream.available()<=0) return;
-		
+
 		final byte [] magicBytes = new byte[8];
 		inputStream.read(magicBytes, 0, 8);
 		magic = Helpers.retrieveAsString(magicBytes, 0, 8);
 		if (!magic.equals("DBRAWOPL")) throw new IOException("Unsupported file type (unknown magic bytes)");
-		
+
 		version = inputStream.readIntelDWord();
 		if ((version&0xFFFF)>2) throw new IOException("Unsupported file type (unknown version "+version+")");
-		
+
 		isOldVersion = ((version&0xFFFF)<2);
-		
+
 		if (!isOldVersion)
 		{
 			length = inputStream.readIntelDWord();
 			length <<= 1;
 			if (length<=0 || length>=1<<30 || length>inputStream.available()) throw new IOException("Unsupported file type (length read lied to us)");
 
-			lengthInMilliseconds = (long)inputStream.readIntelDWord();
-			final int OPLType = inputStream.read(); // OPL type (0 == OPL2, 1 == Dual OPL2, 2 == OPL3) 
+			lengthInMilliseconds = inputStream.readIntelDWord();
+			final int OPLType = inputStream.read(); // OPL type (0 == OPL2, 1 == Dual OPL2, 2 == OPL3)
 			oplType = EmuOPL.getOPLTypeForIndex(OPLType);
 			final int format = inputStream.read();
 			if (format!=0) throw new IOException("Unsupported file type (unknown format)");
@@ -106,24 +105,24 @@ public class DROSequence extends OPL3Sequence
 			if (compression!=0) throw new IOException("Unsupported file type (compression not supported)");
 			cmdDelayL = inputStream.read();
 			cmdDelayH = inputStream.read();
-			conversionTableLen = inputStream.read();
+			int conversionTableLen = inputStream.read();
 			conversionTable = new int [conversionTableLen];
-			for (int i=0; i<conversionTableLen; i++) 
+			for (int i=0; i<conversionTableLen; i++)
 				conversionTable[i] = inputStream.read();
 		}
 		else
 		{
-			lengthInMilliseconds = (long)inputStream.readIntelDWord();
+			lengthInMilliseconds = inputStream.readIntelDWord();
 			length = inputStream.readIntelDWord();
 			if (length<3 || length>inputStream.available()) throw new IOException("Unsupported file type (length read lied to us)");
-			
-			final int OPLType = inputStream.read(); // OPL type (0 == OPL2, 1 == Dual OPL2, 2 == OPL3) 
+
+			final int OPLType = inputStream.read(); // OPL type (0 == OPL2, 1 == Dual OPL2, 2 == OPL3)
 			oplType = EmuOPL.getOPLTypeForIndex(OPLType);
 			// constant values for cmdDelay
-			cmdDelayL = 0x00; 
+			cmdDelayL = 0x00;
 			cmdDelayH = 0x01;
 			// let's see if the next three bytes are zero...
-			byte [] zero = new byte[3];
+			final byte [] zero = new byte[3];
 			inputStream.read(zero, 0, 3);
 			if (zero[0]!=0 || zero[1]!=0 || zero[2]!=0)
 			{
@@ -134,11 +133,11 @@ public class DROSequence extends OPL3Sequence
 
 		data = new int[length];
 		for (int i=0; i<length; i++) data[i] = inputStream.read();
-		
+
 		final int tagSize = inputStream.available();
 		if (tagSize>=3)
 		{
-			byte [] tagMagic = new byte[2];
+			final byte [] tagMagic = new byte[2];
 			inputStream.read(tagMagic, 0, 2);
 			if (tagMagic[0]==0xFF && tagMagic[1]==0xFF)
 			{
@@ -171,7 +170,7 @@ public class DROSequence extends OPL3Sequence
 	@Override
 	public String getSongName()
 	{
-		if (title!=null && title.length()>0) 
+		if (title!=null && !title.isEmpty())
 			return title;
 		else
 			return MultimediaContainerManager.getSongNameFromURL(url);
@@ -183,7 +182,7 @@ public class DROSequence extends OPL3Sequence
 	@Override
 	public String getAuthor()
 	{
-		if (author!=null && author.length()!=0)
+		if (author!=null && !author.isEmpty())
 			return author;
 		else
 			return Helpers.EMPTY_STING;
@@ -199,8 +198,8 @@ public class DROSequence extends OPL3Sequence
 	@Override
 	public String getDescription()
 	{
-		StringBuilder sb = new StringBuilder();
-		if (description!=null && description.length()!=0) sb.append(description).append("\n\nFile Informations:\n");
+		final StringBuilder sb = new StringBuilder();
+		if (description!=null && !description.isEmpty()) sb.append(description).append("\n\nFile Informations:\n");
 		sb.append("ID: ").append(magic).append('\n');
 		sb.append("Version: ").append(getVersionString()).append('\n');
 		sb.append("Length: ").append(length).append('\n');
@@ -224,7 +223,7 @@ public class DROSequence extends OPL3Sequence
 	 * @see de.quippy.javamod.multimedia.opl3.sequencer.OPL3Sequence#setURL(java.net.URL)
 	 */
 	@Override
-	public void setURL(URL url)
+	public void setURL(final URL url)
 	{
 		this.url = url;
 	}
@@ -238,12 +237,12 @@ public class DROSequence extends OPL3Sequence
 	{
 		if (!isOldVersion)
 		{
-			while (pos < length) 
+			while (pos < length)
 			{
 				final int index = data[pos++] & 0xFF;
 				if (pos >= length) return false;
 				final int value = data[pos++] & 0xFF;
-				
+
 				if (index == cmdDelayL)
 				{
 					delay = value + 1;
@@ -273,10 +272,10 @@ public class DROSequence extends OPL3Sequence
 		}
 		else
 		{
-			while (pos < length) 
+			while (pos < length)
 			{
 				int index = data[pos++] & 0xFF;
-				
+
 				if (index == cmdDelayL)
 				{
 					if (pos >= length) return false;
@@ -304,7 +303,7 @@ public class DROSequence extends OPL3Sequence
 						if (pos >= length) return false;
 						index = data[pos++];
 					}
-					
+
 					if (pos >= length) return false;
 					final int value = data[pos++] & 0xff;
 					if (oplType==EmuOPL.oplType.OPL2)
@@ -340,7 +339,7 @@ public class DROSequence extends OPL3Sequence
 	@Override
 	public double getRefresh()
 	{
-		if (delay!=0) return 1000d / (double)delay;
+		if (delay!=0) return 1000d / delay;
 		else return 1000d;
 	}
 	/**

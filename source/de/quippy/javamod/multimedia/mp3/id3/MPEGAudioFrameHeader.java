@@ -2,7 +2,7 @@
  * @(#) MPEGAudioFrameHeader.java
  *
  * Created on 24.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import de.quippy.javamod.io.RandomAccessInputStream;
 import de.quippy.javamod.multimedia.mp3.id3.exceptions.NoMPEGFramesException;
 
 /**
- * Description: 
+ * Description:
  *  This class reads through the file specified and tries to find an mpeg
  *  frame.  It then reads data from the header of the first frame encountered.
  *  Parts of this class will not work correctly on VBR files.
@@ -124,7 +124,7 @@ public class MPEGAudioFrameHeader
 	private static final int MPEG_V_25 = 0;
 	private static final int MPEG_V_2 = 2;
 	private static final int MPEG_V_1 = 3;
-	
+
 	private static final int MPEG_L_3 = 1;
 	private static final int MPEG_L_2 = 2;
 	private static final int MPEG_L_1 = 3;
@@ -141,7 +141,7 @@ public class MPEGAudioFrameHeader
 
 	/**
 	 * Create an MPEGAudioFrameHeader from the file specified.  Upon creation
-	 * information will be read in from the first frame header the object 
+	 * information will be read in from the first frame header the object
 	 * encounters in the file.
 	 *
 	 * @param mp3 the file to read from
@@ -149,16 +149,16 @@ public class MPEGAudioFrameHeader
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public MPEGAudioFrameHeader(RandomAccessInputStream raf) throws NoMPEGFramesException, IOException
+	public MPEGAudioFrameHeader(final RandomAccessInputStream raf) throws NoMPEGFramesException, IOException
 	{
 		this(raf, 0);
 	}
 
 	/**
 	 * Create an MPEGAudioFrameHeader from the file specified.  Upon creation
-	 * information will be read in from the first frame header the object 
+	 * information will be read in from the first frame header the object
 	 * encounters in the file.  The offset tells the object where to start
-	 * searching for an MPEG frame.  If you know the size of an id3v2 tag 
+	 * searching for an MPEG frame.  If you know the size of an id3v2 tag
 	 * attached to the file and pass it to this ctor, it will take less time
 	 * to find the frame.
 	 *
@@ -168,9 +168,9 @@ public class MPEGAudioFrameHeader
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public MPEGAudioFrameHeader(RandomAccessInputStream raf, int offset) throws NoMPEGFramesException, IOException
+	public MPEGAudioFrameHeader(final RandomAccessInputStream raf, final int offset) throws NoMPEGFramesException, IOException
 	{
-		long location = findFrame(raf, offset);
+		final long location = findFrame(raf, offset);
 
 		if (location != -1)
 		{
@@ -183,7 +183,7 @@ public class MPEGAudioFrameHeader
 	}
 
 	/**
-	 * Searches through the file and finds the first occurrence of an mpeg 
+	 * Searches through the file and finds the first occurrence of an mpeg
 	 * frame.  Returns the location of the header of the frame.
 	 *
 	 * @param offset the offset to start searching from
@@ -191,14 +191,14 @@ public class MPEGAudioFrameHeader
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private long findFrame(RandomAccessInputStream raf, int offset) throws IOException
+	private long findFrame(final RandomAccessInputStream raf, final int offset) throws IOException
 	{
-		long loc = -1;
 		raf.seek(offset);
+		byte test = 0;
 
-		while (loc == -1)
+		while (test != -1)
 		{
-			byte test = raf.readByte();
+			test = raf.readByte();
 
 			if ((test & 0xFF) == 0xFF)
 			{
@@ -221,9 +221,9 @@ public class MPEGAudioFrameHeader
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private void readHeader(RandomAccessInputStream raf, long location) throws IOException
+	private void readHeader(final RandomAccessInputStream raf, final long location) throws IOException
 	{
-		byte[] head = new byte[HEADER_SIZE];
+		final byte[] head = new byte[HEADER_SIZE];
 		raf.seek(location);
 
 		if (raf.read(head) != HEADER_SIZE)
@@ -243,12 +243,12 @@ public class MPEGAudioFrameHeader
 	}
 
 	/**
-	 * Based on the bitrate index found in the header, try to find and set the 
+	 * Based on the bitrate index found in the header, try to find and set the
 	 * bitrate from the table.
 	 *
 	 * @param bitrateIndex the bitrate index read from the header
 	 */
-	private int findBitRate(int bitrateIndex, int version, int layer)
+	private int findBitRate(final int bitrateIndex, final int version, final int layer)
 	{
 		int ind = -1;
 
@@ -292,7 +292,7 @@ public class MPEGAudioFrameHeader
 	 *
 	 * @param sampleIndex the sample rate index read from the header
 	 */
-	private int findSampleRate(int sampleIndex, int version)
+	private int findSampleRate(final int sampleIndex, final int version)
 	{
 		int ind = -1;
 
@@ -321,6 +321,7 @@ public class MPEGAudioFrameHeader
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
 		return getVersion() + " " + getLayer() + "\nBitRate:\t\t\t" + getBitRate() + "kbps\nSampleRate:\t\t\t" + getSampleRate() + "Hz\nChannelMode:\t\t\t" + getChannelMode() + "\nCopyrighted:\t\t\t" + isCopyrighted() + "\nOriginal:\t\t\t" + isOriginal()
@@ -448,7 +449,7 @@ public class MPEGAudioFrameHeader
 	}
 
 	/**
-	 * Returns true if the file passed to the constructor is an mp3 (MPEG 
+	 * Returns true if the file passed to the constructor is an mp3 (MPEG
 	 * layer III).
 	 *
 	 * @return true if the file is an mp3

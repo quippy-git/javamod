@@ -3,7 +3,7 @@
  *                                SIDs Mixer Routines
  *                             Library Configuration Code
  *                    xa65 - 6502 cross assembler and utility suite
- *                          reloc65 - relocates 'o65' files 
+ *                          reloc65 - relocates 'o65' files
  *        Copyright (C) 1997 Andr� Fachat (a.fachat@physik.tu-chemnitz.de)
  *        ----------------------------------------------------------------
  *  begin                : Fri Jun 9 2000
@@ -76,6 +76,8 @@ import static de.quippy.sidplay.libsidplay.mem.IChar.CHAR;
 import static de.quippy.sidplay.libsidplay.mem.IKernal.KERNAL;
 import static de.quippy.sidplay.libsidplay.mem.IPSIDDrv.PSIDDRV;
 import static de.quippy.sidplay.libsidplay.mem.IPowerOn.POWERON;
+
+import java.util.Arrays;
 
 import de.quippy.sidplay.libsidplay.common.C64Env;
 import de.quippy.sidplay.libsidplay.common.Event;
@@ -178,21 +180,22 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	private C64VIC vic;
 
-	private SIDEmu sid[] = new SIDEmu[SID2_MAX_SIDS];
+	private final SIDEmu sid[] = new SIDEmu[SID2_MAX_SIDS];
 
 	/**
 	 * Mapping table in d4xx-d7xx
 	 */
-	private int m_sidmapper[] = new int[32];
+	private final int m_sidmapper[] = new int[32];
 
 	private static class EventMixer extends Event {
-		private Player m_player;
+		private final Player m_player;
 
+		@Override
 		public void event() {
 			m_player.mixer();
 		}
 
-		public EventMixer(Player player) {
+		public EventMixer(final Player player) {
 			super("Mixer");
 			m_player = (player);
 		}
@@ -201,7 +204,7 @@ public class Player extends C64Env /* extends C64Environment */{
 	private EventMixer mixerEvent;
 
 	private static class EventRTC extends Event {
-		private IEventContext m_eventContext;
+		private final IEventContext m_eventContext;
 
 		private long /* event_clock_t */m_seconds;
 
@@ -209,6 +212,7 @@ public class Player extends C64Env /* extends C64Environment */{
 
 		private long /* event_clock_t */m_clk;
 
+		@Override
 		public void event() {
 			// Fixed point 25.7 (approx 2 dp)
 			long /* event_clock_t */cycles;
@@ -219,7 +223,7 @@ public class Player extends C64Env /* extends C64Environment */{
 			m_eventContext.schedule(this, cycles, EVENT_CLOCK_PHI1);
 		}
 
-		public EventRTC(IEventContext context) {
+		public EventRTC(final IEventContext context) {
 			super("RTC");
 			m_eventContext = (context);
 			m_seconds = (0);
@@ -236,8 +240,8 @@ public class Player extends C64Env /* extends C64Environment */{
 			m_eventContext.schedule(this, m_period >> 7, EVENT_CLOCK_PHI1);
 		}
 
-		public void clock(double /* float64_t */period) { // Fixed point 25.7
-			m_period = (long /* event_clock_t */) (period / 10.0 * (double /* float64_t */) (1 << 7));
+		public void clock(final double /* float64_t */period) { // Fixed point 25.7
+			m_period = (long /* event_clock_t */) (period / 10.0 * (1 << 7));
 			reset();
 		}
 	}
@@ -253,7 +257,7 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	private short /* uint8_t */m_ram[], m_rom[];
 
-	private sid2_info_t m_info = new sid2_info_t();
+	private final sid2_info_t m_info = new sid2_info_t();
 
 	private sid2_config_t m_cfg = new sid2_config_t();
 
@@ -305,7 +309,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		short /* uint8_t */pr_in;
 	}
 
-	private Port m_port = new Port();
+	private final Port m_port = new Port();
 
 	private short /* uint8_t */m_playBank;
 
@@ -340,14 +344,14 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	/**
 	 * Clock speed changes due to loading a new song
-	 * 
+	 *
 	 * @param userClock
 	 * @param defaultClock
 	 * @param forced
 	 * @return
 	 */
 	private double /* float64_t */clockSpeed(sid2_clock_t userClock,
-			sid2_clock_t defaultClock, boolean forced) {
+			final sid2_clock_t defaultClock, final boolean forced) {
 		double /* float64_t */cpuFreq = CLOCK_FREQ_PAL;
 
 		// Detect the Correct Song Speed
@@ -458,15 +462,18 @@ public class Player extends C64Env /* extends C64Environment */{
 				m_rom = m_ram;
 				m_mem = new IMem() {
 
-					public short m_readMemByte(int addr) {
+					@Override
+					public short m_readMemByte(final int addr) {
 						return readMemByte_plain(addr);
 					}
 
-					public void m_writeMemByte(int addr, short data) {
+					@Override
+					public void m_writeMemByte(final int addr, final short data) {
 						writeMemByte_playsid(addr, data);
 					}
 
-					public short m_readMemDataByte(int addr) {
+					@Override
+					public short m_readMemDataByte(final int addr) {
 						return readMemByte_plain(addr);
 					}
 
@@ -478,15 +485,18 @@ public class Player extends C64Env /* extends C64Environment */{
 				case sid2_envTP:
 					m_mem = new IMem() {
 
-						public short m_readMemByte(int addr) {
+						@Override
+						public short m_readMemByte(final int addr) {
 							return readMemByte_plain(addr);
 						}
 
-						public void m_writeMemByte(int addr, short data) {
+						@Override
+						public void m_writeMemByte(final int addr, final short data) {
 							writeMemByte_sidplay(addr, data);
 						}
 
-						public short m_readMemDataByte(int addr) {
+						@Override
+						public short m_readMemDataByte(final int addr) {
 							return readMemByte_sidplaytp(addr);
 						}
 
@@ -497,15 +507,18 @@ public class Player extends C64Env /* extends C64Environment */{
 				case sid2_envBS:
 					m_mem = new IMem() {
 
-						public short m_readMemByte(int addr) {
+						@Override
+						public short m_readMemByte(final int addr) {
 							return readMemByte_plain(addr);
 						}
 
-						public void m_writeMemByte(int addr, short data) {
+						@Override
+						public void m_writeMemByte(final int addr, final short data) {
 							writeMemByte_sidplay(addr, data);
 						}
 
-						public short m_readMemDataByte(int addr) {
+						@Override
+						public short m_readMemDataByte(final int addr) {
 							return readMemByte_sidplaybs(addr);
 						}
 
@@ -516,15 +529,18 @@ public class Player extends C64Env /* extends C64Environment */{
 				default: // <-- Just to please compiler
 					m_mem = new IMem() {
 
-						public short m_readMemByte(int addr) {
+						@Override
+						public short m_readMemByte(final int addr) {
 							return readMemByte_sidplaybs(addr);
 						}
 
-						public void m_writeMemByte(int addr, short data) {
+						@Override
+						public void m_writeMemByte(final int addr, final short data) {
 							writeMemByte_sidplay(addr, data);
 						}
 
-						public short m_readMemDataByte(int addr) {
+						@Override
+						public short m_readMemDataByte(final int addr) {
 							return readMemByte_sidplaybs(addr);
 						}
 
@@ -537,7 +553,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		{ // Have to reload the song into memory as
 			// everything has changed
 			int ret;
-			sid2_env_t old = m_info.environment;
+			final sid2_env_t old = m_info.environment;
 			m_info.environment = env;
 			ret = initialise();
 			m_info.environment = old;
@@ -580,7 +596,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		reset();
 
 		{
-			long /* uint_least32_t */page = ((long /* uint_least32_t */) m_tuneInfo.loadAddr
+			final long /* uint_least32_t */page = ((long /* uint_least32_t */) m_tuneInfo.loadAddr
 					+ m_tuneInfo.c64dataLen - 1) >> 8;
 			if (page > 0xff) {
 				m_errorString = "SIDPLAYER ERROR: Size of music data exceeds C64 memory.";
@@ -593,8 +609,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 		// The Basic ROM sets these values on loading a file.
 		{ // Program end address
-			int /* uint_least16_t */start = m_tuneInfo.loadAddr;
-			int /* uint_least16_t */end = (int) (start + m_tuneInfo.c64dataLen);
+			final int /* uint_least16_t */start = m_tuneInfo.loadAddr;
+			final int /* uint_least16_t */end = start + m_tuneInfo.c64dataLen;
 			endian_little16(m_ram, 0x2d, end); // Variables start
 			endian_little16(m_ram, 0x2f, end); // Arrays start
 			endian_little16(m_ram, 0x31, end); // Strings start
@@ -619,8 +635,8 @@ public class Player extends C64Env /* extends C64Environment */{
 	private void mixer() {
 		// Fixed point 16.16
 		long /* event_clock_t */cycles;
-		short[] buf = m_sampleBuffer;
-		int bufOff = m_sampleIndex;
+		final short[] buf = m_sampleBuffer;
+		final int bufOff = m_sampleIndex;
 		m_sampleClock += m_samplePeriod;
 		cycles = m_sampleClock >> 16;
 		m_sampleClock &= 0x0FFFF;
@@ -651,14 +667,14 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	/**
 	 * Integrate SID emulation from the builder class into libsidplay2
-	 * 
+	 *
 	 * @param builder
 	 * @param userModel
 	 * @param defaultModel
 	 * @return
 	 */
-	private int sidCreate(SIDBuilder builder, sid2_model_t userModel,
-			sid2_model_t defaultModel) {
+	private int sidCreate(final SIDBuilder builder, sid2_model_t userModel,
+			final sid2_model_t defaultModel) {
 		sid[0] = xsid.emulation();
 		/***********************************************************************
 		 * @FIXME@ Removed as prevents SID Model being updated
@@ -752,7 +768,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		return 0;
 	}
 
-	private void sidSamples(boolean enable) {
+	private void sidSamples(final boolean enable) {
 		byte /* int_least8_t */gain = 0;
 		xsid.sidSamples(enable);
 
@@ -780,7 +796,7 @@ public class Player extends C64Env /* extends C64Environment */{
 
 		m_scheduler.reset();
 		for (int i = 0; i < SID2_MAX_SIDS; i++) {
-			SIDEmu s = sid[i];
+			final SIDEmu s = sid[i];
 			s.reset((short) 0x0f);
 			// Synchronize the waveform generators
 			// (must occur after reset)
@@ -882,7 +898,7 @@ public class Player extends C64Env /* extends C64Environment */{
 
 					// Extract compressed data
 					if (compressed) {
-						short /* uint8_t */data = POWERON[i++];
+						final short /* uint8_t */data = POWERON[i++];
 						while (count-- > 0)
 							m_ram[addr++] = data;
 					}
@@ -931,12 +947,12 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	/**
 	 * Temporary hack till real bank switching code added
-	 * 
+	 *
 	 * @param addr
 	 * A 16-bit effective address
 	 * @return A default bank-select value for $01.
 	 */
-	private short /* uint8_t */iomap(int /* uint_least16_t */addr) {
+	private short /* uint8_t */iomap(final int /* uint_least16_t */addr) {
 		if (m_info.environment != sid2_envPS) {
 			// Force Real C64 Compatibility
 			switch (m_tuneInfo.compatibility) {
@@ -957,7 +973,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		return 0x34; // RAM only (special I/O in PlaySID mode)
 	}
 
-	private short /* uint8_t */readMemByte_plain(int /* uint_least16_t */addr) {
+	private short /* uint8_t */readMemByte_plain(final int /* uint_least16_t */addr) {
 		// Bank Select Register Value DOES NOT get to ram
 		if (addr > 1)
 			return m_ram[addr & 0xffff];
@@ -966,8 +982,8 @@ public class Player extends C64Env /* extends C64Environment */{
 		return m_port.ddr;
 	}
 
-	private short /* uint8_t */readMemByte_io(int /* uint_least16_t */addr) {
-		int /* uint_least16_t */tempAddr = (addr & 0xfc1f);
+	private short /* uint8_t */readMemByte_io(final int /* uint_least16_t */addr) {
+		final int /* uint_least16_t */tempAddr = (addr & 0xfc1f);
 
 		// Not SID ?
 		if ((tempAddr & 0xff00) != 0xd400) {
@@ -1011,13 +1027,13 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 
 		{ // Read real sid for these
-			int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
+			final int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
 			return sid[i].read((short) (tempAddr & 0xff));
 		}
 	}
 
 	private short /* uint8_t */readMemByte_sidplaytp(
-			int /* uint_least16_t */addr) {
+			final int /* uint_least16_t */addr) {
 		if (addr < 0xD000)
 			return readMemByte_plain(addr);
 		else {
@@ -1038,7 +1054,7 @@ public class Player extends C64Env /* extends C64Environment */{
 	}
 
 	private short /* uint8_t */readMemByte_sidplaybs(
-			int /* uint_least16_t */addr) {
+			final int /* uint_least16_t */addr) {
 		if (addr < 0xA000)
 			return readMemByte_plain(addr);
 		else {
@@ -1073,8 +1089,8 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 	}
 
-	private void writeMemByte_plain(int /* uint_least16_t */addr,
-			short /* uint8_t */data) {
+	private void writeMemByte_plain(final int /* uint_least16_t */addr,
+			final short /* uint8_t */data) {
 		if (addr > 1)
 			m_ram[addr & 0xffff] = data;
 		else if (addr != 0) { // Determine new memory configuration.
@@ -1085,9 +1101,9 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 	}
 
-	private void writeMemByte_playsid(int /* uint_least16_t */addr,
-			short /* uint8_t */data) {
-		int /* uint_least16_t */tempAddr = (addr & 0xfc1f);
+	private void writeMemByte_playsid(final int /* uint_least16_t */addr,
+			final short /* uint8_t */data) {
+		final int /* uint_least16_t */tempAddr = (addr & 0xfc1f);
 
 		// Not SID ?
 		if ((tempAddr & 0xff00) != 0xd400) {
@@ -1137,7 +1153,7 @@ public class Player extends C64Env /* extends C64Environment */{
 			xsid.write16(addr & 0x01ff, data);
 		else // Mirrored SID.
 		{
-			int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
+			final int i = m_sidmapper[(addr >> 5) & (SID2_MAPPER_SIZE - 1)];
 			// Convert address to that acceptable by resid
 			sid[i].write((short) (tempAddr & 0xff), data);
 			// Support dual sid
@@ -1146,8 +1162,8 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 	}
 
-	private void writeMemByte_sidplay(int /* uint_least16_t */addr,
-			short /* uint8_t */data) {
+	private void writeMemByte_sidplay(final int /* uint_least16_t */addr,
+			final short /* uint8_t */data) {
 		if (addr < 0xA000)
 			writeMemByte_plain(addr, data);
 		else {
@@ -1186,16 +1202,16 @@ public class Player extends C64Env /* extends C64Environment */{
 	/**
 	 * This resets the cpu once the program is loaded to begin running. Also
 	 * called when the emulation crashes
-	 * 
+	 *
 	 * @param safe
 	 */
-	private void envReset(boolean safe) {
+	private void envReset(final boolean safe) {
 		if (safe) { // Emulation crashed so run in safe mode
 			if (m_info.environment == sid2_envR) {
-				short /* uint8_t */prg[] = {
+				final short /* uint8_t */prg[] = {
 						LDAb, 0x7f, STAa, 0x0d, 0xdc, RTSn };
-				sid2_info_t info = new sid2_info_t();
-				SidTuneInfo tuneInfo = new SidTuneInfo();
+				final sid2_info_t info = new sid2_info_t();
+				final SidTuneInfo tuneInfo = new SidTuneInfo();
 				// Install driver
 				tuneInfo.relocStartPage = 0x09;
 				tuneInfo.relocPages = 0x20;
@@ -1222,8 +1238,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 		// defaults: Basic-ROM on, Kernal-ROM on, I/O on
 		if (m_info.environment != sid2_envR) {
-			short /* uint8_t */song = (short) (m_tuneInfo.currentSong - 1);
-			short /* uint8_t */bank = iomap(m_tuneInfo.initAddr);
+			final short /* uint8_t */song = (short) (m_tuneInfo.currentSong - 1);
+			final short /* uint8_t */bank = iomap(m_tuneInfo.initAddr);
 			evalBankSelect(bank);
 			m_playBank = iomap(m_tuneInfo.playAddr);
 			if (m_info.environment != sid2_envPS)
@@ -1253,19 +1269,19 @@ public class Player extends C64Env /* extends C64Environment */{
 	//
 
 	private long /* int_least32_t */monoOutGenericLeftIn(
-			short /* uint_least8_t */bits) {
+			final short /* uint_least8_t */bits) {
 		return sid[0].output(bits) * m_leftVolume / VOLUME_MAX;
 	}
 
 	private long /* int_least32_t */monoOutGenericStereoIn(
-			short /* uint_least8_t */bits) {
+			final short /* uint_least8_t */bits) {
 		// Convert to mono
 		return ((sid[0].output(bits) * m_leftVolume) + (sid[1].output(bits) * m_rightVolume))
 				/ (VOLUME_MAX * 2);
 	}
 
 	private long /* int_least32_t */monoOutGenericRightIn(
-			short /* uint_least8_t */bits) {
+			final short /* uint_least8_t */bits) {
 		return sid[1].output(bits) * m_rightVolume / VOLUME_MAX;
 	}
 
@@ -1273,31 +1289,31 @@ public class Player extends C64Env /* extends C64Environment */{
 	// 8 bit sound output generation routines
 	//
 
-	private long /* uint_least32_t */monoOut8MonoIn(short[] buffer, int off) {
-		buffer[off] = (short) ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
+	private long /* uint_least32_t */monoOut8MonoIn(final short[] buffer, final int off) {
+		buffer[off] = ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
 		return 1;
 	}
 
-	private long /* uint_least32_t */monoOut8StereoIn(short[] buffer, int off) {
-		buffer[off] = (short) ((byte) (monoOutGenericStereoIn((short) 8) ^ 0x80));
+	private long /* uint_least32_t */monoOut8StereoIn(final short[] buffer, final int off) {
+		buffer[off] = ((byte) (monoOutGenericStereoIn((short) 8) ^ 0x80));
 		return 1;
 	}
 
-	private long /* uint_least32_t */monoOut8StereoRIn(short[] buffer, int off) {
-		buffer[off] = (short) ((byte) (monoOutGenericRightIn((short) 8) ^ 0x80));
+	private long /* uint_least32_t */monoOut8StereoRIn(final short[] buffer, final int off) {
+		buffer[off] = ((byte) (monoOutGenericRightIn((short) 8) ^ 0x80));
 		return 1;
 	}
 
-	private long /* uint_least32_t */stereoOut8MonoIn(short[] buffer, int off) {
-		short sample = (short) ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
+	private long /* uint_least32_t */stereoOut8MonoIn(final short[] buffer, final int off) {
+		final short sample = ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
 		buffer[off + 0] = sample;
 		buffer[off + 1] = sample;
 		return 2;
 	}
 
-	private long /* uint_least32_t */stereoOut8StereoIn(short[] buffer, int off) {
-		buffer[off + 0] = (short) ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
-		buffer[off + 1] = (short) ((byte) (monoOutGenericRightIn((short) 8) ^ 0x80));
+	private long /* uint_least32_t */stereoOut8StereoIn(final short[] buffer, final int off) {
+		buffer[off + 0] = ((byte) (monoOutGenericLeftIn((short) 8) ^ 0x80));
+		buffer[off + 1] = ((byte) (monoOutGenericRightIn((short) 8) ^ 0x80));
 		return 2;
 	}
 
@@ -1306,33 +1322,33 @@ public class Player extends C64Env /* extends C64Environment */{
 	// Rev 2.0.4 (jp) - Added 16 bit support
 	//
 
-	private long /* uint_least32_t */monoOut16MonoIn(short[] buffer, int off) {
+	private long /* uint_least32_t */monoOut16MonoIn(final short[] buffer, final int off) {
 		endian_16(buffer, off,
 				(int /* uint_least16_t */) monoOutGenericLeftIn((short) 16));
 		return 2;
 	}
 
-	private long /* uint_least32_t */monoOut16StereoIn(short[] buffer, int off) {
+	private long /* uint_least32_t */monoOut16StereoIn(final short[] buffer, final int off) {
 		endian_16(buffer, off,
 				(int /* uint_least16_t */) monoOutGenericStereoIn((short) 16));
 		return 2;
 	}
 
-	private long /* uint_least32_t */monoOut16StereoRIn(short[] buffer, int off) {
+	private long /* uint_least32_t */monoOut16StereoRIn(final short[] buffer, final int off) {
 		endian_16(buffer, off,
 				(int /* uint_least16_t */) monoOutGenericRightIn((short) 16));
 		return 2;
 	}
 
-	private long /* uint_least32_t */stereoOut16MonoIn(short[] buffer, int off) {
-		int /* uint_least16_t */sample = (int /* uint_least16_t */) monoOutGenericLeftIn((short) 16);
+	private long /* uint_least32_t */stereoOut16MonoIn(final short[] buffer, final int off) {
+		final int /* uint_least16_t */sample = (int /* uint_least16_t */) monoOutGenericLeftIn((short) 16);
 		endian_16(buffer, off, sample);
 		endian_16(buffer, off + 2, sample);
 		return (4);
 	}
 
-	private long /* uint_least32_t */stereoOut16StereoIn(short[] buffer,
-			int off) {
+	private long /* uint_least32_t */stereoOut16StereoIn(final short[] buffer,
+			final int off) {
 		endian_16(buffer, off,
 				(int /* uint_least16_t */) monoOutGenericLeftIn((short) 16));
 		endian_16(buffer, off + 2,
@@ -1340,7 +1356,8 @@ public class Player extends C64Env /* extends C64Environment */{
 		return (4);
 	}
 
-	public void interruptIRQ(boolean state) {
+	@Override
+	public void interruptIRQ(final boolean state) {
 		if (state) {
 			if (m_info.environment == sid2_envR)
 				cpu.triggerIRQ();
@@ -1350,19 +1367,23 @@ public class Player extends C64Env /* extends C64Environment */{
 			cpu.clearIRQ();
 	}
 
+	@Override
 	public void interruptNMI() {
 		cpu.triggerNMI();
 	}
 
+	@Override
 	public void interruptRST() {
 		stop();
 	}
 
-	public void signalAEC(boolean state) {
+	@Override
+	public void signalAEC(final boolean state) {
 		cpu.aecSignal(state);
 	}
 
-	public short /* uint8_t */readMemRamByte(int /* uint_least16_t */addr) {
+	@Override
+	public short /* uint8_t */readMemRamByte(final int /* uint_least16_t */addr) {
 		return m_ram[addr];
 	}
 
@@ -1423,7 +1444,8 @@ public class Player extends C64Env /* extends C64Environment */{
 			0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B,
 			0x2D02EF8D };
 
-	public void sid2crc(short /* uint8_t */data) {
+	@Override
+	public void sid2crc(final short /* uint8_t */data) {
 		if (m_sid2crcCount < m_cfg.sid2crcCount) {
 			m_info.sid2crcCount = ++m_sid2crcCount;
 			m_sid2crc = (m_sid2crc >> 8)
@@ -1432,6 +1454,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 	}
 
+	@Override
 	public void lightpen() {
 		vic.lightpen();
 	}
@@ -1440,10 +1463,10 @@ public class Player extends C64Env /* extends C64Environment */{
 	// PSID driver
 	//
 
-	private int psidDrvReloc(SidTuneInfo tuneInfo, sid2_info_t info) {
+	private int psidDrvReloc(final SidTuneInfo tuneInfo, final sid2_info_t info) {
 		int /* uint_least16_t */relocAddr;
-		int startlp = tuneInfo.loadAddr >> 8;
-		int endlp = (int) ((tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8);
+		final int startlp = tuneInfo.loadAddr >> 8;
+		final int endlp = (tuneInfo.loadAddr + (tuneInfo.c64dataLen - 1)) >> 8;
 
 		if (info.environment != sid2_envR) {
 			// Sidplay1 modes require no psid driver
@@ -1500,13 +1523,13 @@ public class Player extends C64Env /* extends C64Environment */{
 				return -1;
 			}
 			reloc_driver = bp.fBuf;
-			int reloc_driverPos = bp.fPos;
+			final int reloc_driverPos = bp.fPos;
 			reloc_size = bp.fSize;
 
 			// Adjust size to not included initialization data.
 			reloc_size -= 10;
 			info.driverAddr = relocAddr;
-			info.driverLength = (int /* uint_least16_t */) reloc_size;
+			info.driverLength = reloc_size;
 			// Round length to end of page
 			info.driverLength += 0xff;
 			info.driverLength &= 0xff00;
@@ -1518,7 +1541,7 @@ public class Player extends C64Env /* extends C64Environment */{
 			// interrupt hooks and trap programs trying to restart basic
 			if (tuneInfo.compatibility == SIDTUNE_COMPATIBILITY_BASIC) {
 				// Install hook to set subtune number for basic
-				short /* uint8_t */prg[] = {
+				final short /* uint8_t */prg[] = {
 						LDAb,
 						(short /* uint8_t */) (tuneInfo.currentSong - 1),
 						STAa, 0x0c, 0x03, JSRw, 0x2c, 0xa8, JMPw, 0xb1, 0xa7 };
@@ -1555,7 +1578,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 
 		{ // Setup the Initial entry point
-			short /* uint8_t */[] addr = m_rom; // &m_ram[relocAddr];
+			final short /* uint8_t */[] addr = m_rom; // &m_ram[relocAddr];
 			int pos = 0;
 
 			// Tell C64 about song
@@ -1622,26 +1645,24 @@ public class Player extends C64Env /* extends C64Environment */{
 	 * The driver is relocated above and here is actually installed into ram.
 	 * The two operations are now split to allow the driver to be installed
 	 * inside the load image
-	 * 
+	 *
 	 * @param info
 	 */
-	private void psidDrvInstall(sid2_info_t info) {
+	private void psidDrvInstall(final sid2_info_t info) {
 		for (int i = 0; i < info.driverLength; i++) {
 			m_ram[info.driverAddr + i] = m_rom[i];
 		}
 	}
 
-	private void psidRelocAddr(SidTuneInfo tuneInfo, int startp, int endp) {
+	private void psidRelocAddr(final SidTuneInfo tuneInfo, final int startp, final int endp) {
 		// Used memory ranges.
-		boolean pages[] = new boolean[256];
-		int used[] = {
+		final boolean pages[] = new boolean[256];
+		final int used[] = {
 				0x00, 0x03, 0xa0, 0xbf, 0xd0, 0xff, startp,
 				(startp <= endp) && (endp <= 0xff) ? endp : 0xff };
 
 		// Mark used pages in table.
-		for (int i = 0; i < pages.length; i++) {
-			pages[i] = false;
-		}
+		Arrays.fill(pages, false);
 		for (int i = 0; i < used.length; i += 2) {
 			for (int page = used[i]; page <= used[i + 1]; page++)
 				pages[page] = true;
@@ -1651,7 +1672,7 @@ public class Player extends C64Env /* extends C64Environment */{
 			int relocPages, lastPage = 0;
 			tuneInfo.relocPages = 0;
 			for (int page = 0; page < pages.length; page++) {
-				if (pages[page] == false)
+				if (!pages[page])
 					continue;
 				relocPages = page - lastPage;
 				if (relocPages > tuneInfo.relocPages) {
@@ -1682,18 +1703,18 @@ public class Player extends C64Env /* extends C64Environment */{
 			}
 
 			@Override
-			protected short envReadMemByte(int addr) {
+			protected short envReadMemByte(final int addr) {
 				// from plain only to prevent execution of rom code
 				return m_mem.m_readMemByte(addr);
 			}
 
 			@Override
-			protected void envWriteMemByte(int addr, short data) {
+			protected void envWriteMemByte(final int addr, final short data) {
 				m_mem.m_writeMemByte(addr, data);
 			}
 
 			@Override
-			protected boolean envCheckBankJump(int addr) {
+			protected boolean envCheckBankJump(final int addr) {
 				switch (m_info.environment) {
 				case sid2_envBS:
 					if (addr >= 0xA000) {
@@ -1736,7 +1757,7 @@ public class Player extends C64Env /* extends C64Environment */{
 			}
 
 			@Override
-			protected short envReadMemDataByte(int addr) {
+			protected short envReadMemDataByte(final int addr) {
 				// from plain only to prevent execution of rom code
 				return m_mem.m_readMemDataByte(addr);
 			}
@@ -1751,8 +1772,8 @@ public class Player extends C64Env /* extends C64Environment */{
 			}
 
 			@Override
-			protected void envLoadFile(String file) {
-				StringBuffer name = new StringBuffer("E:/testsuite/");
+			protected void envLoadFile(final String file) {
+				final StringBuilder name = new StringBuilder("E:/testsuite/");
 				name.append(file);
 				name.append(".prg");
 				m_tune.load(name.toString());
@@ -1923,7 +1944,7 @@ public class Player extends C64Env /* extends C64Environment */{
 						cfg.clockForced);
 				// Fixed point conversion 16.16
 				m_samplePeriod = (long /* event_clock_t */) (cpuFreq
-						/ (double /* float64_t */) cfg.frequency * (1 << 16) * m_fastForwardFactor);
+						/ cfg.frequency * (1 << 16) * m_fastForwardFactor);
 				// Setup fake cia
 				sid6526.clock((int /* uint_least16_t */) (cpuFreq
 						/ VIC_FREQ_PAL + 0.5));
@@ -2018,13 +2039,15 @@ public class Player extends C64Env /* extends C64Environment */{
 			if (monosid) {
 				if (cfg.playback == sid2_stereo)
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return stereoOut8MonoIn(buffer, off);
 						}
 					};
 				else
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut8MonoIn(buffer, off);
 						}
 					};
@@ -2032,7 +2055,8 @@ public class Player extends C64Env /* extends C64Environment */{
 				switch (cfg.playback) {
 				case sid2_stereo: // Stereo Hardware
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return stereoOut8StereoIn(buffer, off);
 						}
 					};
@@ -2040,7 +2064,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_right: // Mono Hardware,
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut8StereoRIn(buffer, off);
 						}
 					};
@@ -2048,7 +2073,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_left:
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut8MonoIn(buffer, off);
 						}
 					};
@@ -2056,7 +2082,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_mono:
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut8StereoIn(buffer, off);
 						}
 					};
@@ -2069,13 +2096,15 @@ public class Player extends C64Env /* extends C64Environment */{
 			if (monosid) {
 				if (cfg.playback == sid2_stereo)
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return stereoOut16MonoIn(buffer, off);
 						}
 					};
 				else
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut16MonoIn(buffer, off);
 						}
 					};
@@ -2083,7 +2112,8 @@ public class Player extends C64Env /* extends C64Environment */{
 				switch (cfg.playback) {
 				case sid2_stereo: // Stereo Hardware
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return stereoOut16StereoIn(buffer, off);
 						}
 					};
@@ -2091,7 +2121,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_right: // Mono Hardware,
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut16StereoRIn(buffer, off);
 						}
 					};
@@ -2099,7 +2130,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_left:
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut16MonoIn(buffer, off);
 						}
 					};
@@ -2107,7 +2139,8 @@ public class Player extends C64Env /* extends C64Environment */{
 
 				case sid2_mono:
 					output = new IOutput() {
-						public long output(short[] buffer, int off) {
+						@Override
+						public long output(final short[] buffer, final int off) {
 							return monoOut16StereoIn(buffer, off);
 						}
 					};
@@ -2125,23 +2158,23 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	}
 
-	public int fastForward(int percent) {
+	public int fastForward(final int percent) {
 		if (percent > 3200) {
 			m_errorString = "SIDPLAYER ERROR: Percentage value out of range";
 			return -1;
 		}
 		{
 			double /* float64_t */fastForwardFactor;
-			fastForwardFactor = (double /* float64_t */) percent / 100.0;
+			fastForwardFactor = percent / 100.0;
 			// Conversion to fixed point 8.24
-			m_samplePeriod = (long /* event_clock_t */) ((double /* float64_t */) m_samplePeriod
+			m_samplePeriod = (long /* event_clock_t */) (m_samplePeriod
 					/ m_fastForwardFactor * fastForwardFactor);
 			m_fastForwardFactor = fastForwardFactor;
 		}
 		return 0;
 	}
 
-	public int load(SidTune tune) {
+	public int load(final SidTune tune) {
 		m_tune = tune;
 		if (tune == null || !tune.bool()) {
 			// Unload tune
@@ -2159,7 +2192,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 
 		{ // Must re-configure on fly for stereo support!
-			int ret = config(m_cfg);
+			final int ret = config(m_cfg);
 			// Failed configuration with new tune, reject it
 			if (ret < 0) {
 				m_tune = null;
@@ -2181,8 +2214,8 @@ public class Player extends C64Env /* extends C64Environment */{
 		}
 	}
 
-	public long /* uint_least32_t */play(short[] buffer,
-			int /* uint_least32_t */length) {
+	public long /* uint_least32_t */play(final short[] buffer,
+			final int /* uint_least32_t */length) {
 		// Make sure a _tune is loaded
 		if (!m_tune.bool())
 			return 0;
@@ -2224,7 +2257,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		return rtc.getTime();
 	}
 
-	public void debug(boolean enable) {
+	public void debug(final boolean enable) {
 		cpu.debug(enable);
 	}
 
@@ -2258,7 +2291,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		private short /* unsigned char */[] extab;
 	}
 
-	private int read_options(short /* unsigned char */[] buf, int pos) {
+	private int read_options(final short /* unsigned char */[] buf, final int pos) {
 		int c, l = 0;
 
 		c = buf[pos + 0];
@@ -2270,7 +2303,7 @@ public class Player extends C64Env /* extends C64Environment */{
 		return ++l;
 	}
 
-	private int read_undef(short /* unsigned char */[] buf, int pos) {
+	private int read_undef(final short /* unsigned char */[] buf, final int pos) {
 		int n, l = 2;
 
 		n = buf[pos + 0] + 256 * buf[pos + 1];
@@ -2281,9 +2314,9 @@ public class Player extends C64Env /* extends C64Environment */{
 		return l;
 	}
 
-	private int /* unsigned char */reloc_seg(short /* unsigned char */[] buf,
-			int bufPos, int len, short /* unsigned char */[] rtab,
-			int rtabPos, file65 fp) {
+	private int /* unsigned char */reloc_seg(final short /* unsigned char */[] buf,
+			final int bufPos, final int len, final short /* unsigned char */[] rtab,
+			int rtabPos, final file65 fp) {
 		int adr = -1;
 		int type, seg, old, newv;
 		/*
@@ -2338,7 +2371,7 @@ public class Player extends C64Env /* extends C64Environment */{
 	}
 
 	private int /* unsigned char */reloc_globals(
-			short /* unsigned char */[] buf, int bufPos, file65 fp) {
+			final short /* unsigned char */[] buf, int bufPos, final file65 fp) {
 		int n, old, newv, seg;
 
 		n = buf[bufPos + 0] + 256 * buf[bufPos + 1];
@@ -2362,13 +2395,13 @@ public class Player extends C64Env /* extends C64Environment */{
 		return bufPos;
 	}
 
-	private file65 file = new file65();
+	private final file65 file = new file65();
 
-	private char /* unsigned char */cmp[] = {
+	private final char /* unsigned char */cmp[] = {
 			1, 0, 'o', '6', '5' };
 
 	private static class BufPos {
-		public BufPos(short[] buf, int pos, int size) {
+		public BufPos(final short[] buf, final int pos, final int size) {
 			this.fBuf = buf;
 			this.fPos = pos;
 			this.fSize = size;
@@ -2381,12 +2414,14 @@ public class Player extends C64Env /* extends C64Environment */{
 		int fSize;
 	}
 
-	private BufPos reloc65(short /* unsigned char** */[] buf,
-			int /* * */fsize, int addr) {
+	private BufPos reloc65(final short /* unsigned char** */[] buf,
+			final int /* * */fsize, final int addr) {
 		int mode, hlen;
 
-		boolean tflag = false, dflag = false, bflag = false, zflag = false;
-		int tbase = 0, dbase = 0, bbase = 0, zbase = 0;
+		boolean tflag = false;
+		final boolean dflag = false, bflag = false, zflag = false;
+		int tbase = 0;
+		final int dbase = 0, bbase = 0, zbase = 0;
 		int extract = 0;
 
 		file.buf = buf;
@@ -2424,19 +2459,19 @@ public class Player extends C64Env /* extends C64Environment */{
 		file.zdiff = zflag ? zbase - file.zbase : 0;
 
 		file.segt = file.buf;
-		int segtPos = hlen;
+		final int segtPos = hlen;
 		file.segd = file.segt;
-		int sehdPos = segtPos + file.tlen;
+		final int sehdPos = segtPos + file.tlen;
 		file.utab = file.segd;
-		int utabPos = sehdPos + file.dlen;
+		final int utabPos = sehdPos + file.dlen;
 
 		file.rttab = file.utab;
-		int rttabPos = utabPos + read_undef(file.utab, utabPos);
+		final int rttabPos = utabPos + read_undef(file.utab, utabPos);
 
 		file.rdtab = file.rttab;
 		file.extab = file.rdtab;
-		int rdtabPos = reloc_seg(file.segt, segtPos, file.tlen, file.rttab, rttabPos, file);
-		int extabPos = reloc_seg(file.segd, sehdPos, file.dlen, file.rdtab, rdtabPos, file);
+		final int rdtabPos = reloc_seg(file.segt, segtPos, file.tlen, file.rttab, rttabPos, file);
+		final int extabPos = reloc_seg(file.segd, sehdPos, file.dlen, file.rdtab, rdtabPos, file);
 
 		/*extabPos = */reloc_globals(file.extab, extabPos, file);
 
@@ -2471,7 +2506,7 @@ public class Player extends C64Env /* extends C64Environment */{
 
 	final static int EOF = (-1);
 
-	private int reldiff(int s, file65 fp) {
+	private int reldiff(final int s, final file65 fp) {
 		return (((s) == 2) ? fp.tdiff : (((s) == 3) ? fp.ddiff
 				: (((s) == 4) ? fp.bdiff : (((s) == 5) ? fp.zdiff : 0))));
 	}

@@ -2,7 +2,7 @@
  * @(#) Kaiser.java
  *
  * Created on 21.02.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@ public class Kaiser
 	private static final int SINC_PHASES_ALL	= SINC_PHASES * SINC_WIDTH;
 	public  static final int SINC_QUANTSHIFT	= 15;
 	public  static final int SINC_FRACSHIFT		= ModConstants.SHIFT - SINC_PHASES_BITS;
-	
+
 	public  static final int [] gKaiserSinc = new int [SINC_PHASES_ALL];
 	public  static final int [] gDownsample13x = new int [SINC_PHASES_ALL];
 	public  static final int [] gDownsample2x = new int [SINC_PHASES_ALL];
-	
+
 	public  static final int gDownsample2x_Limit	= 0x13 << (ModConstants.SHIFT-4);
 	public  static final int gDownsample13x_Limit	= 0x18 << (ModConstants.SHIFT-4);
 
@@ -67,7 +67,7 @@ public class Kaiser
 			s = s + ds;
 		}
 		while(ds > 1E-7 * s);
-		
+
 		return s;
 	}
 	private static void getSinc(final int [] lut, final double beta, double cutoff)
@@ -91,7 +91,7 @@ public class Kaiser
 			}
 			else
 			{
-				final double x = (double)(ix - ((SINC_WIDTH/2) * SINC_PHASES)) * (double)(1.0 / SINC_PHASES);
+				final double x = (ix - ((SINC_WIDTH/2) * SINC_PHASES)) * (1.0 / SINC_PHASES);
 				final double xPi = x * kPi;
 				fsinc = Math.sin(xPi) * iZero(beta * Math.sqrt(1 - x * x * (1.0 / 16.0))) / (izeroBeta * xPi); // Kaiser window
 			}

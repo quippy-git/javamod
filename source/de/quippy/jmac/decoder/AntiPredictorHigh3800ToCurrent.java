@@ -28,9 +28,10 @@ import java.util.Arrays;
  */
 public class AntiPredictorHigh3800ToCurrent extends AntiPredictor {
     private final static int FIRST_ELEMENT = 16;
-    private int[] bm = new int[FIRST_ELEMENT];
+    private final int[] bm = new int[FIRST_ELEMENT];
 
-    public void antiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements) {
+    @Override
+	public void antiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements) {
 
         //the frame to start prediction on
 

@@ -2,7 +2,7 @@
  * @(#) VUMeterPanel.java
  *
  * Created on 26.09.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,17 +36,17 @@ public class VUMeterPanel extends MeterPanelBase
 	private float currentMaxPeakLevel;
 	private Color [] color;
 	private Color [] colorLow;
-	
+
 	private float rampDownValue;
 	private float maxPeakLevelRampDownValue;
 	private float maxPeakLevelRampDownDelay;
-	
+
 	private int myAnzLines;
 
 	/**
 	 * Constructor for VUMeterPanel
 	 */
-	public VUMeterPanel(int updateRate)
+	public VUMeterPanel(final int updateRate)
 	{
 		super(updateRate);
 		this.currentLevel = 0;
@@ -59,20 +59,20 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#componentWasResized()
 	 */
 	@Override
-	protected void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
+	protected void componentWasResized(final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
-		rampDownValue = 2.5f / (float)getDesiredFPS();
+		rampDownValue = 2.5f / getDesiredFPS();
 		maxPeakLevelRampDownDelay = rampDownValue / 100f;
 		maxPeakLevelRampDownValue = 0;
 
 		myAnzLines = newHeight>>1;
-		
+
 		color = new Color[myAnzLines];
 		colorLow = new Color[myAnzLines];
 		for (int i=0; i<myAnzLines; i++)
 		{
-			int color1 = i*255/myAnzLines;
-			int color2 = 255-color1;
+			final int color1 = i*255/myAnzLines;
+			final int color2 = 255-color1;
 			color[i] = new Color(color1, color2, 0);
 			colorLow[i] = new Color(color1>>1, color2>>1, 0);
 		}
@@ -81,7 +81,7 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @since 29.09.2007
 	 * @param samples
 	 */
-	public void setVUMeter(float [] samples)
+	public void setVUMeter(final float [] samples)
 	{
 		if (samples!=null) setVUMeter(samples, samples.length);
 	}
@@ -90,7 +90,7 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @param samples
 	 * @param length
 	 */
-	public void setVUMeter(float [] samples, int length)
+	public void setVUMeter(final float [] samples, final int length)
 	{
 		float newLevel = 0;
 		for (int i=0; i<length; i++)
@@ -99,7 +99,7 @@ public class VUMeterPanel extends MeterPanelBase
 			if (v<0) v*=-1f;
 			if (v>newLevel) newLevel = v;
 		}
-		
+
 		if (newLevel>1.0F) newLevel = 1.0F;
 
 		if (newLevel>currentLevel)
@@ -117,11 +117,11 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		final int level = (int)(myAnzLines*currentLevel);
 		final int maxPeakLevel = (int)(myAnzLines*currentMaxPeakLevel);
-		
+
 		for (int i=0; i<myAnzLines; i++)
 		{
 			g.setColor((i>=level && i!=maxPeakLevel)?colorLow[i]:color[i]);
@@ -131,7 +131,7 @@ public class VUMeterPanel extends MeterPanelBase
 
 		currentLevel-=rampDownValue;
 		if (currentLevel<0) currentLevel=0;
-		
+
 		currentMaxPeakLevel-=maxPeakLevelRampDownValue;
 		if (currentMaxPeakLevel<0)
 			currentMaxPeakLevel=0;

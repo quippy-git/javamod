@@ -2,7 +2,7 @@
  * @(#) OGGContainer.java
  *
  * Created on 01.11.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ import de.quippy.javamod.multimedia.ogg.metadata.OggMetaData;
  */
 public class OGGContainer extends MultimediaContainer
 {
-	private static final String[] OGGFILEEXTENSION = new String [] 
+	private static final String[] OGGFILEEXTENSION = new String []
 	{
 		"ogg", "oga"
 	};
@@ -63,9 +63,9 @@ public class OGGContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInstance(java.net.URL)
 	 */
 	@Override
-	public MultimediaContainer getInstance(URL url)
+	public MultimediaContainer getInstance(final URL url)
 	{
-		MultimediaContainer result = super.getInstance(url);
+		final MultimediaContainer result = super.getInstance(url);
 		oggMetaData = new OggMetaData(url);
 		if (!MultimediaContainerManager.isHeadlessMode()) ((OGGInfoPanel)getInfoPanel()).fillInfoPanelWith(oggMetaData, getPrintableFileUrl());
 		return result;
@@ -77,7 +77,7 @@ public class OGGContainer extends MultimediaContainer
 	@Override
 	public String getSongName()
 	{
-		if (oggMetaData!=null) 
+		if (oggMetaData!=null)
 			return oggMetaData.getShortDescription();
 		else
 			return super.getSongName();
@@ -88,17 +88,17 @@ public class OGGContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getSongInfosFor(java.net.URL)
 	 */
 	@Override
-	public Object[] getSongInfosFor(URL url)
+	public Object[] getSongInfosFor(final URL url)
 	{
 		String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
 		try
 		{
-			OggMetaData metaData = new OggMetaData(url);
+			final OggMetaData metaData = new OggMetaData(url);
 			songName = metaData.getShortDescription();
 			duration = Long.valueOf(metaData.getLengthInMilliseconds());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		return new Object[] { songName, duration };
@@ -167,7 +167,7 @@ public class OGGContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 	}
 
@@ -176,7 +176,7 @@ public class OGGContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationSave(java.util.Properties)
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 	}
 	/**

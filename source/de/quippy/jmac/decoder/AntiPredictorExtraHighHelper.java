@@ -25,10 +25,10 @@ package de.quippy.jmac.decoder;
  * Time: 14:51:31
  */
 public class AntiPredictorExtraHighHelper {
-    int ConventionalDotProduct(short[] bip, int indexbip, short[] bbm, int indexbbm, short[] pIPAdaptFactor, int indexap, int op, int nNumberOfIterations) {
+    int ConventionalDotProduct(final short[] bip, final int indexbip, final short[] bbm, final int indexbbm, final short[] pIPAdaptFactor, final int indexap, final int op, final int nNumberOfIterations) {
         //dot product
         int nDotProduct = 0;
-        int pMaxBBM = nNumberOfIterations;
+        final int pMaxBBM = nNumberOfIterations;
 
         if (op == 0) {
             int i = indexbbm;

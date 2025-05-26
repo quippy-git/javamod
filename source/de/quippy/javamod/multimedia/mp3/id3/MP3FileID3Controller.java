@@ -2,7 +2,7 @@
  * @(#) MP3FileID3Controller.java
  *
  * Created on 24.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,17 +47,17 @@ public class MP3FileID3Controller
 	private ID3v2Tag id3v2;
 	private MPEGAudioFrameHeader head;
 
-	public MP3FileID3Controller(URL mp3URL)
+	public MP3FileID3Controller(final URL mp3URL)
 	{
 		super();
 		getTagsFromURL(mp3URL);
 	}
-	public MP3FileID3Controller(RandomAccessInputStream raf)
+	public MP3FileID3Controller(final RandomAccessInputStream raf)
 	{
 		super();
 		getTagsFromRAF(raf);
 	}
-	private void getTagsFromURL(URL mp3URL)
+	private void getTagsFromURL(final URL mp3URL)
 	{
 		RandomAccessInputStream raf = null;
 		try
@@ -65,16 +65,16 @@ public class MP3FileID3Controller
 			raf = new RandomAccessInputStreamImpl(mp3URL);
 			getTagsFromRAF(raf);
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}
 		finally
 		{
-			if (raf!=null) try { raf.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (raf!=null) try { raf.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
-	private void getTagsFromRAF(RandomAccessInputStream raf)
+	private void getTagsFromRAF(final RandomAccessInputStream raf)
 	{
 		try
 		{
@@ -83,7 +83,7 @@ public class MP3FileID3Controller
 			id3v2 = new ID3v2Tag(raf);
 			head = new MPEGAudioFrameHeader(raf, id3v2.getSize());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}
@@ -98,7 +98,7 @@ public class MP3FileID3Controller
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public void removeTags(int type) throws FileNotFoundException, IOException
+	public void removeTags(final int type) throws FileNotFoundException, IOException
 	{
 		RandomAccessFile raf = null;
 		try
@@ -156,7 +156,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param title the title of the mp3
 	 */
-	public void setTitle(String title, int type)
+	public void setTitle(final String title, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -173,7 +173,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param album the album of the mp3
 	 */
-	public void setAlbum(String album, int type)
+	public void setAlbum(final String album, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -190,7 +190,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param artist the artist of the mp3
 	 */
-	public void setArtist(String artist, int type)
+	public void setArtist(final String artist, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -207,7 +207,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param comment a comment to add to the mp3
 	 */
-	public void setComment(String comment, int type)
+	public void setComment(final String comment, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -224,7 +224,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param genre the genre of the mp3
 	 */
-	public void setGenre(String genre, int type)
+	public void setGenre(final String genre, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -241,7 +241,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param year of the mp3
 	 */
-	public void setYear(String year, int type)
+	public void setYear(final String year, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -258,7 +258,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param track the track number of this mp3
 	 */
-	public void setTrack(int track, int type)
+	public void setTrack(final int track, final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -275,7 +275,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param composer the composer of this mp3
 	 */
-	public void setComposer(String composer)
+	public void setComposer(final String composer)
 	{
 		if (allow(ID3V2))
 		{
@@ -288,7 +288,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param artist the original artist of this mp3
 	 */
-	public void setOriginalArtist(String artist)
+	public void setOriginalArtist(final String artist)
 	{
 		if (allow(ID3V2))
 		{
@@ -301,7 +301,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param copyright copyright information related to this mp3
 	 */
-	public void setCopyrightInfo(String copyright)
+	public void setCopyrightInfo(final String copyright)
 	{
 		if (allow(ID3V2))
 		{
@@ -310,13 +310,13 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Add a link to this mp3 (id3v2 only).  This includes a description of 
+	 * Add a link to this mp3 (id3v2 only).  This includes a description of
 	 * the url and the url itself.
 	 *
 	 * @param desc a description of the url
 	 * @param url the url itself
 	 */
-	public void setUserDefinedURL(String desc, String url)
+	public void setUserDefinedURL(final String desc, final String url)
 	{
 		if (allow(ID3V2))
 		{
@@ -325,13 +325,13 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Add a field of miscellaneous text (id3v2 only).  This includes a 
+	 * Add a field of miscellaneous text (id3v2 only).  This includes a
 	 * description of the text and the text itself.
 	 *
 	 * @param desc a description of the text
 	 * @param text the text itself
 	 */
-	public void setUserDefinedText(String desc, String text)
+	public void setUserDefinedText(final String desc, final String text)
 	{
 		if (allow(ID3V2))
 		{
@@ -344,7 +344,7 @@ public class MP3FileID3Controller
 	 *
 	 * @param encBy who encoded the mp3
 	 */
-	public void setEncodedBy(String encBy)
+	public void setEncodedBy(final String encBy)
 	{
 		if (allow(ID3V2))
 		{
@@ -361,7 +361,7 @@ public class MP3FileID3Controller
 	 * @param id the id of the frame to set the data for
 	 * @param data the data to set
 	 */
-	public void setTextFrame(String id, String data)
+	public void setTextFrame(final String id, final String data)
 	{
 		if (allow(ID3V2))
 		{
@@ -370,13 +370,13 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Set the data of the frame specified by the id (id3v2 only).  The id 
+	 * Set the data of the frame specified by the id (id3v2 only).  The id
 	 * should be one of the static strings specified in ID3v2Frames class.
 	 *
 	 * @param id the id of the frame to set the data for
 	 * @param data the data to set
 	 */
-	public void setFrameData(String id, byte[] data)
+	public void setFrameData(final String id, final byte[] data)
 	{
 		if (allow(ID3V2))
 		{
@@ -392,8 +392,8 @@ public class MP3FileID3Controller
 	 */
 	public long getPlayingTime()
 	{
-		long datasize = (mp3File.length() * 8) - id3v2.getSize();
-		long bps = head.getBitRate() * 1000;
+		final long datasize = (mp3File.length() * 8) - id3v2.getSize();
+		final long bps = head.getBitRate() * 1000;
 		return datasize / bps;
 	}
 
@@ -405,11 +405,11 @@ public class MP3FileID3Controller
 	 */
 	public String getPlayingTimeString()
 	{
-		long time = getPlayingTime();
-		long mins = time / 60;
-		long secs = time % 60;
+		final long time = getPlayingTime();
+		final long mins = time / 60;
+		final long secs = time % 60;
 
-		StringBuilder str = new StringBuilder();
+		final StringBuilder str = new StringBuilder();
 		if (mins<10) str.append('0');
 		str.append(mins).append(':');
 		if (secs<10) str.append('0');
@@ -489,7 +489,7 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Returns a string specifying the version of the mpeg.  This can either 
+	 * Returns a string specifying the version of the mpeg.  This can either
 	 * be 1.0, 2.0, or 2.5.
 	 *
 	 * @return a string specifying the version of the mpeg
@@ -545,7 +545,7 @@ public class MP3FileID3Controller
 	 * @return the artist of the mp3
 	 * @exception ID3v2FormatException if the data of the field is incorrect
 	 */
-	public String getArtist(int type)
+	public String getArtist(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -564,7 +564,7 @@ public class MP3FileID3Controller
 	 * @return the album of the mp3
 	 * @exception ID3v2FormatException if the data of the field is incorrect
 	 */
-	public String getAlbum(int type)
+	public String getAlbum(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -584,7 +584,7 @@ public class MP3FileID3Controller
 	 * @return the comment field of this mp3
 	 * @exception ID3v2FormatException if the data of the field is incorrect
 	 */
-	public String getComment(int type)
+	public String getComment(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -603,7 +603,7 @@ public class MP3FileID3Controller
 	 * @return the genre of this mp3
 	 * @exception ID3v2FormatException if the data of this field is incorrect
 	 */
-	public String getGenre(int type)
+	public String getGenre(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -622,7 +622,7 @@ public class MP3FileID3Controller
 	 * @return the title of this mp3
 	 * @exception ID3v2FormatException if the data of this field is incorrect
 	 */
-	public String getTitle(int type)
+	public String getTitle(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -641,7 +641,7 @@ public class MP3FileID3Controller
 	 * @return the track of this mp3
 	 * @exception ID3v2FormatException if the data of this field is incorrect
 	 */
-	public String getTrack(int type)
+	public String getTrack(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -660,7 +660,7 @@ public class MP3FileID3Controller
 	 * @return the year of this mp3
 	 * @exception ID3v2FormatException if the data of this field is incorrect
 	 */
-	public String getYear(int type)
+	public String getYear(final int type)
 	{
 		if (allow(type&ID3V1))
 		{
@@ -786,7 +786,7 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Returns who encoded this mp3 if set and the empty string if not 
+	 * Returns who encoded this mp3 if set and the empty string if not
 	 * (id3v2 only).
 	 *
 	 * @return who encoded this mp3
@@ -802,7 +802,7 @@ public class MP3FileID3Controller
 	}
 
 	/**
-	 * Returns the BPM of this song 
+	 * Returns the BPM of this song
 	 * (id3v2 only).
 	 *
 	 * @return BPM of this mp3
@@ -820,14 +820,14 @@ public class MP3FileID3Controller
 	/**
 	 * Returns the textual information contained in the frame specifed by the
 	 * id.  If the frame does not contain any textual information or does not
-	 * exist, then the empty string is returned (id3v2 only).  The id should 
+	 * exist, then the empty string is returned (id3v2 only).  The id should
 	 * be one of the static strings defined in the ID3v2Frames class.
 	 *
 	 * @param id the id of the frame to get data from
 	 * @return the textual information of the frame
 	 * @exception ID3v2FormatException if the data of the frame is incorrect
 	 */
-	public String getFrameDataString(String id)
+	public String getFrameDataString(final String id)
 	{
 		if (allow(ID3V2))
 		{
@@ -845,7 +845,7 @@ public class MP3FileID3Controller
 	 * @param id the id of the frame to get data from
 	 * @return the data contained in the frame
 	 */
-	public byte[] getFrameDataBytes(String id)
+	public byte[] getFrameDataBytes(final String id)
 	{
 		if (allow(ID3V2))
 		{
@@ -866,12 +866,12 @@ public class MP3FileID3Controller
 		{
 			return mp3File.getCanonicalPath();
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			return mp3File.getAbsolutePath();
 		}
 	}
-	
+
 	/**
 	 * A short description like winamp does in its default
 	 * @since 26.12.2008
@@ -882,7 +882,7 @@ public class MP3FileID3Controller
 		String artist = null;
 		String album = null;
 		String title = null;
-		
+
 		if (id3v2Exists())
 		{
 			artist = getArtist(ID3V2);
@@ -895,8 +895,8 @@ public class MP3FileID3Controller
 			if (title==null || title.length()==0) title = getTitle(ID3V1);
 			if (album==null || album.length()==0) album = getAlbum(ID3V1);
 		}
-		
-		StringBuilder str = new StringBuilder();
+
+		final StringBuilder str = new StringBuilder();
 		if (artist!=null && artist.length()!=0)
 		{
 			str.append(artist).append(" - ");
@@ -919,19 +919,20 @@ public class MP3FileID3Controller
 	 * @param type specifies what conditions the tags are allowed to proceed
 	 * @return true if it is ok to proceed with the read/write
 	 */
-	private boolean allow(int type)
+	private boolean allow(final int type)
 	{
 		return (((type&ID3V1)!=0 && id3v1Exists()) ||
 				((type&ID3V2)!=0 && id3v2Exists()));
 	}
-	
+
 	/**
-	 * Return a string representation of this object.  This includes all the 
+	 * Return a string representation of this object.  This includes all the
 	 * information contained within the mpeg header and id3 tags as well as
 	 * certain file attributes.
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
 		return "MP3File" + "\nPath:\t\t\t\t" + mp3File.getAbsolutePath() + "\nFileSize:\t\t\t" + mp3File.length() + " bytes\nPlayingTime:\t\t\t" + getPlayingTimeString() + "\n" + head + "\n" + id3v1 + "\n" + id3v2;

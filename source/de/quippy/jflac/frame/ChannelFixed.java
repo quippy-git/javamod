@@ -34,9 +34,9 @@ public class ChannelFixed extends Channel {
     private static final int MAX_FIXED_ORDER = 4;
 
     private EntropyCodingMethod entropyCodingMethod; // The residual coding method.
-    private int order; // The polynomial order.
-    private int[] warmup = new int[MAX_FIXED_ORDER]; // Warmup samples to prime the predictor, length == order.
-    private int[] residual; // The residual signal, length == (blocksize minus order) samples.
+    private final int order; // The polynomial order.
+    private final int[] warmup = new int[MAX_FIXED_ORDER]; // Warmup samples to prime the predictor, length == order.
+    private final int[] residual; // The residual signal, length == (blocksize minus order) samples.
 
     /**
      * The constructor.
@@ -48,9 +48,9 @@ public class ChannelFixed extends Channel {
      * @param order         The predicate order
      * @throws IOException  Thrown if error reading from the InputBitStream
      */
-    public ChannelFixed(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits, int order) throws IOException {
+    public ChannelFixed(final BitInputStream is, final Header header, final ChannelData channelData, final int bps, final int wastedBits, final int order) throws IOException {
         super(header, wastedBits);
-        
+
         this.residual = channelData.getResidual();
         this.order = order;
 
@@ -60,11 +60,11 @@ public class ChannelFixed extends Channel {
         }
 
         // read entropy coding method info
-        int type = is.readRawUInt(ENTROPY_CODING_METHOD_TYPE_LEN);
+        final int type = is.readRawUInt(ENTROPY_CODING_METHOD_TYPE_LEN);
         EntropyPartitionedRice pr;
         switch (type) {
             case ENTROPY_CODING_METHOD_PARTITIONED_RICE :
-                int u32 = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN);
+                final int u32 = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN);
                 pr = new EntropyPartitionedRice();
                 entropyCodingMethod = pr;
                 pr.order = u32;
@@ -79,12 +79,13 @@ public class ChannelFixed extends Channel {
         System.arraycopy(warmup, 0, channelData.getOutput(), 0, order);
         FixedPredictor.restoreSignal(residual, header.blockSize - order, order, channelData.getOutput(), order);
     }
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
-        StringBuffer sb = new StringBuffer("FLACSubframe_Fixed: Order=" + order + " PartitionOrder=" + ((EntropyPartitionedRice)entropyCodingMethod).order + " WastedBits=" + wastedBits);
+    @Override
+	public String toString() {
+        final StringBuilder sb = new StringBuilder("FLACSubframe_Fixed: Order=" + order + " PartitionOrder=" + ((EntropyPartitionedRice)entropyCodingMethod).order + " WastedBits=" + wastedBits);
         for (int i = 0; i < order; i++) sb.append(" warmup[" + i + "]=" + warmup[i]);
         return sb.toString();
     }

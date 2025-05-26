@@ -1,8 +1,8 @@
 /*
  * @(#) PatternContainer.java
- * 
+ *
  * Created on 28.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class PatternContainer
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		for (int i=0; i<patterns.length; i++)
 		{
 			sb.append(i).append(". Pattern:\n");
@@ -96,15 +96,15 @@ public class PatternContainer
 	}
 	public int getChannels()
 	{
-		return (patterns!=null && patterns.length>0 && patterns[0]!=null)?patterns[0].getChannels():0; 
+		return (patterns!=null && patterns.length>0 && patterns[0]!=null)?patterns[0].getChannels():0;
 	}
 	/**
 	 * @since 23.08.2008
 	 */
 	public void resetRowsPlayed()
 	{
-		for (int i=0; i<patterns.length; i++)
-			if (patterns[i]!=null) patterns[i].resetRowsPlayed();
+		for (final Pattern pattern : patterns)
+			if (pattern!=null) pattern.resetRowsPlayed();
 	}
 	/**
 	 * @return Returns the patterns.
@@ -130,7 +130,7 @@ public class PatternContainer
 	/**
 	 * @return Returns the pattern.
 	 */
-	public PatternElement getPatternElement(final int patternIndex, final int row, int channel)
+	public PatternElement getPatternElement(final int patternIndex, final int row, final int channel)
 	{
 		return (patterns[patternIndex]!=null)?patterns[patternIndex].getPatternElement(row, channel):null;
 	}
@@ -169,7 +169,7 @@ public class PatternContainer
 	}
 	public PatternRow createPatternRow(final int patternIndex, final int row, final int channels)
 	{
-		Pattern currentPattern = getPattern(patternIndex);
+		final Pattern currentPattern = getPattern(patternIndex);
 		currentPattern.setPatternRow(row, new PatternRow(parentMod, currentPattern, channels));
 		return getPatternRow(patternIndex, row);
 	}
@@ -182,7 +182,7 @@ public class PatternContainer
 	}
 	public PatternElement createPatternElement(final int patternIndex, final int row, final int channel)
 	{
-		PatternRow currentPatternRow = getPatternRow(patternIndex, row);
+		final PatternRow currentPatternRow = getPatternRow(patternIndex, row);
 		final boolean isImpulseTracker = (parentMod.getModType()&ModConstants.MODTYPE_IMPULSETRACKER)!=0;
 		final PatternElement newElement = (isImpulseTracker)?new PatternElementIT(parentMod, currentPatternRow, patternIndex, row, channel):new PatternElementXM(parentMod, currentPatternRow, patternIndex, row, channel);
 		currentPatternRow.setPatternElement(channel, newElement);
@@ -310,13 +310,13 @@ public class PatternContainer
 		if (rainbow)
 		{
 			for (int c=1; c<channelColors.length; c++)
-				if (channelNames==null || channelNames[c]==null || channelNames[c].length()==0 || !channelNames[c].equals(channelNames[c-1]))
+				if (channelNames==null || channelNames[c]==null || channelNames[c].isEmpty() || !channelNames[c].equals(channelNames[c-1]))
 					numGroups++;
 		}
-		final double hueFactor = (rainbow)?(1.5d * Math.PI) / (double)((numGroups>1)?numGroups-1:1): 1000d;  // Three quarters of the color wheel, red to purple
+		final double hueFactor = (rainbow)?(1.5d * Math.PI) / ((numGroups>1)?numGroups-1:1): 1000d;  // Three quarters of the color wheel, red to purple
 		for(int c=0, group=0; c<channelColors.length; c++)
 		{
-			if(c>0 && (channelNames==null || channelNames[c]==null || channelNames[c].length()==0 || !channelNames[c].equals(channelNames[c-1])))
+			if(c>0 && (channelNames==null || channelNames[c]==null || channelNames[c].isEmpty() || !channelNames[c].equals(channelNames[c-1])))
 				group++;
 			final double hue = group * hueFactor;	// 0...2pi
 			final double saturation = 0.3d;			// 0...2/3

@@ -25,20 +25,20 @@ public class EntropyPartitionedRiceContents {
     protected int[] parameters; // The Rice parameters for each context.
     protected int[] rawBits; // Widths for escape-coded partitions.
 
-    /** 
+    /**
      * The capacity of the parameters and raw_bits arrays specified as an order.
      * i.e. the number of array elements allocated is 2 ^ capacity_by_order.
      */
     protected int capacityByOrder = 0;
-    
+
     /**
      * Ensure enough menory has been allocated.
      * @param maxPartitionOrder The maximum partition order
      */
-    public void ensureSize(int maxPartitionOrder) {
+    public void ensureSize(final int maxPartitionOrder) {
         if (capacityByOrder >= maxPartitionOrder) return;
         parameters = new int[(1 << maxPartitionOrder)];
-        rawBits = new int[(1 << maxPartitionOrder)]; 
+        rawBits = new int[(1 << maxPartitionOrder)];
         capacityByOrder = maxPartitionOrder;
     }
 }

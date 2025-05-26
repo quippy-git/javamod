@@ -2,7 +2,7 @@
  * @(#) CircularBuffer.java
  *
  * Created on 13.11.2023 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * grow automatically, so I made my own very basic implementation.<br>
  * This implementation will not grow. If the size is not sufficient, no more
  * pushes will be possible. However, you can in that case call "growBy".<br>
- * The PushPointer always points to the next empty entry, the popPointer to 
+ * The PushPointer always points to the next empty entry, the popPointer to
  * the next element to be popped. With peek you can do a look-ahead.<br>
  * It is defined empty, when push- and popPointer are on the same Index. It is defined
  * full, when the pushPointer + 1 would fall on popPointer.<br>
@@ -42,7 +42,7 @@ import java.io.Serializable;
 public class CircularBuffer<E> implements Serializable
 {
 	private static final long serialVersionUID = 5285069332735206260L;
-	
+
 	private volatile Object [] elements;
 	private volatile int popPointer;
 	private volatile int pushPointer;
@@ -63,7 +63,7 @@ public class CircularBuffer<E> implements Serializable
 	public CircularBuffer()
 	{
 		this(64);
-	}	
+	}
 	/**
 	 * returns the size of the buffer in total
 	 * @since 13.11.2023
@@ -78,14 +78,14 @@ public class CircularBuffer<E> implements Serializable
 	 * is greater or equal to popPointer) or we will enlarge the space between
 	 * push- and popPointer.<br>
 	 * This operation is not thread safe! If one thread pushes or resizes and another one
-	 * is popping, this <i>will</i> result in unforseeable results.    
+	 * is popping, this <i>will</i> result in unforseeable results.
 	 * @since 02.12.2023
 	 * @param addSize
 	 */
 	public void growBy(final int addSize)
 	{
-		Object [] newBuffer = new Object[size + addSize];
-		
+		final Object [] newBuffer = new Object[size + addSize];
+
 		if (pushPointer >= popPointer) // just add new space at the end
 		{
 			System.arraycopy(elements, 0, newBuffer, 0, size);
@@ -156,8 +156,8 @@ public class CircularBuffer<E> implements Serializable
 	public E pop()
 	{
 		if (isEmpty()) return null;
-		
-		E element = (E)elements[popPointer];
+
+		final E element = (E)elements[popPointer];
 		elements[popPointer] = null; // delete the popped element
 		popPointer = (popPointer + 1) % size;
 		return element;
@@ -175,7 +175,7 @@ public class CircularBuffer<E> implements Serializable
 	public E peek(final int add)
 	{
 		if (isEmpty()) return null;
-		
+
 		return (E)elements[(popPointer + add) % size];
 	}
 	/**
@@ -184,7 +184,7 @@ public class CircularBuffer<E> implements Serializable
 	 * @since 13.11.2023
 	 * @param element
 	 */
-	public void push(E element)
+	public void push(final E element)
 	{
 		if (isFull()) return;
 
@@ -199,9 +199,10 @@ public class CircularBuffer<E> implements Serializable
 	 * @return A String representation of this Queue
 	 * @see java.lang.Object#toString()
 	 */
+	@Override
 	public String toString()
 	{
-		StringBuffer sb = new StringBuffer('{');
+		final StringBuilder sb = new StringBuilder('{');
 		sb.append(String.valueOf(pushPointer)).append('/').append(String.valueOf(popPointer)).append(',')
 			.append(String.valueOf(getSize())).append('/').append(String.valueOf(getFree()))
 			.append(", {");

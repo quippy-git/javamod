@@ -2,7 +2,7 @@
  * @(#) SeekBarPanelListener.java
  *
  * Created on 15.02.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

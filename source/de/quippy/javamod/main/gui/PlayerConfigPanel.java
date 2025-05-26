@@ -2,7 +2,7 @@
  * @(#) PlayerConfigPanel.java
  *
  * Created on 10.12.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
@@ -59,16 +60,15 @@ public class PlayerConfigPanel extends JPanel
 	{
 		if (tabbedPane==null)
 		{
-			tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+			tabbedPane = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 			tabbedPane.setFont(Helpers.getDialogFont());
-			ArrayList<MultimediaContainer> containerList = MultimediaContainerManager.getContainerArray();
-			for (int i=0; i<containerList.size(); i++)
+			final ArrayList<MultimediaContainer> containerList = MultimediaContainerManager.getContainerArray();
+			for (final MultimediaContainer container : containerList)
 			{
-				MultimediaContainer container = containerList.get(i);
-				JPanel configPanel = container.getConfigPanel();
+				final JPanel configPanel = container.getConfigPanel();
 				if (configPanel != null)
 				{
-					JScrollPane containerScroller = new JScrollPane();
+					final JScrollPane containerScroller = new JScrollPane();
 					containerScroller.setName("scrollPane_Config_" + container.getName());
 					containerScroller.setViewportView(configPanel);
 					tabbedPane.add(container.getName(), containerScroller);
@@ -77,7 +77,7 @@ public class PlayerConfigPanel extends JPanel
 		}
 		return tabbedPane;
 	}
-	public void selectTabForContainer(MultimediaContainer currentContainer)
+	public void selectTabForContainer(final MultimediaContainer currentContainer)
 	{
 		for (int i=0; i<getTabbedPane().getTabCount(); i++)
 		{

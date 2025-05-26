@@ -2,7 +2,7 @@
  * @(#) PlayListEntry.java
  *
  * Created on 03.12.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,12 +40,12 @@ public class PlayListEntry
 	private Long duration;
 	private Long timeIndexInFile;
 	private PlayList playList;
-	
+
 	/**
 	 * Constructor for PlayListEntry
 	 * @param file
 	 */
-	public PlayListEntry(URL file, PlayList savedInPlaylist)
+	public PlayListEntry(final URL file, final PlayList savedInPlaylist)
 	{
 		this.file = file;
 		this.playList = savedInPlaylist;
@@ -53,14 +53,14 @@ public class PlayListEntry
 	/**
 	 * Constructor for PlayListEntry
 	 */
-	public PlayListEntry(File file, PlayList savedInPlaylist)
+	public PlayListEntry(final File file, final PlayList savedInPlaylist)
 	{
 		this(Helpers.createURLfromFile(file), savedInPlaylist);
 	}
 	/**
 	 * Constructor for PlayListEntry
 	 */
-	public PlayListEntry(String fileName, PlayList savedInPlaylist)
+	public PlayListEntry(final String fileName, final PlayList savedInPlaylist)
 	{
 		this(Helpers.createURLfromString(fileName), savedInPlaylist);
 	}
@@ -72,7 +72,7 @@ public class PlayListEntry
 		return file;
 	}
 
-	public void setFile(URL newFile)
+	public void setFile(final URL newFile)
 	{
 		file = newFile;
 	}
@@ -80,7 +80,7 @@ public class PlayListEntry
 	 * @param songName
 	 * @since 27.02.2011
 	 */
-	public synchronized void setSongName(String songName)
+	public synchronized void setSongName(final String songName)
 	{
 		this.songName = songName;
 	}
@@ -88,7 +88,7 @@ public class PlayListEntry
 	 * @param duration
 	 * @since 27.02.2011
 	 */
-	public synchronized void setDuration(Long duration)
+	public synchronized void setDuration(final Long duration)
 	{
 		this.duration = duration;
 	}
@@ -96,7 +96,7 @@ public class PlayListEntry
 	 * @param duration
 	 * @since 27.02.2011
 	 */
-	public synchronized void setDuration(long duration)
+	public synchronized void setDuration(final long duration)
 	{
 		this.duration = Long.valueOf(duration);
 	}
@@ -104,7 +104,7 @@ public class PlayListEntry
 	 * @param timeIndex
 	 * @since 13.02.2012
 	 */
-	public synchronized void setTimeIndexInFile(Long timeIndex)
+	public synchronized void setTimeIndexInFile(final Long timeIndex)
 	{
 		this.timeIndexInFile = timeIndex;
 	}
@@ -112,7 +112,7 @@ public class PlayListEntry
 	 * @param timeIndex
 	 * @since 13.02.2012
 	 */
-	public synchronized void setTimeIndexInFile(long timeIndex)
+	public synchronized void setTimeIndexInFile(final long timeIndex)
 	{
 		this.timeIndexInFile = Long.valueOf(timeIndex);
 	}
@@ -120,7 +120,7 @@ public class PlayListEntry
 	{
 		if (songName==null)
 		{
-			Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
+			final Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
 			songName = (String)infos[0];
 			if (duration==null) duration = (Long)infos[1];
 		}
@@ -130,7 +130,7 @@ public class PlayListEntry
 	{
 		if (duration==null)
 		{
-			Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
+			final Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
 			duration = (Long)infos[1];
 			if (songName==null) songName = (String)infos[0];
 		}
@@ -194,7 +194,7 @@ public class PlayListEntry
 	/**
 	 * @param isActive the isActive to set
 	 */
-	public void setActive(boolean isActive)
+	public void setActive(final boolean isActive)
 	{
 		this.isActive = isActive;
 	}
@@ -208,7 +208,7 @@ public class PlayListEntry
 	/**
 	 * @param isActive the isActive to set
 	 */
-	public void setSelected(boolean isSelected)
+	public void setSelected(final boolean isSelected)
 	{
 		this.isSelected = isSelected;
 	}
@@ -226,7 +226,7 @@ public class PlayListEntry
 	 * @param playList the playList to set
 	 * @since 10.03.2011
 	 */
-	public void setSavedInPlaylist(PlayList playList)
+	public void setSavedInPlaylist(final PlayList playList)
 	{
 		this.playList = playList;
 	}

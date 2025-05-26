@@ -2,7 +2,7 @@
  * @(#) ModConfigPanel.java
  *
  * Created on 13.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ import de.quippy.javamod.system.Helpers;
 public class ModConfigPanel extends JPanel
 {
 	private static final long serialVersionUID = -3417460833901933361L;
-	
+
 	private JCheckBox playerSetUp_WideStereoMix = null;
 	private JCheckBox playerSetUp_NoiseReduction = null;
 	private JCheckBox playerSetUp_MegaBass = null;
@@ -69,7 +69,7 @@ public class ModConfigPanel extends JPanel
 	private JCheckBox playerSetUp_ByPassDither = null;
 
 	private ModContainer parentContainer = null;
-	
+
 	/**
 	 * Constructor for ModConfigPanel
 	 */
@@ -82,7 +82,7 @@ public class ModConfigPanel extends JPanel
 	 * Constructor for ModConfigPanel
 	 * @param layout
 	 */
-	public ModConfigPanel(LayoutManager layout)
+	public ModConfigPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -91,7 +91,7 @@ public class ModConfigPanel extends JPanel
 	 * Constructor for ModConfigPanel
 	 * @param isDoubleBuffered
 	 */
-	public ModConfigPanel(boolean isDoubleBuffered)
+	public ModConfigPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -101,7 +101,7 @@ public class ModConfigPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public ModConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public ModConfigPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -116,7 +116,7 @@ public class ModConfigPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(ModContainer parent)
+	public void setParentContainer(final ModContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -124,7 +124,7 @@ public class ModConfigPanel extends JPanel
 	{
 		this.setName("ModConfigPane");
 		this.setLayout(new java.awt.GridBagLayout());
-		
+
 		this.add(getPlayerSetUp_WideStereoMix(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_NoiseReduction(),		Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_MegaBass(),				Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -148,7 +148,7 @@ public class ModConfigPanel extends JPanel
 		this.add(getPlayerSetUp_ByPassDither(),			Helpers.getGridBagConstraint(2, 3, 2, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_L_MaxNNAChannels(),		Helpers.getGridBagConstraint(3, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_Interpolation(),		Helpers.getGridBagConstraint(4, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		
+
 		this.add(getPlayerSetUp_DitherType(),			Helpers.getGridBagConstraint(0, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_DitherFilterType(),		Helpers.getGridBagConstraint(1, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_MaxNNAChannels(),		Helpers.getGridBagConstraint(3, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
@@ -164,14 +164,15 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_WideStereoMix.setFont(Helpers.getDialogFont());
 			playerSetUp_WideStereoMix.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoWideStereoMix(getPlayerSetUp_WideStereoMix().isSelected());
 						}
@@ -191,14 +192,15 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_NoiseReduction.setFont(Helpers.getDialogFont());
 			playerSetUp_NoiseReduction.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoNoiseReduction(getPlayerSetUp_NoiseReduction().isSelected());
 						}
@@ -218,17 +220,18 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_MegaBass.setFont(Helpers.getDialogFont());
 			playerSetUp_MegaBass.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
 							final boolean selected = getPlayerSetUp_MegaBass().isSelected();
 							// With Mega Bass, we should also do DC Removal - so activate it automatically. User can still deselect it again
 							if (selected) getPlayerSetUp_DCRemoval().setSelected(true);
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoMegaBass(selected);
 						}
@@ -248,14 +251,15 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_DCRemoval.setFont(Helpers.getDialogFont());
 			playerSetUp_DCRemoval.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoDCRemoval(getPlayerSetUp_DCRemoval().isSelected());
 						}
@@ -279,7 +283,7 @@ public class ModConfigPanel extends JPanel
 	 * @param newLoopValue
 	 * @since 11.01.2012
 	 */
-	private void setLoopValue(int newLoopValue)
+	private void setLoopValue(final int newLoopValue)
 	{
 		if (newLoopValue == ModConstants.PLAYER_LOOP_DEACTIVATED)
 		{
@@ -312,7 +316,7 @@ public class ModConfigPanel extends JPanel
 			if (currentMixer!=null)
 				currentMixer.setDoNoLoops(getLoopValue());
 		}
-			
+
 	}
 	private JCheckBox getPlayerSetUp_fadeOutLoops()
 	{
@@ -324,11 +328,12 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_fadeOutLoops.setFont(Helpers.getDialogFont());
 			playerSetUp_fadeOutLoops.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						if (getPlayerSetUp_fadeOutLoops().isSelected()) 
+						if (getPlayerSetUp_fadeOutLoops().isSelected())
 							getPlayerSetUp_ignoreLoops().setSelected(false);
 						configMixerWithLoopValue();
 					}
@@ -347,11 +352,12 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_ignoreLoops.setFont(Helpers.getDialogFont());
 			playerSetUp_ignoreLoops.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						if (getPlayerSetUp_ignoreLoops().isSelected()) 
+						if (getPlayerSetUp_ignoreLoops().isSelected())
 							getPlayerSetUp_fadeOutLoops().setSelected(false);
 						configMixerWithLoopValue();
 					}
@@ -370,7 +376,8 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_loopSong.setFont(Helpers.getDialogFont());
 			playerSetUp_loopSong.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
@@ -396,23 +403,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_BitsPerSample == null)
 		{
-			playerSetUp_BitsPerSample = new JComboBox<String>();
+			playerSetUp_BitsPerSample = new JComboBox<>();
 			playerSetUp_BitsPerSample.setName("playerSetUp_BitsPerSample");
 
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.BITSPERSAMPLE);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.BITSPERSAMPLE);
 			playerSetUp_BitsPerSample.setModel(theModel);
 			playerSetUp_BitsPerSample.setFont(Helpers.getDialogFont());
 			playerSetUp_BitsPerSample.setEnabled(true);
 			playerSetUp_BitsPerSample.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setSampleSizeInBits(Integer.parseInt(getPlayerSetUp_BitsPerSample().getSelectedItem().toString()));
 						}
@@ -437,23 +445,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_Channels==null)
 		{
-			playerSetUp_Channels = new JComboBox<String>();
+			playerSetUp_Channels = new JComboBox<>();
 			playerSetUp_Channels.setName("playerSetUp_Channels");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.CHANNELS);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.CHANNELS);
 			playerSetUp_Channels.setModel(theModel);
 			playerSetUp_Channels.setFont(Helpers.getDialogFont());
 			playerSetUp_Channels.setEnabled(true);
 			playerSetUp_Channels.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setChannels(Integer.parseInt(getPlayerSetUp_Channels().getSelectedItem().toString()));
 						}
@@ -478,23 +487,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_SampleRate==null)
 		{
-			playerSetUp_SampleRate = new JComboBox<String>();
+			playerSetUp_SampleRate = new JComboBox<>();
 			playerSetUp_SampleRate.setName("playerSetUp_SampleRate");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.SAMPLERATE);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.SAMPLERATE);
 			playerSetUp_SampleRate.setModel(theModel);
 			playerSetUp_SampleRate.setFont(Helpers.getDialogFont());
 			playerSetUp_SampleRate.setEnabled(true);
 			playerSetUp_SampleRate.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setSampleRate(Integer.parseInt(getPlayerSetUp_SampleRate().getSelectedItem().toString()));
 						}
@@ -519,23 +529,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_BufferSize==null)
 		{
-			playerSetUp_BufferSize = new JComboBox<String>();
+			playerSetUp_BufferSize = new JComboBox<>();
 			playerSetUp_BufferSize.setName("playerSetUp_BufferSize");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.BUFFERSIZE);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.BUFFERSIZE);
 			playerSetUp_BufferSize.setModel(theModel);
 			playerSetUp_BufferSize.setFont(Helpers.getDialogFont());
 			playerSetUp_BufferSize.setEnabled(true);
 			playerSetUp_BufferSize.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setBufferSize(Integer.parseInt(getPlayerSetUp_BufferSize().getSelectedItem().toString()));
 						}
@@ -560,23 +571,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_Interpolation==null)
 		{
-			playerSetUp_Interpolation = new JComboBox<String>();
+			playerSetUp_Interpolation = new JComboBox<>();
 			playerSetUp_Interpolation.setName("playerSetUp_Interpolation");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.INTERPOLATION);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.INTERPOLATION);
 			playerSetUp_Interpolation.setModel(theModel);
 			playerSetUp_Interpolation.setFont(Helpers.getDialogFont());
 			playerSetUp_Interpolation.setEnabled(true);
 			playerSetUp_Interpolation.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDoISP(getPlayerSetUp_Interpolation().getSelectedIndex());
 						}
@@ -601,23 +613,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_MaxNNAChannels==null)
 		{
-			playerSetUp_MaxNNAChannels = new JComboBox<String>();
+			playerSetUp_MaxNNAChannels = new JComboBox<>();
 			playerSetUp_MaxNNAChannels.setName("playerSetUp_MaxNNAChannels");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.MAX_NNA_CHANNELS);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.MAX_NNA_CHANNELS);
 			playerSetUp_MaxNNAChannels.setModel(theModel);
 			playerSetUp_MaxNNAChannels.setFont(Helpers.getDialogFont());
 			playerSetUp_MaxNNAChannels.setEnabled(true);
 			playerSetUp_MaxNNAChannels.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setMaxNNAChannels(Integer.parseInt(getPlayerSetUp_MaxNNAChannels().getSelectedItem().toString()));
 						}
@@ -642,23 +655,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_DitherType==null)
 		{
-			playerSetUp_DitherType = new JComboBox<String>();
+			playerSetUp_DitherType = new JComboBox<>();
 			playerSetUp_DitherType.setName("playerSetUp_DitherType");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(Dither.DitherTypeNames);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(Dither.DitherTypeNames);
 			playerSetUp_DitherType.setModel(theModel);
 			playerSetUp_DitherType.setFont(Helpers.getDialogFont());
 			playerSetUp_DitherType.setEnabled(true);
 			playerSetUp_DitherType.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDitherType(getPlayerSetUp_DitherFilterType().getSelectedIndex());
 						}
@@ -683,23 +697,24 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_DitherFilterType==null)
 		{
-			playerSetUp_DitherFilterType = new JComboBox<String>();
+			playerSetUp_DitherFilterType = new JComboBox<>();
 			playerSetUp_DitherFilterType.setName("playerSetUp_DitherFilterType");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(Dither.FilterTypeNames);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(Dither.FilterTypeNames);
 			playerSetUp_DitherFilterType.setModel(theModel);
 			playerSetUp_DitherFilterType.setFont(Helpers.getDialogFont());
 			playerSetUp_DitherFilterType.setEnabled(true);
 			playerSetUp_DitherFilterType.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDitherFilterType(getPlayerSetUp_DitherFilterType().getSelectedIndex());
 						}
@@ -719,14 +734,15 @@ public class ModConfigPanel extends JPanel
 			playerSetUp_ByPassDither.setFont(Helpers.getDialogFont());
 			playerSetUp_ByPassDither.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						ModContainer parent = getParentContainer();
+						final ModContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							ModMixer currentMixer = parent.getCurrentMixer();
+							final ModMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setDitherByPass(getPlayerSetUp_ByPassDither().isSelected());
 						}
@@ -740,8 +756,8 @@ public class ModConfigPanel extends JPanel
 	{
 		getPlayerSetUp_SampleRate().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, ModContainer.DEFAULT_SAMPLERATE));
 		getPlayerSetUp_BufferSize().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, ModContainer.DEFAULT_MSBUFFERSIZE));
-		getPlayerSetUp_BitsPerSample().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, ModContainer.DEFAULT_BITSPERSAMPLE)); 
-		getPlayerSetUp_Channels().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_STEREO, ModContainer.DEFAULT_CHANNEL)); 
+		getPlayerSetUp_BitsPerSample().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, ModContainer.DEFAULT_BITSPERSAMPLE));
+		getPlayerSetUp_Channels().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_STEREO, ModContainer.DEFAULT_CHANNEL));
 		getPlayerSetUp_Interpolation().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_ISP, ModContainer.DEFAULT_INTERPOLATION_INDEX)));
 		getPlayerSetUp_WideStereoMix().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_WIDESTEREOMIX, ModContainer.DEFAULT_WIDESTEREOMIX)));
 		getPlayerSetUp_NoiseReduction().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_NOISEREDUCTION, ModContainer.DEFAULT_NOISEREDUCTION)));

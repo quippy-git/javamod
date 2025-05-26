@@ -26,7 +26,8 @@ package de.quippy.jmac.decoder;
  * Time: 14:51:31
  */
 public class AntiPredictorHigh3320To3600 extends AntiPredictor {
-    public void antiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements) {
+    @Override
+	public void antiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements) {
         //short frame handling
         if (NumberOfElements < 8) {
             System.arraycopy(pInputArray, 0, pOutputArray, 0, NumberOfElements);
@@ -48,6 +49,6 @@ public class AntiPredictorHigh3320To3600 extends AntiPredictor {
         AntiPredictor.antiPredict(pInputArray, pOutputArray, NumberOfElements);
     }
 
-    private AntiPredictorOffset AntiPredictorOffset = new AntiPredictorOffset();
-    private AntiPredictorNormal3320To3800 AntiPredictor = new AntiPredictorNormal3320To3800();
+    private final AntiPredictorOffset AntiPredictorOffset = new AntiPredictorOffset();
+    private final AntiPredictorNormal3320To3800 AntiPredictor = new AntiPredictorNormal3320To3800();
 }

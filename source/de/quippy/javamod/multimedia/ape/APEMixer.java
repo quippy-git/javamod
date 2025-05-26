@@ -2,7 +2,7 @@
  * @(#) APEMixer.java
  *
  * Created on 22.12.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,23 +37,22 @@ import de.quippy.jmac.tools.File;
  */
 public class APEMixer extends BasicMixer
 {
-	private URL apeFileURL;
+	private final URL apeFileURL;
 	private File apeFile;
 	private IAPEDecompress spAPEDecompress;
 
     private int blocksPerDecode;
 	private int blockAlign;
-	private int channels;
 	private int bitsPerSample;
 	private int sampleSizeInBytes;
 	private int sampleRate;
-	
+
 	private byte[] output;
 
 	/**
 	 * Constructor for APEMixer
 	 */
-	public APEMixer(URL apeFileURL)
+	public APEMixer(final URL apeFileURL)
 	{
 		super();
 		this.apeFileURL = apeFileURL;
@@ -65,7 +64,7 @@ public class APEMixer extends BasicMixer
 		{
 			apeFile = File.createFile(apeFileURL, "r");
 			spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
-			channels = spAPEDecompress.getApeInfoChannels();
+			int channels = spAPEDecompress.getApeInfoChannels();
 			bitsPerSample = spAPEDecompress.getApeInfoBitsPerSample();
 			sampleSizeInBytes = bitsPerSample>>3;
 			sampleRate = spAPEDecompress.getApeInfoSampleRate();
@@ -77,12 +76,12 @@ public class APEMixer extends BasicMixer
             output = new byte[bufferSize];
     		setSourceLineBufferSize(bufferSize);
 
-            AudioFormat audioFormat = new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample <= 8) ? false : true, false);  
+            final AudioFormat audioFormat = new AudioFormat(sampleRate, bitsPerSample, channels, (bitsPerSample <= 8) ? false : true, false);
     		setAudioFormat(audioFormat);
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
-			if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
+			if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (final IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[APEMixer]", ex);
 		}
 	}
@@ -113,7 +112,7 @@ public class APEMixer extends BasicMixer
 			{
 				return spAPEDecompress.getApeInfoDecompressCurrentBitRate();
 			}
-			catch (IOException ex)
+			catch (final IOException ex)
 			{
 				return spAPEDecompress.getApeInfoAverageBitrate();
 			}
@@ -170,13 +169,13 @@ public class APEMixer extends BasicMixer
 	 * @since 13.02.2012
 	 */
 	@Override
-	protected void seek(long milliseconds)
+	protected void seek(final long milliseconds)
 	{
 		try
 		{
-			spAPEDecompress.Seek((int)(milliseconds * (long)sampleRate / 1000L));
+			spAPEDecompress.Seek((int)(milliseconds * sampleRate / 1000L));
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[APEMixer]", ex);
 		}
@@ -187,10 +186,10 @@ public class APEMixer extends BasicMixer
 	private void cleanUp()
 	{
 		if (spAPEDecompress!=null) spAPEDecompress = null;
-		if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+		if (apeFile!=null) try { apeFile.close(); apeFile = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -198,7 +197,7 @@ public class APEMixer extends BasicMixer
 	{
 		initialize();
 		setIsPlaying();
-		
+
 		if (getSeekPosition()>0) seek(getSeekPosition());
 
 		try
@@ -207,7 +206,7 @@ public class APEMixer extends BasicMixer
 			if (!isInitialized()) return;
 
 			int nBlocksDecoded = 0;
-			
+
 			do
 			{
 				final long bytesToWrite = (hasStopPosition())?getSamplesToWriteLeft() * getChannelCount() * sampleSizeInBytes:-1;
@@ -216,16 +215,16 @@ public class APEMixer extends BasicMixer
 				{
 					int byteCount = nBlocksDecoded * blockAlign;
 					// find out, if all decoded samples are to write
-					if (bytesToWrite>0 && (long)(byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
-					
+					if (bytesToWrite>0 && (byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
+
 					writeSampleDataToLine(output, 0, byteCount);
-					
+
 					if (stopPositionIsReached())
 					{
 						setIsStopping();
 						nBlocksDecoded = 0;
 					}
-					
+
 					if (isStopping())
 					{
 						setIsStopped();
@@ -236,7 +235,7 @@ public class APEMixer extends BasicMixer
 						setIsPaused();
 						while (isPaused())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /* noop */ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /* noop */ }
 						}
 					}
 					if (isInSeeking())
@@ -244,7 +243,7 @@ public class APEMixer extends BasicMixer
 						setIsSeeking();
 						while (isInSeeking())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 						}
 					}
 				}
@@ -252,7 +251,7 @@ public class APEMixer extends BasicMixer
 			while (nBlocksDecoded>0);
 			if (nBlocksDecoded<=0) setHasFinished(); // Signals piece was fully played
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

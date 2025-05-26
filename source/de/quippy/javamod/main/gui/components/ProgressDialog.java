@@ -2,7 +2,7 @@
  * @(#) ProgressDialog.java
  *
  * Created on 24.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

@@ -17,7 +17,7 @@ package de.quippy.sidplay.libsidplay.common;
 
 /**
  * @author Ken H�ndel
- * 
+ *
  * Private Event Context Object (The scheduler)
  */
 public class EventScheduler extends Event implements IEventContext {
@@ -29,23 +29,25 @@ public class EventScheduler extends Event implements IEventContext {
 	private long /* uint */m_events;
 
 	public static class EventTimeWarp extends Event {
-		private EventScheduler m_scheduler;
+		private final EventScheduler m_scheduler;
 
+		@Override
 		public void event() {
 			m_scheduler.event();
 		}
 
-		public EventTimeWarp(EventScheduler context) {
+		public EventTimeWarp(final EventScheduler context) {
 			super("Time Warp");
 			m_scheduler = context;
 		}
 	}
 
-	private EventTimeWarp m_timeWarp;
+	private final EventTimeWarp m_timeWarp;
 
 	/**
 	 * Used to prevent overflowing by timewarping the event clocks
 	 */
+	@Override
 	public void event() {
 		Event e = m_next;
 		// long /* uint */count = m_events;
@@ -60,13 +62,13 @@ public class EventScheduler extends Event implements IEventContext {
 				event_phase_t.EVENT_CLOCK_PHI1);
 	}
 
-	private void dispatch(Event e) {
+	private void dispatch(final Event e) {
 		cancelPending(e);
 		// printf ("Event \"%s\"\n", e.m_name);
 		e.event();
 	}
 
-	private void cancelPending(Event event) {
+	private void cancelPending(final Event event) {
 		event.m_pending = false;
 		event.m_prev.m_next = event.m_next;
 		event.m_next.m_prev = event.m_prev;
@@ -85,7 +87,8 @@ public class EventScheduler extends Event implements IEventContext {
 	/**
 	 * Cancel a pending event
 	 */
-	public void cancel(Event event) {
+	@Override
+	public void cancel(final Event event) {
 		if (event.m_pending)
 			cancelPending(event);
 	}
@@ -109,8 +112,9 @@ public class EventScheduler extends Event implements IEventContext {
 	/**
 	 * Add event to ordered pending queue
 	 */
-	public void schedule(Event event, long /* event_clock_t */cycles,
-			event_phase_t phase) {
+	@Override
+	public void schedule(final Event event, final long /* event_clock_t */cycles,
+			final event_phase_t phase) {
 		if (!event.m_pending) {
 			long /* event_clock_t */clk = m_clk + (cycles << 1);
 			clk += (((m_absClk + clk) & 1) ^ (phase == event_phase_t.EVENT_CLOCK_PHI1 ? 0
@@ -147,16 +151,19 @@ public class EventScheduler extends Event implements IEventContext {
 	/**
 	 * Get time with respect to a specific clock phase
 	 */
-	public final long /* event_clock_t */getTime(event_phase_t phase) {
+	@Override
+	public final long /* event_clock_t */getTime(final event_phase_t phase) {
 		return (m_absClk + m_clk + (((phase == event_phase_t.EVENT_CLOCK_PHI1) ? 0
 				: 1) ^ 1)) >> 1;
 	}
 
+	@Override
 	public final long /* event_clock_t */getTime(
-			long /* event_clock_t */clock, event_phase_t phase) {
+			final long /* event_clock_t */clock, final event_phase_t phase) {
 		return ((getTime(phase) - clock) << 1) >> 1; // 31 bit res.
 	}
 
+	@Override
 	public final event_phase_t phase() {
 		return ((m_absClk + m_clk) & 1) == 0 ? event_phase_t.EVENT_CLOCK_PHI1
 				: event_phase_t.EVENT_CLOCK_PHI2;

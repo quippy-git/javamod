@@ -23,8 +23,8 @@
 package de.quippy.javamod.multimedia.mp3.id3.exceptions;
 
 /**
- * Description: 
- *  This exception is thrown when an data in an id3v2 tag violates the 
+ * Description:
+ *  This exception is thrown when an data in an id3v2 tag violates the
  *  id3v2 standards.
  *
  * @author:  Jonathan Hilliker modified by Daniel Becker
@@ -47,7 +47,7 @@ public class ID3v2FormatException extends Exception
 	 *
 	 * @param msg the message for this exception
 	 */
-	public ID3v2FormatException(String msg)
+	public ID3v2FormatException(final String msg)
 	{
 		super(msg);
 	}
@@ -55,11 +55,11 @@ public class ID3v2FormatException extends Exception
 	/**
 	 * Create an ID3v2FormatException with a specified message
 	 * and original exception
-	 * 
+	 *
 	 * @param msg the message for this exception
 	 * @param cause the cause that wraps this exception
 	 */
-	public ID3v2FormatException(String message, Throwable cause)
+	public ID3v2FormatException(final String message, final Throwable cause)
 	{
 		super(message, cause);
 	}
@@ -67,10 +67,10 @@ public class ID3v2FormatException extends Exception
 	/**
 	 * Create an ID3v2FormatException with the original
 	 * exception
-	 * 
+	 *
 	 * @param cause the cause that wraps this exception
 	 */
-	public ID3v2FormatException(Throwable cause)
+	public ID3v2FormatException(final Throwable cause)
 	{
 		super(cause);
 	}

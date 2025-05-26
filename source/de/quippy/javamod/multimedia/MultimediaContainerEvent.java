@@ -2,7 +2,7 @@
  * @(#) MultimediaContainerEvent.java
  *
  * Created on 27.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,14 +33,14 @@ public class MultimediaContainerEvent extends EventObject
 
 	public static int SONG_NAME_CHANGED = 1;
 	public static int SONG_NAME_CHANGED_OLD_INVALID = 3;
-	
-	private int type;
-	private Object event;
+
+	private final int type;
+	private final Object event;
 	/**
 	 * Constructor for MultimediaContainerEvent
 	 * @param source
 	 */
-	public MultimediaContainerEvent(Object source, int type, Object event)
+	public MultimediaContainerEvent(final Object source, final int type, final Object event)
 	{
 		super(source);
 		this.type = type;

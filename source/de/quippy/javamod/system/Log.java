@@ -1,8 +1,8 @@
 /*
  * @(#) Log.java
- * 
+ *
  * Created on 21.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,30 +36,30 @@ public class Log
 	public static final int LOGLEVEL_DEBUG = 4;
 	public static final int LOGLEVEL_ALL = LOGLEVEL_DEBUG | LOGLEVEL_ERROR | LOGLEVEL_INFO;
 
-	private static ArrayList<LogMessageCallBack> logReceiver = new ArrayList<LogMessageCallBack>();
+	private static ArrayList<LogMessageCallBack> logReceiver = new ArrayList<>();
 	private static int currentLogLevel = LOGLEVEL_ALL;
-	
+
 	static
 	{
 		addLogListener(new LogMessageCallBack()
 		{
 			@Override
-			public void error(String message, Throwable ex)
+			public void error(final String message, final Throwable ex)
 			{
 				System.err.println(message);
-				if (ex!=null) 
+				if (ex!=null)
 				{
 					ex.printStackTrace(System.err);
 					System.err.print('\n');
 				}
 			}
 			@Override
-			public void info(String message)
+			public void info(final String message)
 			{
 				System.out.println(message);
 			}
 			@Override
-			public void debug(String message)
+			public void debug(final String message)
 			{
 				System.out.println(message);
 			}
@@ -70,7 +70,7 @@ public class Log
 	{
 		super();
 	}
-	
+
 	public static void setLogLevel(final int newLogLevel)
 	{
 		currentLogLevel = newLogLevel;
@@ -79,7 +79,7 @@ public class Log
 	{
 		return (currentLogLevel & whatLogLevel) != 0;
 	}
-	
+
 	public static synchronized void addLogListener(final LogMessageCallBack receiver)
 	{
 		if (!logReceiver.contains(receiver)) logReceiver.add(receiver);

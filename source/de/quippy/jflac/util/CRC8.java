@@ -25,7 +25,7 @@ package de.quippy.jflac.util;
  * @author kc7bfi
  */
 public final class CRC8 {
-    
+
     // CRC-8, poly = x^8 + x^2 + x^1 + x^0, init = 0
     private static final byte[] CRC8_TABLE =
         new byte[] {
@@ -288,24 +288,24 @@ public final class CRC8 {
 
     /**
      * Update the CRC value with a byte data.
-     * 
+     *
      * @param data  The byte data
      * @param crc   The starting CRC value
      * @return      The updated CRC value
      */
-    public static byte update(byte data, byte crc) {
+    public static byte update(final byte data, final byte crc) {
         return CRC8_TABLE[crc ^ data];
     }
 
     /**
      * Update the CRC value with data from a byte array.
-     * 
+     *
      * @param data  The byte array
      * @param len   The byte array length
      * @param crc   The starting CRC value
      * @return      The updated CRC value
      */
-    public static byte updateBlock(byte[] data, int len, byte crc) {
+    public static byte updateBlock(final byte[] data, final int len, byte crc) {
         for (int i = 0; i < len; i++)
             crc = CRC8_TABLE[crc ^ data[i]];
         return crc;
@@ -313,12 +313,12 @@ public final class CRC8 {
 
     /**
      * Calculate the CRC value with data from a byte array.
-     * 
+     *
      * @param data  The byte array
      * @param len   The byte array length
      * @return      The calculated CRC value
      */
-    public static byte calc(byte[] data, int len) {
+    public static byte calc(final byte[] data, final int len) {
         byte crc = 0;
 
         for (int i = 0; i < len; i++)

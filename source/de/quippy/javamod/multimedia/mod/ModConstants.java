@@ -2,7 +2,7 @@
  * @(#) ModConstants.java
  *
  * Created on 02.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class ModConstants
 	public static final int MODTYPE_FASTTRACKER = MODTYPE_MOD | MODTYPE_XM;
 	public static final int MODTYPE_SCREAMTRACKER = MODTYPE_S3M | MODTYPE_STM;
 	public static final int MODTYPE_IMPULSETRACKER = MODTYPE_IT | MODTYPE_SCREAMTRACKER;
-	
+
 	// With MODs you might want to enable E8x effect
 	public static final boolean SUPPORT_E8x_EFFECT = false;
 
@@ -93,7 +93,7 @@ public class ModConstants
 	// Special panning values for S3M and IT
 	public static final int CHANNEL_IS_MUTED	= 0x80<<2;							// IT and S3M use this
 	public static final int CHANNEL_IS_SURROUND = 100<<2;							// IT uses this (YES, not hex!)
-	
+
 	// Volume constants
 	public static final int MAXGLOBALVOLUME		= 128; 								// the maximum global volume at mod loading
 	public static final int MAXSAMPLEVOLUME		= 64;  								// the sample maximum global volume at mod loading
@@ -103,12 +103,12 @@ public class ModConstants
 	public static final int MAXCHANNELVOLUME	= MAX_SAMPLE_VOL << VOLUMESHIFT;	// plus the max (reflecting VOLUME_INIT_SHIFT)
 	public static final int MINCHANNELVOLUME	= 0;								// and min value for clipping ((1<<VOLUMESHIFT)-1: could be a better value
 	// This is the final SHIFT before rendering into buffers for reducing VOLUMESHIFT (64), VOLUME_INIT_SHIFT (4), MAXCHANNELVOLUME (64) -1 because of extraAttenuation of 0 for OMPT
-	public static final int MAXVOLUMESHIFT = VOLUMESHIFT + 6 - 1;  
-	
+	public static final int MAXVOLUMESHIFT = VOLUMESHIFT + 6 - 1;
+
 	public static final int MAXFADEOUTVOLSHIFT = 16; // This is for loop fade out *and* NOTE_FADE!!!
 	public static final int MAXFADEOUTVOLUME = 1<<MAXFADEOUTVOLSHIFT;
 	public static final int FADEOUT_SUB = 0x100;
-	
+
 	// TuningPos shift for fraction
 	public static final int SHIFT		= 16;
 	public static final int SHIFT_MAX	= 1<<SHIFT;
@@ -129,21 +129,21 @@ public class ModConstants
 
 	public static final int INTERWEAVE_FRAC		= 4;
 	public static final int INTERWEAVE_LEN		= 1<<INTERWEAVE_FRAC;
-	
+
 	// The volume ramping constants
 	public static final int VOLRAMPLEN_FRAC		= 12;
 	public static final int VOLRAMPLEN			= 1<<VOLRAMPLEN_FRAC;
 	public static final int VOLRAMPLEN_UP_YS	= 363;
 	public static final int VOLRAMPLEN_DOWN_YS	= 952;
-	
-	public static enum PanBits { Pan4Bit, Pan6Bit, Pan8Bit } 
-	
+
+	public static enum PanBits { Pan4Bit, Pan6Bit, Pan8Bit }
+
 	// Constants for different supported samples
 	public static final int SM_PCMS			= 	0x0001;					// PCM 8 Bit Signed
 	public static final int SM_PCMU			= 	0x0002;					// PCM 8 Bit unsigned
 	public static final int SM_PCMD			=	0x0004;					// PCM 8 Bit delta values
 	public static final int SM_16BIT		=	0x0008;					// 16 BIT
-	public static final int SM_BigEndian	=	0x0010;					// 16 Bit in BigEndian order 
+	public static final int SM_BigEndian	=	0x0010;					// 16 Bit in BigEndian order
 	public static final int SM_STEREO		= 	0x0020;					// STEREO
 	// IT Packed (>2.14)
 	public static final int SM_IT214		=	0x0040;					// IT 2.14 compressed
@@ -163,7 +163,7 @@ public class ModConstants
 	public static final int NNA_CONTINUE 	= 0x01;
 	public static final int NNA_OFF 		= 0x02;
 	public static final int NNA_FADE 		= 0x03;
-	
+
 	// DCT types (Duplicate Check Types)
 	public static final int DCT_NONE		= 0x00;
 	public static final int DCT_NOTE		= 0x01;
@@ -191,7 +191,7 @@ public class ModConstants
 	public static final int  FLTMODE_UNCHANGED		= 0xFF; // Definition of MPT Unchanged filter
 	public static final int  FILTER_SHIFT_BITS		= 13;
 	public static final long FILTER_PRECISION		= 1L << FILTER_SHIFT_BITS;
-	public static final long HALF_FILTER_PRECISION	= FILTER_PRECISION>>1; 
+	public static final long HALF_FILTER_PRECISION	= FILTER_PRECISION>>1;
 	public static final int  FILTER_PREAMP_BITS		= 8;
 	public static final long FILTER_CLIP_MAX		= CLIPP32BIT_MAX<<(FILTER_PREAMP_BITS + 1);
 	public static final long FILTER_CLIP_MIN		= CLIPP32BIT_MIN<<(FILTER_PREAMP_BITS + 1);
@@ -212,13 +212,13 @@ public class ModConstants
 	public static final int SONG_VOL0MIXOPTI	= 0x01000;
 	public static final int SONG_USEMIDIPITCH	= 0x02000;
 	public static final int SONG_S3M_GUS		= 0x80000;
-	
+
 	// Player flags
 	public static final int PLAYER_LOOP_DEACTIVATED = 0x00;
 	public static final int PLAYER_LOOP_FADEOUT 	= 0x01;
 	public static final int PLAYER_LOOP_IGNORE 		= 0x02;
 	public static final int PLAYER_LOOP_LOOPSONG 	= 0x04;
-	
+
 	// Tempo Modes for ModplugTracker files
 	public static final int TEMPOMODE_CLASSIC		= 0x00;
 	public static final int TEMPOMODE_ALTERNATIVE	= 0x01;
@@ -226,7 +226,7 @@ public class ModConstants
 	public static final String [] TEMPOMODE_STRING	= { "Classic", "Alternative", "Modern" };
 	// TempoSwing Unity
 	public static final int TEMPOSWING_UNITY		= 1<<24;
-	
+
 	/**
 	 * This is used for translating periods into note names, for the
 	 * patternElement.toString() method, and for translating noteindex into
@@ -260,7 +260,7 @@ public class ModConstants
 		856,808,762,720,678,640,604,570,538,508,480,453,
 		428,404,381,360,339,320,302,285,269,254,240,226,
 		214,202,190,180,170,160,151,143,135,127,120,113,0,
-		
+
 		// finetune +1
 		850,802,757,715,674,637,601,567,535,505,477,450,
 		425,401,379,357,337,318,300,284,268,253,239,225,
@@ -347,7 +347,7 @@ public class ModConstants
 		8739,9253,24625,12851,13365
 	};
 	/**
-	 * Table for Invert Loop and Funk Repeat effects (EFx, .MOD only) 
+	 * Table for Invert Loop and Funk Repeat effects (EFx, .MOD only)
 	 */
 	public static final int modEFxTable[] =
 	{
@@ -757,10 +757,10 @@ public class ModConstants
 	public static long HALFTONE_FAC = 1<<HALFTONE_SHIFT;
 	public static final int [] halfToneTab =
 	{
-		65536, 61858, 58386, 55109, 52016, 49097, 46341, 43740, 
-		41285, 38968, 36781, 34716, 32768, 30929, 29193, 27554	
+		65536, 61858, 58386, 55109, 52016, 49097, 46341, 43740,
+		41285, 38968, 36781, 34716, 32768, 30929, 29193, 27554
 	};
-	// These tables are exactly the other way round with me than normally used. 
+	// These tables are exactly the other way round with me than normally used.
 	// What is SlideUp is SlideDown at Schism, and vice versa.
 	// This would affect Vibrato, AutoVibrato, (Fine|Extra Fine|PortaUp/Down ...
 	// As we use periods instead of frequencies, that is why, and will not change
@@ -783,7 +783,7 @@ public class ModConstants
 	/**
 	 * Pitch Envelope Slider Table
 	 */
-	public static final int [] LinearSlideDownTable = 
+	public static final int [] LinearSlideDownTable =
 	{
 		 65536,  65773,  66011,  66250,  66489,  66730,  66971,  67213,
 		 67456,  67700,  67945,  68191,  68438,  68685,  68933,  69183,
@@ -821,7 +821,7 @@ public class ModConstants
 	/**
 	 * Pitch Envelope Slider Table
 	 */
-	public static final int [] LinearSlideUpTable = 
+	public static final int [] LinearSlideUpTable =
 	{
 		65536, 65300, 65065, 64830, 64596, 64364, 64132, 63901,
 		63670, 63441, 63212, 62984, 62757, 62531, 62306, 62081,
@@ -1009,9 +1009,9 @@ public class ModConstants
     /**
      * Used by getAsHex
      */
-	public static final char[] numbers = 
+	public static final char[] numbers =
 	{
-		'0', '1', '2', '3', '4', 
+		'0', '1', '2', '3', '4',
 		'5', '6', '7', '8', '9',
 		'A', 'B', 'C', 'D', 'E',
 		'F'
@@ -1025,7 +1025,7 @@ public class ModConstants
 	 */
 	public static String getAsHex(final int value, final int digits)
 	{
-		StringBuilder result = new StringBuilder();
+		final StringBuilder result = new StringBuilder();
 		for (int shift=(digits-1)<<2; shift>=0; shift-=4)
 			result.append(numbers[(value>>shift)&0xF]);
 		return result.toString();
@@ -1039,11 +1039,11 @@ public class ModConstants
 	 */
 	public static String getAsHex(final long value, final int digits)
 	{
-		StringBuilder result = new StringBuilder();
+		final StringBuilder result = new StringBuilder();
 		for (int shift=(digits-1)<<2; shift>=0; shift-=4)
 			result.append(numbers[(int)(value>>shift)&0xF]);
 		return result.toString();
-//		Old standard way, much slower, much more fail safe.		
+//		Old standard way, much slower, much more fail safe.
 //		final String hex = Integer.toHexString(value).toUpperCase();
 //		final int zeros = digits - hex.length();
 //		for (int i=0; i<zeros; i++) result.append('0');
@@ -1097,7 +1097,7 @@ public class ModConstants
 //			samplesPerTick += 65536;
 //		return (st2MixingRate<<5)/(samplesPerTick<<2);
 //	}
-	private static final int st2_tempo_table[][] = 
+	private static final int st2_tempo_table[][] =
 	{
 	  	{ 125,  117,  110,  102,   95,   87,   80,   72,   62,   55,   47,   40,   32,   25,   17,   10, },
 	  	{ 125,  122,  117,  115,  110,  107,  102,  100,   95,   90,   87,   82,   80,   75,   72,   67, },

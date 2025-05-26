@@ -2,7 +2,7 @@
  * @(#) SIDInfoPanel.java
  *
  * Created on 01.02.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ public class SIDInfoPanel extends JPanel
 	private JTextField sidInfoFileName = null;
 
 	private SIDContainer parentContainer;
-	
+
 	/**
 	 * Constructor for SIDInfoPanel
 	 */
@@ -90,7 +90,7 @@ public class SIDInfoPanel extends JPanel
 	 * Constructor for SIDInfoPanel
 	 * @param layout
 	 */
-	public SIDInfoPanel(LayoutManager layout)
+	public SIDInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -99,7 +99,7 @@ public class SIDInfoPanel extends JPanel
 	 * Constructor for SIDInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public SIDInfoPanel(boolean isDoubleBuffered)
+	public SIDInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -109,7 +109,7 @@ public class SIDInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public SIDInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public SIDInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -124,7 +124,7 @@ public class SIDInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(SIDContainer parent)
+	public void setParentContainer(final SIDContainer parent)
 	{
 		parentContainer = parent;
 	}
@@ -132,7 +132,7 @@ public class SIDInfoPanel extends JPanel
 	{
 		setName("SIDInfoPane");
 		setLayout(new GridBagLayout());
-		
+
 		add(getSIDFileNameLabel(),			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		add(getSIDFileName(),				Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		add(getSIDSongNumberLabel(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -169,7 +169,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidFileNameLabel = new JLabel();
 			sidFileNameLabel.setName("sidFileNameLabel");
-			sidFileNameLabel.setText("SID file name:");			
+			sidFileNameLabel.setText("SID file name:");
 			sidFileNameLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidFileNameLabel;
@@ -191,7 +191,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSongNumberLabel = new JLabel();
 			sidSongNumberLabel.setName("sidSongNumberLabel");
-			sidSongNumberLabel.setText("Song number of:");			
+			sidSongNumberLabel.setText("Song number of:");
 			sidSongNumberLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSongNumberLabel;
@@ -213,7 +213,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSongNameLabel = new JLabel();
 			sidSongNameLabel.setName("sidSongNameLabel");
-			sidSongNameLabel.setText("Song name:");			
+			sidSongNameLabel.setText("Song name:");
 			sidSongNameLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSongNameLabel;
@@ -235,7 +235,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidAuthorLabel = new JLabel();
 			sidAuthorLabel.setName("sidAuthorLabel");
-			sidAuthorLabel.setText("Author:");			
+			sidAuthorLabel.setText("Author:");
 			sidAuthorLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidAuthorLabel;
@@ -257,7 +257,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidCopyrightLabel = new JLabel();
 			sidCopyrightLabel.setName("sidCopyrightLabel");
-			sidCopyrightLabel.setText("Copyright:");			
+			sidCopyrightLabel.setText("Copyright:");
 			sidCopyrightLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidCopyrightLabel;
@@ -279,7 +279,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSongInfoLabel = new JLabel();
 			sidSongInfoLabel.setName("sidSongInfoLabel");
-			sidSongInfoLabel.setText("Song infos:");			
+			sidSongInfoLabel.setText("Song infos:");
 			sidSongInfoLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSongInfoLabel;
@@ -310,7 +310,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSongCommentLabel = new JLabel();
 			sidSongCommentLabel.setName("sidSongCommentLabel");
-			sidSongCommentLabel.setText("Song comments:");			
+			sidSongCommentLabel.setText("Song comments:");
 			sidSongCommentLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSongCommentLabel;
@@ -341,7 +341,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSIDModelLabel = new JLabel();
 			sidSIDModelLabel.setName("sidInfoFileNameLabel");
-			sidSIDModelLabel.setText("SID model:");			
+			sidSIDModelLabel.setText("SID model:");
 			sidSIDModelLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSIDModelLabel;
@@ -363,7 +363,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidAddrsLabel = new JLabel();
 			sidAddrsLabel.setName("sidAddrsLabel");
-			sidAddrsLabel.setText("SID Load/Init/Play Addrs:");			
+			sidAddrsLabel.setText("SID Load/Init/Play Addrs:");
 			sidAddrsLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidAddrsLabel;
@@ -407,7 +407,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidSIDBaseAddrsLabel = new JLabel();
 			sidSIDBaseAddrsLabel.setName("sidSIDBaseAddrsLabel");
-			sidSIDBaseAddrsLabel.setText("SID 1/2 Base Addrs:");			
+			sidSIDBaseAddrsLabel.setText("SID 1/2 Base Addrs:");
 			sidSIDBaseAddrsLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidSIDBaseAddrsLabel;
@@ -440,7 +440,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidFormatStringLabel = new JLabel();
 			sidFormatStringLabel.setName("sidFormatStringLabel");
-			sidFormatStringLabel.setText("SID format info:");			
+			sidFormatStringLabel.setText("SID format info:");
 			sidFormatStringLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidFormatStringLabel;
@@ -462,7 +462,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidDataFileNameLabel = new JLabel();
 			sidDataFileNameLabel.setName("sidDataFileNameLabel");
-			sidDataFileNameLabel.setText("SID data file name:");			
+			sidDataFileNameLabel.setText("SID data file name:");
 			sidDataFileNameLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidDataFileNameLabel;
@@ -484,7 +484,7 @@ public class SIDInfoPanel extends JPanel
 		{
 			sidInfoFileNameLabel = new JLabel();
 			sidInfoFileNameLabel.setName("sidInfoFileNameLabel");
-			sidInfoFileNameLabel.setText("SID info file name:");			
+			sidInfoFileNameLabel.setText("SID info file name:");
 			sidInfoFileNameLabel.setFont(Helpers.getDialogFont());
 		}
 		return sidInfoFileNameLabel;
@@ -508,16 +508,16 @@ public class SIDInfoPanel extends JPanel
 		getSIDCopyright().setText(sidTuneInfo.infoString[2]);
 		if (sidTuneInfo.numberOfInfoStrings>3)
 		{
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			for (int i=3; i<sidTuneInfo.numberOfInfoStrings; i++)
 				sb.append(sidTuneInfo.infoString[i]).append('\n');
 			getSIDSongInfo().setText(sb.toString());
 		}
 		if (sidTuneInfo.commentString!=null && sidTuneInfo.commentString.length>0)
 		{
-			StringBuilder sb = new StringBuilder();
-			for (int i=0; i<sidTuneInfo.commentString.length; i++)
-				sb.append(sidTuneInfo.commentString[i]).append('\n');
+			final StringBuilder sb = new StringBuilder();
+			for (final String element : sidTuneInfo.commentString)
+				sb.append(element).append('\n');
 			getSIDSongComment().setText(sb.toString());
 		}
 		final int sidModel = sidTuneInfo.sidModel;

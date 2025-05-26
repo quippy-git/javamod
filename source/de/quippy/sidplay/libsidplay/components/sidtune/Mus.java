@@ -52,18 +52,18 @@ public class Mus {
 
 	public static final int /* uint_least16_t */SIDTUNE_SID2_BASE_ADDR = 0xd500;
 
-	private SidTune sidtune;
+	private final SidTune sidtune;
 
-	private SidTuneInfo info;
+	private final SidTuneInfo info;
 
-	public Mus(SidTune sidtune) {
+	public Mus(final SidTune sidtune) {
 		this.sidtune = sidtune;
 		this.info = sidtune.info;
 	}
 
 	protected LoadStatus MUS_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
 		return MUS_load(musBuf, strBuf, true);
 	}
 
@@ -73,16 +73,16 @@ public class Mus {
 
 	protected boolean MUS_detect(final short[] /* const void* */buffer,
 			final int /* uint_least32_t */bufLen,
-			Voice3Index /* uint_least32_t& */voice3Index) {
+			final Voice3Index /* uint_least32_t& */voice3Index) {
 		// ATT: IN/OUT parameter!!!
-		SmartPtr_sidtt /* <const uint8_t> */spMus = new SmartPtr_sidtt(
-				(short[] /* const uint8_t* */) buffer, bufLen, false);
+		final SmartPtr_sidtt /* <const uint8_t> */spMus = new SmartPtr_sidtt(
+				buffer, bufLen, false);
 		// Skip load address and 3x length entry.
 		long /* uint_least32_t */voice1Index = (2 + 3 * 2);
 		// Add length of voice 1 data.
 		voice1Index += endian_16(spMus.operatorAt(3), spMus.operatorAt(2));
 		// Add length of voice 2 data.
-		long /* uint_least32_t */voice2Index = voice1Index
+		final long /* uint_least32_t */voice2Index = voice1Index
 				+ endian_16(spMus.operatorAt(5), spMus.operatorAt(4));
 		// Add length of voice 3 data.
 		voice3Index.voice3Index = voice2Index
@@ -98,18 +98,18 @@ public class Mus {
 	}
 
 	protected LoadStatus MUS_load(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			boolean init) {
-		Buffer_sidtt /* <const uint_least8_t> */empty = new Buffer_sidtt();
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final boolean init) {
+		final Buffer_sidtt /* <const uint_least8_t> */empty = new Buffer_sidtt();
 		return MUS_load(musBuf, empty, init);
 	}
 
 	protected LoadStatus MUS_load(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf,
-			boolean init) {
-		Voice3Index /* uint_least32_t */voice3Index = new Voice3Index();
-		SmartPtr_sidtt /* <const uint8_t> */spPet = new SmartPtr_sidtt(musBuf
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf,
+			final boolean init) {
+		final Voice3Index /* uint_least32_t */voice3Index = new Voice3Index();
+		final SmartPtr_sidtt /* <const uint8_t> */spPet = new SmartPtr_sidtt(musBuf
 				.get(), sidtune.fileOffset, musBuf.len());
 		if (!MUS_detect(spPet.tellBegin(), spPet.tellLength(), voice3Index))
 			return LOAD_NOT_MINE;
@@ -145,7 +145,7 @@ public class Mus {
 		info.sidChipBase1 = SIDTUNE_SID1_BASE_ADDR;
 
 		// No credits so extract them from the MUS files
-		boolean credits = (sidtune.infoString[0] != null
+		final boolean credits = (sidtune.infoString[0] != null
 				| sidtune.infoString[1] != null | sidtune.infoString[2] != null);
 
 		// Voice3Index now is offset to text lines (uppercase Pet-strings).
@@ -160,7 +160,7 @@ public class Mus {
 		else {
 			for (int line = info.numberOfInfoStrings = 0; spPet.operatorAt(0) != 0; line = ++info.numberOfInfoStrings) {
 				if (line < 10) {
-					StringBuffer infoLine = new StringBuffer();
+					final StringBuffer infoLine = new StringBuffer();
 					sidtune.convertPetsciiToAscii(spPet, infoLine);
 					sidtune.infoString[line] = infoLine.toString();
 					info.infoString[line] = sidtune.infoString[line];
@@ -180,7 +180,7 @@ public class Mus {
 			stereo = true;
 		} else { // For MUS + STR via stdin the files come combined
 			if (spPet.good()) {
-				int /* uint_least16_t */pos = (int /* uint_least16_t */) spPet
+				final int /* uint_least16_t */pos = spPet
 						.tellPos();
 				if (MUS_detect(spPet.tellBegin(), spPet.tellLength() - pos,
 						voice3Index)) {
@@ -203,7 +203,7 @@ public class Mus {
 			else {
 				for (int line = info.numberOfInfoStrings; spPet.operatorAt(0) != 0; line = ++info.numberOfInfoStrings) {
 					if (line < 10) {
-						StringBuffer infoLine = new StringBuffer();
+						final StringBuffer infoLine = new StringBuffer();
 						sidtune.convertPetsciiToAscii(spPet, infoLine);
 						sidtune.infoString[line] = infoLine.toString();
 					} else
@@ -834,14 +834,14 @@ public class Mus {
 			0xfc, 0x20, 0x80, 0xec, 0x4c, 0x80, 0xfc };
 
 	protected boolean MUS_mergeParts(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
-		Buffer_sidtt /* Buffer_sidtt<uint8_t> */mergeBuf = new Buffer_sidtt();
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
+		final Buffer_sidtt /* Buffer_sidtt<uint8_t> */mergeBuf = new Buffer_sidtt();
 
-		int /* uint_least32_t */mergeLen = musBuf.len() + strBuf.len();
+		final int /* uint_least32_t */mergeLen = musBuf.len() + strBuf.len();
 
 		// Sanity check. I do not trust those MUS/STR files around.
-		int /* uint_least32_t */freeSpace = endian_16(_sidtune_sidplayer1[1],
+		final int /* uint_least32_t */freeSpace = endian_16(_sidtune_sidplayer1[1],
 				_sidtune_sidplayer1[0])
 				- SIDTUNE_MUS_DATA_ADDR;
 		if ((musBuf.len() + strBuf.len() - 4) > freeSpace) {
@@ -881,7 +881,7 @@ public class Mus {
 		}
 	}
 
-	protected void MUS_installPlayer(short[] /* uint_least8_t * */c64buf) {
+	protected void MUS_installPlayer(final short[] /* uint_least8_t * */c64buf) {
 		if (sidtune.status && (c64buf != null)) {
 			// Install MUS player #1.
 			int /* uint_least16_t */dest = endian_16(_sidtune_sidplayer1[1],

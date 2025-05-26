@@ -2,7 +2,7 @@
  * @(#) ModfileInputStream.java
  *
  * Created on 31.12.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,14 +37,14 @@ import de.quippy.javamod.system.Log;
  */
 public class ModfileInputStream extends RandomAccessInputStreamImpl
 {
-	private String fileName;
-	
+	private final String fileName;
+
 	/**
 	 * Constructor for ModfileInputStream
 	 * @param file
 	 * @throws FileNotFoundException
 	 */
-	public ModfileInputStream(File file) throws FileNotFoundException, IOException
+	public ModfileInputStream(final File file) throws FileNotFoundException, IOException
 	{
 		super(file);
 		this.fileName = file.getAbsolutePath();
@@ -55,7 +55,7 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 	 * @param fileName
 	 * @throws FileNotFoundException
 	 */
-	public ModfileInputStream(String fileName) throws FileNotFoundException, IOException
+	public ModfileInputStream(final String fileName) throws FileNotFoundException, IOException
 	{
 		super(fileName);
 		this.fileName = fileName;
@@ -68,7 +68,7 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 	 * @throws FileNotFoundException
 	 * @throws MalformedURLException
 	 */
-	public ModfileInputStream(URL fromUrl) throws IOException, FileNotFoundException, MalformedURLException
+	public ModfileInputStream(final URL fromUrl) throws IOException, FileNotFoundException, MalformedURLException
 	{
 		super(fromUrl);
 		this.fileName = Helpers.createLocalFileStringFromURL(fromUrl, false);
@@ -87,7 +87,7 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 		{
 			if (PowerPackerFile.isPowerPacker(this))
 			{
-				PowerPackerFile ppFile = new PowerPackerFile(this);
+				final PowerPackerFile ppFile = new PowerPackerFile(this);
 				close();
 				fullFileCache = ppFile.getBuffer();
 				fullFileCache_length = fullFileCache.length;
@@ -96,14 +96,14 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 			else
 			if (XpkSqsh.isXPK_SQSH(this))
 			{
-				XpkSqsh xpkSqshFile = new XpkSqsh(this);
+				final XpkSqsh xpkSqshFile = new XpkSqsh(this);
 				close();
 				fullFileCache = xpkSqshFile.getBuffer();
 				fullFileCache_length = fullFileCache.length;
 				fullFileCache_readPointer = 0;
 			}
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			Log.error("ModfileInputStream::checkForPowerPackerFile", ex);
 		}

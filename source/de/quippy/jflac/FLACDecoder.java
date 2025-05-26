@@ -54,18 +54,18 @@ import de.quippy.jflac.util.CRC16;
 public class FLACDecoder {
     private static final int FRAME_FOOTER_CRC_LEN = 16; // bits
     private static final byte[] ID3V2_TAG = new byte[] { 'I', 'D', '3' };
-    
-    private BitInputStream bitStream;
-    private ChannelData[] channelData = new ChannelData[Constants.MAX_CHANNELS];
+
+    private final BitInputStream bitStream;
+    private final ChannelData[] channelData = new ChannelData[Constants.MAX_CHANNELS];
     private int outputCapacity = 0;
     private int outputChannels = 0;
-    private int lastFrameNumber;
+    private final int lastFrameNumber;
     private long samplesDecoded = 0;
     private StreamInfo streamInfo;
     private SeekTable seekTable;
     private VorbisComment vorbisComment;
-    private Frame frame = new Frame();
-    private byte[] headerWarmup = new byte[2]; // contains the sync code and reserved bits
+    private final Frame frame = new Frame();
+    private final byte[] headerWarmup = new byte[2]; // contains the sync code and reserved bits
     //private int state;
     private int channels;
     private int channelAssignment;
@@ -73,13 +73,13 @@ public class FLACDecoder {
     private int sampleRate; // in Hz
     private int blockSize; // in samples (per channel)
     private InputStream inputStream = null;
-    
+
     private int badFrames;
     private boolean eof = false;
-    
-    private FrameListeners frameListeners = new FrameListeners();
-    private PCMProcessors pcmProcessors = new PCMProcessors();
-    
+
+    private final FrameListeners frameListeners = new FrameListeners();
+    private final PCMProcessors pcmProcessors = new PCMProcessors();
+
     // Decoder states
     //private static final int DECODER_SEARCH_FOR_METADATA = 0;
     //private static final int DECODER_READ_METADATA = 1;
@@ -92,12 +92,12 @@ public class FLACDecoder {
     //private static final int STREAM_DECODER_ALREADY_INITIALIZED = 8;
     //private static final int STREAM_DECODER_INVALID_CALLBACK = 9;
     //private static final int STREAM_DECODER_UNINITIALIZED = 10;
-    
+
     /**
      * The constructor.
      * @param inputStream    The input stream to read data from
      */
-    public FLACDecoder(InputStream inputStream) {
+    public FLACDecoder(final InputStream inputStream) {
         this.inputStream = inputStream;
         this.bitStream = new BitInputStream(inputStream);
         //state = DECODER_SEARCH_FOR_METADATA;
@@ -105,7 +105,7 @@ public class FLACDecoder {
         samplesDecoded = 0;
         //state = DECODER_SEARCH_FOR_METADATA;
     }
-    
+
     /**
      * Return the parsed StreamInfo Metadata record.
      * @return  The StreamInfo
@@ -113,7 +113,7 @@ public class FLACDecoder {
     public StreamInfo getStreamInfo() {
         return streamInfo;
     }
-    
+
     /**
      * @since 18.02.2012
      * @return the seek table, null if none
@@ -121,7 +121,7 @@ public class FLACDecoder {
     public SeekTable getSeekTable() {
     	return seekTable;
     }
-    
+
     /**
      * @since 18.02.2012
      * @return the vorbis comment, null if none
@@ -129,7 +129,7 @@ public class FLACDecoder {
     public VorbisComment getVorbisComment() {
     	return vorbisComment;
     }
-   
+
     /**
      * Return the ChannelData object.
      * @return  The ChannelData object
@@ -137,7 +137,7 @@ public class FLACDecoder {
     public ChannelData[] getChannelData() {
         return channelData;
     }
-    
+
     /**
      * Return the input but stream.
      * @return  The bit stream
@@ -145,7 +145,7 @@ public class FLACDecoder {
     public BitInputStream getBitInputStream() {
         return bitStream;
     }
-    
+
     /**
      * Return the current read frame
      * @return  The frame currently read
@@ -153,7 +153,7 @@ public class FLACDecoder {
     public Frame getCurrentFrame() {
     	return frame;
     }
-    
+
     /**
 	 * @return the channelAssignment
 	 */
@@ -217,49 +217,49 @@ public class FLACDecoder {
      * Add a frame listener.
      * @param listener  The frame listener to add
      */
-    public void addFrameListener(FrameListener listener) {
+    public void addFrameListener(final FrameListener listener) {
         frameListeners.addFrameListener(listener);
     }
-    
+
     /**
      * Remove a frame listener.
      * @param listener  The frame listener to remove
      */
-    public void removeFrameListener(FrameListener listener) {
+    public void removeFrameListener(final FrameListener listener) {
         frameListeners.removeFrameListener(listener);
     }
-    
+
     /**
      * Add a PCM processor.
      * @param processor  The processor listener to add
      */
-    public void addPCMProcessor(PCMProcessor processor) {
+    public void addPCMProcessor(final PCMProcessor processor) {
         pcmProcessors.addPCMProcessor(processor);
     }
-    
+
     /**
      * Remove a PCM processor.
      * @param processor  The processor listener to remove
      */
-    public void removePCMProcessor(PCMProcessor processor) {
+    public void removePCMProcessor(final PCMProcessor processor) {
         pcmProcessors.removePCMProcessor(processor);
     }
-    
-    private void callPCMProcessors(Frame frame) {
-    	ByteData bd = decodeFrame(frame, null);
+
+    private void callPCMProcessors(final Frame frame) {
+    	final ByteData bd = decodeFrame(frame, null);
         pcmProcessors.processPCM(bd);
     }
-    
+
     /**
      * Fill the given ByteData object with PCM data from the frame.
      *
      * @param frame the frame to send to the PCM processors
      * @param pcmData the byte data to be filled, or null if it should be allocated
-     * @return the ByteData that was filled (may be a new instance from <code>space</code>) 
+     * @return the ByteData that was filled (may be a new instance from <code>space</code>)
      */
-    public ByteData decodeFrame(Frame frame, ByteData pcmData) {
+    public ByteData decodeFrame(final Frame frame, ByteData pcmData) {
     	// required size of the byte buffer
-    	int byteSize = frame.header.blockSize * channels * ((streamInfo.getBitsPerSample() + 7) / 2);
+    	final int byteSize = frame.header.blockSize * channels * ((streamInfo.getBitsPerSample() + 7) / 2);
     	if (pcmData == null || pcmData.getData().length < byteSize ) {
     		pcmData = new ByteData(byteSize);
     	} else {
@@ -274,7 +274,7 @@ public class FLACDecoder {
         } else if (streamInfo.getBitsPerSample() == 16) {
             for (int i = 0; i < frame.header.blockSize; i++) {
                 for (int channel = 0; channel < channels; channel++) {
-                    short val = (short) (channelData[channel].getOutput()[i]);
+                    final short val = (short) (channelData[channel].getOutput()[i]);
                     pcmData.append((byte) (val & 0xff));
                     pcmData.append((byte) ((val >> 8) & 0xff));
                 }
@@ -282,7 +282,7 @@ public class FLACDecoder {
         } else if (streamInfo.getBitsPerSample() == 24) {
             for (int i = 0; i < frame.header.blockSize; i++) {
                 for (int channel = 0; channel < channels; channel++) {
-                    int val = (channelData[channel].getOutput()[i]);
+                    final int val = (channelData[channel].getOutput()[i]);
                     pcmData.append((byte) (val & 0xff));
                     pcmData.append((byte) ((val >> 8) & 0xff));
                     pcmData.append((byte) ((val >> 16) & 0xff));
@@ -291,7 +291,7 @@ public class FLACDecoder {
         }
         return pcmData;
     }
-    
+
     /**
      * Read the FLAC stream info.
      * @return  The FLAC Stream Info record
@@ -299,11 +299,11 @@ public class FLACDecoder {
      */
     public StreamInfo readStreamInfo() throws IOException {
         readStreamSync();
-        Metadata metadata = readNextMetadata();
+        final Metadata metadata = readNextMetadata();
         if (!(metadata instanceof StreamInfo)) throw new IOException("StreamInfo metadata block missing");
         return (StreamInfo) metadata;
     }
-    
+
     /**
      * Read an array of metadata blocks.
      * @return  The array of metadata blocks
@@ -311,32 +311,32 @@ public class FLACDecoder {
      */
     public Metadata[] readMetadata() throws IOException {
         readStreamSync();
-        ArrayList<Metadata> metadataList = new ArrayList<Metadata>();
+        final ArrayList<Metadata> metadataList = new ArrayList<>();
         Metadata metadata;
         do {
             metadata = readNextMetadata();
             metadataList.add(metadata);
         } while (!metadata.isLast());
-        return (Metadata[])metadataList.toArray(new Metadata[0]);
+        return metadataList.toArray(new Metadata[0]);
     }
-    
+
     /**
      * Read an array of metadata blocks.
      * @param streamInfo    The StreamInfo metadata block previously read
      * @return  The array of metadata blocks
      * @throws IOException  On read error
      */
-    public Metadata[] readMetadata(StreamInfo streamInfo) throws IOException {
+    public Metadata[] readMetadata(final StreamInfo streamInfo) throws IOException {
         if (streamInfo.isLast()) return new Metadata[0];
-        ArrayList<Metadata> metadataList = new ArrayList<Metadata>();
+        final ArrayList<Metadata> metadataList = new ArrayList<>();
         Metadata metadata;
         do {
             metadata = readNextMetadata();
             metadataList.add(metadata);
         } while (!metadata.isLast());
-        return (Metadata[])metadataList.toArray(new Metadata[0]);
+        return metadataList.toArray(new Metadata[0]);
     }
-    
+
 //    /**
 //     * process a single metadata/frame.
 //     * @return True of one processed
@@ -397,7 +397,7 @@ public class FLACDecoder {
 //			}
 //		}
 //	}
-    
+
     /**
      * Decode the FLAC file.
      * @throws IOException  On read error
@@ -422,7 +422,7 @@ public class FLACDecoder {
                     readFrame();
                     frameListeners.processFrame(frame);
                     callPCMProcessors(frame);
-                } catch (FrameDecodeException e) {
+                } catch (final FrameDecodeException e) {
                     badFrames++;
                 }
                 //    break;
@@ -433,11 +433,11 @@ public class FLACDecoder {
                 //    throw new IOException("Unknown state: " + state);
                 //}
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             eof = true;
         }
     }
-    
+
     /**
      * Decode the data frames.
      * @throws IOException  On read error
@@ -462,7 +462,7 @@ public class FLACDecoder {
                     readFrame();
                     frameListeners.processFrame(frame);
                     callPCMProcessors(frame);
-                } catch (FrameDecodeException e) {
+                } catch (final FrameDecodeException e) {
                     badFrames++;
                 }
                 //    break;
@@ -473,24 +473,24 @@ public class FLACDecoder {
                 //    throw new IOException("Unknown state: " + state);
                 //}
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             eof = true;
         }
     }
-    
+
     /**
      * Decode the data frames between two seek points.
      * @param from  The starting seek point
      * @param to    The ending seek point (non-inclusive)
      * @throws IOException  On read error
      */
-    public void decode(SeekPoint from, SeekPoint to) throws IOException {
+    public void decode(final SeekPoint from, final SeekPoint to) throws IOException {
         // position random access file
         if (!(inputStream instanceof RandomFileInputStream)) throw new IOException("Not a RandomFileInputStream: " + inputStream.getClass().getName());
         ((RandomFileInputStream)inputStream).seek(from.getStreamOffset());
         bitStream.reset();
         samplesDecoded = from.getSampleNumber();
-        
+
         //state = DECODER_SEARCH_FOR_FRAME_SYNC;
         try {
             while (true) {
@@ -510,7 +510,7 @@ public class FLACDecoder {
                     readFrame();
                     frameListeners.processFrame(frame);
                     callPCMProcessors(frame);
-                } catch (FrameDecodeException e) {
+                } catch (final FrameDecodeException e) {
                     badFrames++;
                 }
                 //frameListeners.processFrame(frame);
@@ -525,11 +525,11 @@ public class FLACDecoder {
                 //    throw new IOException("Unknown state: " + state);
                 //}
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             eof = true;
         }
     }
-    
+
 //	private boolean processUntilEndOfStream() throws IOException
 //	{
 //		// boolean got_a_frame;
@@ -559,7 +559,7 @@ public class FLACDecoder {
 //			}
 //		}
 //	}
-    
+
     /**
      * Read the next data frame.
      * @return  The next frame
@@ -567,7 +567,7 @@ public class FLACDecoder {
      */
     public Frame readNextFrame() throws IOException {
         //boolean got_a_frame;
-        
+
         try {
             while (true) {
                 //switch (state) {
@@ -585,7 +585,7 @@ public class FLACDecoder {
                 try {
                     readFrame();
                     return frame;
-                } catch (FrameDecodeException e) {
+                } catch (final FrameDecodeException e) {
                     badFrames++;
                 }
                 //break;
@@ -596,12 +596,12 @@ public class FLACDecoder {
                 //    return null;
                 //}
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             eof = true;
         }
         return null;
     }
-    
+
     /**
      * Bytes consumed.
      * @return  The number of bytes read
@@ -609,7 +609,7 @@ public class FLACDecoder {
     //public long getBytesConsumed() {
     //    return is.getConsumedBlurbs();
     //}
-    
+
     /**
      * Bytes read.
      * @return  The number of bytes read
@@ -617,28 +617,28 @@ public class FLACDecoder {
     public long getTotalBytesRead() {
         return bitStream.getTotalBytesRead();
     }
-    
+
     /*
      public int getInputBytesUnconsumed() {
      return is.getInputBytesUnconsumed();
      }
      */
-    
-    private void allocateOutput(int size, int channels) {
+
+    private void allocateOutput(final int size, final int channels) {
         if (size <= outputCapacity && channels <= outputChannels) return;
-        
+
         for (int i = 0; i < Constants.MAX_CHANNELS; i++) {
             channelData[i] = null;
         }
-        
+
         for (int i = 0; i < channels; i++) {
             channelData[i] = new ChannelData(size);
         }
-        
+
         outputCapacity = size;
         outputChannels = channels;
     }
-    
+
     /**
      * Read the stream sync string.
      * @throws IOException  On read error
@@ -646,7 +646,7 @@ public class FLACDecoder {
     private void readStreamSync() throws IOException {
         int id = 0;
         for (int i = 0; i < 4;) {
-            int x = bitStream.readRawUInt(8);
+            final int x = bitStream.readRawUInt(8);
             if (x == Constants.STREAM_SYNC_STRING[i]) {
                 i++;
                 id = 0;
@@ -664,7 +664,7 @@ public class FLACDecoder {
             }
         }
     }
-    
+
     /**
      * Read a single metadata record.
      * @return  The next metadata record
@@ -672,11 +672,11 @@ public class FLACDecoder {
      */
     public Metadata readNextMetadata() throws IOException {
         Metadata metadata = null;
-        
-        boolean isLast = (bitStream.readRawUInt(Metadata.STREAM_METADATA_IS_LAST_LEN) != 0);
-        int type = bitStream.readRawUInt(Metadata.STREAM_METADATA_TYPE_LEN);
-        int length = bitStream.readRawUInt(Metadata.STREAM_METADATA_LENGTH_LEN);
-        
+
+        final boolean isLast = (bitStream.readRawUInt(Metadata.STREAM_METADATA_IS_LAST_LEN) != 0);
+        final int type = bitStream.readRawUInt(Metadata.STREAM_METADATA_TYPE_LEN);
+        final int length = bitStream.readRawUInt(Metadata.STREAM_METADATA_LENGTH_LEN);
+
         if (type == Metadata.METADATA_TYPE_STREAMINFO) {
         	metadata = streamInfo = new StreamInfo(bitStream, length, isLast);
             pcmProcessors.processStreamInfo((StreamInfo)metadata);
@@ -699,45 +699,43 @@ public class FLACDecoder {
         //if (isLast) state = DECODER_SEARCH_FOR_FRAME_SYNC;
         return metadata;
     }
-    
-    
+
+
     private void skipID3v2Tag() throws IOException {
-        
-        // skip the version and flags bytes 
+
+        // skip the version and flags bytes
         /*int verMajor = */bitStream.readRawInt(8);
         /*int verMinor = */bitStream.readRawInt(8);
         /*int flags = */bitStream.readRawInt(8);
-        
+
         // get the size (in bytes) to skip
         int skip = 0;
         for (int i = 0; i < 4; i++) {
-            int x = bitStream.readRawUInt(8);
+            final int x = bitStream.readRawUInt(8);
             skip <<= 7;
             skip |= (x & 0x7f);
         }
-        
+
         // skip the rest of the tag
         bitStream.readByteBlockAlignedNoCRC(null, skip);
     }
-    
+
     public void findFrameSync() throws IOException {
         boolean first = true;
         //int cnt=0;
-        
+
         // If we know the total number of samples in the stream, stop if we've read that many.
         // This will stop us, for example, from wasting time trying to sync on an ID3V1 tag.
-        if (streamInfo != null && (streamInfo.getTotalSamples() != 0)) {
-            if (samplesDecoded >= streamInfo.getTotalSamples()) {
-                //state = DECODER_END_OF_STREAM;
-                return;
-            }
-        }
-        
+        if ((streamInfo != null && (streamInfo.getTotalSamples() != 0)) && (samplesDecoded >= streamInfo.getTotalSamples())) {
+		    //state = DECODER_END_OF_STREAM;
+		    return;
+		}
+
         // make sure we're byte aligned
         if (!bitStream.isConsumedByteAligned()) {
             bitStream.readRawUInt(bitStream.bitsLeftForByteAlignment());
         }
-        
+
         int x;
         try {
             while (true) {
@@ -745,7 +743,7 @@ public class FLACDecoder {
                 if (x == 0xff) { // MAGIC NUMBER for the first 8 frame sync bits
                     headerWarmup[0] = (byte) x;
                     x = bitStream.peekRawUInt(8);
-                    
+
                     /* we have to check if we just read two 0xff's in a row; the second may actually be the beginning of the sync code */
                     /* else we have to check if the second byte is the end of a sync code */
                     if (x >> 2 == 0x3e) { /* MAGIC NUMBER for the last 6 sync bits */
@@ -759,12 +757,12 @@ public class FLACDecoder {
                     first = false;
                 }
             }
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             if (!first) frameListeners.processError("FindSync LOST_SYNC: Left over data in file");
             //state = DECODER_END_OF_STREAM;
         }
     }
-    
+
     /**
      * Read the next data frame.
      * @throws IOException  On read error
@@ -777,16 +775,16 @@ public class FLACDecoder {
         int mid, side, left, right;
         short frameCRC; /* the one we calculate from the input stream */
         //int x;
-        
+
         /* init the CRC */
         frameCRC = 0;
         frameCRC = CRC16.update(headerWarmup[0], frameCRC);
         frameCRC = CRC16.update(headerWarmup[1], frameCRC);
         bitStream.resetReadCRC16(frameCRC);
-        
+
         try {
             frame.header = new Header(bitStream, headerWarmup, streamInfo);
-        } catch (BadHeaderException e) {
+        } catch (final BadHeaderException e) {
             frameListeners.processError("Found bad header: " + e);
             throw new FrameDecodeException("Bad Frame Header: " + e);
         }
@@ -816,13 +814,13 @@ public class FLACDecoder {
             // now read it
             try {
                 readSubframe(channel, bps);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 frameListeners.processError("ReadSubframe: " + e);
                 throw e;
             }
         }
         readZeroPadding();
-        
+
         // Read the frame CRC-16 from the footer and check
         frameCRC = bitStream.getReadCRC16();
         frame.setCRC((short)bitStream.readRawUInt(FRAME_FOOTER_CRC_LEN));
@@ -857,7 +855,7 @@ public class FLACDecoder {
             default :
                 break;
             }
-            
+
             //gotAFrame = true;
         } else {
             // Bad frame, emit error and zero the output signal
@@ -867,36 +865,36 @@ public class FLACDecoder {
                     channelData[channel].getOutput()[j] = 0;
             }
         }
-        
+
         // put the latest values into the public section of the decoder instance
         channels = frame.header.channels;
         channelAssignment = frame.header.channelAssignment;
         bitsPerSample = frame.header.bitsPerSample;
         sampleRate = frame.header.sampleRate;
         blockSize = frame.header.blockSize;
-        
+
         //samplesDecoded = frame.header.sampleNumber + frame.header.blockSize;
         samplesDecoded += frame.header.blockSize;
         //System.out.println(samplesDecoded+" "+frame.header.sampleNumber + " "+frame.header.blockSize);
-        
+
         //state = DECODER_SEARCH_FOR_FRAME_SYNC;
         return frame;
     }
-    
-    private void readSubframe(int channel, int bps) throws IOException, FrameDecodeException {
+
+    private void readSubframe(final int channel, int bps) throws IOException, FrameDecodeException {
         int x;
-        
+
         x = bitStream.readRawUInt(8); /* MAGIC NUMBER */
-        
-        boolean haveWastedBits = ((x & 1) != 0);
+
+        final boolean haveWastedBits = ((x & 1) != 0);
         x &= 0xfe;
-        
+
         int wastedBits = 0;
         if (haveWastedBits) {
             wastedBits = bitStream.readUnaryUnsigned() + 1;
             bps -= wastedBits;
         }
-        
+
         // Lots of magic numbers here
         if ((x & 0x80) != 0) {
             frameListeners.processError("ReadSubframe LOST_SYNC: " + Integer.toHexString(x & 0xff));
@@ -926,10 +924,10 @@ public class FLACDecoder {
                 channelData[channel].getOutput()[i] <<= x;
         }
     }
-    
+
     private void readZeroPadding() throws IOException, FrameDecodeException {
         if (!bitStream.isConsumedByteAligned()) {
-            int zero = bitStream.readRawUInt(bitStream.bitsLeftForByteAlignment());
+            final int zero = bitStream.readRawUInt(bitStream.bitsLeftForByteAlignment());
             if (zero != 0) {
                 frameListeners.processError("ZeroPaddingError: " + Integer.toHexString(zero));
                 //state = DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -937,14 +935,14 @@ public class FLACDecoder {
             }
         }
     }
-    
+
     /**
      * This will do a forward seek - backwards is not possible yet
      * because we would need to reset the inputstream
      * @since 18.02.2012
      * @param seekToSamples
      */
-    public void seekTo(long seekToSamples) throws IOException
+    public void seekTo(final long seekToSamples) throws IOException
     {
     	// Seek with SeekTable if any provided
 		if (seekTable!=null)
@@ -974,7 +972,7 @@ public class FLACDecoder {
 	        		if (samplesDecoded + frame.header.blockSize >= seekToSamples) break;
 	        	}
         	}
-        	catch (Throwable ex)
+        	catch (final Throwable ex)
         	{
         		// We will recieve DecoderExceptions if we did seek
         		// I would expect that seeking will reach a sync point

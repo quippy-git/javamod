@@ -2,7 +2,7 @@
  * @(#) GaplessSoundOutputStreamImpl.java
  *
  * Created on 25.02.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -69,21 +69,21 @@ public class GaplessSoundOutputStreamImpl extends SoundOutputStreamImpl
 			{
 				super.openSourceLine();
 			}
-			else 
+			else
 			if (sourceLine != null)
 			{
 				if (!sourceLine.isOpen()) sourceLine.open();
 				if (!sourceLine.isRunning()) sourceLine.start();
 			}
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			sourceLine = null;
 			Log.error("Error occured when opening audio device", ex);
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.io.SoundOutputStreamImpl#open()
 	 * @since 27.02.2011
 	 */
@@ -91,14 +91,14 @@ public class GaplessSoundOutputStreamImpl extends SoundOutputStreamImpl
 	public synchronized void open()
 	{
 		close();
-		if (playDuringExport || exportFile==null) 
+		if (playDuringExport || exportFile==null)
 			openSourceLine();
 		else
 			openAudioProcessor(); // open AudioProcessor (DSP-Effekts) when only exporting
 		openExportFile();
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.io.SoundOutputStreamImpl#close()
 	 * @since 27.02.2011
 	 */
@@ -114,6 +114,7 @@ public class GaplessSoundOutputStreamImpl extends SoundOutputStreamImpl
 	 * stream does a close on the line only, if audio formats don't match
 	 * @since 27.02.2011
 	 */
+	@Override
 	public synchronized void closeAllDevices()
 	{
 		super.close();

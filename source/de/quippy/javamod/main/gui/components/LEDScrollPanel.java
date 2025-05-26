@@ -2,7 +2,7 @@
  * @(#) LEDScrollPanel.java
  *
  * Created on 21.09.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public class LEDScrollPanel extends MeterPanelBase
 	private static HashMap<Character, byte[]> ledCharSet;
 	static
 	{
-		ledCharSet = new HashMap<Character, byte[]>();
+		ledCharSet = new HashMap<>();
 		ledCharSet.put(Character.valueOf(' '), ((new byte[]
 		{
 				0, 0, 0, 0, 0
@@ -503,7 +503,7 @@ public class LEDScrollPanel extends MeterPanelBase
 		{
 				85, 0, 85, 0, 85
 		})));
-		ledCharSet.put(Character.valueOf('\u2592'), ((new byte[] // 
+		ledCharSet.put(Character.valueOf('\u2592'), ((new byte[] //
 		{
 				85, 42, 85, 42, 85
 		})));
@@ -512,7 +512,7 @@ public class LEDScrollPanel extends MeterPanelBase
 				62, 73, 85, 85, 62
 		})));
 	}
-	
+
 	private static final int BYTES_PER_CHAR = 5;
 	private static final int DISPLAY_BYTES_PER_CHAR = 6;
 
@@ -522,19 +522,19 @@ public class LEDScrollPanel extends MeterPanelBase
 	private int smallBrickWidth;
 	private int smallBrickHeight;
 	private int anzChars;
-	private int fullWidth;
-	private int fullHeight;
-	
+	private final int fullWidth;
+	private final int fullHeight;
+
 	private int appendIndexMarker;
 	private int scrollTextIndex;
 	private int scrollBufferIndex;
 	private byte[][] currentScrollLayer;
-	
-	private Color darkColor;
-	private Color lightColor;
-	
+
+	private final Color darkColor;
+	private final Color lightColor;
+
 	private int syncToFPScounter;
-	private int syncToFPSAdd;
+	private final int syncToFPSAdd;
 	// lets avoid floats, so we use the good old fractions by shifting
 	private static final int SYNC2FPS_BITS	= 16;
 	private static final int SYNC2FPS_FRAC	= 1<<SYNC2FPS_BITS;
@@ -563,13 +563,13 @@ public class LEDScrollPanel extends MeterPanelBase
 		currentScrollLayer = new byte[anzChars + 1][];
 		darkColor = displayDarkColor;
 		lightColor = displayLightColor;
-		
+
 		syncToFPScounter = 0;
 		syncToFPSAdd = (DEFAULT_FPS<<SYNC2FPS_BITS) / updateRate;
-		
+
 		startThread();
 	}
-	public synchronized void setScrollTextTo(String newScrollText)
+	public synchronized void setScrollTextTo(final String newScrollText)
 	{
 		for (int i=0; i<=anzChars; i++) currentScrollLayer[i] = null;
 		appendIndexMarker = -1;
@@ -577,7 +577,7 @@ public class LEDScrollPanel extends MeterPanelBase
 		scrollTextIndex = -1;
 		scrollText = newScrollText;
 	}
-	public synchronized void addScrollText(String appender)
+	public synchronized void addScrollText(final String appender)
 	{
 		if (appendIndexMarker!=-1)
 		{
@@ -595,11 +595,11 @@ public class LEDScrollPanel extends MeterPanelBase
 		scrollText += appender;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#componentWasResized()
 	 */
 	@Override
-	protected synchronized void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
+	protected synchronized void componentWasResized(final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		brickWidth = newWidth / fullWidth;
 		brickHeight = newHeight / fullHeight;
@@ -608,7 +608,7 @@ public class LEDScrollPanel extends MeterPanelBase
 		smallBrickWidth = brickWidth - 1;
 		smallBrickHeight = brickHeight - 1;
 
-		final int newAnzChars = (int)(((float)newWidth / ((float)DISPLAY_BYTES_PER_CHAR * (float)brickWidth))+0.5f) + 1;
+		final int newAnzChars = (int)((newWidth / ((float)DISPLAY_BYTES_PER_CHAR * (float)brickWidth))+0.5f) + 1;
 		if (newAnzChars != anzChars)
 		{
 			anzChars = newAnzChars;
@@ -616,15 +616,15 @@ public class LEDScrollPanel extends MeterPanelBase
 			setScrollTextTo(scrollText);
 		}
 	}
-	private int drawDots(Graphics2D g, int startIndex, int x, byte[] charBuffer, int compWidth, int compHeight)
+	private int drawDots(final Graphics2D g, int startIndex, int x, final byte[] charBuffer, final int compWidth, final int compHeight)
 	{
 		for (; startIndex<DISPLAY_BYTES_PER_CHAR; startIndex++)
 		{
-			byte line = (startIndex<BYTES_PER_CHAR)?((charBuffer==null)?0:charBuffer[startIndex]):0;
+			final byte line = (startIndex<BYTES_PER_CHAR)?((charBuffer==null)?0:charBuffer[startIndex]):0;
 			for (int y=0; y<8; y++)
 			{
-				int c = line & (1<<y);
-				
+				final int c = line & (1<<y);
+
 				g.setColor((c==0)?darkColor:lightColor);
 				g.fillRect(x, y * brickHeight, smallBrickWidth, smallBrickHeight);
 			}
@@ -632,7 +632,7 @@ public class LEDScrollPanel extends MeterPanelBase
 			g.fillRect(x, 8*brickHeight, smallBrickWidth, compHeight);
 			x+=brickWidth;
 		}
-		
+
 		return x;
 	}
 	/**
@@ -640,48 +640,48 @@ public class LEDScrollPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics)
 	 */
 	@Override
-	protected synchronized void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected synchronized void drawMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		syncToFPScounter += syncToFPSAdd;
 		if (syncToFPScounter >= SYNC2FPS_FRAC)
 		{
 			scrollBufferIndex++;
 			syncToFPScounter &= SYNC2FPS_MASK;
-			
+
 			if (scrollBufferIndex>=DISPLAY_BYTES_PER_CHAR)
 			{
 				scrollTextIndex += scrollBufferIndex / DISPLAY_BYTES_PER_CHAR;
 				scrollBufferIndex %= DISPLAY_BYTES_PER_CHAR;
 
 				if (scrollTextIndex>=scrollText.length()) scrollTextIndex = 0;
-				
+
 				if (appendIndexMarker!=-1 && scrollTextIndex>=appendIndexMarker)
 				{
 					scrollText = scrollText.substring(appendIndexMarker);
 					scrollTextIndex-=appendIndexMarker;
 					appendIndexMarker = -1;
 				}
-				
-				Character c = Character.valueOf(scrollText.charAt(scrollTextIndex));
+
+				final Character c = Character.valueOf(scrollText.charAt(scrollTextIndex));
 				byte [] newChar = ledCharSet.get(c);
 				if (newChar==null)
 				{
-					Log.debug("Charachter unknown: " + c.toString() + "[\\u"+ Integer.toHexString((int)c.charValue()) +"]");
+					Log.debug("Charachter unknown: " + c.toString() + "[\\u"+ Integer.toHexString(c.charValue()) +"]");
 					newChar=ledCharSet.get(Character.valueOf('?'));
 				}
-				
+
 				for (int i=0; i<anzChars; i++) currentScrollLayer[i] = currentScrollLayer[i+1];
 				currentScrollLayer[anzChars] = newChar;
 			}
-	
+
 			if (g==null) return;
-			
+
 			final int startIndex = scrollBufferIndex % DISPLAY_BYTES_PER_CHAR;
 			int x=0;
 			for (int i=0; i<anzChars; i++)
 			{
-				byte[] display = currentScrollLayer[i];
-				int start = (i==0)?startIndex:0;
+				final byte[] display = currentScrollLayer[i];
+				final int start = (i==0)?startIndex:0;
 				x = drawDots(g, start, x, display, newWidth, newHeight);
 			}
 		}

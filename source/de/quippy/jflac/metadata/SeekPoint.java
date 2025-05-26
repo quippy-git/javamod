@@ -38,46 +38,47 @@ public class SeekPoint {
     protected long sampleNumber; // The sample number of the target frame.
     protected long streamOffset; // The offset, in bytes, of the target frame with respect to beginning of the first frame.
     protected int frameSamples; // The number of samples in the target frame.
-    
+
     /**
      * The constructor.
      * @param is                The InputBitStream
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public SeekPoint(BitInputStream is) throws IOException {
+    public SeekPoint(final BitInputStream is) throws IOException {
         sampleNumber = is.readRawULong(SEEKPOINT_SAMPLE_NUMBER_LEN);
         streamOffset = is.readRawULong(SEEKPOINT_STREAM_OFFSET_LEN);
         frameSamples = is.readRawUInt(SEEKPOINT_FRAME_SAMPLES_LEN);
     }
-    
+
     /**
      * The constructor.
      * @param sampleNumber  The sample number of the target frame
      * @param streamOffset  The offset, in bytes, of the target frame with respect to beginning of the first frame
      * @param frameSamples  The number of samples in the target frame
      */
-    public SeekPoint(long sampleNumber, long streamOffset, int frameSamples) {
+    public SeekPoint(final long sampleNumber, final long streamOffset, final int frameSamples) {
         this.sampleNumber = sampleNumber;
         this.streamOffset = streamOffset;
         this.frameSamples = frameSamples;
     }
-    
+
     /**
      * Write out an individual seek point.
      * @param os    The output stream
      * @throws IOException  Thrown if error writing data
      */
-    public void write(BitOutputStream os) throws IOException {
+    public void write(final BitOutputStream os) throws IOException {
 
         os.writeRawULong(sampleNumber, SEEKPOINT_SAMPLE_NUMBER_LEN);
         os.writeRawULong(streamOffset, SEEKPOINT_STREAM_OFFSET_LEN);
         os.writeRawUInt(frameSamples, SEEKPOINT_FRAME_SAMPLES_LEN);
     }
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         return "sampleNumber=" + sampleNumber + " streamOffset=" + streamOffset + " frameSamples=" + frameSamples;
     }
     /**
@@ -105,7 +106,7 @@ public class SeekPoint {
      * Set the stream offset.
      * @param streamOffset The stream offset to set.
      */
-    public void setStreamOffset(long streamOffset) {
+    public void setStreamOffset(final long streamOffset) {
         this.streamOffset = streamOffset;
     }
 }

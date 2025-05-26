@@ -2,7 +2,7 @@
  * @(#) PatternImagePanel.java
  *
  * Created on 04.01.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ import de.quippy.javamod.multimedia.mod.loader.pattern.PatternRow;
 public class PatternImagePanel extends JComponent implements Scrollable
 {
 	private static final long serialVersionUID = -8032820780987918878L;
-	
+
 	private static final Color SELECTION_COLOR		= new Color(0xc0c0c0);
 	private static final Color PLAY_SELECTION_COLOR	= new Color(0xffff80);
 
@@ -73,26 +73,25 @@ public class PatternImagePanel extends JComponent implements Scrollable
 
 	private static final int PATTERN_ELEMENT_CHARS = 13;
 	private static final int BUTTON_CHARS = 4;
-	
+
 	private Container parentContainer = null;
-	
+
 	private Color selectionColor = SELECTION_COLOR;
 	private Color playSelectionColor = PLAY_SELECTION_COLOR;
-	
+
 	private Pattern prevPattern, currentPattern, nextPattern;
-	private int [] columnPositionsX = new int[14]; // positions of pattern elements
+	private final int [] columnPositionsX = new int[14]; // positions of pattern elements
 	private int buttonLength;			// length in pixel of the buttons
 	private int patternElementLength;	// length of a pattern element
 	private int patternRowLength;		// length of a row without button
 	private int fullRowLength;			// length of a row WITH button
-	private int fullRowsHeight;			// the height of all rows to draw 
 	private int rowsAbove = -1;			// rows above our play indicator
 	private int rowsBelow = -1;			// rows below (and with) our play indicator. rowsAbove + rowsBelow are the full amount of displayable rows
 	private int currentChannels = -1;	// channels of the currentPattern
 	private int parentWidth = -1;		// width of the canvas (JViewport)
 	private int parentHeight = -1;		// height of the canvas (JViewport)
 	private Dimension charDim = null;	// dimensions of one char
-	
+
 	private PatternImagePosition currentPlayingRow = null;	// the current Pattern/row to display the payer marker on - if its our currentPattern
 	private PatternImagePosition currentEditingRow = null;	// the current Pattern/row to display the edit marker on
 
@@ -118,19 +117,19 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		return getPreferredSize();
 	}
 	@Override
-	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+	public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction)
 	{
 		final Dimension charDim = getCharDimensions();
-		
+
 		if (orientation == SwingConstants.VERTICAL)
 			return charDim.height;
 		if (orientation == SwingConstants.HORIZONTAL)
 			return charDim.width;
-		
+
 		return 8;
 	}
 	@Override
-	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction)
 	{
 		return getScrollableUnitIncrement(visibleRect, orientation, direction) * 4;
 	}
@@ -146,7 +145,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	}
 	// ------ JComponent Overrides ---------------------------------------------
 	/**
-	 * 
+	 *
 	 * @see javax.swing.JComponent#addNotify()
 	 */
 	@Override
@@ -159,13 +158,13 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			((JViewport)parentContainer).addComponentListener(new ComponentListener()
 			{
 				@Override
-				public void componentShown(ComponentEvent e) {}
+				public void componentShown(final ComponentEvent e) {}
 				@Override
-				public void componentMoved(ComponentEvent e) {}
+				public void componentMoved(final ComponentEvent e) {}
 				@Override
-				public void componentHidden(ComponentEvent e) {}
+				public void componentHidden(final ComponentEvent e) {}
 				@Override
-				public void componentResized(ComponentEvent e)
+				public void componentResized(final ComponentEvent e)
 				{
 					if (resizeForPattern()) scrollOrRepaint(new Rectangle(-1, 0, parentWidth, parentHeight));
 				}
@@ -177,7 +176,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	 * @see javax.swing.JComponent#setFont(java.awt.Font)
 	 */
 	@Override
-	public void setFont(Font font)
+	public void setFont(final Font font)
 	{
 		super.setFont(font);
 		charDim = null;
@@ -199,7 +198,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		if (nextPattern!=null && position.pattern == nextPattern)
 			row = rowsAbove + currentPattern.getRowCount();
 		if (row==-1) return null;
-		
+
 		p.y = (position.row + row) * getCharDimensions().height;
 
 		p.x = buttonLength + ((position.channel * PATTERN_ELEMENT_CHARS) * getCharDimensions().width);
@@ -213,7 +212,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	public PatternImagePosition view2Model(final Point p)
 	{
 		if (currentPattern==null || p==null) return null;
-		
+
 		final PatternImagePosition result = new PatternImagePosition();
 		if (p.x<buttonLength)
 		{
@@ -240,7 +239,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			else
 			if (charPos>=12)				result.column = PatternImagePosition.COLUMN_BEYOND_RIGHT;
 		}
-		
+
 		result.rowInView = (p.y / getCharDimensions().height);
 		if (result.rowInView>=0 && result.rowInView<rowsAbove && prevPattern!=null)
 		{
@@ -312,14 +311,14 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	}
 	public void setActivePlayingRow(final PatternImagePosition newPlayingRow)
 	{
-		// no followSong or just to remove the marker, so 
-		// - remove the old marker and 
+		// no followSong or just to remove the marker, so
+		// - remove the old marker and
 		// - draw a new one, if the currentPattern displayed
 		// is also the one we want to see the marker on
 		final Graphics2D gfx = (Graphics2D)getGraphics().create();
 		try
 		{
-			final Rectangle clipping = gfx.getClipBounds(); 
+			final Rectangle clipping = gfx.getClipBounds();
 			final Dimension charDim = getCharDimensions();
 
 			final int x = buttonLength;
@@ -358,10 +357,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 				int width = parentWidth;
 				if (currentEditingRow.column != PatternImagePosition.NOT_SET)
 				{
-					Point p = model2View(currentEditingRow);
+					final Point p = model2View(currentEditingRow);
 					if (p!=null)
 					{
-						x = (currentEditingRow.channel==0 && currentEditingRow.column==PatternImagePosition.COLUMN_NOTE)?0:p.x; 
+						x = (currentEditingRow.channel==0 && currentEditingRow.column==PatternImagePosition.COLUMN_NOTE)?0:p.x;
 						width = columnPositionsX[((currentEditingRow.column-1)<<1)+1] + getCharDimensions().width;
 					}
 				}
@@ -370,11 +369,11 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		}
 		else
 		{
-			// just remove the editing marker 
+			// just remove the editing marker
 			final Graphics2D gfx = (Graphics2D)getGraphics().create();
 			try
 			{
-				final Rectangle clipping = gfx.getClipBounds(); 
+				final Rectangle clipping = gfx.getClipBounds();
 				final Dimension charDim = getCharDimensions();
 
 				final int x = buttonLength;
@@ -413,7 +412,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	// -------------------------------------------------------------------------
 	private void scrollOrRepaint(final Rectangle whereTo)
 	{
-        Point viewPositionOld = (parentContainer instanceof JViewport)?((JViewport)parentContainer).getViewPosition():null;
+        final Point viewPositionOld = (parentContainer instanceof JViewport)?((JViewport)parentContainer).getViewPosition():null;
         // replace the vertical/horizontal coordinate with the current setting if not specified
         if (viewPositionOld!=null)
         {
@@ -423,7 +422,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		scrollRectToVisible(whereTo);
         // as scrolling will issue a repaint of the damaged area, we do not want to issue a repaint again
         // but if no scrolling occurred, we will have to. Only repaint what the user wants to see.
-        Point viewPositionNew = (parentContainer instanceof JViewport)?((JViewport)parentContainer).getViewPosition():null;
+        final Point viewPositionNew = (parentContainer instanceof JViewport)?((JViewport)parentContainer).getViewPosition():null;
         if (viewPositionOld==null || viewPositionNew==null || (viewPositionOld.x==viewPositionNew.x && viewPositionOld.y==viewPositionNew.y))
         {
            	whereTo.x = 0;
@@ -442,7 +441,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 
 			final int half1 = charDim.width>>1;
 			final int half2 = charDim.width - half1;
-			
+
 			//NOTE
 			columnPositionsX[0] = 0;
 			columnPositionsX[1] = charDim.width * 3;
@@ -471,8 +470,8 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	{
 		parentHeight = (parentContainer==null)?0:parentContainer.getHeight();
 		parentWidth = (parentContainer==null)?0:parentContainer.getWidth();
-		
-		Dimension charDim = getCharDimensions();
+
+		final Dimension charDim = getCharDimensions();
 
 		final int displayableRows = (((parentHeight * 10) / charDim.height) + 5) / 10;
 		rowsAbove = displayableRows>>1;
@@ -480,11 +479,11 @@ public class PatternImagePanel extends JComponent implements Scrollable
 
 		currentChannels = (currentPattern==null)?0:currentPattern.getChannels();
 		patternRowLength = currentChannels * patternElementLength;
-		
+
 		fullRowLength = (currentPattern==null)?0:patternRowLength + buttonLength;
 		final int rows = (currentPattern==null)?0:currentPattern.getRowCount();
-		fullRowsHeight = (currentPattern==null)?parentHeight:(rows + rowsAbove + rowsBelow) * charDim.height; // two pixels insets at bottom...
-		
+		int fullRowsHeight = (currentPattern==null)?parentHeight:(rows + rowsAbove + rowsBelow) * charDim.height; // two pixels insets at bottom...
+
 		setSize(fullRowLength, fullRowsHeight);
 		setPreferredSize(getSize());
 		return true;
@@ -495,7 +494,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		if (clipping!=null) fillMe = clipping.intersection(fillMe);
 		if (fillMe.width>0 || fillMe.height>0) g.fillRect(fillMe.x, fillMe.y, fillMe.width, fillMe.height);
 	}
-	private int drawPatternElement(final Graphics2D g, int x, int y, final PatternElement element, final int colorIndex, final Rectangle clipping, final Dimension charDim, final int markColumn)
+	private int drawPatternElement(final Graphics2D g, final int x, final int y, final PatternElement element, final int colorIndex, final Rectangle clipping, final Dimension charDim, final int markColumn)
 	{
 		final boolean intersects = (clipping!=null)?clipping.intersects(new Rectangle(x, y-charDim.height+1, patternElementLength, charDim.height)):true;
 		if  (intersects) // if the element is not visible, do not draw. We however do not check that for all elements of the row...
@@ -506,7 +505,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 				g.setColor(Color.BLACK);
 				g.fillRect(x + columnPositionsX[index], y-getCharDimensions().height+1, columnPositionsX[index + 1], getCharDimensions().height);
 			}
-			
+
 			// Note:
 			if (markColumn==PatternImagePosition.COLUMN_NOTE)
 				g.setColor(Color.WHITE);
@@ -514,15 +513,15 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			{
 				switch (element.getNoteIndex())
 				{
-					case ModConstants.NO_NOTE: 
-					case ModConstants.KEY_OFF:  
-					case ModConstants.NOTE_CUT: 
+					case ModConstants.NO_NOTE:
+					case ModConstants.KEY_OFF:
+					case ModConstants.NOTE_CUT:
 					case ModConstants.NOTE_FADE: g.setColor(FOREGROUND[colorIndex]); break;
 					default: g.setColor(NOTE[colorIndex]);
 				}
 			}
 			g.drawString(ModConstants.getNoteNameForIndex(element.getNoteIndex()), x + columnPositionsX[0], y);
-			
+
 			// Instrument
 			if (element.getInstrument()==0)
 			{
@@ -534,7 +533,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 				g.setColor((markColumn==PatternImagePosition.COLUMN_INSTRUMENT)?Color.WHITE:INSTRUMENT[colorIndex]);
 				g.drawString(ModConstants.getAsHex(element.getInstrument(), 2), x + columnPositionsX[2], y);
 			}
-			
+
 			// VolumeColumn
 			if (element.getVolumeEffekt()==0)
 			{
@@ -574,7 +573,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 //			g.fill3DRect(x+half1-2, y-charDim.height, 3, charDim.height, true);
 //			g.drawString("|", x, y);
 		}
-		
+
 		return x + patternElementLength;
 	}
 	private int drawPatternRow(final Graphics2D g, int x, int y, final PatternRow row, final int colorIndex, final int rowNumber, final Rectangle clipping, final Dimension charDim)
@@ -608,17 +607,17 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			fillRectWithClipping(g, x, y, patternRowLength, charDim.height, clipping);
 			// Row number text - drawing text means y is baseline (not top line)
 			y += charDim.height - 1;
-			
+
 			for (int channel=0; channel<currentChannels; channel++)
 			{
 				x = drawPatternElement(g, x, y, row.getPatternElement(channel), colorIndex, clipping, charDim, (markChannel==channel)?markColumn:PatternImagePosition.NOT_SET);
 			}
 		}
-		else 
+		else
 			x += patternRowLength;
 		return x;
 	}
-	private int drawButton(final Graphics2D g, int x, int y, final int colorIndex, final int rowNumber, final Rectangle clipping, final Dimension charDim)
+	private int drawButton(final Graphics2D g, final int x, final int y, final int colorIndex, final int rowNumber, final Rectangle clipping, final Dimension charDim)
 	{
 		final boolean intersects = (clipping!=null)?clipping.intersects(new Rectangle(x, y, buttonLength, charDim.height)):true;
 		if  (intersects) // do not draw buttons that are not visible anyways
@@ -637,10 +636,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	{
 		final int colorIndex = (current)?0:1;
 		int y = startY;
-		
+
 		if (pattern==null)
 		{
-			int fillRows = anzRows*charDim.height;
+			final int fillRows = anzRows*charDim.height;
 			g.setColor(BACKGROUND[colorIndex]);
 			fillRectWithClipping(g, startX, startY, fullRowLength, fillRows, clipping);
 			return y + fillRows;
@@ -648,7 +647,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		else
 		if (startRow<0) // fill on top rows till startRow is 0
 		{
-			int fillRows = (-startRow)*charDim.height;
+			final int fillRows = (-startRow)*charDim.height;
 			startRow = 0;
 			anzRows = pattern.getRowCount();
 			g.setColor(BACKGROUND[colorIndex]);
@@ -658,13 +657,13 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		else // fill bottom, as pattern is not big enough
 		if (startRow==0 && anzRows>pattern.getRowCount())
 		{
-			int fillRows = (anzRows - pattern.getRowCount())*charDim.height;
+			final int fillRows = (anzRows - pattern.getRowCount())*charDim.height;
 			startRow = 0;
 			anzRows = pattern.getRowCount();
 			g.setColor(BACKGROUND[colorIndex]);
 			fillRectWithClipping(g, startX, startY + (anzRows*charDim.height), fullRowLength, fillRows, clipping);
 		}
-		
+
 		final int maxRow = startRow + anzRows;
 		for (int rowNumber=startRow; rowNumber<maxRow; rowNumber++)
 		{
@@ -673,12 +672,12 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			final boolean intersects = (clipping!=null)?clipping.intersects(new Rectangle(x, y, fullRowLength, charDim.height)):true;
 			if (intersects) // avoid drawing a row that is clipped anyways
 			{
-				PatternRow row = pattern.getPatternRow(rowNumber);
-	
+				final PatternRow row = pattern.getPatternRow(rowNumber);
+
 				x = drawButton(g, x, y, colorIndex, rowNumber, clipping, charDim);
 				x = drawPatternRow(g, x, y, row, colorIndex, rowNumber, clipping, charDim);
 			}
-			
+
 			y += charDim.height;
 		}
 		return y;
@@ -697,10 +696,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
-	public void paintComponent(Graphics g)
+	public void paintComponent(final Graphics g)
 	{
 		super.paintComponent(g);
-		Graphics2D gfx = (Graphics2D)g.create();
+		final Graphics2D gfx = (Graphics2D)g.create();
 		try
 		{
 			drawPatterns(gfx);

@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -45,11 +45,11 @@ class CodeBook{
 
   // One the encode side, our vector writers are each designed for a
   // specific purpose, and the encoder is not flexible without modification:
-  // 
+  //
   // The LSP vector coder uses a single stage nearest-match with no
   // interleave, so no step and no error return.  This is specced by floor0
   // and doesn't change.
-  // 
+  //
   // Residue0 encoding interleaves, uses multiple stages, and each stage
   // peels of a specific amount of resolution from a lattice (thus we want
   // to match by threshhold, not nearest match).  Residue doesn't *have* to
@@ -58,8 +58,8 @@ class CodeBook{
 
   // floor0 LSP (single stage, non interleaved, nearest match)
   // returns entry number and *modifies a* to the quantization value
-  int errorv(float[] a){
-    int best=best(a, 1);
+  int errorv(final float[] a){
+    final int best=best(a, 1);
     for(int k=0; k<dim; k++){
       a[k]=valuelist[best*dim+k];
     }
@@ -83,8 +83,8 @@ class CodeBook{
 
   private int[] t=new int[15]; // decodevs_add is synchronized for re-using t.
 
-  synchronized int decodevs_add(float[] a, int offset, Buffer b, int n){
-    int step=n/dim;
+  synchronized int decodevs_add(final float[] a, final int offset, final Buffer b, final int n){
+    final int step=n/dim;
     int entry;
     int i, j, o;
 
@@ -107,7 +107,7 @@ class CodeBook{
     return (0);
   }
 
-  int decodev_add(float[] a, int offset, Buffer b, int n){
+  int decodev_add(final float[] a, final int offset, final Buffer b, final int n){
     int i, j, entry;
     int t;
 
@@ -154,7 +154,7 @@ class CodeBook{
     return (0);
   }
 
-  int decodev_set(float[] a, int offset, Buffer b, int n){
+  int decodev_set(final float[] a, final int offset, final Buffer b, final int n){
     int i, j, entry;
     int t;
 
@@ -170,7 +170,7 @@ class CodeBook{
     return (0);
   }
 
-  int decodevv_add(float[][] a, int offset, int ch, Buffer b, int n){
+  int decodevv_add(final float[][] a, final int offset, final int ch, final Buffer b, final int n){
     int i, j, entry;
     int chptr=0;
 
@@ -179,7 +179,7 @@ class CodeBook{
       if(entry==-1)
         return (-1);
 
-      int t=entry*dim;
+      final int t=entry*dim;
       for(j=0; j<dim; j++){
         a[chptr++][i]+=valuelist[t+j];
         if(chptr==ch){
@@ -194,22 +194,22 @@ class CodeBook{
   // Decode side is specced and easier, because we don't need to find
   // matches using different criteria; we simply read and map.  There are
   // two things we need to do 'depending':
-  //   
+  //
   // We may need to support interleave.  We don't really, but it's
   // convenient to do it here rather than rebuild the vector later.
   //
   // Cascades may be additive or multiplicitive; this is not inherent in
   // the codebook, but set in the code using the codebook.  Like
-  // interleaving, it's easiest to do it here.  
+  // interleaving, it's easiest to do it here.
   // stage==0 -> declarative (set the value)
   // stage==1 -> additive
   // stage==2 -> multiplicitive
 
   // returns the entry number or -1 on eof
-  int decode(Buffer b){
+  int decode(final Buffer b){
     int ptr=0;
-    DecodeAux t=decode_tree;
-    int lok=b.look(t.tabn);
+    final DecodeAux t=decode_tree;
+    final int lok=b.look(t.tabn);
 
     if(lok>=0){
       ptr=t.tab[lok];
@@ -236,8 +236,8 @@ class CodeBook{
   }
 
   // returns the entry number or -1 on eof
-  int decodevs(float[] a, int index, Buffer b, int step, int addmul){
-    int entry=decode(b);
+  int decodevs(final float[] a, final int index, final Buffer b, final int step, final int addmul){
+    final int entry=decode(b);
     if(entry==-1)
       return (-1);
     switch(addmul){
@@ -254,12 +254,12 @@ class CodeBook{
           a[index+o]*=valuelist[entry*dim+i];
         break;
       default:
-        //System.err.println("CodeBook.decodeves: addmul="+addmul); 
+        //System.err.println("CodeBook.decodeves: addmul="+addmul);
     }
     return (entry);
   }
 
-  int best(float[] a, int step){
+  int best(final float[] a, final int step){
     // brute force it!
     {
       int besti=-1;
@@ -267,7 +267,7 @@ class CodeBook{
       int e=0;
       for(int i=0; i<entries; i++){
         if(c.lengthlist[i]>0){
-          float _this=dist(dim, valuelist, e, a, step);
+          final float _this=dist(dim, valuelist, e, a, step);
           if(besti==-1||_this<best){
             best=_this;
             besti=i;
@@ -280,8 +280,8 @@ class CodeBook{
   }
 
   // returns the entry number and *modifies a* to the remainder value
-  int besterror(float[] a, int step, int addmul){
-    int best=best(a, step);
+  int besterror(final float[] a, final int step, final int addmul){
+    final int best=best(a, step);
     switch(addmul){
       case 0:
         for(int i=0, o=0; i<dim; i++, o+=step)
@@ -289,7 +289,7 @@ class CodeBook{
         break;
       case 1:
         for(int i=0, o=0; i<dim; i++, o+=step){
-          float val=valuelist[best*dim+i];
+          final float val=valuelist[best*dim+i];
           if(val==0){
             a[o]=0;
           }
@@ -305,16 +305,16 @@ class CodeBook{
   void clear(){
   }
 
-  private static float dist(int el, float[] ref, int index, float[] b, int step){
+  private static float dist(final int el, final float[] ref, final int index, final float[] b, final int step){
     float acc=(float)0.;
     for(int i=0; i<el; i++){
-      float val=(ref[index+i]-b[i*step]);
+      final float val=(ref[index+i]-b[i*step]);
       acc+=val*val;
     }
     return (acc);
   }
 
-  int init_decode(StaticCodeBook s){
+  int init_decode(final StaticCodeBook s){
     c=s;
     entries=s.entries;
     dim=s.dim;
@@ -331,12 +331,12 @@ class CodeBook{
   // given a list of word lengths, generate a list of codewords.  Works
   // for length ordered or unordered, always assigns the lowest valued
   // codewords first.  Extended to handle unused entries (length 0)
-  static int[] make_words(int[] l, int n){
-    int[] marker=new int[33];
-    int[] r=new int[n];
+  static int[] make_words(final int[] l, final int n){
+    final int[] marker=new int[33];
+    final int[] r=new int[n];
 
     for(int i=0; i<n; i++){
-      int length=l[i];
+      final int length=l[i];
       if(length>0){
         int entry=marker[length];
 
@@ -399,17 +399,17 @@ class CodeBook{
     return (r);
   }
 
-  // build the decode helper tree from the codewords 
+  // build the decode helper tree from the codewords
   DecodeAux make_decode_tree(){
     int top=0;
-    DecodeAux t=new DecodeAux();
-    int[] ptr0=t.ptr0=new int[entries*2];
-    int[] ptr1=t.ptr1=new int[entries*2];
-    int[] codelist=make_words(c.lengthlist, c.entries);
+    final DecodeAux t=new DecodeAux();
+    final int[] ptr0=t.ptr0=new int[entries*2];
+    final int[] ptr1=t.ptr1=new int[entries*2];
+    final int[] codelist=make_words(c.lengthlist, c.entries);
 
     if(codelist==null)
       return (null);
-    
+
     //t.aux=entries*2;
 
     for(int i=0; i<entries; i++){
@@ -417,7 +417,7 @@ class CodeBook{
         int ptr=0;
         int j;
         for(j=0; j<c.lengthlist[i]-1; j++){
-          int bit=(codelist[i]>>>j)&1;
+          final int bit=(codelist[i]>>>j)&1;
           if(bit==0){
             if(ptr0[ptr]==0){
               ptr0[ptr]=++top;
@@ -446,7 +446,7 @@ class CodeBook{
 
     if(t.tabn<5)
       t.tabn=5;
-    int n=1<<t.tabn;
+    final int n=1<<t.tabn;
     t.tab=new int[n];
     t.tabl=new int[n];
     for(int i=0; i<n; i++){
@@ -461,7 +461,7 @@ class CodeBook{
         }
       }
       t.tab[i]=p; // -code
-      t.tabl[i]=j; // length 
+      t.tabl[i]=j; // length
     }
 
     return (t);

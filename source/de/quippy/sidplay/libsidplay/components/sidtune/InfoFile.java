@@ -60,14 +60,14 @@ public class InfoFile {
 //	private SidTune sidtune;
 //	private SidTuneInfo info;
 
-	public InfoFile(SidTune sidtune) {
+	public InfoFile(final SidTune sidtune) {
 //		this.sidtune = sidtune;
 //		this.info = sidtune.info;
 	}
 
 	protected LoadStatus INFO_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */sidBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */sidBuf) {
 		return LOAD_NOT_MINE;
 		// int /* uint_least32_t */ sidBufLen = sidBuf.len();
 		// // Make sure SID buffer pointer is not zero.
@@ -86,7 +86,7 @@ public class InfoFile {
 		// {
 		// // At least the ID was found, so set a default error message.
 		// info.formatString = text_truncatedError;
-		//	        
+		//
 		// // Defaults.
 		// sidtune.fileOffset = 0; // no header in separate data file
 		// info.sidChipBase1 = 0xd400;
@@ -103,7 +103,7 @@ public class InfoFile {
 		// hasSongs = false,
 		// hasSpeed = false,
 		// hasInitAddr = false;
-		//	    
+		//
 		// // Using a temporary instance of an input string chunk.
 		// char[] pParseChunk = new char[parseChunkLen+1];
 		// if ( pParseChunk == null )
@@ -111,7 +111,7 @@ public class InfoFile {
 		// info.formatString = text_noMemError;
 		// return LOAD_ERROR;
 		// }
-		//	        
+		//
 		// // Parse as long we have not collected all ``required'' entries.
 		// //while ( !hasAddress || !hasName || !hasAuthor || !hasCopyright
 		// // || !hasSongs || !hasSpeed )
@@ -274,7 +274,7 @@ public class InfoFile {
 		// }
 		//
 		// delete[] pParseChunk;
-		//	        
+		//
 		// if ( !(hasName && hasAuthor && hasReleased && hasSongs) )
 		// { // Something is missing (or damaged ?).
 		// // Error string set above.

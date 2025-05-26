@@ -1,8 +1,8 @@
 /*
  * @(#) ProTrackerMod.java
- * 
+ *
  * Created on 21.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,10 +42,11 @@ import de.quippy.javamod.system.Helpers;
  */
 public class ProTrackerMod extends Module
 {
-	private static final String[] MODFILEEXTENSION = new String [] 
+	private static final String[] MODFILEEXTENSION = new String []
   	{
   		"stk", "nst", "mod", "wow"
   	};
+	private static final int SAMPLE_HEADER_SIZE = 30; // # bytes per sample header
 	/**
 	 * Will be executed during class load
 	 */
@@ -63,7 +64,7 @@ public class ProTrackerMod extends Module
 	private boolean modSpeedIsTicks;		// changes playing behavior to set always speed (ticks), never BPM
 //	private boolean swapBytes;				// For .DTM files from Apocalypse Abyss, where the first 2108 bytes are swapped - we do not support that yet!
 	private boolean ft2Tremolos;			// Tremolo Ramp Down Waveform behavior change for some mods (FT2 style)
-	
+
 	/**
 	 * Constructor for ProTrackerMod
 	 */
@@ -74,7 +75,7 @@ public class ProTrackerMod extends Module
 	/**
 	 * Constructor for ProTrackerMod
 	 */
-	protected ProTrackerMod(String fileName)
+	protected ProTrackerMod(final String fileName)
 	{
 		super(fileName);
 	}
@@ -120,7 +121,7 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getPanningValue(int)
 	 */
 	@Override
-	public int getPanningValue(int channel)
+	public int getPanningValue(final int channel)
 	{
 		if ((channel%3)!=0)
 			return ModConstants.OLD_PANNING_RIGHT;
@@ -133,7 +134,7 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getChannelVolume(int)
 	 */
 	@Override
-	public int getChannelVolume(int channel)
+	public int getChannelVolume(final int channel)
 	{
 		return 64;
 	}
@@ -188,20 +189,20 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
 	 */
 	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
+	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
 	{
 		inputStream.seek(1080);
 		final String modID = inputStream.readString(4);
 		inputStream.seek(1080);
 		final int magicNumber = inputStream.readMotorolaDWord();
 		inputStream.seek(0);
-		return 	modID.equals("M.K.") || modID.equals("M!K!")  || modID.equals("PATT") || modID.equals("NSMS") || modID.equals("LARD") || 
+		return 	modID.equals("M.K.") || modID.equals("M!K!")  || modID.equals("PATT") || modID.equals("NSMS") || modID.equals("LARD") ||
 				modID.equals("M&K!") || modID.equals("FEST") || modID.equals("N.T.") ||
 				modID.equals("OKTA") || modID.equals("OCTA") ||
 				modID.equals("CD81") || modID.equals("CD61") ||
 				magicNumber == 0x4D000000 || magicNumber == 0x38000000 ||
-				modID.startsWith("FA0") || 
-				modID.startsWith("FLT") || modID.startsWith("EX0") || 
+				modID.startsWith("FA0") ||
+				modID.startsWith("FLT") || modID.startsWith("EX0") ||
 				modID.endsWith("CHN") ||
 				modID.endsWith("CH") || modID.endsWith("CN") ||
 				modID.startsWith("TDZ") ||
@@ -219,7 +220,7 @@ public class ProTrackerMod extends Module
 	{
 		songFlags = ModConstants.SONG_AMIGALIMITS;
 		songFlags |= ModConstants.SONG_ISSTEREO;
-		
+
 		isAmigaLike = false;
 		isDeltaPacked = false;
 		isNoiseTracker = false;
@@ -286,7 +287,7 @@ public class ProTrackerMod extends Module
 				isGenericMultiChannel = true;
 				setNChannels(Integer.parseInt(modID.substring(0,2)));
 				return "Generic MOD compatible Tracker (" + modID + ")";
-			}	 
+			}
 			if (modID.equals("WARD"))
 			{
 				isGenericMultiChannel = true;
@@ -368,10 +369,10 @@ public class ProTrackerMod extends Module
 				}
 			}
 			seek -= sampleLength;
-			fullSampleLength += 30 + sampleLength;
+			fullSampleLength += SAMPLE_HEADER_SIZE + sampleLength;
 		}
 		inputStream.seek(reSeek);
-		
+
 		return fullSampleLength;
 	}
 	/**
@@ -384,20 +385,20 @@ public class ProTrackerMod extends Module
 	private int calculatePatternCount(final int fileSize, final int fullSampleLength)
 	{
 		int headerLen = 150; 					// Name+SongLen+CIAA+SongArrangement
-		if (getNSamples()>15) headerLen += 4;	// Kennung
+		if (getNSamples()>15) headerLen += 4;	// plus mod ID
 
 		final int spaceForPattern = fileSize - headerLen - fullSampleLength;
-		
+
 		// Lets find out about the highest Patternnumber used
 		// in the song arrangement
 		int maxPatternNumber=0;
 		for (int i=0; i<getSongLength(); i++)
 		{
-			int patternNumber = getArrangement()[i];
+			final int patternNumber = getArrangement()[i];
 			if (patternNumber > maxPatternNumber && patternNumber < 0x80)
 				maxPatternNumber=getArrangement()[i];
 		}
-		maxPatternNumber++; // Highest number becomes highest count 
+		maxPatternNumber++; // Highest number becomes highest count
 
 		// It could be the WOW-Format:
 		if (isMdKd)
@@ -414,31 +415,28 @@ public class ProTrackerMod extends Module
 		}
 
 		final int bytesPerPattern=64*4*getNChannels();
-		final int patternCount = spaceForPattern / bytesPerPattern; 
+		final int patternCount = spaceForPattern / bytesPerPattern;
 		int bytesLeft = spaceForPattern % bytesPerPattern;
-		setNPattern(patternCount);
 
 		if (bytesLeft>0) // It does not fit!
 		{
 			if (maxPatternNumber>patternCount)
 			{
-				// The modfile is too short. The highest pattern is reaching into
-				// the sampledata, but it has to be read!
+				// The mod file is too short. The highest pattern is reaching into the sample data.
 				bytesLeft-=bytesPerPattern;
-				setNPattern(maxPatternNumber+1);
 			}
 			else
 			{
 				// The modfile is too long. Sometimes this happens if composer
 				// add additional data to the modfile.
-				bytesLeft+=(getNPattern()-maxPatternNumber)*bytesPerPattern;
-				setNPattern(maxPatternNumber);
+				bytesLeft+=(patternCount - maxPatternNumber) * bytesPerPattern;
 			}
-
-			return bytesLeft;
+			setNPattern(maxPatternNumber);
 		}
+		else
+			setNPattern(patternCount);
 
-		return 0;
+		return bytesLeft;
 	}
 	/**
 	 * Create the new Pattern element
@@ -450,11 +448,11 @@ public class ProTrackerMod extends Module
 	 */
 	private void createNewPatternElement(final PatternContainer patternContainer, final int pattNum, final int row, final int channel, final int note)
 	{
-		PatternElement pe = patternContainer.createPatternElement(pattNum, row, channel);
-	
+		final PatternElement pe = patternContainer.createPatternElement(pattNum, row, channel);
+
 		if (getNSamples()>15)
 		{
-			pe.setInstrument((((note&0xF0000000)>>24) | ((note&0xF000)>>12))&getNSamples()); // & 0x1F 
+			pe.setInstrument((((note&0xF0000000)>>24) | ((note&0xF000)>>12))&getNSamples()); // & 0x1F
 			pe.setPeriod((note&0x0FFF0000)>>16);
 		}
 		else
@@ -463,7 +461,7 @@ public class ProTrackerMod extends Module
 			pe.setPeriod((note&0xFFFF0000)>>16);
 		}
 
-		if (pe.getPeriod()<14 || pe.getPeriod()>6848) 
+		if (pe.getPeriod()<14 || pe.getPeriod()>6848)
 			pe.setPeriod(0);
 		else
 		if (pe.getPeriod()>0)
@@ -473,11 +471,14 @@ public class ProTrackerMod extends Module
 				pe.setNoteIndex(noteIndex+1);
 			else
 				pe.setPeriod(0);
+			
+			if (noteIndex < (3*12) || noteIndex > ((3*12)+35)) // Exceeding note limits of ProTracker
+				isAmigaLike = !(isGenericMultiChannel = true); // we fix this with setting to XM AMIGA Table
 		}
 
 		pe.setEffekt((note&0xF00)>>8);
 		pe.setEffektOp(note&0xFF);
-		
+
 		if (pe.getEffekt()==0x0C && pe.getEffektOp()>64) pe.setEffektOp(64);
 		if (isStarTrekker)
 		{
@@ -486,7 +487,7 @@ public class ProTrackerMod extends Module
 				// No support for StarTrekker assembly macros
 				pe.setEffekt(0);
 				pe.setEffektOp(0);
-			} 
+			}
 			else
 			if (pe.getEffekt()==0x0F && pe.getEffektOp()>0x1F)
 			{
@@ -506,7 +507,7 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
 	 */
 	@Override
-	protected Module getNewInstance(String fileName)
+	protected Module getNewInstance(final String fileName)
 	{
 		return new ProTrackerMod(fileName);
 	}
@@ -516,7 +517,7 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(java.io.DataInputStream)
 	 */
 	@Override
-	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		inputStream.seek(1080);
 		setModID(inputStream.readString(4));
@@ -525,34 +526,34 @@ public class ProTrackerMod extends Module
 		inputStream.seek(0);
 		setTrackerName(getModType(getModID(), magicNumber)); // sets isAmigaLike
 		// if is not amiga like, playback is done as if this is an XM
-		// isMOD is only for Protracker like mods!!!
-		setModType((isAmigaLike)?ModConstants.MODTYPE_MOD:ModConstants.MODTYPE_XM);
-		
+		// isMOD is only for Protracker like mods!
+		setModType((isAmigaLike || isGenericMultiChannel)?ModConstants.MODTYPE_MOD:ModConstants.MODTYPE_XM);
+
 		ft2Tremolos = (isGenericMultiChannel || isMdKd); // ProTracker and FastTracker do both have this bug
 		final boolean isFLT8 = isStarTrekker && getNChannels()==8;
 		final boolean isHMNT = getModID().equals("M&K!") || getModID().equals("FEST");
-		
+
 		setTempo(6);
 		setBPMSpeed(125);
 		setBaseVolume(ModConstants.MAXGLOBALVOLUME);
 		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
 		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
-		
+
 		setSongName(inputStream.readString(20));
 
 		setNInstruments(getNSamples());
-		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
+		final InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
 		setInstrumentContainer(instrumentContainer);
 		for (int i=0; i<getNSamples(); i++)
 		{
-			Sample current = new Sample();
+			final Sample current = new Sample();
 			// Samplename
 			current.setName(inputStream.readString(22));
 			current.setStereo(false); // Default
 
 			// Length
 			current.setLength(inputStream.readMotorolaUnsignedWord() << 1);
-			
+
 			int fine = 0;
 			if (isHMNT) // His Masters Noise - Noise Tracker (FEST) - different FineTune setting...
 				fine = (-((int)inputStream.readByte()))>>1;
@@ -566,19 +567,19 @@ public class ProTrackerMod extends Module
 			// BaseFrequenzy from Table: FineTune is -8...+7
 			current.setBaseFrequency(ModConstants.IT_fineTuneTable[fine+8]);
 			current.setTranspose(0);
-			
-			if(current.length > 65535) isNoiseTracker = false;			
+
+			if(current.length > 65535) isNoiseTracker = false;
 
 			// volume 64 is maximum
-			int vol  = inputStream.read() & 0x7F;
+			final int vol  = inputStream.read() & 0x7F;
 			current.setVolume((vol>64)?64:vol);
 			current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
-			
+
 			// Repeat start and stop
 			int repeatStart  = inputStream.readMotorolaUnsignedWord() << 1;
-			int repeatLength = inputStream.readMotorolaUnsignedWord() << 1;
+			final int repeatLength = inputStream.readMotorolaUnsignedWord() << 1;
 			int repeatStop = repeatStart+repeatLength;
-			
+
 			if (current.length<4) current.length=0;
 			if (current.length>0)
 			{
@@ -589,7 +590,7 @@ public class ProTrackerMod extends Module
 					repeatStart = repeatStop = 0;
 					current.setLoopType(0);
 				}
-				if (repeatStart<repeatStop) 
+				if (repeatStart<repeatStop)
 					current.setLoopType(ModConstants.LOOP_ON);
 			}
 			else
@@ -598,7 +599,7 @@ public class ProTrackerMod extends Module
 			current.setLoopStart(repeatStart);
 			current.setLoopStop(repeatStop);
 			current.setLoopLength(repeatStop-repeatStart);
-			
+
 			// Defaults for non-existent SustainLoop
 			current.setSustainLoopStart(0);
 			current.setSustainLoopStop(0);
@@ -610,7 +611,7 @@ public class ProTrackerMod extends Module
 
 			instrumentContainer.setSample(i, current);
 		}
-		
+
 		// count of pattern in arrangement
 		setSongLength(inputStream.read());
 		// good old CIAA? Seems to be a restart position.
@@ -622,13 +623,13 @@ public class ProTrackerMod extends Module
 		allocArrangement(128);
 		for (int i=0; i<128; i++)
 		{
-			int pattNum = inputStream.read();
+			final int pattNum = inputStream.read();
 			getArrangement()[i]=(isFLT8)?pattNum>>1:pattNum; // FLT8 has only even order items, so divide by two.
 		}
-		
+
 		// order sanity check
 		int realOrder = getSongLength();
-		if (realOrder>128) 
+		if (realOrder>128)
 			realOrder = 128;
 		else
 		if (realOrder==0)
@@ -637,24 +638,24 @@ public class ProTrackerMod extends Module
 			while (realOrder>0 && getArrangement()[realOrder-1] == 0) realOrder--;
 		}
 		setSongLength(realOrder);
-		
+
 		// Song restart sanity check
-		if (getSongRestart() > realOrder || ((getSongRestart() == 0x78 || getSongRestart() == 0x7F) && getNChannels()==4)) 
+		if (getSongRestart() > realOrder || ((getSongRestart() == 0x78 || getSongRestart() == 0x7F) && getNChannels()==4))
 			setSongRestart(0);
 
 		// skip ModID, if not NoiseTracker:
 		if (getNSamples()>15) inputStream.skip(4);
 		// Digital Tracker MODs contain four bytes (00 40 00 00) right after the magic bytes which don't seem to do anything special.
 		if (getModID().startsWith("FA0")) inputStream.skip(4);
-		
+
 		// Read the pattern data
 		// First, we will read backwards through the mod to detect ADPCM packed samples. While on the way
 		// we already set the loading flags accordingly
 		final int fullSampleLength = calculateSampleDataCount(inputStream);
 		// now lets find out how many patterns we have / would really fit
 		final int bytesLeft = calculatePatternCount((int)inputStream.getLength(), fullSampleLength); // Get the amount of pattern and keep "bytesLeft" in mind!
-		
-		PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
+
+		final PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -664,7 +665,7 @@ public class ProTrackerMod extends Module
 				{
 					for (int channel=0; channel<4; channel++)
 					{
-						int value = inputStream.readMotorolaDWord();
+						final int value = inputStream.readMotorolaDWord();
 						createNewPatternElement(patternContainer, pattNum, row, channel, value);
 					}
 				}
@@ -672,7 +673,7 @@ public class ProTrackerMod extends Module
 				{
 					for (int channel=4; channel<8; channel++)
 					{
-						int value = inputStream.readMotorolaDWord();
+						final int value = inputStream.readMotorolaDWord();
 						createNewPatternElement(patternContainer, pattNum, row, channel, value);
 					}
 				}
@@ -683,7 +684,7 @@ public class ProTrackerMod extends Module
 				{
 					for (int channel=0; channel<getNChannels(); channel++)
 					{
-						int value = inputStream.readMotorolaDWord();
+						final int value = inputStream.readMotorolaDWord();
 						createNewPatternElement(patternContainer, pattNum, row, channel, value);
 					}
 				}
@@ -693,7 +694,7 @@ public class ProTrackerMod extends Module
 		if (bytesLeft<0)
 		{
 			setTrackerName(getTrackerName() + " (too short for "+(-bytesLeft)+" bytes)");
-			final int calcSamplePos=(int)inputStream.getLength() - fullSampleLength;
+			final int calcSamplePos=(int)inputStream.getLength() - fullSampleLength + (SAMPLE_HEADER_SIZE * getNSamples()); // fullSampleLength is with header data - so re-add that here
 			// do this only, if needed!
 			if (calcSamplePos<inputStream.getFilePointer()) inputStream.seek(calcSamplePos);
 		}
@@ -706,7 +707,7 @@ public class ProTrackerMod extends Module
 		for (int i=0; i<getNSamples(); i++)
 		{
 			final Sample current = getInstrumentContainer().getSample(i);
-			if ((current.sampleType&ModConstants.SM_ADPCM) != 0) inputStream.skip(5); 
+			if ((current.sampleType&ModConstants.SM_ADPCM) != 0) inputStream.skip(5);
 			readSampleData(current, inputStream);
 		}
 		cleanUpArrangement();

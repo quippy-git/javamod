@@ -2,7 +2,7 @@
  * @(#) ID3v2Frame.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ import de.quippy.javamod.multimedia.mp3.id3.exceptions.ID3v2FormatException;
 import de.quippy.javamod.system.Helpers;
 
 /**
- * Description: 
+ * Description:
  *  This class holds the information found in an id3v2 frame.  At this point at
  *  least, the information in the tag header is read-only and can only be set
- *  set in the constructor.  This is for simplicity's sake.  This object 
+ *  set in the constructor.  This is for simplicity's sake.  This object
  *  doesn't automatically unsynchronise, encrypt, or compress the data.
  *
  * @author:  Jonathan Hilliker modified by Daniel Becker
@@ -66,7 +66,7 @@ public class ID3v2Frame
 	 * @param id the id of this frame
 	 * @param data the data for this frame
 	 */
-	public ID3v2Frame(String id, byte[] data)
+	public ID3v2Frame(final String id, final byte[] data)
 	{
 		this.id = id;
 
@@ -84,7 +84,7 @@ public class ID3v2Frame
 	 * @param data the data found in this frame
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	public ID3v2Frame(String id, byte[] flags, byte[] data) throws ID3v2FormatException
+	public ID3v2Frame(final String id, final byte[] flags, final byte[] data) throws ID3v2FormatException
 	{
 		this(id, data);
 
@@ -93,7 +93,7 @@ public class ID3v2Frame
 
 	/**
 	 * Create an ID3v2Frame with the specified id, data, and flags set.  It
-	 * is expected that the corresponing data for the flags that require 
+	 * is expected that the corresponing data for the flags that require
 	 * extra data is found in the data array in the standard place.
 	 *
 	 * @param id the id for this frame
@@ -107,7 +107,7 @@ public class ID3v2Frame
 	 * @param unsynchronised the unsynchronisation flag
 	 * @param lengthIndicator the data length indicator flag
 	 */
-	public ID3v2Frame(String id, byte[] data, boolean tagAlterDiscard, boolean fileAlterDiscard, boolean readOnly, boolean grouped, boolean compressed, boolean encrypted, boolean unsynchronised, boolean lengthIndicator)
+	public ID3v2Frame(final String id, final byte[] data, final boolean tagAlterDiscard, final boolean fileAlterDiscard, final boolean readOnly, final boolean grouped, final boolean compressed, final boolean encrypted, final boolean unsynchronised, final boolean lengthIndicator)
 	{
 
 		this.id = id;
@@ -128,24 +128,24 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * Returns true if this frame should have the file alter 
+	 * Returns true if this frame should have the file alter
 	 * preservation bit set by default.
 	 *
 	 * @return true if the file alter preservation should be set by default
 	 */
 	private boolean checkDefaultFileAlterDiscard()
 	{
-		return	id.equals(ID3v2Frames.AUDIO_SEEK_POINT_INDEX) || 
-				id.equals(ID3v2Frames.AUDIO_ENCRYPTION) || 
-				id.equals(ID3v2Frames.EVENT_TIMING_CODES) || 
-				id.equals(ID3v2Frames.EQUALISATION) || 
-				id.equals(ID3v2Frames.MPEG_LOCATION_LOOKUP_TABLE) || 
-				id.equals(ID3v2Frames.POSITION_SYNCHRONISATION_FRAME) || 
-				id.equals(ID3v2Frames.SEEK_FRAME) || 
-				id.equals(ID3v2Frames.SYNCHRONISED_LYRIC) || 
-				id.equals(ID3v2Frames.SYNCHRONISED_TEMPO_CODES) || 
-				id.equals(ID3v2Frames.RELATIVE_VOLUME_ADJUSTMENT) || 
-				id.equals(ID3v2Frames.ENCODED_BY) || 
+		return	id.equals(ID3v2Frames.AUDIO_SEEK_POINT_INDEX) ||
+				id.equals(ID3v2Frames.AUDIO_ENCRYPTION) ||
+				id.equals(ID3v2Frames.EVENT_TIMING_CODES) ||
+				id.equals(ID3v2Frames.EQUALISATION) ||
+				id.equals(ID3v2Frames.MPEG_LOCATION_LOOKUP_TABLE) ||
+				id.equals(ID3v2Frames.POSITION_SYNCHRONISATION_FRAME) ||
+				id.equals(ID3v2Frames.SEEK_FRAME) ||
+				id.equals(ID3v2Frames.SYNCHRONISED_LYRIC) ||
+				id.equals(ID3v2Frames.SYNCHRONISED_TEMPO_CODES) ||
+				id.equals(ID3v2Frames.RELATIVE_VOLUME_ADJUSTMENT) ||
+				id.equals(ID3v2Frames.ENCODED_BY) ||
 				id.equals(ID3v2Frames.LENGTH);
 	}
 
@@ -155,7 +155,7 @@ public class ID3v2Frame
 	 * @param flags the flags found in the frame header
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	private void parseFlags(byte[] flags) throws ID3v2FormatException
+	private void parseFlags(final byte[] flags) throws ID3v2FormatException
 	{
 		if (flags.length != FRAME_FLAGS_SIZE)
 		{
@@ -181,14 +181,14 @@ public class ID3v2Frame
 
 	/**
 	 * A helper function for the getFrameBytes method that processes the info
-	 * in the frame and returns the 2 byte array of flags to be added to the 
+	 * in the frame and returns the 2 byte array of flags to be added to the
 	 * header.
 	 *
 	 * @return a value of type 'byte[]'
 	 */
 	private byte[] getFlagBytes()
 	{
-		byte flags[] = new byte[2];
+		final byte flags[] = new byte[2];
 
 		if (tagAlterDiscard) flags[0] |= 0x40;
 		if (fileAlterDiscard) flags[0] |= 0x20;
@@ -203,12 +203,12 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * Pulls out extra information inserted in the frame data depending 
+	 * Pulls out extra information inserted in the frame data depending
 	 * on what flags are set.
 	 *
 	 * @param data the frame data
 	 */
-	private void parseData(byte[] data)
+	private void parseData(final byte[] data)
 	{
 		int bytesRead = 0;
 
@@ -248,7 +248,7 @@ public class ID3v2Frame
 	 *
 	 * @param newData a byte array contianing the new data
 	 */
-	public void setFrameData(byte[] newData)
+	public void setFrameData(final byte[] newData)
 	{
 		if (!readOnly)
 		{
@@ -289,10 +289,10 @@ public class ID3v2Frame
 	 */
 	public byte[] getFrameBytes()
 	{
-		int length = getFrameLength();
+		final int length = getFrameLength();
 		int bytesWritten = 0;
-		byte[] flags = getFlagBytes();
-		byte[] extra = getExtraDataBytes();
+		final byte[] flags = getFlagBytes();
+		final byte[] extra = getExtraDataBytes();
 		byte[] b;
 
 		b = new byte[length];
@@ -312,16 +312,16 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * A helper function for the getFrameBytes function that returns an array 
+	 * A helper function for the getFrameBytes function that returns an array
 	 * of all the data contained in any extra fields that may be present in
-	 * this frame.  This includes the group, the encryption type, and the 
+	 * this frame.  This includes the group, the encryption type, and the
 	 * length indicator.  The length of the array returned is variable length.
 	 *
 	 * @return an array of bytes containing the extra data fields in the frame
 	 */
 	private byte[] getExtraDataBytes()
 	{
-		byte[] buf = new byte[MAX_EXTRA_DATA];
+		final byte[] buf = new byte[MAX_EXTRA_DATA];
 		byte[] ret;
 		int bytesCopied = 0;
 
@@ -432,7 +432,7 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * Returns the group identifier if added.  Otherwise the null byte is 
+	 * Returns the group identifier if added.  Otherwise the null byte is
 	 * returned.
 	 *
 	 * @return the groupd identifier if added, null byte otherwise
@@ -454,7 +454,7 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * If a length indicator has been added, the length of the data is 
+	 * If a length indicator has been added, the length of the data is
 	 * returned.  Otherwise -1 is returned.
 	 *
 	 * @return the length of the data if a length indicator is present or -1
@@ -466,7 +466,7 @@ public class ID3v2Frame
 
 	/**
 	 * If possible, this method attempts to convert textual part of the data
-	 * into a string.  If this frame does not contain textual information, 
+	 * into a string.  If this frame does not contain textual information,
 	 * an empty string is returned.
 	 *
 	 * @return the textual portion of the data in this frame
@@ -485,12 +485,12 @@ public class ID3v2Frame
 				{
 					str = Helpers.retrieveAsString(frameData, 1, frameData.length-1, enc_type);
 				}
-				else 
+				else
 				if (id.charAt(0) == 'W')
 				{
 					str = Helpers.retrieveAsString(frameData, 1, frameData.length-1, ENC_TYPES[0]);
 				}
-				else 
+				else
 				if (id.equals(ID3v2Frames.USER_DEFINED_URL))
 				{
 					str = Helpers.retrieveAsString(frameData, 1, frameData.length-1, enc_type);
@@ -500,13 +500,13 @@ public class ID3v2Frame
 						str += Helpers.retrieveAsString(frameData, str.length()+2, frameData.length-2-str.length(), enc_type);
 					}
 				}
-				else 
+				else
 				if (id.equals(ID3v2Frames.UNSYNCHRONISED_LYRIC_TRANSCRIPTION) || id.equals(ID3v2Frames.COMMENTS) || id.equals(ID3v2Frames.TERMS_OF_USE))
 				{
 					str = Helpers.retrieveAsString(frameData, 4, frameData.length-4, enc_type);
 				}
 			}
-			catch (Throwable e)
+			catch (final Throwable e)
 			{
 				throw new ID3v2FormatException("Frame " + id + " had errors!", e);
 			}
@@ -516,11 +516,12 @@ public class ID3v2Frame
 	}
 
 	/**
-	 * Return a string representation of this object that contains all the 
+	 * Return a string representation of this object that contains all the
 	 * information contained within it.
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
 		try
@@ -528,7 +529,7 @@ public class ID3v2Frame
 			return id + "\nTagAlterDiscard:\t\t" + tagAlterDiscard + "\nFileAlterDiscard:\t\t" + fileAlterDiscard + "\nReadOnly:\t\t\t" + readOnly + "\nGrouped:\t\t\t" + grouped + "\nCompressed:\t\t\t" + compressed + "\nEncrypted:\t\t\t" + encrypted
 					+ "\nUnsynchronised:\t\t\t" + unsynchronised + "\nLengthIndicator:\t\t" + lengthIndicator + "\nData:\t\t\t\t" + getDataString().toString();
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			return e.getMessage();
 		}

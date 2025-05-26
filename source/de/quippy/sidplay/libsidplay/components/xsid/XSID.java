@@ -51,9 +51,9 @@ import de.quippy.sidplay.libsidplay.common.SIDEmu;
  * author has chosen originally. We must just make a guess based on what the
  * volume is initially at the start of a sample sequence and from the details
  * xSID has been programmed with.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public abstract class XSID /* extends Event */extends SIDEmu {
 
@@ -70,46 +70,48 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 		private final String m_name;
 
-		private IEventContext m_context;
+		private final IEventContext m_context;
 
-		private event_phase_t m_phase;
+		private final event_phase_t m_phase;
 
-		private XSID m_xsid;
+		private final XSID m_xsid;
 
 		private static class SampleEvent extends Event {
 
-			private Channel m_ch;
+			private final Channel m_ch;
 
+			@Override
 			public void event() {
 				m_ch.sampleClock();
 			}
 
-			public SampleEvent(Channel ch) {
+			public SampleEvent(final Channel ch) {
 				super("xSID Sample");
 				m_ch = ch;
 			}
 
 		}
 
-		private SampleEvent sampleEvent;
+		private final SampleEvent sampleEvent;
 
 		private static class GalwayEvent extends Event {
 
-			private Channel m_ch;
+			private final Channel m_ch;
 
+			@Override
 			public void event() {
 				m_ch.galwayClock();
 			}
 
-			public GalwayEvent(Channel ch) {
+			public GalwayEvent(final Channel ch) {
 				super("xSID Galway");
 				m_ch = ch;
 			}
 		}
 
-		private GalwayEvent galwayEvent;
+		private final GalwayEvent galwayEvent;
 
-		private short /* uint8_t */reg[] = new short[0x10];
+		private final short /* uint8_t */reg[] = new short[0x10];
 
 		private static final int FM_NONE = 0;
 
@@ -180,7 +182,7 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 		private long /* event_clock_t */outputs;
 
-		private Channel(final String name, IEventContext context, XSID xsid) {
+		private Channel(final String name, final IEventContext context, final XSID xsid) {
 			m_name = name;
 			m_context = context;
 			m_phase = event_phase_t.EVENT_CLOCK_PHI1;
@@ -297,8 +299,8 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 				address = samRepeatAddr;
 				if (address >= samEndAddr) {
 					// The sequence has completed
-					short r = convertAddr(0x1d);
-					short /* uint8_t & */status = reg[r];
+					final short r = convertAddr(0x1d);
+					final short /* uint8_t & */status = reg[r];
 					if (status == 0)
 						reg[r] = 0xfd;
 					if (status != 0xfd)
@@ -378,8 +380,8 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 				cycleCount = samPeriod;
 			else if (galTones == 0xff) {
 				// The sequence has completed
-				int r = convertAddr(0x1d);
-				short /* uint8_t & */status = reg[r];
+				final int r = convertAddr(0x1d);
+				final short /* uint8_t & */status = reg[r];
 				if (status == 0)
 					reg[r] = 0xfd;
 				if (status != 0xfd)
@@ -413,12 +415,12 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 		/**
 		 * Compress address to not leave so many spaces
-		 * 
+		 *
 		 * @param addr
 		 * @return
 		 */
 		private short /* uint_least8_t */convertAddr(
-				int /* uint_least8_t */addr) {
+				final int /* uint_least8_t */addr) {
 			return (short) (((addr) & 0x3) | ((addr) >> 3) & 0x0c);
 		}
 
@@ -434,16 +436,16 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 		/**
 		 * Unused method. Modifier set from private to public!
-		 * 
+		 *
 		 * @param addr
 		 * @return
 		 */
-		public short /* uint8_t */read(short /* uint_least8_t */addr) {
+		public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 			return reg[convertAddr(addr)];
 		}
 
-		private void write(short /* uint_least8_t */addr,
-				short /* uint8_t */data) {
+		private void write(final short /* uint_least8_t */addr,
+				final short /* uint8_t */data) {
 			reg[convertAddr(addr)] = data;
 		}
 
@@ -486,10 +488,8 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 		private byte /* int8_t */sampleCalculate() {
 			short /* uint_least8_t */tempSample = m_xsid.readMemByte(address);
 			if (samOrder == SO_LOWHIGH) {
-				if (samScale == 0) {
-					if (samNibble != 0)
-						tempSample >>= 4;
-				}
+				if ((samScale == 0) && (samNibble != 0))
+					tempSample >>= 4;
 				// AND 15 further below.
 			} else // if (samOrder == SO_HIGHLOW)
 			{
@@ -527,7 +527,7 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 		/**
 		 * Used to indicate if channel is running
-		 * 
+		 *
 		 * @return
 		 */
 		private final boolean bool() {
@@ -536,9 +536,9 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 	}
 
-	private Channel ch4;
+	private final Channel ch4;
 
-	private Channel ch5;
+	private final Channel ch5;
 
 	private boolean muted;
 
@@ -570,10 +570,11 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	/**
 	 * Resolve multiple inheritance. XSID event.
 	 */
-	private Event event = new Event("xSID") {
+	private final Event event = new Event("xSID") {
 		/**
 		 * Resolve multiple inheritance.
 		 */
+		@Override
 		public void event() {
 			if (ch4.bool() || ch5.bool()) {
 				setSidData0x18();
@@ -669,7 +670,7 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 
 	protected abstract void writeMemByte(short /* uint8_t */data);
 
-	public XSID(IEventContext context) {
+	public XSID(final IEventContext context) {
 		super(null);
 		ch4 = new Channel("CH4", context, this);
 		ch5 = new Channel("CH5", context, this);
@@ -683,25 +684,30 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	// Standard Calls
 	//
 
+	@Override
 	public void reset() {
 		super.reset();
 	}
 
-	public void reset(short /* uint8_t */volume) {
+	@Override
+	public void reset(final short /* uint8_t */volume) {
 		ch4.reset();
 		ch5.reset();
 		suppressed = false;
 		wasRunning = false;
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 		return 0;
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
-		
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data) {
+
 	}
 
+	@Override
 	public final String credits() {
 		return credit;
 	}
@@ -710,11 +716,11 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	// Specialist Calls
 	//
 
-	public short /* uint8_t */read(int /* uint_least16_t */addr) {
+	public short /* uint8_t */read(final int /* uint_least16_t */addr) {
 		return 0;
 	}
 
-	public void write(int /* uint_least16_t */addr, short /* uint8_t */data) {
+	public void write(final int /* uint_least16_t */addr, final short /* uint8_t */data) {
 		Channel ch;
 		short /* uint8_t */tempAddr;
 
@@ -748,7 +754,8 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	// Inline functions.
 	// ----------------------------------------------------------------------------
 
-	public long /* int_least32_t */output(short /* uint_least8_t */bits) {
+	@Override
+	public long /* int_least32_t */output(final short /* uint_least8_t */bits) {
 		long /* int_least32_t */sample;
 		if (_sidSamples || muted)
 			return 0;
@@ -764,10 +771,10 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	 * By muting samples they will start and play the at the appropriate time
 	 * but no sound is produced. Un-muting will cause sound output from the
 	 * current play position.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void mute(boolean enable) {
+	public void mute(final boolean enable) {
 		if (!muted && enable && wasRunning)
 			recallSidData0x18();
 		muted = enable;
@@ -780,10 +787,10 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 	/**
 	 * Use Suppress to delay the samples and start them later. Effectivly allows
 	 * running samples in a frame based mode.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void suppress(boolean enable) {
+	public void suppress(final boolean enable) {
 		// @FIXME@: Mute Temporary Hack
 		suppressed = enable;
 		if (!suppressed) {
@@ -802,17 +809,17 @@ public abstract class XSID /* extends Event */extends SIDEmu {
 		}
 	}
 
-	public void sidSamples(boolean enable) {
+	public void sidSamples(final boolean enable) {
 		_sidSamples = enable;
 	}
 
 	/**
 	 * Return whether we care it was changed.
-	 * 
+	 *
 	 * @param data
 	 * @return
 	 */
-	public boolean storeSidData0x18(short /* uint8_t */data) {
+	public boolean storeSidData0x18(final short /* uint8_t */data) {
 		sidData0x18 = data;
 		if (ch4.bool() || ch5.bool()) {
 			// Force volume to be changed at next clock

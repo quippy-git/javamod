@@ -2,7 +2,7 @@
  * @(#) RMIFile.java
  *
  * Created on 07.11.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,64 +47,64 @@ public class RMIFile extends RiffFile
 		super();
 	}
 
-	private static int fourCC(byte br[])
+	private static int fourCC(final byte br[])
 	{
 		return ((br[0] << 24) & 0xFF000000) | ((br[1] << 16) & 0x00FF0000) | ((br[2] << 8) & 0x0000FF00) | (br[3] & 0x000000FF);
 	}
-	public static Sequence open(URL url) throws UnsupportedAudioFileException
+	public static Sequence open(final URL url) throws UnsupportedAudioFileException
 	{
 		InputStream rmiInput = null;
 		try
 		{
 			rmiInput = new FileOrPackedInputStream(url);
-			byte[] br = new byte[8];
-			
+			final byte[] br = new byte[8];
+
 			rmiInput.read(br, 0, 8);
-			int chkID = ((br[0] << 24) & 0xFF000000) | ((br[1] << 16) & 0x00FF0000) | ((br[2] << 8) & 0x0000FF00) | (br[3] & 0x000000FF);
+			final int chkID = ((br[0] << 24) & 0xFF000000) | ((br[1] << 16) & 0x00FF0000) | ((br[2] << 8) & 0x0000FF00) | (br[3] & 0x000000FF);
 			//int chkSize = ((br[7] << 24) & 0xFF000000) | ((br[6] << 16) & 0x00FF0000) | ((br[5] << 8) & 0x0000FF00) | (br[4] & 0x000000FF);
 			if (chkID != fourCC("RIFF")) throw new UnsupportedAudioFileException("File is not a RMI RIFF file");
 
 			rmiInput.read(br, 0, 4);
 			if (fourCC(br) != fourCC("RMID")) throw new UnsupportedAudioFileException("File is not a RMI RIFF file");
-			
+
 			rmiInput.read(br, 0, 8);
-			int dataID = ((br[0] << 24) & 0xFF000000) | ((br[1] << 16) & 0x00FF0000) | ((br[2] << 8) & 0x0000FF00) | (br[3] & 0x000000FF);
-			int dataSize = ((br[7] << 24) & 0xFF000000) | ((br[6] << 16) & 0x00FF0000) | ((br[5] << 8) & 0x0000FF00) | (br[4] & 0x000000FF);
+			final int dataID = ((br[0] << 24) & 0xFF000000) | ((br[1] << 16) & 0x00FF0000) | ((br[2] << 8) & 0x0000FF00) | (br[3] & 0x000000FF);
+			final int dataSize = ((br[7] << 24) & 0xFF000000) | ((br[6] << 16) & 0x00FF0000) | ((br[5] << 8) & 0x0000FF00) | (br[4] & 0x000000FF);
 			if (dataID != fourCC("data")) throw new UnsupportedAudioFileException("File is not a RMI RIFF file");
 
-			byte [] buffer = new byte[dataSize];
+			final byte [] buffer = new byte[dataSize];
 			int fullSize = 0;
 			while (fullSize<dataSize)
 			{
-				int readLength = rmiInput.read(buffer, fullSize, dataSize - fullSize);
+				final int readLength = rmiInput.read(buffer, fullSize, dataSize - fullSize);
 				if (readLength==-1) break;
 				fullSize += readLength;
 			}
-			
+
 			ByteArrayInputStream input = null;
 			try
 			{
 				input = new ByteArrayInputStream(buffer);
-				Sequence result = MidiSystem.getSequence(input);
+				final Sequence result = MidiSystem.getSequence(input);
 				return result;
 			}
-			catch (Exception ex)
+			catch (final Exception ex)
 			{
 				Log.error("[RMIFile]", ex);
 			}
 			finally
 			{
-				if (input!=null) try { input.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
+				if (input!=null) try { input.close(); } catch (final Exception ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			Log.error("[RMIFile]", ex);
 		}
 		finally
 		{
-			if (rmiInput!=null) try { rmiInput.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
+			if (rmiInput!=null) try { rmiInput.close(); } catch (final Exception ex) { /* Log.error("IGNORED", ex); */ }
 		}
-		return null;		
+		return null;
 	}
 }

@@ -33,15 +33,15 @@ public class SID6526 implements IComponent {
 	private static final String credit = "*SID6526 (SIDPlay1 Fake CIA) Emulation:"
 			+ "\tCopyright (C) 2001 Simon White <" + S_A_WHITE_EMAIL + ">";
 
-	private C64Env m_env;
+	private final C64Env m_env;
 
-	private IEventContext m_eventContext;
+	private final IEventContext m_eventContext;
 
 	private long /* event_clock_t */m_accessClk;
 
-	private event_phase_t m_phase;
+	private final event_phase_t m_phase;
 
-	private short /* uint8_t */regs[] = new short[0x10];
+	private final short /* uint8_t */regs[] = new short[0x10];
 
 	/**
 	 * Timer A Control Register
@@ -65,21 +65,22 @@ public class SID6526 implements IComponent {
 	private boolean locked;
 
 	private static class TaEvent extends Event {
-		private SID6526 m_cia;
+		private final SID6526 m_cia;
 
+		@Override
 		public void event() {
 			m_cia.event();
 		}
 
-		public TaEvent(SID6526 cia) {
+		public TaEvent(final SID6526 cia) {
 			super("CIA Timer A");
 			m_cia = (cia);
 		}
 	}
 
-	private TaEvent m_taEvent;
+	private final TaEvent m_taEvent;
 
-	public SID6526(C64Env env) {
+	public SID6526(final C64Env env) {
 		m_env = (env);
 		m_eventContext = (m_env.context());
 		m_phase = (event_phase_t.EVENT_CLOCK_PHI1);
@@ -92,12 +93,13 @@ public class SID6526 implements IComponent {
 	//
 	// Common:
 	//
-	
+
+	@Override
 	public void reset() {
 		reset(false);
 	}
 
-	public void reset(boolean seed) {
+	public void reset(final boolean seed) {
 		locked = false;
 		ta = ta_latch = m_count;
 		cra = 0;
@@ -111,10 +113,11 @@ public class SID6526 implements IComponent {
 		m_eventContext.cancel(m_taEvent);
 	}
 
-	public short /* uint8_t */read(short /* uint8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint8_t */addr) {
 		if (addr > 0x0f)
 			return 0;
-	
+
 		switch (addr) {
 		case 0x04:
 		case 0x05:
@@ -127,15 +130,16 @@ public class SID6526 implements IComponent {
 		}
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data) {
 		if (addr > 0x0f)
 			return;
-	
+
 		regs[addr] = data;
-	
+
 		if (locked)
 			return; // Stop program changing time interval
-	
+
 		{ // Sync up timer
 			long /* event_clock_t */cycles;
 			cycles = m_eventContext.getTime(m_accessClk, m_phase);
@@ -144,7 +148,7 @@ public class SID6526 implements IComponent {
 			if (ta == 0)
 				event();
 		}
-	
+
 		switch (addr) {
 		case 0x4:
 			ta_latch = endian_16lo8(ta_latch, data);
@@ -168,10 +172,12 @@ public class SID6526 implements IComponent {
 		}
 	}
 
+	@Override
 	public final String credits() {
 		return credit;
 	}
 
+	@Override
 	public final String error() {
 		return "";
 	}
@@ -179,7 +185,7 @@ public class SID6526 implements IComponent {
 	//
 	// Specific:
 	//
-	
+
 	public void event() {
 		// Timer Modes
 		m_accessClk = m_eventContext.getTime(m_phase);
@@ -189,7 +195,7 @@ public class SID6526 implements IComponent {
 		m_env.interruptIRQ(true);
 	}
 
-	public void clock(int /* uint_least16_t */count) {
+	public void clock(final int /* uint_least16_t */count) {
 		m_count = count;
 	}
 

@@ -44,7 +44,7 @@ public class APEHeader {
         m_pIO = file;
     }
 
-    public void Analyze(APEFileInfo pInfo) throws IOException {
+    public void Analyze(final APEFileInfo pInfo) throws IOException {
         // find the descriptor
         pInfo.nJunkHeaderBytes = FindDescriptor(true);
         if (pInfo.nJunkHeaderBytes < 0)
@@ -56,7 +56,7 @@ public class APEHeader {
         if (!reader.readString(4, "US-ASCII").equals("MAC "))
             throw new JMACException("Unsupported Format");
 
-        int version = reader.readUnsignedShort();
+        final int version = reader.readUnsignedShort();
 
         m_pIO.reset();
 
@@ -69,7 +69,7 @@ public class APEHeader {
         }
     }
 
-    protected void AnalyzeCurrent(APEFileInfo m_APEFileInfo) throws IOException {
+    protected void AnalyzeCurrent(final APEFileInfo m_APEFileInfo) throws IOException {
         m_APEFileInfo.spAPEDescriptor = APEDescriptor.read(m_pIO);
 
         if ((m_APEFileInfo.spAPEDescriptor.nDescriptorBytes - APEDescriptor.APE_DESCRIPTOR_BYTES) > 0)
@@ -116,14 +116,14 @@ public class APEHeader {
             m_APEFileInfo.spWaveHeaderData = new byte[m_APEFileInfo.nWAVHeaderBytes];
             try {
                 m_pIO.readFully(m_APEFileInfo.spWaveHeaderData);
-            } catch (EOFException e) {
+            } catch (final EOFException e) {
                 throw new JMACException("Can't Read Wave Header Data");
             }
         }
     }
 
-    protected void AnalyzeOld(APEFileInfo m_APEFileInfo) throws IOException {
-        APEHeaderOld header = APEHeaderOld.read(m_pIO);
+    protected void AnalyzeOld(final APEFileInfo m_APEFileInfo) throws IOException {
+        final APEHeaderOld header = APEHeaderOld.read(m_pIO);
 
         // fail on 0 length APE files (catches non-finalized APE files)
         if (header.nTotalFrames == 0)
@@ -170,7 +170,7 @@ public class APEHeader {
             m_APEFileInfo.spWaveHeaderData = new byte[(int) header.nHeaderBytes];
             try {
                 m_pIO.readFully(m_APEFileInfo.spWaveHeaderData);
-            } catch (EOFException e) {
+            } catch (final EOFException e) {
                 throw new JMACException("Can't Read Wave Header Data");
             }
         }
@@ -184,13 +184,13 @@ public class APEHeader {
             m_APEFileInfo.spSeekBitTable = new byte[m_APEFileInfo.nSeekTableElements];
             try {
                 m_pIO.readFully(m_APEFileInfo.spSeekBitTable);
-            } catch (EOFException e) {
+            } catch (final EOFException e) {
                 throw new JMACException("Can't Read Seek Bit Table");
             }
         }
     }
 
-    protected int FindDescriptor(boolean bSeek) throws IOException {
+    protected int FindDescriptor(final boolean bSeek) throws IOException {
         int nJunkBytes = 0;
 
         // We need to limit this method if m_pIO is represented as URL
@@ -201,14 +201,14 @@ public class APEHeader {
             m_pIO.mark(1000);
 
             // skip an ID3v2 tag (which we really don't support anyway...)
-            ByteArrayReader reader = new ByteArrayReader(10);
+            final ByteArrayReader reader = new ByteArrayReader(10);
             reader.reset(m_pIO, 10);
             final String tag = reader.readString(3, "US-ASCII");
             if (tag.equals("ID3")) {
                 // why is it so hard to figure the lenght of an ID3v2 tag ?!?
                 reader.readByte();
                 reader.readByte();
-                int byte5 = reader.readUnsignedByte();
+                final int byte5 = reader.readUnsignedByte();
 
                 int nSyncSafeLength;
                 nSyncSafeLength = (reader.readUnsignedByte() & 127) << 21;
@@ -247,7 +247,7 @@ public class APEHeader {
         m_pIO.mark(1000);
 
         // scan until we hit the APE header, the end of the file, or 1 MB later
-        int nGoalID = ('M' << 24) | ('A' << 16) | ('C' << 8) | (' ');
+        final int nGoalID = ('M' << 24) | ('A' << 16) | ('C' << 8) | (' ');
         int nReadID = m_pIO.readInt();
 
         // Also, lets suppose that MAC header placed in beginning of file in case of external source of file

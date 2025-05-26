@@ -1,8 +1,8 @@
 /*
  * @(#) ModuleFactory.java
- * 
+ *
  * Created on 21.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import de.quippy.javamod.io.ModfileInputStream;
@@ -38,7 +38,7 @@ import de.quippy.javamod.io.ModfileInputStream;
  */
 public class ModuleFactory
 {
-	private static HashMap<String, Module> fileExtensionMap;
+	private static Map<String, Module> fileExtensionMap;
 	private static ArrayList<Module> modulesArray;
 	/**
 	 * Constructor for ModuleFactory - This Class Is A Singleton
@@ -47,17 +47,17 @@ public class ModuleFactory
 	{
 		super();
 	}
-	
+
 	/**
 	 * Lazy instantiation access method
 	 * @since 04.01.2010
 	 * @return
 	 */
-	private static HashMap<String, Module> getFileExtensionMap()
+	private static Map<String, Module> getFileExtensionMap()
 	{
 		if (fileExtensionMap==null)
-			fileExtensionMap= new HashMap<String, Module>();
-		
+			fileExtensionMap= new HashMap<>();
+
 		return fileExtensionMap;
 	}
 	/**
@@ -68,30 +68,30 @@ public class ModuleFactory
 	private static ArrayList<Module> getModulesArray()
 	{
 		if (modulesArray==null)
-			modulesArray = new ArrayList<Module>();
+			modulesArray = new ArrayList<>();
 		return modulesArray;
 	}
-	public static void registerModule(Module mod)
+	public static void registerModule(final Module mod)
 	{
 		getModulesArray().add(mod);
-		String [] extensions = mod.getFileExtensionList();
-		for (int i=0; i<extensions.length; i++)
-			getFileExtensionMap().put(extensions[i], mod);
+		final String [] extensions = mod.getFileExtensionList();
+		for (final String extension : extensions)
+			getFileExtensionMap().put(extension, mod);
 	}
-	public static void deregisterModule(Module mod)
+	public static void deregisterModule(final Module mod)
 	{
 		getModulesArray().remove(mod);
-		String [] extensions = mod.getFileExtensionList();
-		for (int i=0; i<extensions.length; i++)
-			getFileExtensionMap().remove(extensions[i]);
+		final String [] extensions = mod.getFileExtensionList();
+		for (final String extension : extensions)
+			getFileExtensionMap().remove(extension);
 	}
 	public static String [] getSupportedFileExtensions()
 	{
-		Set<String> keys = getFileExtensionMap().keySet();
-		String[] result = new String[keys.size()];
+		final Set<String> keys = getFileExtensionMap().keySet();
+		final String[] result = new String[keys.size()];
 		return keys.toArray(result);
 	}
-	public static Module getModuleFromExtension(String extension)
+	public static Module getModuleFromExtension(final String extension)
 	{
 		return getFileExtensionMap().get(extension.toLowerCase());
 	}
@@ -101,17 +101,15 @@ public class ModuleFactory
 	 * @param input
 	 * @return
 	 */
-	private static Module getModuleFromStreamByID(ModfileInputStream input)
+	private static Module getModuleFromStreamByID(final ModfileInputStream input)
 	{
-		Iterator<Module> iter = getModulesArray().iterator();
-		while (iter.hasNext())
+		for (final Module mod : getModulesArray())
 		{
-			Module mod = iter.next();
-			try 
+			try
 			{
 				if (mod.checkLoadingPossible(input)) return mod;
 			}
-			catch (IOException ex)
+			catch (final IOException ex)
 			{
 				/* Ignoring */
 			}
@@ -124,19 +122,17 @@ public class ModuleFactory
 	 * @param input
 	 * @return
 	 */
-	private static Module getModuleFromStream(ModfileInputStream input)
+	private static Module getModuleFromStream(final ModfileInputStream input)
 	{
-		Iterator<Module> iter = getModulesArray().iterator();
-		while (iter.hasNext())
+		for (final Module mod : getModulesArray())
 		{
-			Module mod = iter.next();
-			try 
+			try
 			{
-				Module result = mod.loadModFile(input);
+				final Module result = mod.loadModFile(input);
 				input.seek(0);
 				return result; // <-- here this loading was a success!
 			}
-			catch (Throwable ex)
+			catch (final Throwable ex)
 			{
 				/* Ignoring */
 			}
@@ -148,7 +144,7 @@ public class ModuleFactory
 	 * @param fileName The Filename of the mod
 	 * @return null, if fails
 	 */
-	public static Module getInstance(String fileName) throws IOException
+	public static Module getInstance(final String fileName) throws IOException
 	{
 		return getInstance(new File(fileName));
 	}
@@ -157,7 +153,7 @@ public class ModuleFactory
 	 * @param file The File-Instance of the modfile
 	 * @return null, if fails
 	 */
-	public static Module getInstance(File file) throws IOException
+	public static Module getInstance(final File file) throws IOException
 	{
 		return getInstance(file.toURI().toURL());
 	}
@@ -166,7 +162,7 @@ public class ModuleFactory
 	 * @param url URL-Instance of the path to the modfile
 	 * @return null, if fails
 	 */
-	public static Module getInstance(URL url) throws IOException
+	public static Module getInstance(final URL url) throws IOException
 	{
 		ModfileInputStream inputStream = null;
 		try
@@ -175,7 +171,7 @@ public class ModuleFactory
 			Module mod = getModuleFromStreamByID(inputStream);
 			// If the header gives no infos, it's obviously a Noise Tracker file
 			// So let's try all loaders
-			if (mod!=null) 
+			if (mod!=null)
 				return mod.loadModFile(inputStream);
 			else
 			{
@@ -186,13 +182,13 @@ public class ModuleFactory
 					throw new IOException("Unsupported MOD-Type: " + inputStream.getFileName());
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new IOException("[ModuleFactory] Failed with loading of " + url.toString(), ex);
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream!=null) try { inputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

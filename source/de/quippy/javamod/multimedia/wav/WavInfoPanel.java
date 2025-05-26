@@ -2,7 +2,7 @@
  * @(#) WavInfoPanel.java
  *
  * Created on 29.10.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ public class WavInfoPanel extends JPanel
 	 * Constructor for WavInfoPanel
 	 * @param layout
 	 */
-	public WavInfoPanel(LayoutManager layout)
+	public WavInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -76,7 +76,7 @@ public class WavInfoPanel extends JPanel
 	 * Constructor for WavInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public WavInfoPanel(boolean isDoubleBuffered)
+	public WavInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -86,7 +86,7 @@ public class WavInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public WavInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public WavInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -101,7 +101,7 @@ public class WavInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(WavContainer parent)
+	public void setParentContainer(final WavContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -121,7 +121,7 @@ public class WavInfoPanel extends JPanel
 		this.add(getWavEncoding(),				Helpers.getGridBagConstraint(1, 2, 1, 3, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getWavDurationLabel(),			Helpers.getGridBagConstraint(4, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getWavDuration(),				Helpers.getGridBagConstraint(5, 2, 1, 0, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		
+
 	}
 	public javax.swing.JLabel getWavNameLabel()
 	{
@@ -242,23 +242,23 @@ public class WavInfoPanel extends JPanel
 		}
 		return wavEncoding;
 	}
-	public void fillInfoPanelWith(AudioInputStream audioInputStream, String songName)
+	public void fillInfoPanelWith(final AudioInputStream audioInputStream, final String songName)
 	{
 		getWavName().setText(songName);
 
-		AudioFormat audioFormat = audioInputStream.getFormat();
-		
+		final AudioFormat audioFormat = audioInputStream.getFormat();
+
 		getWavFrequency().setText(Integer.toString((int)audioFormat.getSampleRate()));
 		getWavSampleSizeInBits().setText(Integer.toString(audioFormat.getSampleSizeInBits()));
 		getWavChannels().setText(Integer.toString(audioFormat.getChannels()));
 		getWavEncoding().setText(audioFormat.getEncoding().toString());
-		
+
 		int lengthInMilliseconds = 0;
 		try
 		{
-			lengthInMilliseconds = (int)(((long)audioInputStream.available() / ((long)audioFormat.getSampleSizeInBits()>>3) / (long)audioFormat.getChannels()) * 1000L / (long)audioFormat.getSampleRate());
+			lengthInMilliseconds = (int)((audioInputStream.available() / ((long)audioFormat.getSampleSizeInBits()>>3) / audioFormat.getChannels()) * 1000L / (long)audioFormat.getSampleRate());
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			//Log.error("IGNORED", ex);
 		}

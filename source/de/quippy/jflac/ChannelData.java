@@ -29,14 +29,14 @@ import de.quippy.jflac.frame.EntropyPartitionedRiceContents;
  */
 public class ChannelData {
     /** The output signal. */
-    private int[] output;
-    
+    private final int[] output;
+
     /** the risidual signal. */
-    private int[] residual;
-    
+    private final int[] residual;
+
     /** The Entropy signal. */
-    private EntropyPartitionedRiceContents partitionedRiceContents;
-    
+    private final EntropyPartitionedRiceContents partitionedRiceContents;
+
     /**
      * The default constructor.
      * @param size  The block size
@@ -46,21 +46,21 @@ public class ChannelData {
         residual = new int[size];
         partitionedRiceContents = new EntropyPartitionedRiceContents();
     }
-    
+
     /**
      * @return Returns the output.
      */
     public int[] getOutput() {
         return output;
     }
-    
+
     /**
      * @return Returns the partitionedRiceContents.
      */
     public EntropyPartitionedRiceContents getPartitionedRiceContents() {
         return partitionedRiceContents;
     }
-    
+
     /**
      * @return Returns the residual.
      */

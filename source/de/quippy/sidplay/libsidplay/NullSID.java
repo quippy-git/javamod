@@ -28,29 +28,35 @@ public class NullSID extends SIDEmu
 	// Standard component functions
 	//
 
+	@Override
 	public void reset()
 	{
 		super.reset();
 	}
 
-	public void reset(short /* uint8_t */volume)
+	@Override
+	public void reset(final short /* uint8_t */volume)
 	{
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr)
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr)
 	{
 		return 0;
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data)
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data)
 	{
 	}
 
+	@Override
 	public final String credits()
 	{
 		return "";
 	}
 
+	@Override
 	public final String error()
 	{
 		return "";
@@ -60,16 +66,19 @@ public class NullSID extends SIDEmu
 	// Standard SID functions
 	//
 
-	public long /* int_least32_t */output(short /* uint_least8_t */volume)
+	@Override
+	public long /* int_least32_t */output(final short /* uint_least8_t */volume)
 	{
 		return 0;
 	}
 
-	public void voice(short /* uint_least8_t */num, short /* uint_least8_t */vol, boolean mute)
+	@Override
+	public void voice(final short /* uint_least8_t */num, final short /* uint_least8_t */vol, final boolean mute)
 	{
 	}
 
-	public void gain(short /* uint_least8_t */percent)
+	@Override
+	public void gain(final short /* uint_least8_t */percent)
 	{
 	}
 }

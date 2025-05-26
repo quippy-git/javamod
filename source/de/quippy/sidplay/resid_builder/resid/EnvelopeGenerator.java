@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -29,9 +29,9 @@ package de.quippy.sidplay.resid_builder.resid;
  * decay, in effect further dividing the clock to the envelope counter. The
  * period of this counter is set to 1, 2, 4, 8, 16, 30 at the envelope counter
  * values 255, 93, 54, 26, 14, 6, respectively.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class EnvelopeGenerator {
 	public enum State {
@@ -102,7 +102,7 @@ public class EnvelopeGenerator {
 	 * the current rate counter period.
 	 * <P>
 	 * The ENV3 sampling code below yields a maximum timing error of 14 cycles.
-	 * 
+	 *
 	 * <pre>
 	 *      lda #$01
 	 *  l1: cmp $d41c
@@ -112,7 +112,7 @@ public class EnvelopeGenerator {
 	 *  l2: cmp $d41c
 	 *      bne l2
 	 * </pre>
-	 * 
+	 *
 	 * This yields a maximum error for the calculated rate period of 14/128
 	 * cycles. The described method is thus sufficient for exact calculation of
 	 * the rate periods.
@@ -410,7 +410,7 @@ public class EnvelopeGenerator {
 	 * 8-bit envelope output.
 	 * <P>
 	 * Read the envelope generator output.
-	 * 
+	 *
 	 * @return envelope_counter
 	 */
 	public int /* reg8 */output() {
@@ -452,12 +452,12 @@ public class EnvelopeGenerator {
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param control
 	 * control register
 	 */
-	public void writeCONTROL_REG(int /* reg8 */control) {
-		int /* reg8 */gate_next = control & 0x01;
+	public void writeCONTROL_REG(final int /* reg8 */control) {
+		final int /* reg8 */gate_next = control & 0x01;
 
 		// The rate counter is never reset, thus there will be a delay before
 		// the
@@ -484,7 +484,7 @@ public class EnvelopeGenerator {
 	 * @param attack_decay
 	 * attack/decay value
 	 */
-	public void writeATTACK_DECAY(int /* reg8 */attack_decay) {
+	public void writeATTACK_DECAY(final int /* reg8 */attack_decay) {
 		attack = (attack_decay >> 4) & 0x0f;
 		decay = attack_decay & 0x0f;
 		if (state == State.ATTACK) {
@@ -498,7 +498,7 @@ public class EnvelopeGenerator {
 	 * @param sustain_release
 	 * sustain/release value
 	 */
-	public void writeSUSTAIN_RELEASE(int /* reg8 */sustain_release) {
+	public void writeSUSTAIN_RELEASE(final int /* reg8 */sustain_release) {
 		sustain = (sustain_release >> 4) & 0x0f;
 		release = sustain_release & 0x0f;
 		if (state == State.RELEASE) {

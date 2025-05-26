@@ -26,7 +26,7 @@ package de.quippy.jmac.decoder;
  * Time: 14:51:31
  */
 public class AntiPredictorOffset extends AntiPredictor {
-    public void AntiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements, int Offset, int DeltaM) {
+    public void AntiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements, final int Offset, final int DeltaM) {
         System.arraycopy(pInputArray, 0, pOutputArray, 0, Offset);
 
         int ip = Offset;

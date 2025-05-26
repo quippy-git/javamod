@@ -2,7 +2,7 @@
  * @(#) EmuOPL.java
  *
  * Created on 08.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,11 +39,11 @@ public abstract class EmuOPL
 	{
 	 	"OPL2", "Dual OPL2", "OPL3"
 	};
-	
+
 	protected float sampleRate;
 	protected version ver;
 	protected oplType OPLType;
-	
+
 	public static EmuOPL createInstance(final version ver, final float sampleRate, final oplType OPLType)
 	{
 		switch (ver)

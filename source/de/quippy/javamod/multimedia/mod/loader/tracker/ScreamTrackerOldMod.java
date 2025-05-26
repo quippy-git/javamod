@@ -1,8 +1,8 @@
 /*
  * @(#) ScreamTrackerOldMod.java
- * 
+ *
  * Created on 07.05.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,11 +41,11 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class ScreamTrackerOldMod extends Module
 {
-	private static final String[] MODFILEEXTENSION = new String [] 
+	private static final String[] MODFILEEXTENSION = new String []
 	{
 		"stm", "sts"
 	};
-	
+
 	protected static final String S3M_ID = "SCRM";
 
 	/**
@@ -66,7 +66,7 @@ public class ScreamTrackerOldMod extends Module
 	/**
 	 * Constructor for ScreamTrackerOldMod
 	 */
-	protected ScreamTrackerOldMod(String fileName)
+	protected ScreamTrackerOldMod(final String fileName)
 	{
 		super(fileName);
 	}
@@ -105,7 +105,7 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getPanningValue(int)
 	 */
 	@Override
-	public int getPanningValue(int channel)
+	public int getPanningValue(final int channel)
 	{
 		if ((channel%3)!=0)
 			return ModConstants.OLD_PANNING_RIGHT;
@@ -118,7 +118,7 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getChannelVolume(int)
 	 */
 	@Override
-	public int getChannelVolume(int channel)
+	public int getChannelVolume(final int channel)
 	{
 		return 64;
 	}
@@ -173,14 +173,14 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
 	 */
 	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
+	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
 	{
 		inputStream.seek(0);
 		// We should not be too picky about the !Scream!-Tag...
 		// According to ModPlug: Magic bytes that have been found in the wild are !Scream!, BMOD2STM, WUZAMOD! and SWavePro.
 		// But simply accepting any printable ASCII as ID leads to false positives - would need to check more
 		// of the header
-		byte [] header = new byte[32];
+		final byte [] header = new byte[32];
 		inputStream.read(header);
 		if (//header[28]!=0x1A ||	// EOF - there seem to be exceptions to this rule
 			header[29]!=2	||		// FileType == 2 (1: we do not load, but is valid STM!)
@@ -191,7 +191,7 @@ public class ScreamTrackerOldMod extends Module
 		}
 		for (int c=20; c<28; c++)
 		{
-			if (header[c]<0x20 || header[c]>0x7E) 
+			if (header[c]<0x20 || header[c]>0x7E)
 				return false;
 		}
 		// STX files could now produce false positives. So check for those as well
@@ -206,7 +206,7 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
 	 */
 	@Override
-	protected Module getNewInstance(String fileName)
+	protected Module getNewInstance(final String fileName)
 	{
 		return new ScreamTrackerOldMod(fileName);
 	}
@@ -220,15 +220,15 @@ public class ScreamTrackerOldMod extends Module
 	 */
 	private void createNewPatternElement(final PatternContainer patternContainer, final int pattNum, final int row, final int channel, final int note)
 	{
-		PatternElement pe = patternContainer.createPatternElement(pattNum, row, channel);
-		
+		final PatternElement pe = patternContainer.createPatternElement(pattNum, row, channel);
+
 		pe.setInstrument((note&0xF80000)>>19);
 
-		int oktave = (note&0xF0000000)>>28;
+		final int oktave = (note&0xF0000000)>>28;
 		if (oktave!=-1)
 		{
-			int ton = (note&0x0F000000)>>24;
-			int index = (oktave+3)*12+ton; // fit to it octaves
+			final int ton = (note&0x0F000000)>>24;
+			final int index = (oktave+3)*12+ton; // fit to it octaves
 			pe.setPeriod((index<ModConstants.noteValues.length) ? ModConstants.noteValues[index] : 0);
 			pe.setNoteIndex(index+1);
 		}
@@ -237,16 +237,16 @@ public class ScreamTrackerOldMod extends Module
 			pe.setPeriod(0);
 			pe.setNoteIndex(0);
 		}
-	
+
 		pe.setEffekt((note&0xF00)>>8);
 		pe.setEffektOp(note&0xFF);
-		
+
 		// All trackers say: "No effect memory" - but throwing them all out is a very bad idea!
 		// For instance: if it is a porta2note effect, the effect is ignored when op is zero,
 		// however, the note is not played instead.
 		//if (pe.getEffektOp()==0) pe.setEffekt(0);
-		
-		int volume =((note&0x70000)>>16) | ((note&0xF000)>>9);
+
+		final int volume =((note&0x70000)>>16) | ((note&0xF000)>>9);
 		if (volume<=64)
 		{
 			pe.setVolumeEffekt(1);
@@ -259,31 +259,31 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFile(byte[])
 	 */
 	@Override
-	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_STM);
 		setNSamples(31);
 		setNChannels(4);
 		setSongRestart(0);
-		
+
 		// Songname
 		setSongName(inputStream.readString(20));
 
 		// ID. Should be "!SCREAM!"
 		setModID(inputStream.readString(8));
-		
+
 		// 0x1A as file end signal... read over
 		inputStream.skip(1);
 		// Type: 1=Song 2=MOD
 		final int STMType = inputStream.read();
 		if (STMType!=0x02) throw new IOException("Unsupported STM MOD (ID!=0x02)");
-		
+
 		// Version
 		final int vHi = inputStream.read();
 		final int vLow = inputStream.read();
 		version = vHi<<4|vLow;
 		setTrackerName("ScreamTracker V" + vHi + '.' + vLow);
-		
+
 		// is always mono
 		//songFlags |= ModConstants.SONG_ISSTEREO;
 		// default, so we do not need to check for IT
@@ -296,54 +296,54 @@ public class ScreamTrackerOldMod extends Module
 		if (vLow<21) playBackTempo = ((playBackTempo/10)<<4)+(playBackTempo%10);
 		setTempo((playBackTempo>>4)!=0?playBackTempo>>4:1);
 		setBPMSpeed(ModConstants.convertST2tempo(playBackTempo));
-		
+
 		// count of pattern in arrangement
 		int patternCount = inputStream.read();
 		if (patternCount>64) patternCount = 64;
 		setNPattern(patternCount);
-		
+
 		// Base volume
 		setBaseVolume(inputStream.read()<<1);
 //		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
 //		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
 		setMixingPreAmp(ModConstants.MIN_MIXING_PREAMP);
-		
+
 		// Skip these reserved bytes
 		inputStream.skip(13);
 
 		// Instruments
 		setNInstruments(getNSamples());
-		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
+		final InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
 		this.setInstrumentContainer(instrumentContainer);
 		for (int i=0; i<getNSamples(); i++)
 		{
-			Sample current = new Sample();
+			final Sample current = new Sample();
 			// Samplename
 			current.setName(inputStream.readString(12));
 			current.setStereo(false); // Default
 
 			// reserved
 			inputStream.skip(1);
-			
+
 			// instrument Disk number, if song (not yet supported)
 			final int diskNumber = inputStream.read();
 			if (STMType==0x01) current.setName(current.name+" #"+diskNumber);
-			
+
 			// Reserved (Sample Beginning Offset?!)
 			inputStream.skip(2);
-			
+
 			// Length
 			current.setLength(inputStream.readIntelUnsignedWord());
-			
+
 			// Repeat start and stop
-			int repeatStart = inputStream.readIntelUnsignedWord();
-			int repeatStop = inputStream.readIntelUnsignedWord();
-			
-			if (repeatStart<repeatStop && repeatStop!=0xFFFF) 
+			final int repeatStart = inputStream.readIntelUnsignedWord();
+			final int repeatStop = inputStream.readIntelUnsignedWord();
+
+			if (repeatStart<repeatStop && repeatStop!=0xFFFF)
 				current.setLoopType(ModConstants.LOOP_ON);
 			else
 				current.setLoopType(0);
-			
+
 			current.setLoopStart(repeatStart);
 			current.setLoopStop(repeatStop);
 			current.setLoopLength(repeatStop-repeatStart);
@@ -354,17 +354,17 @@ public class ScreamTrackerOldMod extends Module
 			current.setSustainLoopLength(0);
 
 			// volume 64 is maximum
-			int vol  = inputStream.read() & 0x7F;
+			final int vol  = inputStream.read() & 0x7F;
 			current.setVolume((vol>64)?64:vol);
 			current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
-			
+
 			// reserved
 			inputStream.skip(1);
 
 			// Defaults!
 			current.setPanning(false);
 			current.setDefaultPanning(128);
-			
+
 			// Base Frequency
 			current.setFineTune(0);
 			current.setTranspose(0);
@@ -381,16 +381,16 @@ public class ScreamTrackerOldMod extends Module
 		// always space for 128 pattern... With STMs we need to guess the arrangement length
 		allocArrangement(128);
 		int currentSongLenth = -1;
-		for (int i=0; i<128; i++) 
+		for (int i=0; i<128; i++)
 		{
-			int nextPatternIndex = inputStream.read(); 
+			final int nextPatternIndex = inputStream.read();
 			getArrangement()[i]=nextPatternIndex;
 			if (currentSongLenth==-1 && nextPatternIndex==99) currentSongLenth = i;
 		}
 		while (getArrangement()[currentSongLenth-1]>=getNPattern()) currentSongLenth--;
 		setSongLength(currentSongLenth);
 
-		PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
+		final PatternContainer patternContainer = new PatternContainer(this, getNPattern(), 64, getNChannels());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -402,10 +402,10 @@ public class ScreamTrackerOldMod extends Module
 				}
 			}
 		}
-		
+
 		for (int i=0; i<getNSamples(); i++)
 		{
-			Sample current = getInstrumentContainer().getSample(i);
+			final Sample current = getInstrumentContainer().getSample(i);
 			current.setSampleType(ModConstants.SM_PCMS);
 			readSampleData(current, inputStream);
 		}

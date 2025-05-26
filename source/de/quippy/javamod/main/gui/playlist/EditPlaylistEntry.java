@@ -1,8 +1,8 @@
 /*
  * EditPlaylistEntry.
- * 
+ *
  * Created on 03.4.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,18 +48,18 @@ public class EditPlaylistEntry extends JDialog
  	private javax.swing.JButton searchButton;
     private javax.swing.JTextField textField1;
     private javax.swing.JTextField textField2;
-    
+
     private String value;
 
     /**
      * Creates new form
      */
-    public EditPlaylistEntry(JFrame parent, boolean modal)
+    public EditPlaylistEntry(final JFrame parent, final boolean modal)
     {
         super(parent, modal);
         initialize();
     }
-    public EditPlaylistEntry(JDialog parent, boolean modal)
+    public EditPlaylistEntry(final JDialog parent, final boolean modal)
     {
         super(parent, modal);
         initialize();
@@ -83,7 +83,7 @@ public class EditPlaylistEntry extends JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.NONE;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         getContentPane().add(jLabel1, gridBagConstraints);
-        
+
         textField1 = new javax.swing.JTextField();
         textField1.setFont(Helpers.getDialogFont());
         textField1.setEditable(false);
@@ -128,7 +128,8 @@ public class EditPlaylistEntry extends JDialog
         searchButton.setFont(Helpers.getDialogFont());
         searchButton.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            @Override
+			public void actionPerformed(final java.awt.event.ActionEvent evt)
             {
                 doSearch();
             }
@@ -150,13 +151,14 @@ public class EditPlaylistEntry extends JDialog
         openButton.setToolTipText("OK");
         openButton.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            @Override
+			public void actionPerformed(final java.awt.event.ActionEvent evt)
             {
                 doOpen();
             }
         });
         jPanel1.add(openButton);
-        
+
         cancelButton = new javax.swing.JButton();
         cancelButton.setMnemonic('C');
         cancelButton.setText("Cancel");
@@ -164,13 +166,14 @@ public class EditPlaylistEntry extends JDialog
         cancelButton.setFont(Helpers.getDialogFont());
         cancelButton.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            @Override
+			public void actionPerformed(final java.awt.event.ActionEvent evt)
             {
                 doCancel();
             }
         });
         jPanel1.add(cancelButton);
-        
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.anchor = GridBagConstraints.CENTER;
         gridBagConstraints.gridx = 0;
@@ -186,7 +189,7 @@ public class EditPlaylistEntry extends JDialog
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
@@ -202,7 +205,7 @@ public class EditPlaylistEntry extends JDialog
     {
     	return value;
     }
-    public void setValue(String value)
+    public void setValue(final String value)
     {
     	textField1.setText(value);
     	textField2.setText(value);
@@ -213,7 +216,7 @@ public class EditPlaylistEntry extends JDialog
 		setVisible(false);
 		dispose();
 		//if we are alone in the world, exit the vm
-		if (getParent() == null) System.exit(0); // this should not be needed! 
+		if (getParent() == null) System.exit(0); // this should not be needed!
 	}
     private void doOpen()
     {
@@ -227,11 +230,11 @@ public class EditPlaylistEntry extends JDialog
     }
     private void doSearch()
     {
-		FileFilter [] filter = new FileFilter[] { new FileChooserFilter(MultimediaContainerManager.getSupportedFileExtensions(), "All playable files") };
-		FileChooserResult selectedFile = Helpers.selectFileNameFor(this, textField2.getText(), "Select file", filter, false, 0, false, false);
+		final FileFilter [] filter = new FileFilter[] { new FileChooserFilter(MultimediaContainerManager.getSupportedFileExtensions(), "All playable files") };
+		final FileChooserResult selectedFile = Helpers.selectFileNameFor(this, textField2.getText(), "Select file", filter, false, 0, false, false);
 		if (selectedFile!=null)
 		{
-			File f = selectedFile.getSelectedFile();
+			final File f = selectedFile.getSelectedFile();
 			textField2.setText(f.getAbsolutePath());
 //			try
 //			{

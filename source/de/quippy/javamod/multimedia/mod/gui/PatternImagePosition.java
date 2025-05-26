@@ -2,7 +2,7 @@
  * @(#) PatternImagePosition.java
  *
  * Created on 21.01.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public class PatternImagePosition
 	public static final int COLUMN_EFFECT = 5;
 	public static final int COLUMN_EFFECT_OP = 6;
 	public static final int COLUMN_BEYOND_RIGHT = 7;
-	
+
 	public int channel, row, column, charInView, rowInView;
 	public Pattern pattern;
 
@@ -75,7 +75,7 @@ public class PatternImagePosition
 	public String toString()
 	{
 		if (channel<0) return "Row indicator " + row;
-		StringBuilder sb = new StringBuilder("Channel:");
+		final StringBuilder sb = new StringBuilder("Channel:");
 		sb.append(channel).append(" Column:");
 		switch (column)
 		{

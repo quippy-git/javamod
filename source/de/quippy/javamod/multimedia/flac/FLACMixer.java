@@ -2,7 +2,7 @@
  * @(#) FLACMixer.java
  *
  * Created on 01.01.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,18 +46,17 @@ public class FLACMixer extends BasicMixer
 	private InputStream inputStream;
 	private FLACDecoder decoder;
 
-	private URL flacFileUrl;
-	
+	private final URL flacFileUrl;
+
 	private int channels;
 	private int sampleRate;
-	private int sampleSizeInBits;
 	private int sampleSizeInBytes;
 	private int lengthInMilliseconds;
 
 	/**
 	 * Constructor for FLACMixer
 	 */
-	public FLACMixer(URL flacFileUrl)
+	public FLACMixer(final URL flacFileUrl)
 	{
 		super();
 		this.flacFileUrl = flacFileUrl;
@@ -67,21 +66,21 @@ public class FLACMixer extends BasicMixer
 	{
 		try
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream!=null) try { inputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 			inputStream = new FileOrPackedInputStream(flacFileUrl);
 			decoder = new FLACDecoder(inputStream);
 			decoder.readMetadata();
-			AudioFormat audioFormat = decoder.getStreamInfo().getAudioFormat();
+			final AudioFormat audioFormat = decoder.getStreamInfo().getAudioFormat();
 			setAudioFormat(audioFormat);
 			channels = audioFormat.getChannels();
 			sampleRate = (int)audioFormat.getSampleRate();
-			sampleSizeInBits = audioFormat.getSampleSizeInBits();
+			int sampleSizeInBits = audioFormat.getSampleSizeInBits();
 			sampleSizeInBytes = sampleSizeInBits>>3;
-			lengthInMilliseconds = (int)((long)decoder.getStreamInfo().getTotalSamples() * 1000L / (long)sampleRate);
+			lengthInMilliseconds = (int)(decoder.getStreamInfo().getTotalSamples() * 1000L / sampleRate);
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[FLACMixer]", ex);
 		}
 	}
@@ -103,10 +102,10 @@ public class FLACMixer extends BasicMixer
 	{
 		if (decoder!=null)
 		{
-			Frame f = decoder.getCurrentFrame();
+			final Frame f = decoder.getCurrentFrame();
 			if (f!=null)
 			{
-				Header h = f.getHeader();
+				final Header h = f.getHeader();
 				if (h!=null) return (h.blockSize * h.bitsPerSample * h.channels) * 1000 / h.sampleRate;
 			}
 		}
@@ -139,13 +138,13 @@ public class FLACMixer extends BasicMixer
 	{
 		if (decoder != null)
 		{
-			Frame f = decoder.getCurrentFrame();
+			final Frame f = decoder.getCurrentFrame();
 			if (f!=null)
 			{
-				Header h = f.getHeader();
-				if (h!=null) return h.sampleNumber * 1000L / (long)sampleRate;
+				final Header h = f.getHeader();
+				if (h!=null) return h.sampleNumber * 1000L / sampleRate;
 			}
-			return decoder.getSamplesDecoded() * 1000L / (long)sampleRate;
+			return decoder.getSamplesDecoded() * 1000L / sampleRate;
 		}
 		return 0;
 	}
@@ -164,22 +163,22 @@ public class FLACMixer extends BasicMixer
 	 * @since 13.02.2012
 	 */
 	@Override
-	protected void seek(long milliseconds)
+	protected void seek(final long milliseconds)
 	{
 		try
 		{
-			final long seekToSamples = milliseconds * (long)sampleRate / 1000L;
-			final long currentSamples = getMillisecondPosition() * (long)sampleRate / 1000L;
+			final long seekToSamples = milliseconds * sampleRate / 1000L;
+			final long currentSamples = getMillisecondPosition() * sampleRate / 1000L;
 			if (currentSamples>seekToSamples || decoder.getSeekTable()!=null)
 			{
-				if (inputStream!=null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+				if (inputStream!=null) try { inputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 				inputStream = flacFileUrl.openStream();
 				decoder = new FLACDecoder(inputStream);
 				decoder.readMetadata();
 			}
 			decoder.seekTo(seekToSamples);
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("[FLACMixer::seek]", ex);
 		}
@@ -189,16 +188,16 @@ public class FLACMixer extends BasicMixer
 		try
 		{
 	        decoder.findFrameSync();
-			Frame currentFrame = decoder.readFrame();
+			final Frame currentFrame = decoder.readFrame();
 	    	return decoder.decodeFrame(currentFrame, null);
 		}
-		catch (FrameDecodeException ex)
+		catch (final FrameDecodeException ex)
 		{
 			return null;
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -206,7 +205,7 @@ public class FLACMixer extends BasicMixer
 	{
 		initialize();
 		setIsPlaying();
-		
+
 		if (getSeekPosition()>0) seek(getSeekPosition());
 
 		try
@@ -221,24 +220,24 @@ public class FLACMixer extends BasicMixer
 				try
 				{
 					final long bytesToWrite = (hasStopPosition())?getSamplesToWriteLeft() * getChannelCount() * sampleSizeInBytes:-1;
-			    	ByteData bd = decode();
+			    	final ByteData bd = decode();
 			    	if (bd!=null)
 			    	{
-				    	byte [] b = bd.getData();
+				    	final byte [] b = bd.getData();
 				    	int byteCount = bd.getLen();
 						// find out, if all decoded samples are to write
-						if (bytesToWrite>0 && (long)(byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
-				    	
+						if (bytesToWrite>0 && (byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
+
 						writeSampleDataToLine(b, 0, byteCount);
 			    	}
 				}
-				catch (EOFException ex)
+				catch (final EOFException ex)
 				{
 					finished = true;
 				}
 
 				if (stopPositionIsReached()) setIsStopping();
-				
+
 				if (isStopping())
 				{
 					setIsStopped();
@@ -249,7 +248,7 @@ public class FLACMixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 				if (isInSeeking())
@@ -257,14 +256,14 @@ public class FLACMixer extends BasicMixer
 					setIsSeeking();
 					while (isInSeeking())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
 			while (!finished);
 			if (finished) setHasFinished(); // piece finished
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}
@@ -272,7 +271,7 @@ public class FLACMixer extends BasicMixer
 		{
 			setIsStopped();
 			closeAudioDevice();
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

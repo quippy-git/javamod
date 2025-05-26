@@ -2,7 +2,7 @@
  * @(#) CueFile.java
  *
  * Created on 14.02.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,16 +32,16 @@ public class CueFile
 {
 	private URL file;
 	private String type;
-	private ArrayList<CueTrack> tracks;
-	
+	private final ArrayList<CueTrack> tracks;
+
 	/**
-	 * 
+	 *
 	 * @since 14.02.2012
 	 */
 	public CueFile()
 	{
 		super();
-		tracks = new ArrayList<CueTrack>();
+		tracks = new ArrayList<>();
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class CueFile
 	 * @param file the file to set
 	 * @since 14.02.2012
 	 */
-	public void setFile(URL file)
+	public void setFile(final URL file)
 	{
 		this.file = file;
 	}
@@ -72,7 +72,7 @@ public class CueFile
 	 * @param type the type to set
 	 * @since 14.02.2012
 	 */
-	public void setType(String type)
+	public void setType(final String type)
 	{
 		this.type = type;
 	}
@@ -80,7 +80,7 @@ public class CueFile
 	 * @param cueTrack
 	 * @since 14.02.2012
 	 */
-	public void addTrack(CueTrack cueTrack)
+	public void addTrack(final CueTrack cueTrack)
 	{
 		tracks.add(cueTrack);
 	}

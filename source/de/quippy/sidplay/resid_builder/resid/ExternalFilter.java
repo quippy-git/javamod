@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -24,7 +24,7 @@ package de.quippy.sidplay.resid_builder.resid;
 import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
 
 /**
- * 
+ *
  * The audio output stage in a Commodore 64 consists of two STC networks, a
  * low-pass filter with 3-dB frequency 16kHz followed by a high-pass filter with
  * 3-dB frequency 16Hz (the latter provided an audio equipment input impedance
@@ -36,9 +36,9 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  * emitter-base impedances sufficiently low to produce additional low-pass and
  * high-pass 3dB-frequencies in the order of hundreds of kHz. This calls for a
  * sampling frequency of several MHz, which is far too high for practical use.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class ExternalFilter {
 
@@ -85,10 +85,10 @@ public class ExternalFilter {
 
 	/**
 	 * SID clocking - 1 cycle.
-	 * 
+	 *
 	 * @param Vi
 	 */
-	public void clock(int /* sound_sample */Vi) {
+	public void clock(final int /* sound_sample */Vi) {
 		// This is handy for testing.
 		if (!enabled) {
 			// Remove maximum DC level since there is no filter to do it.
@@ -105,8 +105,8 @@ public class ExternalFilter {
 		// vlp = vlp + w0lp*(Vi - vlp)*delta_t;
 		// vhp = vhp + w0hp*(vlp - vhp)*delta_t;
 
-		int /* sound_sample */dVlp = (w0lp >> 8) * (Vi - vlp) >> 12;
-		int /* sound_sample */dVhp = w0hp * (vlp - vhp) >> 20;
+		final int /* sound_sample */dVlp = (w0lp >> 8) * (Vi - vlp) >> 12;
+		final int /* sound_sample */dVhp = w0hp * (vlp - vhp) >> 20;
 		vo = vlp - vhp;
 		vlp += dVlp;
 		vhp += dVhp;
@@ -114,11 +114,11 @@ public class ExternalFilter {
 
 	/**
 	 * SID clocking - delta_t cycles.
-	 * 
+	 *
 	 * @param delta_t
 	 * @param Vi
 	 */
-	public void clock(int /* cycle_count */delta_t, int /* sound_sample */Vi) {
+	public void clock(int /* cycle_count */delta_t, final int /* sound_sample */Vi) {
 		// This is handy for testing.
 		if (!enabled) {
 			// Remove maximum DC level since there is no filter to do it.
@@ -144,9 +144,9 @@ public class ExternalFilter {
 			// vlp = vlp + w0lp*(Vi - vlp)*delta_t;
 			// vhp = vhp + w0hp*(vlp - vhp)*delta_t;
 
-			int /* sound_sample */dVlp = (w0lp * delta_t_flt >> 8)
+			final int /* sound_sample */dVlp = (w0lp * delta_t_flt >> 8)
 					* (Vi - vlp) >> 12;
-			int /* sound_sample */dVhp = w0hp * delta_t_flt * (vlp - vhp) >> 20;
+			final int /* sound_sample */dVhp = w0hp * delta_t_flt * (vlp - vhp) >> 20;
 			vo = vlp - vhp;
 			vlp += dVlp;
 			vhp += dVhp;
@@ -157,9 +157,9 @@ public class ExternalFilter {
 
 	/**
 	 * Audio output (20 bits).
-	 * 
+	 *
 	 * Audio output (19.5 bits).
-	 * 
+	 *
 	 * @return vo
 	 */
 	public int /* sound_sample */output() {
@@ -182,20 +182,20 @@ public class ExternalFilter {
 
 	/**
 	 * Enable filter.
-	 * 
+	 *
 	 * @param enable
 	 * enable filter
 	 */
-	public void enable_filter(boolean enable) {
+	public void enable_filter(final boolean enable) {
 		enabled = enable;
 	}
 
 	/**
 	 * Setup of the external filter sampling parameters.
-	 * 
+	 *
 	 * @param pass_freq
 	 */
-	public void set_sampling_parameter(double pass_freq) {
+	public void set_sampling_parameter(final double pass_freq) {
 		final double pi = 3.1415926535897932385;
 
 		// Low-pass: R = 10kOhm, C = 1000pF; w0l = 1/RC = 1/(1e4*1e-9) = 100000
@@ -211,11 +211,11 @@ public class ExternalFilter {
 
 	/**
 	 * Set chip model.
-	 * 
+	 *
 	 * @param model
 	 * chip model
 	 */
-	public void set_chip_model(chip_model model) {
+	public void set_chip_model(final chip_model model) {
 		if (model == chip_model.MOS6581) {
 			// Maximum mixer DC output level; to be removed if the external
 			// filter is turned off: ((wave DC + voice DC) * voices + mixer DC)

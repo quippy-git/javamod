@@ -36,7 +36,7 @@ public class APELink {
     private final static String APE_LINK_START_BLOCK_TAG = "Start Block=";
     private final static String APE_LINK_FINISH_BLOCK_TAG = "Finish Block=";
 
-    public APELink(String pFilename) throws IOException {
+    public APELink(final String pFilename) throws IOException {
         // empty
         m_bIsLinkFile = false;
         m_nStartBlock = 0;
@@ -44,21 +44,21 @@ public class APELink {
         m_cImageFilename = "";
 
         // open the file
-        File ioLinkFile = new RandomAccessFile(new java.io.File(pFilename), "r");
+        final File ioLinkFile = new RandomAccessFile(new java.io.File(pFilename), "r");
         // create a buffer
-        byte[] spBuffer = new byte[1024];
+        final byte[] spBuffer = new byte[1024];
 
         // fill the buffer from the file and null terminate it
-        int numRead = ioLinkFile.read(spBuffer);
+        final int numRead = ioLinkFile.read(spBuffer);
 
-        byte[] buffer = new byte[numRead];
+        final byte[] buffer = new byte[numRead];
         System.arraycopy(spBuffer, 0, buffer, 0, numRead);
 
         // call the other constructor (uses a buffer instead of opening the file)
         ParseData(buffer, pFilename);
     }
 
-    public APELink(byte[] pData, String pFilename) {
+    public APELink(final byte[] pData, final String pFilename) {
         ParseData(pData, pFilename);
     }
 
@@ -83,7 +83,7 @@ public class APELink {
     protected int m_nFinishBlock;
     protected String m_cImageFilename;
 
-    protected void ParseData(byte[] pData, String pFilename) {
+    protected void ParseData(final byte[] pData, final String pFilename) {
         // empty
         m_bIsLinkFile = false;
         m_nStartBlock = 0;
@@ -95,14 +95,14 @@ public class APELink {
             try {
                 // parse out the information
                 data = new String(pData, "US-ASCII");
-            } catch (java.io.UnsupportedEncodingException e) {
+            } catch (final java.io.UnsupportedEncodingException e) {
                 throw new JMACException("Unsupported encoding", e);
             }
 
-            int pHeader = data.indexOf(APE_LINK_HEADER);
-            int pImageFile = data.indexOf(APE_LINK_IMAGE_FILE_TAG);
-            int pStartBlock = data.indexOf(APE_LINK_START_BLOCK_TAG);
-            int pFinishBlock = data.indexOf(APE_LINK_FINISH_BLOCK_TAG);
+            final int pHeader = data.indexOf(APE_LINK_HEADER);
+            final int pImageFile = data.indexOf(APE_LINK_IMAGE_FILE_TAG);
+            final int pStartBlock = data.indexOf(APE_LINK_START_BLOCK_TAG);
+            final int pFinishBlock = data.indexOf(APE_LINK_FINISH_BLOCK_TAG);
 
             if (pHeader >= 0 && pImageFile >= 0 && pStartBlock >= 0 && pFinishBlock >= 0) {
                 // get the start and finish blocks
@@ -112,7 +112,7 @@ public class APELink {
 
                 try {
                     m_nStartBlock = Integer.parseInt(data.substring(pStartBlock + APE_LINK_START_BLOCK_TAG.length(), ii >= 0 ? ii : data.length()));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     m_nStartBlock = -1;
                 }
 
@@ -121,7 +121,7 @@ public class APELink {
                 ii = i1 > 0 && i2 > 0 ? Math.min(i1, i2) : Math.max(i1, i2);
                 try {
                     m_nFinishBlock = Integer.parseInt(data.substring(pFinishBlock + APE_LINK_FINISH_BLOCK_TAG.length(), ii >= 0 ? ii : data.length()));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     m_nFinishBlock = -1;
                 }
 
@@ -129,11 +129,11 @@ public class APELink {
                 i1 = data.indexOf('\r', pImageFile);
                 i2 = data.indexOf('\n', pImageFile);
                 ii = i1 > 0 && i2 > 0 ? Math.min(i1, i2) : Math.max(i1, i2);
-                String cImageFile = data.substring(pImageFile + APE_LINK_IMAGE_FILE_TAG.length(), ii >= 0 ? ii : data.length());
+                final String cImageFile = data.substring(pImageFile + APE_LINK_IMAGE_FILE_TAG.length(), ii >= 0 ? ii : data.length());
 
                 // process the path
                 if (cImageFile.lastIndexOf('\\') < 0) {
-                    int ij = pFilename.lastIndexOf('\\');
+                    final int ij = pFilename.lastIndexOf('\\');
                     m_cImageFilename = ij >= 0 ? pFilename.substring(0, ij) + cImageFile : cImageFile;
                 } else {
                     m_cImageFilename = cImageFile;

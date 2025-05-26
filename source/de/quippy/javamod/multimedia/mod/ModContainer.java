@@ -2,7 +2,7 @@
  * @(#)ModContainer.java
  *
  * Created on 12.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,20 +45,20 @@ import de.quippy.javamod.system.Log;
  */
 public class ModContainer extends MultimediaContainer
 {
-	public static final String PROPERTY_PLAYER_BITSPERSAMPLE = "javamod.player.bitspersample"; 
-	public static final String PROPERTY_PLAYER_STEREO = "javamod.player.stereo"; 
-	public static final String PROPERTY_PLAYER_FREQUENCY = "javamod.player.frequency"; 
-	public static final String PROPERTY_PLAYER_MSBUFFERSIZE = "javamod.player.msbuffersize"; 
-	public static final String PROPERTY_PLAYER_ISP = "javamod.player.ISP"; 
-	public static final String PROPERTY_PLAYER_WIDESTEREOMIX = "javamod.player.widestereomix"; 
-	public static final String PROPERTY_PLAYER_NOISEREDUCTION = "javamod.player.noisereduction"; 
-	public static final String PROPERTY_PLAYER_MEGABASS = "javamod.player.megabass"; 
-	public static final String PROPERTY_PLAYER_DCREMOVAL = "javamod.player.dcremoval"; 
-	public static final String PROPERTY_PLAYER_NOLOOPS = "javamod.player.noloops"; 
-	public static final String PROPERTY_PLAYER_MAXNNACHANNELS = "javamod.player.max_nna_channels"; 
-	public static final String PROPERTY_PLAYER_DITHERFILTER = "javamod.player.ditherfilter"; 
-	public static final String PROPERTY_PLAYER_DITHERTYPE = "javamod.player.dithertype"; 
-	public static final String PROPERTY_PLAYER_DITHERBYPASS = "javamod.player.ditherbypass"; 
+	public static final String PROPERTY_PLAYER_BITSPERSAMPLE = "javamod.player.bitspersample";
+	public static final String PROPERTY_PLAYER_STEREO = "javamod.player.stereo";
+	public static final String PROPERTY_PLAYER_FREQUENCY = "javamod.player.frequency";
+	public static final String PROPERTY_PLAYER_MSBUFFERSIZE = "javamod.player.msbuffersize";
+	public static final String PROPERTY_PLAYER_ISP = "javamod.player.ISP";
+	public static final String PROPERTY_PLAYER_WIDESTEREOMIX = "javamod.player.widestereomix";
+	public static final String PROPERTY_PLAYER_NOISEREDUCTION = "javamod.player.noisereduction";
+	public static final String PROPERTY_PLAYER_MEGABASS = "javamod.player.megabass";
+	public static final String PROPERTY_PLAYER_DCREMOVAL = "javamod.player.dcremoval";
+	public static final String PROPERTY_PLAYER_NOLOOPS = "javamod.player.noloops";
+	public static final String PROPERTY_PLAYER_MAXNNACHANNELS = "javamod.player.max_nna_channels";
+	public static final String PROPERTY_PLAYER_DITHERFILTER = "javamod.player.ditherfilter";
+	public static final String PROPERTY_PLAYER_DITHERTYPE = "javamod.player.dithertype";
+	public static final String PROPERTY_PLAYER_DITHERBYPASS = "javamod.player.ditherbypass";
 
 	private static final String PROPERTY_PATTERN_POS = "javamod.player.position.patterns";
 	private static final String PROPERTY_PATTERN_SIZE = "javamod.player.size.patterns";
@@ -109,7 +109,7 @@ public class ModContainer extends MultimediaContainer
   	{
   		"25", "50", "75", "100", "125", "150", "175", DEFAULT_MAXNNACHANNELS, "225", "250", "275", "300", "325", "350", "375", "400", "1000"
   	};
-	
+
 	private Properties currentProps = null;
 
 	private Module currentMod;
@@ -125,7 +125,7 @@ public class ModContainer extends MultimediaContainer
 	{
 		MultimediaContainerManager.registerContainer(new ModContainer());
 	}
-	
+
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -139,9 +139,9 @@ public class ModContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInstance(java.net.URL)
 	 */
 	@Override
-	public MultimediaContainer getInstance(URL url)
+	public MultimediaContainer getInstance(final URL url)
 	{
-		MultimediaContainer result = super.getInstance(url);
+		final MultimediaContainer result = super.getInstance(url);
 		try
 		{
 			// loading a new mod - so deregister this mixer and unwire listeners
@@ -150,7 +150,7 @@ public class ModContainer extends MultimediaContainer
 			currentMod = ModuleFactory.getInstance(url);
 			if (!MultimediaContainerManager.isHeadlessMode()) ((ModInfoPanel)getInfoPanel()).fillInfoPanelWith(currentMod);
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			currentMod = null;
 			Log.error("[ModContainer] Failed with loading of " + url.toString(), ex);
@@ -166,8 +166,8 @@ public class ModContainer extends MultimediaContainer
 	{
 		if (currentMod!=null)
 		{
-			String songName = currentMod.getSongName();
-			if (songName!=null && songName.trim().length()!=0)
+			final String songName = currentMod.getSongName();
+			if (songName!=null && !songName.trim().isEmpty())
 				return songName;
 		}
 		return super.getSongName();
@@ -178,7 +178,7 @@ public class ModContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getSongInfosFor(java.net.URL)
 	 */
 	@Override
-	public Object[] getSongInfosFor(URL url)
+	public Object[] getSongInfosFor(final URL url)
 	{
 		String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
@@ -186,7 +186,7 @@ public class ModContainer extends MultimediaContainer
 		{
 			final Module theMod = ModuleFactory.getInstance(url);
 			final String modSongName = theMod.getSongName();
-			if (modSongName!=null && modSongName.trim().length()!=0) songName = modSongName;
+			if (modSongName!=null && !modSongName.trim().isEmpty()) songName = modSongName;
 			// try to re-use an existing mixer, if its one for the same mod.
 			// The "ModMixer::getLengthInMilliseconds" is synchronized to avoid double entry
 			ModMixer theMixer = getCurrentMixer();
@@ -198,7 +198,7 @@ public class ModContainer extends MultimediaContainer
 			}
 			duration = Long.valueOf(theMixer.getLengthInMilliseconds());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			/* NOOP */
 		}
@@ -271,8 +271,8 @@ public class ModContainer extends MultimediaContainer
 		if (currentProps==null) currentProps = new Properties();
 		currentProps.setProperty(PROPERTY_PLAYER_FREQUENCY, newProps.getProperty(PROPERTY_PLAYER_FREQUENCY, DEFAULT_SAMPLERATE));
 		currentProps.setProperty(PROPERTY_PLAYER_MSBUFFERSIZE, newProps.getProperty(PROPERTY_PLAYER_MSBUFFERSIZE, DEFAULT_MSBUFFERSIZE));
-		currentProps.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, newProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE)); 
-		currentProps.setProperty(PROPERTY_PLAYER_STEREO, newProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL)); 
+		currentProps.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, newProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
+		currentProps.setProperty(PROPERTY_PLAYER_STEREO, newProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
 		currentProps.setProperty(PROPERTY_PLAYER_ISP, newProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
 		currentProps.setProperty(PROPERTY_PLAYER_WIDESTEREOMIX, newProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 		currentProps.setProperty(PROPERTY_PLAYER_NOISEREDUCTION, newProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
@@ -307,14 +307,14 @@ public class ModContainer extends MultimediaContainer
 	 * @since 13.10.2007
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 		if (currentProps==null) currentProps = new Properties();
 		if (!MultimediaContainerManager.isHeadlessMode())
 		{
 			final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
 			configPanel.configurationSave(currentProps);
-			
+
 			// Info Dialog sizes and locations
 			final ModPatternDialog patternDialog = ((ModInfoPanel)getInfoPanel()).getModPatternDialog();
 			props.setProperty(PROPERTY_PATTERN_POS, Helpers.getStringFromPoint(patternDialog.getLocation()));
@@ -334,8 +334,8 @@ public class ModContainer extends MultimediaContainer
 		{
 			props.setProperty(PROPERTY_PLAYER_FREQUENCY, currentProps.getProperty(PROPERTY_PLAYER_FREQUENCY, DEFAULT_SAMPLERATE));
 			props.setProperty(PROPERTY_PLAYER_MSBUFFERSIZE, currentProps.getProperty(PROPERTY_PLAYER_MSBUFFERSIZE, DEFAULT_MSBUFFERSIZE));
-			props.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE)); 
-			props.setProperty(PROPERTY_PLAYER_STEREO, currentProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL)); 
+			props.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
+			props.setProperty(PROPERTY_PLAYER_STEREO, currentProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
 			props.setProperty(PROPERTY_PLAYER_ISP, currentProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
 			props.setProperty(PROPERTY_PLAYER_WIDESTEREOMIX, currentProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 			props.setProperty(PROPERTY_PLAYER_NOISEREDUCTION, currentProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
@@ -356,14 +356,14 @@ public class ModContainer extends MultimediaContainer
 	public ModMixer createNewMixer0()
 	{
 		if (currentMod == null) return null; // you cannot get a mixer without a mod loaded
-		
+
 		configurationSave(currentProps);
-		
-		final int frequency = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_FREQUENCY, DEFAULT_SAMPLERATE)); 
-		final int bitsPerSample = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE)); 
+
+		final int frequency = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_FREQUENCY, DEFAULT_SAMPLERATE));
+		final int bitsPerSample = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
 		final int channels = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
-		final int isp = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX)); 
-		final boolean wideStereoMix = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX)); 
+		final int isp = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
+		final boolean wideStereoMix = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 		final boolean noiseReduction = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
 		final boolean megaBass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS));
 		final boolean dcRemoval = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_DCREMOVAL, DEFAULT_DCREMOVAL));
@@ -372,7 +372,7 @@ public class ModContainer extends MultimediaContainer
 		final int msBufferSize = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_MSBUFFERSIZE, DEFAULT_MSBUFFERSIZE));
 		final int ditherFilter = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 		final int ditherType = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
-		boolean ditherByPass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
+		final boolean ditherByPass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
 		return new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
 	}
 	/**
@@ -388,9 +388,9 @@ public class ModContainer extends MultimediaContainer
 
 		currentMixer = createNewMixer0();
 		if (currentMixer==null) return null;
-		
+
 		wireListeners();
-		
+
 		return currentMixer;
 	}
 	/**

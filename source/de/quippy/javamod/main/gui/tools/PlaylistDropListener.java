@@ -2,7 +2,7 @@
  * @(#) PlaylistDropListener.java
  *
  * Created on 08.03.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,39 +40,40 @@ import de.quippy.javamod.system.Log;
  */
 public class PlaylistDropListener extends DropTargetAdapter
 {
-	private PlaylistDropListenerCallBack callBack;
+	private final PlaylistDropListenerCallBack callBack;
 
 	/**
-	 * 
+	 *
 	 * @since 08.03.2011
 	 */
-	public PlaylistDropListener(PlaylistDropListenerCallBack callBack)
+	public PlaylistDropListener(final PlaylistDropListenerCallBack callBack)
 	{
 		this.callBack = callBack;
 	}
 
-	private void fillWithPlayableFiles(ArrayList<URL> urls, File startDir)
+	private void fillWithPlayableFiles(final ArrayList<URL> urls, final File startDir)
 	{
-		String [] files = startDir.list(new FilenameFilter()
+		final String [] files = startDir.list(new FilenameFilter()
 		{
-			public boolean accept(File dir, String name)
+			@Override
+			public boolean accept(final File dir, final String name)
 			{
-				File fullFileName = new File(dir.getAbsolutePath() + File.separatorChar + name);
+				final File fullFileName = new File(dir.getAbsolutePath() + File.separatorChar + name);
 				if (fullFileName.isDirectory()) return true;
 				try
 				{
 					return MultimediaContainerManager.getMultimediaContainerSingleton(fullFileName.toURI().toURL()) != null;
 				}
-				catch (Exception ex)
+				catch (final Exception ex)
 				{
 					//NOOP;
 				}
 				return false;
 			}
 		});
-		for (int i=0; i<files.length; i++)
+		for (final String file : files)
 		{
-			File fullFileName = new File(startDir.getAbsolutePath() + File.separatorChar + files[i]);
+			final File fullFileName = new File(startDir.getAbsolutePath() + File.separatorChar + file);
 			if (fullFileName.isDirectory())
 				fillWithPlayableFiles(urls, fullFileName);
 			else
@@ -81,7 +82,7 @@ public class PlaylistDropListener extends DropTargetAdapter
 				{
 					urls.add(fullFileName.toURI().toURL());
 				}
-				catch (Exception ex)
+				catch (final Exception ex)
 				{
 					//NOOP;
 				}
@@ -93,20 +94,21 @@ public class PlaylistDropListener extends DropTargetAdapter
 	 * @see java.awt.dnd.DropTargetListener#drop(java.awt.dnd.DropTargetDropEvent)
 	 * @since 08.03.2011
 	 */
-	public void drop(DropTargetDropEvent dtde)
+	@Override
+	public void drop(final DropTargetDropEvent dtde)
 	{
 		try
 		{
 			URL addToLastLoaded = null;
-			List<?> files = Helpers.getDropData(dtde);
+			final List<?> files = Helpers.getDropData(dtde);
 			if (files!=null)
 			{
-				final ArrayList<URL> urls = new ArrayList<URL>(files.size());
+				final ArrayList<URL> urls = new ArrayList<>(files.size());
 
-				for (int i=0; i<files.size(); i++)
+				for (final Object file : files)
 				{
-					final String fileName = files.get(i).toString(); // can be files, can be strings...
-					File f = new File(fileName);
+					final String fileName = file.toString(); // can be files, can be strings...
+					final File f = new File(fileName);
 					if (f.isDirectory())
 					{
 						fillWithPlayableFiles(urls, f);
@@ -118,11 +120,11 @@ public class PlaylistDropListener extends DropTargetAdapter
 						urls.add(url);
 					}
 				}
-    			PlayList playList = PlayList.createNewListWithFiles(urls.toArray(new URL[urls.size()]), false, false);
+    			final PlayList playList = PlayList.createNewListWithFiles(urls.toArray(new URL[urls.size()]), false, false);
 				callBack.playlistRecieved(dtde, playList, addToLastLoaded);
             }
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[MainForm::DropListener]", ex);
 		}

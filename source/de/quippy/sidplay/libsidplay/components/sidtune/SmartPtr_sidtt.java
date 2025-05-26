@@ -2,7 +2,7 @@ package de.quippy.sidplay.libsidplay.components.sidtune;
 
 public class SmartPtr_sidtt extends SmartPtrBase_sidtt {
 
-	public SmartPtr_sidtt(short[] buffer, int bufferLen, boolean bufOwner) {
+	public SmartPtr_sidtt(final short[] buffer, final int bufferLen, final boolean bufOwner) {
 		super(buffer, bufferLen, bufOwner);
 	}
 
@@ -10,12 +10,12 @@ public class SmartPtr_sidtt extends SmartPtrBase_sidtt {
 		super(null, 0, false);
 	}
 
-	public SmartPtr_sidtt(short[] buffer, int fileOffset, int bufferLen) {
+	public SmartPtr_sidtt(final short[] buffer, final int fileOffset, final int bufferLen) {
 		super(buffer, bufferLen - fileOffset, false);
 		pBufCurrent = fileOffset;
 	}
 
-	public void setBuffer(short[] buffer, int bufferLen) {
+	public void setBuffer(final short[] buffer, final int bufferLen) {
 		if (bufferLen >= 1) {
 			pBufCurrent = 0;
 			bufEnd = bufferLen;

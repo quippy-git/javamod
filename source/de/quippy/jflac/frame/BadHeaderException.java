@@ -39,7 +39,7 @@ public class BadHeaderException extends Exception {
      * Exception constructor.
      * @param msg   The exception message
      */
-    public BadHeaderException(String msg) {
+    public BadHeaderException(final String msg) {
         super(msg);
     }
 
@@ -47,7 +47,7 @@ public class BadHeaderException extends Exception {
      * Exception constructor.
      * @param err   The throwable error
      */
-    public BadHeaderException(Throwable err) {
+    public BadHeaderException(final Throwable err) {
         super(err);
     }
 
@@ -56,7 +56,7 @@ public class BadHeaderException extends Exception {
      * @param msg   The exception message
      * @param err   The throwable error
      */
-    public BadHeaderException(String msg, Throwable err) {
+    public BadHeaderException(final String msg, final Throwable err) {
         super(msg, err);
     }
 

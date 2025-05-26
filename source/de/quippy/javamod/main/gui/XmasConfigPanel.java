@@ -2,7 +2,7 @@
  * @(#) XmasConfigPanel.java
  *
  * Created on 05.12.2023 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import de.quippy.javamod.system.Helpers;
 
@@ -46,11 +47,11 @@ public class XmasConfigPanel extends JPanel
 
 	private JTabbedPane screenSelectionPanel = null;
 	private XmasScreenConfigPanel [] xmasScreenConfigPanels = null;
-	
-	private int screenFPS;
+
+	private final int screenFPS;
 	private ImageIcon[] bulbs;
-	private GraphicsDevice[] screens;
-	
+	private final GraphicsDevice[] screens;
+
 	/**
 	 * Constructor for XmasConfigPanel
 	 */
@@ -64,7 +65,7 @@ public class XmasConfigPanel extends JPanel
 	}
 	private static GraphicsDevice[] getScreens()
 	{
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		return ge.getScreenDevices();
 	}
 	private void loadBulbs()
@@ -84,18 +85,18 @@ public class XmasConfigPanel extends JPanel
 	{
 		if (screenSelectionPanel==null)
 		{
-			screenSelectionPanel = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+			screenSelectionPanel = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 			screenSelectionPanel.setFont(Helpers.getDialogFont());
 			xmasScreenConfigPanels = new XmasScreenConfigPanel[screens.length];
 			for (int i=0; i<screens.length; i++)
 			{
 				final GraphicsDevice screen = screens[i];
-				StringBuilder sb = new StringBuilder(screen.getIDstring());
-				DisplayMode dm = screen.getDisplayMode();
+				final StringBuilder sb = new StringBuilder(screen.getIDstring());
+				final DisplayMode dm = screen.getDisplayMode();
 				if (dm!=null) sb.append(" (").append(dm.getWidth()).append('x').append(dm.getHeight()).append(')');
-				
+
 				final JPanel xmasScreenConfigPanel = xmasScreenConfigPanels[i] = new XmasScreenConfigPanel(screenFPS, bulbs, screen);
-				JScrollPane containerScroller = new JScrollPane();
+				final JScrollPane containerScroller = new JScrollPane();
 				containerScroller.setName("scrollPane_Config_" + sb.toString());
 				containerScroller.setViewportView(xmasScreenConfigPanel);
 				screenSelectionPanel.add(sb.toString(), containerScroller);
@@ -103,7 +104,7 @@ public class XmasConfigPanel extends JPanel
 		}
 		return screenSelectionPanel;
 	}
-	
+
 	public void readProperties(final Properties props)
 	{
 		for (int i=0; i<xmasScreenConfigPanels.length; i++)
@@ -116,6 +117,6 @@ public class XmasConfigPanel extends JPanel
 	}
 	public void stopThreads()
 	{
-		for (XmasScreenConfigPanel panel : xmasScreenConfigPanels) panel.stopThread();
+		for (final XmasScreenConfigPanel panel : xmasScreenConfigPanels) panel.stopThread();
 	}
 }

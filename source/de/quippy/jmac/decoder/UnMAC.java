@@ -50,7 +50,7 @@ public class UnMAC {
     }
 
     //functions
-    public void Initialize(IAPEDecompress pAPEDecompress) {
+    public void Initialize(final IAPEDecompress pAPEDecompress) {
         //uninitialize if it is currently initialized
         if (m_bInitialized)
             Uninitialize();
@@ -91,14 +91,14 @@ public class UnMAC {
         }
     }
 
-    public int DecompressFrame(ByteBuffer pOutputData, int FrameIndex) throws IOException {
+    public int DecompressFrame(final ByteBuffer pOutputData, final int FrameIndex) throws IOException {
         return DecompressFrameOld(pOutputData, FrameIndex);
     }
 
-    public void SeekToFrame(int FrameIndex) throws IOException {
+    public void SeekToFrame(final int FrameIndex) throws IOException {
         if (m_pAPEDecompress.getApeInfoFileVersion() > 3800) {
             if ((m_LastDecodedFrameIndex == -1) || ((FrameIndex - 1) != m_LastDecodedFrameIndex)) {
-                int SeekRemainder = (m_pAPEDecompress.getApeInfoSeekByte(FrameIndex) - m_pAPEDecompress.getApeInfoSeekByte(0)) % 4;
+                final int SeekRemainder = (m_pAPEDecompress.getApeInfoSeekByte(FrameIndex) - m_pAPEDecompress.getApeInfoSeekByte(0)) % 4;
                 m_pAPEDecompressCore.GetUnBitArrray().FillAndResetBitArray(m_nRealFrame == FrameIndex ? -1 : m_pAPEDecompress.getApeInfoSeekByte(FrameIndex) - SeekRemainder, SeekRemainder * 8);
                 m_nRealFrame = FrameIndex;
             } else
@@ -121,7 +121,7 @@ public class UnMAC {
     private APEDecompressCore m_pAPEDecompressCore;
 
     //functions
-    private int DecompressFrameOld(ByteBuffer pOutputData, int FrameIndex) throws IOException {
+    private int DecompressFrameOld(final ByteBuffer pOutputData, final int FrameIndex) throws IOException {
         //error check the parameters (too high of a frame index, etc.)
         if (FrameIndex >= m_pAPEDecompress.getApeInfoTotalFrames())
             return 0;
@@ -174,7 +174,7 @@ public class UnMAC {
 
         // check the CRC
         if ((m_pAPEDecompress.getApeInfoFormatFlags() & APEHeader.MAC_FORMAT_FLAG_CRC) <= 0) {
-            long nChecksum = CalculateOldChecksum(m_pAPEDecompressCore.m_pDataX, m_pAPEDecompressCore.m_pDataY, m_pAPEDecompress.getApeInfoChannels(), nBlocks);
+            final long nChecksum = CalculateOldChecksum(m_pAPEDecompressCore.m_pDataX, m_pAPEDecompressCore.m_pDataY, m_pAPEDecompress.getApeInfoChannels(), nBlocks);
             if (nChecksum != nStoredCRC)
                 throw new JMACException("Invalid Checksum");
         } else {
@@ -186,13 +186,13 @@ public class UnMAC {
         return nBlocks;
     }
 
-    private long CalculateOldChecksum(int[] pDataX, int[] pDataY, int nChannels, int nBlocks) {
+    private long CalculateOldChecksum(final int[] pDataX, final int[] pDataY, final int nChannels, final int nBlocks) {
         long nChecksum = 0;
 
         if (nChannels == 2) {
             for (int z = 0; z < nBlocks; z++) {
-                int R = pDataX[z] - (pDataY[z] / 2);
-                int L = R + pDataY[z];
+                final int R = pDataX[z] - (pDataY[z] / 2);
+                final int L = R + pDataY[z];
                 nChecksum += (Math.abs(R) + Math.abs(L));
             }
         } else if (nChannels == 1) {

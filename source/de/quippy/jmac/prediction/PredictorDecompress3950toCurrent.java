@@ -34,7 +34,7 @@ public class PredictorDecompress3950toCurrent extends IPredictorDecompress {
     public final static int M_COUNT = 8;
     private final static int WINDOW_BLOCKS = 512;
 
-    public PredictorDecompress3950toCurrent(int nCompressionLevel, int nVersion) {
+    public PredictorDecompress3950toCurrent(final int nCompressionLevel, final int nVersion) {
         super(nCompressionLevel, nVersion);
         m_nVersion = nVersion;
 
@@ -63,11 +63,13 @@ public class PredictorDecompress3950toCurrent extends IPredictorDecompress {
         }
     }
 
-    public int DecompressValue(int nA) {
+    @Override
+	public int DecompressValue(final int nA) {
         return DecompressValue(nA, 0);
     }
 
-    public int DecompressValue(int nA, int nB) {
+    @Override
+	public int DecompressValue(int nA, final int nB) {
         if (m_nCurrentIndex == WINDOW_BLOCKS) {
             // copy forward and adjust pointers
             m_rbPredictionA.Roll();
@@ -86,7 +88,7 @@ public class PredictorDecompress3950toCurrent extends IPredictorDecompress {
         // stage 1: multiple predictors (order 2 and offset 1)
         final RollBufferFastInt predictA = m_rbPredictionA;
         final int indexA = predictA.index;
-        
+
         final RollBufferFastInt predictB = m_rbPredictionB;
         final int indexB = predictB.index;
 
@@ -161,7 +163,8 @@ public class PredictorDecompress3950toCurrent extends IPredictorDecompress {
         return scaledFilterALV;
     }
 
-    public void Flush() {
+    @Override
+	public void Flush() {
         NNFilter nnfilter;
         if ((nnfilter = m_pNNFilter) != null)
             nnfilter.Flush();

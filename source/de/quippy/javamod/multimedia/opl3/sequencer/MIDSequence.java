@@ -2,7 +2,7 @@
  * @(#) MIDSequence.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  *
  * As a proof of concept this was taken from mid.cpp of the adplug project
  * and ported to java.
- * Corrections and additions by to work with OPL3.java 
+ * Corrections and additions by to work with OPL3.java
  * 2008 Robson Cozendey
  * 2020 Daniel Becker
  * Remark: whoever wrote the coding in mid.cpp: do yourself a favor and
@@ -47,7 +47,7 @@ import de.quippy.javamod.system.Helpers;
  */
 public class MIDSequence extends OPL3Sequence
 {
-	private class midi_track
+	private static class midi_track
 	{
 		long tend  = 0;
 		long spos = 0;
@@ -62,7 +62,7 @@ public class MIDSequence extends OPL3Sequence
 		}
 	}
 
-	private class midi_channel
+	private static class midi_channel
 	{
 		int inum = 0;
 		int ins[] = null;
@@ -80,14 +80,13 @@ public class MIDSequence extends OPL3Sequence
 	private URL url = null;
 	private int type = 0;
 	private byte [] data = null;
-	
+
 	private String author = null;
 	private String title = null;
 	private String remarks = null;
 	private long flen = 0;
 	private long pos = 0;
 	private long sierra_pos = 0;
-	private int subsongs = 0;
 	private int adlib_data[] = null;
 	private int adlib_style = 0;
 	private int adlib_mode = 0;
@@ -120,10 +119,10 @@ public class MIDSequence extends OPL3Sequence
 	private static final int FILE_SIERRA	= 4;
 	private static final int FILE_ADVSIERRA	= 5;
 	private static final int FILE_OLDLUCAS	= 6;
-	
+
 	// AdLib standard operator table
 	private static final int adlib_opadd[] = {0x00, 0x01, 0x02, 0x08, 0x09, 0x0A, 0x10, 0x11, 0x12};
-	
+
 	// map CMF drum channels 12 - 15 to corresponding AdLib drum operators
 	// bass drum (channel 11) not mapped, cause it's handled like a normal instrument
 	private static final int map_chan[] = { 0x14, 0x12, 0x15, 0x11 };
@@ -266,22 +265,22 @@ public class MIDSequence extends OPL3Sequence
 	   { 0x26, 0xe4, 0x00, 0x09, 0xff, 0x12, 0x01, 0x16, 0x00, 0x01, 0x0e, 0, 0, 0 }, /* Applause */
 	   { 0x00, 0x00, 0x00, 0x09, 0xf3, 0xf6, 0xf0, 0xc9, 0x00, 0x02, 0x0e, 0, 0, 0 }  /* Gunshot */
 	};
-	
+
 	// logarithmic relationship between midi and FM volumes
 	private static final int my_midi_fm_vol_table[] =
 	{
-		   0,  0xb, 0x10, 0x13, 0x16, 0x19, 0x1b, 0x1d, 0x20, 0x21, 
-		0x23, 0x25, 0x27, 0x28, 0x2a, 0x2b, 0x2d, 0x2e, 0x30, 0x31, 
-		0x32, 0x33, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 
-		0x3d, 0x3e, 0x40, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 
-		0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 
-		0x50, 0x50, 0x51, 0x52, 0x53, 0x53, 0x54, 0x55, 0x56, 0x56, 
-		0x57, 0x58, 0x59, 0x59, 0x5a, 0x5b, 0x5b, 0x5c, 0x5d, 0x5d, 
-		0x5e, 0x5f, 0x60, 0x60, 0x61, 0x61, 0x62, 0x63, 0x63, 0x64, 
-		0x65, 0x65, 0x66, 0x67, 0x67, 0x68, 0x68, 0x69, 0x6a, 0x6a, 
-		0x6b, 0x6b, 0x6c, 0x6d, 0x6d, 0x6e, 0x6e, 0x6f, 0x70, 0x70, 
-		0x71, 0x71, 0x72, 0x72, 0x73, 0x73, 0x74, 0x75, 0x75, 0x76, 
-		0x76, 0x77, 0x77, 0x78, 0x78, 0x79, 0x79, 0x7a, 0x7a, 0x7b, 
+		   0,  0xb, 0x10, 0x13, 0x16, 0x19, 0x1b, 0x1d, 0x20, 0x21,
+		0x23, 0x25, 0x27, 0x28, 0x2a, 0x2b, 0x2d, 0x2e, 0x30, 0x31,
+		0x32, 0x33, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c,
+		0x3d, 0x3e, 0x40, 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
+		0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f,
+		0x50, 0x50, 0x51, 0x52, 0x53, 0x53, 0x54, 0x55, 0x56, 0x56,
+		0x57, 0x58, 0x59, 0x59, 0x5a, 0x5b, 0x5b, 0x5c, 0x5d, 0x5d,
+		0x5e, 0x5f, 0x60, 0x60, 0x61, 0x61, 0x62, 0x63, 0x63, 0x64,
+		0x65, 0x65, 0x66, 0x67, 0x67, 0x68, 0x68, 0x69, 0x6a, 0x6a,
+		0x6b, 0x6b, 0x6c, 0x6d, 0x6d, 0x6e, 0x6e, 0x6f, 0x70, 0x70,
+		0x71, 0x71, 0x72, 0x72, 0x73, 0x73, 0x74, 0x75, 0x75, 0x76,
+		0x76, 0x77, 0x77, 0x78, 0x78, 0x79, 0x79, 0x7a, 0x7a, 0x7b,
 		0x7b, 0x7c, 0x7c, 0x7d, 0x7d, 0x7e, 0x7e, 0x7f
 	};
 
@@ -298,12 +297,12 @@ public class MIDSequence extends OPL3Sequence
 
 		ch = new midi_channel[16];
 		for (int i=0; i<ch.length; i++) ch[i]=new midi_channel();
-		
+
 		track = new midi_track[16];
 		for (int i=0; i<track.length; i++) track[i] = new midi_track();
 	}
 
-	private long datalook(long pos)
+	private long datalook(final long pos)
 	{
 		if (pos<0 || pos>=flen)
 			return 0;
@@ -320,7 +319,7 @@ public class MIDSequence extends OPL3Sequence
 		}
 		return v;
 	}
-	private long getnext(long num)
+	private long getnext(final long num)
 	{
 		long v = 0;
 
@@ -367,7 +366,7 @@ public class MIDSequence extends OPL3Sequence
 		// get patch.003 URL with 3 char prefix of fileURL
 		final String fileName = Helpers.getFileNameFromURL(fileURL);
 		if (fileName.length()<3) return false; // already finished
-		
+
 		final String path = fileURL.getFile();
 		final String patchFileName = ((new StringBuilder()).append(path.substring(0, path.lastIndexOf('/'))).append('/').append(fileName.substring(0, 3)).append("patch.003")).toString();
 
@@ -378,15 +377,15 @@ public class MIDSequence extends OPL3Sequence
 			final URL patchFileURL = (new URI(fileURL.getProtocol(), fileURL.getUserInfo(), fileURL.getHost(), fileURL.getPort(), patchFileName, fileURL.getQuery(), fileURL.getRef())).toURL();			if (!Helpers.urlExists(patchFileURL)) return false;
 			inputStream = new RandomAccessInputStreamImpl(patchFileURL);
 			if (inputStream.available()==0) return false;
-			
+
 			stins = 0;
-			int [] ins = new int[28];
+			final int [] ins = new int[28];
 			for (int i=0; i<2; i++)
 			{
 				inputStream.skip(2);
 				for (int k=0; k<48; k++)
 				{
-					int l = i*48+k;
+					final int l = i*48+k;
 					for (int j=0; j<28; j++) ins[j] = inputStream.read();
 
 					myinsbank[l][0]  = (ins[ 9] * 0x80) + (ins[10] * 0x40) + (ins[ 5] * 0x20) + (ins[11] * 0x10) + ins[ 1]; // 1=ins5
@@ -408,15 +407,15 @@ public class MIDSequence extends OPL3Sequence
 			// java 8 - creates a new array set
 			//smyinsbank = Arrays.stream(myinsbank).map(int[]::clone).toArray(int[][]::new);
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			return false; // something went wrong, so we return false
 		}
 		finally
 		{
-			if (inputStream!=null) try { inputStream.close(); } catch (Throwable ex) { /* NOOP */ }
+			if (inputStream!=null) try { inputStream.close(); } catch (final Throwable ex) { /* NOOP */ }
 		}
-		
+
 		return true;
 	}
 	private void sierra_next_section()
@@ -458,13 +457,13 @@ public class MIDSequence extends OPL3Sequence
 	protected void readOPL3Sequence(final RandomAccessInputStreamImpl inputStream) throws IOException
 	{
 		if (inputStream==null || inputStream.available()<=0) return;
-		
+
 		final long lengthOfStream = inputStream.getLength();
 
 		final int [] magicBytes = new int[6];
 		for (int i=0; i<magicBytes.length; i++)
-			magicBytes[i] = (int)(inputStream.readByte()&0xFF);
-		
+			magicBytes[i] = inputStream.readByte()&0xFF;
+
 		int type = 0;
 		switch (magicBytes[0])
 		{
@@ -548,7 +547,7 @@ public class MIDSequence extends OPL3Sequence
 	private void midi_fm_percussion(final EmuOPL opl, final int ch, final int inst[])
 	{
 		if (ch<12) return; // should never happen!
-		int opadd = map_chan[ch - 12];
+		final int opadd = map_chan[ch - 12];
 
 		midi_write_adlib(opl, 0x20 + opadd, inst[0]);
 		midi_write_adlib(opl, 0x40 + opadd, inst[2]);
@@ -562,17 +561,17 @@ public class MIDSequence extends OPL3Sequence
 	{
 		if ((adlib_style & SIERRA_STYLE) == 0) // sierra likes it loud!
 		{
-			int vol = volume >> 2;
+			final int vol = volume >> 2;
 
 			if ((adlib_style & LUCAS_STYLE) != 0)
 			{
-				if ((adlib_data[0xc0 + voice] & 1) == 1) 
+				if ((adlib_data[0xc0 + voice] & 1) == 1)
 					midi_write_adlib(opl, 0x40 + adlib_opadd[voice], (63 - vol) | (adlib_data[0x40 + adlib_opadd[voice]] & 0xC0));
 				midi_write_adlib(opl, 0x43 + adlib_opadd[voice], (63 - vol) | (adlib_data[0x43 + adlib_opadd[voice]] & 0xC0));
 			}
 			else
 			{
-				if ((adlib_data[0xc0 + voice] & 1) == 1) 
+				if ((adlib_data[0xc0 + voice] & 1) == 1)
 					midi_write_adlib(opl, 0x40 + adlib_opadd[voice], (63 - vol) | (adlib_data[0x40 + adlib_opadd[voice]] & 0xC0));
 				midi_write_adlib(opl, 0x43 + adlib_opadd[voice], (63 - vol) | (adlib_data[0x43 + adlib_opadd[voice]] & 0xC0));
 			}
@@ -580,17 +579,17 @@ public class MIDSequence extends OPL3Sequence
 	}
 	private void midi_fm_playnote(final EmuOPL opl, final int voice, final int note, final int volume)
 	{
-		int n = (note < 0) ? 12 - (note % 12) : note;
-		int freq = fnums[n % 12];
-		int oct = n / 12;
+		final int n = (note < 0) ? 12 - (note % 12) : note;
+		final int freq = fnums[n % 12];
+		final int oct = n / 12;
 
 		midi_fm_volume(opl, voice, volume);
 		midi_write_adlib(opl, 0xA0 + voice, freq & 0xFF);
 
-		int c = ((freq & 0x300) >> 8) + ((oct & 7) << 2) + ((adlib_mode == ADLIB_MELODIC || voice < 6) ? (1 << 5) : 0);
+		final int c = ((freq & 0x300) >> 8) + ((oct & 7) << 2) + ((adlib_mode == ADLIB_MELODIC || voice < 6) ? (1 << 5) : 0);
 		midi_write_adlib(opl, 0xB0 + voice, c);
 	}
-	private void midi_fm_endnote(final EmuOPL opl, int voice)
+	private void midi_fm_endnote(final EmuOPL opl, final int voice)
 	{
 		//midi_fm_volume(opl, voice, 0);
 		//midi_write_adlib(opl, 0xb0 + voice, 0);
@@ -643,7 +642,7 @@ public class MIDSequence extends OPL3Sequence
 				{
 					pos = track[curtrack].pos;
 					int v = (int)getnext(1);
-					
+
 					// This is to do implied MIDI events.
 					if (v < 0x80)
 					{
@@ -652,7 +651,7 @@ public class MIDSequence extends OPL3Sequence
 					}
 					track[curtrack].pv = v;
 
-					int c =  v & 0x0f;
+					final int c =  v & 0x0f;
 					switch (v & 0xf0)
 					{
 						case 0x80: /* note off */
@@ -670,7 +669,7 @@ public class MIDSequence extends OPL3Sequence
 							note = (int)getnext(1);
 							vel = (int)getnext(1);
 
-							int numchan = (adlib_mode == ADLIB_RYTHM) ? 6 : 9;
+							final int numchan = (adlib_mode == ADLIB_RYTHM) ? 6 : 9;
 
 							if (ch[c].on)
 							{
@@ -722,7 +721,7 @@ public class MIDSequence extends OPL3Sequence
 										if ((adlib_style & LUCAS_STYLE) != 0) nv *= 2;
 										if (nv > 127) nv = 127;
 										nv = my_midi_fm_vol_table[nv];
-										if ((adlib_style & LUCAS_STYLE) != 0) nv = (int) (Math.sqrt((double) nv) * 11);
+										if ((adlib_style & LUCAS_STYLE) != 0) nv = (int) (Math.sqrt(nv) * 11);
 									}
 									else if ((adlib_style & CMF_STYLE) != 0)
 									{
@@ -791,7 +790,7 @@ public class MIDSequence extends OPL3Sequence
 //									midi_fm_playnote(opl, i, note + cnote[c], my_midi_fm_vol_table[(cvols[c] * vel) / 128] * 2);
 							break;
 						case 0xb0: /* control change .. pitch bend? */
-							int ctrl = (int)getnext(1);
+							final int ctrl = (int)getnext(1);
 							vel = (int)getnext(1);
 
 							switch (ctrl)
@@ -826,7 +825,7 @@ public class MIDSequence extends OPL3Sequence
 							}
 							break;
 						case 0xc0: /* patch change */
-							int x = (int)getnext(1);
+							final int x = (int)getnext(1);
 							ch[c].inum = x & 0x7f;
 							for (int j = 0; j < 11; j++)
 								ch[c].ins[j] = myinsbank[ch[c].inum][j];
@@ -852,7 +851,7 @@ public class MIDSequence extends OPL3Sequence
 										adlib_style = LUCAS_STYLE | MIDI_STYLE;
 										getnext(1);
 										getnext(1);
-										int channel = (int)getnext(1) & 0x0f;
+										final int channel = (int)getnext(1) & 0x0f;
 										getnext(1);
 
 										// getnext(22); //temp
@@ -918,7 +917,7 @@ public class MIDSequence extends OPL3Sequence
 									break;
 							}
 							break;
-			            default: 
+			            default:
 			            	/* if we get down here, an error occurred */
 						break;
 					}
@@ -967,8 +966,8 @@ public class MIDSequence extends OPL3Sequence
 		}
 		else
 			fwait = 50; // 1/50th of a second
-		
-//		if (!running && type == FILE_ADVSIERRA) 
+
+//		if (!running && type == FILE_ADVSIERRA)
 //			if (datalook(sierra_pos - 2) != 0xff)
 //			{
 //				sierra_next_section(p);
@@ -1003,11 +1002,11 @@ public class MIDSequence extends OPL3Sequence
 		{
 			for (int y = 0; y < 14; y++)
 				myinsbank[x][y] = midi_fm_instruments[x][y];
-			
+
 			myinsbank[x][14] = 0;
 			myinsbank[x][15] = 0;
 		}
-		
+
 		for (int x=0; x<16; x++)
 		{
 			ch[x].inum = 0;
@@ -1030,7 +1029,7 @@ public class MIDSequence extends OPL3Sequence
 		fwait = 123; // gotta be a small thing.. sorta like nothing
 		iwait = 0;
 
-		subsongs = 1;
+		int subsongs = 1;
 
 		for (int x=0; x<16; x++)
 		{
@@ -1064,8 +1063,8 @@ public class MIDSequence extends OPL3Sequence
 			case FILE_CMF:
 				getnext(3); // ctmf
 				getnexti(2); // version
-				int n = (int)getnexti(2); // instrument offset
-				int m = (int)getnexti(2); // music offset
+				final int n = (int)getnexti(2); // instrument offset
+				final int m = (int)getnexti(2); // music offset
 				deltas = (int)getnexti(2); // ticks/qtr note
 				i = (int)getnexti(2); // stuff in cmf is click ticks per second..
 				if (i != 0) msqtr = 1000000L / i * deltas;
@@ -1153,7 +1152,7 @@ public class MIDSequence extends OPL3Sequence
 				deltas = 0x20;
 				getnext(11); // worthless empty space and "stuff" :)
 
-				long o_sierra_pos = sierra_pos = pos;
+				final long o_sierra_pos = sierra_pos = pos;
 				sierra_next_section();
 				while (datalook(sierra_pos - 2) != 0xff && pos < flen)
 				{
@@ -1226,7 +1225,7 @@ public class MIDSequence extends OPL3Sequence
 	@Override
 	public String getSongName()
 	{
-		if (title!=null && title.length()!=0)
+		if (title!=null && !title.isEmpty())
 			return title;
 		else
 			return MultimediaContainerManager.getSongNameFromURL(url);
@@ -1238,7 +1237,7 @@ public class MIDSequence extends OPL3Sequence
 	@Override
 	public String getAuthor()
 	{
-		if (author!=null && author.length()!=0)
+		if (author!=null && !author.isEmpty())
 			return author;
 		else
 			return Helpers.EMPTY_STING;
@@ -1250,7 +1249,7 @@ public class MIDSequence extends OPL3Sequence
 	@Override
 	public String getDescription()
 	{
-		if (remarks!=null && remarks.length()>0)
+		if (remarks!=null && !remarks.isEmpty())
 			return remarks;
 		else
 			return Helpers.EMPTY_STING;
@@ -1293,7 +1292,7 @@ public class MIDSequence extends OPL3Sequence
 	 * @see de.quippy.javamod.multimedia.opl3.sequencer.OPL3Sequence#setURL(java.net.URL)
 	 */
 	@Override
-	public void setURL(URL url)
+	public void setURL(final URL url)
 	{
 		this.url = url;
 	}

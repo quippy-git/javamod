@@ -2,7 +2,7 @@
  * @(#) IIRFilterBase.java
  *
  * Created on 09.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *----------------------------------------------------------------------
  *
  * Source adopted from package com.db.media.audio.dsp.*;
- * 
+ *
  * Copyright (c) 2000 Silvere Martin-Michiellot All Rights Reserved.
  *
  * Silvere Martin-Michiellot grants you ("Licensee") a non-exclusive,
@@ -49,7 +49,7 @@
  * the design, construction, operation or maintenance of any nuclear
  * facility. Licensee represents and warrants that it will not use or
  * redistribute the Software for such purposes.
- * 
+ *
  */
 package de.quippy.javamod.mixer.dsp.iir.filter;
 
@@ -94,7 +94,7 @@ public abstract class IIRFilterBase
 	 */
 	public void clearHistory()
 	{
-		int channels = inArray.length;
+		final int channels = inArray.length;
 		for (int c=0; c<channels; c++)
 		{
 			for (int i=0; i<HISTORYSIZE; i++)
@@ -109,9 +109,9 @@ public abstract class IIRFilterBase
 	 * @param dbValue
 	 * @return
 	 */
-	public static float getIIRDecimalValueFrom(float dbValue)
+	public static float getIIRDecimalValueFrom(final float dbValue)
 	{
-		double decimalValue = Math.pow(10, dbValue / 20.0);
+		final double decimalValue = Math.pow(10, dbValue / 20.0);
 		return (float)((decimalValue<1.0)?-decimalValue:decimalValue);
 	}
 	/**
@@ -130,7 +130,7 @@ public abstract class IIRFilterBase
 	 * @param freq
 	 * @return
 	 */
-	protected float calcRadiansPerSample(float freq)
+	protected float calcRadiansPerSample(final float freq)
 	{
 		return (float)((2.0 * Math.PI * freq) / sampleRate);
 	}
@@ -149,7 +149,7 @@ public abstract class IIRFilterBase
 	 * @param amplitudeAdj
 	 * @since 09.01.2012
 	 */
-	public void setAmplitudeAdj(float newAmplitudeAdj)
+	public void setAmplitudeAdj(final float newAmplitudeAdj)
 	{
 		amplitudeAdj = newAmplitudeAdj;
 	}
@@ -163,7 +163,7 @@ public abstract class IIRFilterBase
 	 * @param dbValue
 	 * @since 13.01.2012
 	 */
-	public void setGain(float dbValue)
+	public void setGain(final float dbValue)
 	{
 		setAmplitudeAdj(IIRFilterBase.getIIRDecimalValueFrom(dbValue));
 	}

@@ -1,6 +1,6 @@
 /*
  * 11/19/04 1.0 moved to LGPL.
- * 12/12/99 Initial implementation.		mdm@techie.com. 
+ * 12/12/99 Initial implementation.		mdm@techie.com.
  *-----------------------------------------------------------------------
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as published
@@ -23,54 +23,54 @@ package de.quippy.mp3.decoder;
 
 /**
  * A Type-safe representation of the the supported output channel
- * constants. 
- * 
- * This class is immutable and, hence, is thread safe. 
- * 
- * @author	Mat McGowan 12/12/99 
+ * constants.
+ *
+ * This class is immutable and, hence, is thread safe.
+ *
+ * @author	Mat McGowan 12/12/99
  * @since	0.0.7
  */
 public class OutputChannels
-{		
+{
 	/**
-	 * Flag to indicate output should include both channels. 
+	 * Flag to indicate output should include both channels.
 	 */
 	public static final int	BOTH_CHANNELS = 0;
-		
+
 	/**
-	 * Flag to indicate output should include the left channel only. 
+	 * Flag to indicate output should include the left channel only.
 	 */
 	public static final int	LEFT_CHANNEL = 1;
 
 	/**
-	 * Flag to indicate output should include the right channel only. 
+	 * Flag to indicate output should include the right channel only.
 	 */
 	public static final int	RIGHT_CHANNEL = 2;
-		
+
 	/**
-	 * Flag to indicate output is mono. 
+	 * Flag to indicate output is mono.
 	 */
 	public static final int	DOWNMIX_CHANNELS = 3;
 
-	
+
 	public static final OutputChannels LEFT = new OutputChannels(LEFT_CHANNEL);
 	public static final OutputChannels RIGHT = new OutputChannels(RIGHT_CHANNEL);
 	public static final OutputChannels BOTH = new OutputChannels(BOTH_CHANNELS);
 	public static final OutputChannels DOWNMIX = new OutputChannels(DOWNMIX_CHANNELS);
-				
-	
-	private /*final*/ int	outputChannels;
-			
+
+
+	private final /*final*/ int	outputChannels;
+
 	/**
 	 * Creates an <code>OutputChannels</code> instance
 	 * corresponding to the given channel code.
-	 * 
+	 *
 	 * @param	code one of the OutputChannels channel code constants.
-	 * 
+	 *
 	 * @throws	IllegalArgumentException if code is not a valid
-	 *			channel code. 
+	 *			channel code.
 	 */
-	static public OutputChannels fromInt(int code)
+	static public OutputChannels fromInt(final int code)
 	{
 		switch (code)
 		{
@@ -86,58 +86,60 @@ public class OutputChannels
 			throw new IllegalArgumentException("Invalid channel code: "+code);
 		}
 	}
-		
-	private OutputChannels(int channels)
+
+	private OutputChannels(final int channels)
 	{
 		outputChannels = channels;
-			
+
 		if (channels<0 || channels>3)
 			throw new IllegalArgumentException("channels");
 	}
-		
+
 	/**
 	 * Retrieves the code representing the desired output channels.
 	 * Will be one of LEFT_CHANNEL, RIGHT_CHANNEL, BOTH_CHANNELS
 	 * or DOWNMIX_CHANNELS.
-	 * 
+	 *
 	 * @return the channel code represented by this instance.
 	 */
 	public int getChannelsOutputCode()
 	{
-		return outputChannels;	
+		return outputChannels;
 	}
-		
+
 	/**
-	 * Retrieves the number of output channels represented 
+	 * Retrieves the number of output channels represented
 	 * by this channel output type.
-	 * 
+	 *
 	 * @return	The number of output channels for this channel output
 	 *			type. This will be 2 for BOTH_CHANNELS only, and 1
-	 *			for all other types. 
+	 *			for all other types.
 	 */
 	public int getChannelCount()
 	{
-		int count = (outputChannels==BOTH_CHANNELS) ?  2 : 1;
+		final int count = (outputChannels==BOTH_CHANNELS) ?  2 : 1;
 		return count;
 	}
-		
-		
-	public boolean equals(Object o)
+
+
+	@Override
+	public boolean equals(final Object o)
 	{
 		boolean equals = false;
-			
+
 		if (o instanceof OutputChannels)
 		{
-			OutputChannels oc = (OutputChannels)o;
+			final OutputChannels oc = (OutputChannels)o;
 			equals = (oc.outputChannels == outputChannels);
 		}
-			
+
 		return equals;
 	}
-							  
+
+	@Override
 	public int hashCode()
 	{
-		return outputChannels;	
+		return outputChannels;
 	}
-		
+
 }

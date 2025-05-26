@@ -47,11 +47,11 @@ public class APETagFooter {
         this(0, 0);
     }
 
-    APETagFooter(int nFields) {
+    APETagFooter(final int nFields) {
         this(nFields, 0);
     }
 
-    APETagFooter(int nFields, int nFieldBytes) {
+    APETagFooter(final int nFields, final int nFieldBytes) {
         m_cID = "APETAGEX";
         m_nFields = nFields;
         m_nFlags = APETag.APE_TAG_FLAGS_DEFAULT;
@@ -87,7 +87,7 @@ public class APETagFooter {
         return m_nVersion;
     }
 
-    public boolean GetIsValid(boolean bAllowHeader) {
+    public boolean GetIsValid(final boolean bAllowHeader) {
         boolean bValid = m_cID.equals("APETAGEX") &&
                 (m_nVersion <= CURRENT_APE_TAG_VERSION) &&
                 (m_nFields <= 65536) &&
@@ -102,7 +102,7 @@ public class APETagFooter {
 
     public static APETagFooter read(final File file) throws IOException {
         file.seek(file.length() - APE_TAG_FOOTER_BYTES);
-        APETagFooter tag = new APETagFooter();
+        final APETagFooter tag = new APETagFooter();
         try {
             final ByteArrayReader reader = new ByteArrayReader(file, APE_TAG_FOOTER_BYTES);
             tag.m_cID = reader.readString(8, "US-ASCII");
@@ -111,7 +111,7 @@ public class APETagFooter {
             tag.m_nFields = reader.readInt();
             tag.m_nFlags = reader.readInt();
             return tag;
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             throw new JMACException("Unsupported Format");
         }
     }

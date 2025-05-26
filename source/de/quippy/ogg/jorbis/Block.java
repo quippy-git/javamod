@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -51,14 +51,14 @@ public class Block{
   int floor_bits;
   int res_bits;
 
-  public Block(DspState vd){
+  public Block(final DspState vd){
     this.vd=vd;
 //    if(vd.analysisp!=0){
 //      opb.writeinit();
 //    }
   }
 
-  public void init(DspState vd){
+  public void init(final DspState vd){
     this.vd=vd;
   }
 
@@ -71,8 +71,8 @@ public class Block{
     return (0);
   }
 
-  public int synthesis(Packet op){
-    Info vi=vd.vi;
+  public int synthesis(final Packet op){
+    final Info vi=vd.vi;
 
     // first things first.  Make sure decode is ready
     opb.readinit(op.packet_base, op.packet, op.bytes);
@@ -84,7 +84,7 @@ public class Block{
     }
 
     // read our mode and pre/post windowsize
-    int _mode=opb.read(vd.modebits);
+    final int _mode=opb.read(vd.modebits);
     if(_mode==-1)
       return (-1);
 
@@ -123,7 +123,7 @@ public class Block{
     }
 
     // unpack_header enforces range checking
-    int type=vi.map_type[vi.mode_param[mode].mapping];
+    final int type=vi.map_type[vi.mode_param[mode].mapping];
     return (FuncMapping.mapping_P[type].inverse(this, vd.mode[mode]));
   }
 }

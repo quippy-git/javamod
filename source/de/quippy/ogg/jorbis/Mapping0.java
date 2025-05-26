@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -31,17 +31,20 @@ import de.quippy.ogg.jogg.Buffer;
 class Mapping0 extends FuncMapping{
   static int seq=0;
 
-  void free_info(Object imap){
+  @Override
+void free_info(final Object imap){
   }
 
-  void free_look(Object imap){
+  @Override
+void free_look(final Object imap){
   }
 
-  Object look(DspState vd, InfoMode vm, Object m){
+  @Override
+Object look(final DspState vd, final InfoMode vm, final Object m){
     //System.err.println("Mapping0.look");
-    Info vi=vd.vi;
-    LookMapping0 look=new LookMapping0();
-    InfoMapping0 info=look.map=(InfoMapping0)m;
+    final Info vi=vd.vi;
+    final LookMapping0 look=new LookMapping0();
+    final InfoMapping0 info=look.map=(InfoMapping0)m;
     look.mode=vm;
 
     look.time_look=new Object[info.submaps];
@@ -53,9 +56,9 @@ class Mapping0 extends FuncMapping{
     look.residue_func=new FuncResidue[info.submaps];
 
     for(int i=0; i<info.submaps; i++){
-      int timenum=info.timesubmap[i];
-      int floornum=info.floorsubmap[i];
-      int resnum=info.residuesubmap[i];
+      final int timenum=info.timesubmap[i];
+      final int floornum=info.floorsubmap[i];
+      final int resnum=info.residuesubmap[i];
 
       look.time_func[i]=FuncTime.time_P[vi.time_type[timenum]];
       look.time_look[i]=look.time_func[i].look(vd, vm, vi.time_param[timenum]);
@@ -77,8 +80,9 @@ class Mapping0 extends FuncMapping{
     return (look);
   }
 
-  void pack(Info vi, Object imap, Buffer opb){
-    InfoMapping0 info=(InfoMapping0)imap;
+  @Override
+void pack(final Info vi, final Object imap, final Buffer opb){
+    final InfoMapping0 info=(InfoMapping0)imap;
 
     /* another 'we meant to do it this way' hack...  up to beta 4, we
        packed 4 binary zeros here to signify one submapping in use.  We
@@ -122,8 +126,9 @@ class Mapping0 extends FuncMapping{
   }
 
   // also responsible for range checking
-  Object unpack(Info vi, Buffer opb){
-    InfoMapping0 info=new InfoMapping0();
+  @Override
+Object unpack(final Info vi, final Buffer opb){
+    final InfoMapping0 info=new InfoMapping0();
 
     if(opb.read(1)!=0){
       info.submaps=opb.read(4)+1;
@@ -136,8 +141,8 @@ class Mapping0 extends FuncMapping{
       info.coupling_steps=opb.read(8)+1;
 
       for(int i=0; i<info.coupling_steps; i++){
-        int testM=info.coupling_mag[i]=opb.read(Util.ilog2(vi.channels));
-        int testA=info.coupling_ang[i]=opb.read(Util.ilog2(vi.channels));
+        final int testM=info.coupling_mag[i]=opb.read(Util.ilog2(vi.channels));
+        final int testA=info.coupling_ang[i]=opb.read(Util.ilog2(vi.channels));
 
         if(testM<0||testA<0||testM==testA||testM>=vi.channels
             ||testA>=vi.channels){
@@ -188,15 +193,16 @@ class Mapping0 extends FuncMapping{
   int[] nonzero=null;
   Object[] floormemo=null;
 
-  synchronized int inverse(Block vb, Object l){
-    DspState vd=vb.vd;
-    Info vi=vd.vi;
-    LookMapping0 look=(LookMapping0)l;
-    InfoMapping0 info=look.map;
-    InfoMode mode=look.mode;
-    int n=vb.pcmend=vi.blocksizes[vb.W];
+  @Override
+synchronized int inverse(final Block vb, final Object l){
+    final DspState vd=vb.vd;
+    final Info vi=vd.vi;
+    final LookMapping0 look=(LookMapping0)l;
+    final InfoMapping0 info=look.map;
+    final InfoMode mode=look.mode;
+    final int n=vb.pcmend=vi.blocksizes[vb.W];
 
-    float[] window=vd.window[vb.W][vb.lW][vb.nW][mode.windowtype];
+    final float[] window=vd.window[vb.W][vb.lW][vb.nW][mode.windowtype];
     if(pcmbundle==null||pcmbundle.length<vi.channels){
       pcmbundle=new float[vi.channels][];
       nonzero=new int[vi.channels];
@@ -209,10 +215,10 @@ class Mapping0 extends FuncMapping{
     // function entry to the harness for that later
     // NOT IMPLEMENTED
 
-    // recover the spectral envelope; store it in the PCM vector for now 
+    // recover the spectral envelope; store it in the PCM vector for now
     for(int i=0; i<vi.channels; i++){
-      float[] pcm=vb.pcm[i];
-      int submap=info.chmuxlist[i];
+      final float[] pcm=vb.pcm[i];
+      final int submap=info.chmuxlist[i];
 
       floormemo[i]=look.floor_func[submap].inverse1(vb,
           look.floor_look[submap], floormemo[i]);
@@ -256,12 +262,12 @@ class Mapping0 extends FuncMapping{
     }
 
     for(int i=info.coupling_steps-1; i>=0; i--){
-      float[] pcmM=vb.pcm[info.coupling_mag[i]];
-      float[] pcmA=vb.pcm[info.coupling_ang[i]];
+      final float[] pcmM=vb.pcm[info.coupling_mag[i]];
+      final float[] pcmA=vb.pcm[info.coupling_ang[i]];
 
       for(int j=0; j<n/2; j++){
-        float mag=pcmM[j];
-        float ang=pcmA[j];
+        final float mag=pcmM[j];
+        final float ang=pcmA[j];
 
         if(mag>0){
           if(ang>0){
@@ -289,8 +295,8 @@ class Mapping0 extends FuncMapping{
     //    /* compute and apply spectral envelope */
 
     for(int i=0; i<vi.channels; i++){
-      float[] pcm=vb.pcm[i];
-      int submap=info.chmuxlist[i];
+      final float[] pcm=vb.pcm[i];
+      final int submap=info.chmuxlist[i];
       look.floor_func[submap].inverse2(vb, look.floor_look[submap],
           floormemo[i], pcm);
     }
@@ -299,7 +305,7 @@ class Mapping0 extends FuncMapping{
     // only MDCT right now....
 
     for(int i=0; i<vi.channels; i++){
-      float[] pcm=vb.pcm[i];
+      final float[] pcm=vb.pcm[i];
       //_analysis_output("out",seq+i,pcm,n/2,0,0);
       ((Mdct)vd.transform[vb.W][0]).backward(pcm, pcm);
     }
@@ -309,7 +315,7 @@ class Mapping0 extends FuncMapping{
 
     // window the data
     for(int i=0; i<vi.channels; i++){
-      float[] pcm=vb.pcm[i];
+      final float[] pcm=vb.pcm[i];
       if(nonzero[i]!=0){
         for(int j=0; j<n; j++){
           pcm[j]*=window[j];

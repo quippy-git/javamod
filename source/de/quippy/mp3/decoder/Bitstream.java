@@ -1,9 +1,9 @@
 /*
  * 11/19/04  1.0 moved to LGPL.
- * 
- * 11/17/04	 Uncomplete frames discarded. E.B, javalayer@javazoom.net 
  *
- * 12/05/03	 ID3v2 tag returned. E.B, javalayer@javazoom.net 
+ * 11/17/04	 Uncomplete frames discarded. E.B, javalayer@javazoom.net
+ *
+ * 12/05/03	 ID3v2 tag returned. E.B, javalayer@javazoom.net
  *
  * 12/12/99	 Based on Ibitstream. Exceptions thrown on errors,
  *			 Temporary removed seek functionality. mdm@techie.com
@@ -83,7 +83,7 @@ public final class Bitstream implements BitstreamErrors
 	/**
 	 * The bytes read from the stream.
 	 */
-	private byte[]			frame_bytes = new byte[BUFFER_INT_SIZE*4];
+	private final byte[]			frame_bytes = new byte[BUFFER_INT_SIZE*4];
 
 	/**
 	 * Index into <code>framebuffer</code> where the next bits are
@@ -100,7 +100,7 @@ public final class Bitstream implements BitstreamErrors
 	 * The current specified syncword
 	 */
 	private int				syncword;
-	
+
 	/**
 	 * Audio header position in stream.
 	 */
@@ -122,12 +122,12 @@ public final class Bitstream implements BitstreamErrors
 
 	private final BufferedInputStream	buffered_in;
 	private final PushbackInputStream	source;
-	private final Header			header = new Header();
-	private final byte				syncbuf[] = new byte[4];
+	private final Header				header = new Header();
+	private final byte					syncbuf[] = new byte[4];
 
-	private Crc16[]					crc = new Crc16[1];
-	private byte[]					rawid3v2 = null;
-	private boolean					firstframe = true;
+	private final Crc16[]						crc = new Crc16[1];
+	private byte[]						rawid3v2 = null;
+	private boolean						firstframe = true;
 
 	/**
 	 * Construct a IBitstream that reads data from a
@@ -138,7 +138,7 @@ public final class Bitstream implements BitstreamErrors
 	public Bitstream(final InputStream in)
 	{
 		if (in==null) throw new NullPointerException("in");
-		buffered_in = new BufferedInputStream(in);		
+		buffered_in = new BufferedInputStream(in);
 		loadID3v2(buffered_in);
 		firstframe = true;
 		source = new PushbackInputStream(buffered_in, BUFFER_INT_SIZE*4);
@@ -147,7 +147,7 @@ public final class Bitstream implements BitstreamErrors
 		current_frame_number = -1;
 		last_frame_number = -1;
 	}
-	
+
 	/**
 	 * Return position of the first audio header.
 	 * @return size of ID3v2 tag frames.
@@ -169,17 +169,17 @@ public final class Bitstream implements BitstreamErrors
 	 * @param in MP3 InputStream.
 	 * @author JavaZOOM
 	 */
-	private void loadID3v2(InputStream in)
-	{		
+	private void loadID3v2(final InputStream in)
+	{
 		int size = -1;
 		try
 		{
 			// Read ID3v2 header (10 bytes).
-			in.mark(10);			
+			in.mark(10);
 			size = readID3v2Header(in);
-			header_pos = size;			
+			header_pos = size;
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{}
 		finally
 		{
@@ -188,7 +188,7 @@ public final class Bitstream implements BitstreamErrors
 				// Unread ID3v2 header (10 bytes).
 				in.reset();
 			}
-			catch (IOException e)
+			catch (final IOException e)
 			{}
 		}
 		// Load ID3v2 tags.
@@ -198,22 +198,22 @@ public final class Bitstream implements BitstreamErrors
 			{
 				rawid3v2 = new byte[size];
 				in.read(rawid3v2,0,rawid3v2.length);
-			}			
+			}
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{}
 	}
-	
+
 	/**
-	 * Parse ID3v2 tag header to find out size of ID3v2 frames. 
+	 * Parse ID3v2 tag header to find out size of ID3v2 frames.
 	 * @param in MP3 InputStream
 	 * @return size of ID3v2 frames + header
 	 * @throws IOException
 	 * @author JavaZOOM
 	 */
-	private int readID3v2Header(InputStream in) throws IOException
-	{		
-		byte[] id3header = new byte[4];
+	private int readID3v2Header(final InputStream in) throws IOException
+	{
+		final byte[] id3header = new byte[4];
 		int size = -10;
 		in.read(id3header,0,3);
 		// Look for ID3v2
@@ -223,11 +223,11 @@ public final class Bitstream implements BitstreamErrors
 			//int majorVersion = id3header[0];
 			//int revision = id3header[1];
 			in.read(id3header,0,4);
-			size = (int) (id3header[0] << 21) + (id3header[1] << 14) + (id3header[2] << 7) + (id3header[3]);
+			size = (id3header[0] << 21) + (id3header[1] << 14) + (id3header[2] << 7) + (id3header[3]);
 		}
 		return (size+10);
 	}
-	
+
 	/**
 	 * Return raw ID3v2 frames + header.
 	 * @return ID3v2 InputStream or null if ID3v2 frames are not available.
@@ -237,7 +237,7 @@ public final class Bitstream implements BitstreamErrors
 		if (rawid3v2 == null) return null;
 		else
 		{
-			ByteArrayInputStream bain = new ByteArrayInputStream(rawid3v2);		
+			final ByteArrayInputStream bain = new ByteArrayInputStream(rawid3v2);
 			return bain;
 		}
 	}
@@ -252,7 +252,7 @@ public final class Bitstream implements BitstreamErrors
 		{
 			source.close();
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			throw newBitstreamException(STREAM_ERROR, ex);
 		}
@@ -270,13 +270,13 @@ public final class Bitstream implements BitstreamErrors
 		{
 			result = readNextFrame();
 			// E.B, Parse VBR (if any) first frame.
-			if (firstframe == true)
+			if (firstframe)
 			{
 				result.parseVBR(frame_bytes);
 				firstframe = false;
-			}			
+			}
 		}
-		catch (BitstreamException ex)
+		catch (final BitstreamException ex)
 		{
 			if ((ex.getErrorCode()==INVALIDFRAME))
 			{
@@ -287,7 +287,7 @@ public final class Bitstream implements BitstreamErrors
 					closeFrame();
 					result = readNextFrame();
 				}
-				catch (BitstreamException e)
+				catch (final BitstreamException e)
 				{
 					if ((e.getErrorCode()!=STREAM_EOF))
 					{
@@ -319,7 +319,6 @@ public final class Bitstream implements BitstreamErrors
 		return header;
 	}
 
-
 	/**
 	 * Read next MP3 frame.
 	 * @throws BitstreamException
@@ -334,7 +333,6 @@ public final class Bitstream implements BitstreamErrors
 	 * Unreads the bytes read from the frame.
 	 * @throws BitstreamException
 	 */
-	// REVIEW: add new error codes for this.
 	public void unreadFrame() throws BitstreamException
 	{
 		if (wordpointer==-1 && bitindex==-1 && (framesize>0))
@@ -343,9 +341,9 @@ public final class Bitstream implements BitstreamErrors
 			{
 				source.unread(frame_bytes, 0, framesize);
 			}
-			catch (IOException ex)
+			catch (final IOException ex)
 			{
-				throw newBitstreamException(STREAM_ERROR);
+				throw newBitstreamException(STREAM_UNREAD_ERROR, ex);
 			}
 		}
 	}
@@ -364,16 +362,16 @@ public final class Bitstream implements BitstreamErrors
 	 * Determines if the next 4 bytes of the stream represent a
 	 * frame header.
 	 */
-	public boolean isSyncCurrentPosition(int syncmode) throws BitstreamException
+	public boolean isSyncCurrentPosition(final int syncmode) throws BitstreamException
 	{
-		int read = readBytes(syncbuf, 0, 4);
-		int headerstring = ((syncbuf[0] << 24) & 0xFF000000) | ((syncbuf[1] << 16) & 0x00FF0000) | ((syncbuf[2] << 8) & 0x0000FF00) | ((syncbuf[3] << 0) & 0x000000FF);
+		final int read = readBytes(syncbuf, 0, 4);
+		final int headerstring = ((syncbuf[0] << 24) & 0xFF000000) | ((syncbuf[1] << 16) & 0x00FF0000) | ((syncbuf[2] << 8) & 0x0000FF00) | ((syncbuf[3] << 0) & 0x000000FF);
 
 		try
 		{
 			source.unread(syncbuf, 0, read);
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 		}
 
@@ -395,22 +393,22 @@ public final class Bitstream implements BitstreamErrors
 	// REVIEW: this class should provide inner classes to
 	// parse the frame contents. Eventually, readBits will
 	// be removed.
-	public int readBits(int n)
+	public int readBits(final int n)
 	{
 		return get_bits(n);
 	}
 
-	public int readCheckedBits(int n)
+	public int readCheckedBits(final int n)
 	{
 		// REVIEW: implement CRC check.
 		return get_bits(n);
 	}
 
-	protected BitstreamException newBitstreamException(int errorcode)
+	protected BitstreamException newBitstreamException(final int errorcode)
 	{
 		return new BitstreamException(errorcode, null);
 	}
-	protected BitstreamException newBitstreamException(int errorcode, Throwable throwable)
+	protected BitstreamException newBitstreamException(final int errorcode, final Throwable throwable)
 	{
 		return new BitstreamException(errorcode, throwable);
 	}
@@ -422,10 +420,10 @@ public final class Bitstream implements BitstreamErrors
    * The returned value is False at the end of stream.
    */
 
-	int syncHeader(byte syncmode) throws BitstreamException
+	int syncHeader(final byte syncmode) throws BitstreamException
 	{
 		// read additional 2 bytes
-		int bytesRead = readBytes(syncbuf, 0, 3);
+		final int bytesRead = readBytes(syncbuf, 0, 3);
 
 		if (bytesRead!=3) throw newBitstreamException(STREAM_EOF, null);
 
@@ -450,7 +448,7 @@ public final class Bitstream implements BitstreamErrors
 		return headerstring;
 	}
 
-	public boolean isSyncMark(int headerstring, int syncmode, int word)
+	public boolean isSyncMark(final int headerstring, final int syncmode, final int word)
 	{
 		boolean sync = false;
 
@@ -482,7 +480,7 @@ public final class Bitstream implements BitstreamErrors
 	 * Reads the data for the next frame. The frame is not parsed
 	 * until parse frame is called.
 	 */
-	int read_frame_data(int bytesize) throws BitstreamException
+	int read_frame_data(final int bytesize) throws BitstreamException
 	{
  		int	numread = 0;
 		numread = readFully(frame_bytes, 0, bytesize);
@@ -499,8 +497,8 @@ public final class Bitstream implements BitstreamErrors
   {
 	// Convert Bytes read to int
 	int	b=0;
-	byte[] byteread = frame_bytes;
-	int bytesize = framesize;
+	final byte[] byteread = frame_bytes;
+	final int bytesize = framesize;
 
 	// Check ID3v1 TAG (True only if last frame).
 	//for (int t=0;t<(byteread.length)-2;t++)
@@ -509,9 +507,9 @@ public final class Bitstream implements BitstreamErrors
 	//	{
 	//		System.out.println("ID3v1 detected at offset "+t);
 	//		throw newBitstreamException(INVALIDFRAME, null);
-	//	} 	
+	//	}
 	//}
-	
+
 	for (int k=0;k<bytesize;k=k+4)
 	{
 		//int convert = 0;
@@ -534,10 +532,10 @@ public final class Bitstream implements BitstreamErrors
    * The LSB contains the latest read bit of the stream.
    * (1 <= number_of_bits <= 16)
    */
-  public int get_bits(int number_of_bits)
+  public int get_bits(final int number_of_bits)
   {
   	int				returnvalue = 0;
-  	int 			sum = bitindex + number_of_bits;
+  	final int 			sum = bitindex + number_of_bits;
 
 	// E.B
 	// There is a problem here, wordpointer could be -1 ?!
@@ -561,9 +559,9 @@ public final class Bitstream implements BitstreamErrors
     //((short[])&returnvalue)[0] = ((short[])wordpointer + 1)[0];
     //wordpointer++; // Added by me!
     //((short[])&returnvalue + 1)[0] = ((short[])wordpointer)[0];
-	int Right = (framebuffer[wordpointer] & 0x0000FFFF);
+	final int Right = (framebuffer[wordpointer] & 0x0000FFFF);
 	wordpointer++;
-	int Left = (framebuffer[wordpointer] & 0xFFFF0000);
+	final int Left = (framebuffer[wordpointer] & 0xFFFF0000);
 	returnvalue = ((Right << 16) & 0xFFFF0000) | ((Left >>> 16)& 0x0000FFFF);
 
     returnvalue >>>= 48 - sum;	// returnvalue >>= 16 - (number_of_bits - (32 - bitindex))
@@ -576,7 +574,7 @@ public final class Bitstream implements BitstreamErrors
 	 * Set the word we want to sync the header to.
 	 * In Big-Endian byte order
 	 */
-	void set_syncword(int syncword0)
+	void set_syncword(final int syncword0)
 	{
 		syncword = syncword0 & 0xFFFFFF3F;
 		single_ch_mode = ((syncword0 & 0x000000C0) == 0x000000C0);
@@ -594,15 +592,15 @@ public final class Bitstream implements BitstreamErrors
 	 * @exception BitstreamException is thrown if the specified
 	 *		number of bytes could not be read from the stream.
 	 */
-	private int readFully(byte[] b, int offs, int len)
+	private int readFully(final byte[] b, int offs, int len)
 		throws BitstreamException
-	{		
+	{
 		int nRead = 0;
 		try
 		{
 			while (len > 0)
 			{
-				int bytesread = source.read(b, offs, len);
+				final int bytesread = source.read(b, offs, len);
 				if (bytesread == -1)
 				{
 					while (len-->0)
@@ -617,7 +615,7 @@ public final class Bitstream implements BitstreamErrors
 				len -= bytesread;
 			}
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			throw newBitstreamException(STREAM_ERROR, ex);
 		}
@@ -628,7 +626,7 @@ public final class Bitstream implements BitstreamErrors
 	 * Simlar to readFully, but doesn't throw exception when
 	 * EOF is reached.
 	 */
-	private int readBytes(byte[] b, int offs, int len)
+	private int readBytes(final byte[] b, int offs, int len)
 		throws BitstreamException
 	{
 		int totalBytesRead = 0;
@@ -636,7 +634,7 @@ public final class Bitstream implements BitstreamErrors
 		{
 			while (len > 0)
 			{
-				int bytesread = source.read(b, offs, len);
+				final int bytesread = source.read(b, offs, len);
 				if (bytesread == -1)
 				{
 					break;
@@ -646,7 +644,7 @@ public final class Bitstream implements BitstreamErrors
 				len -= bytesread;
 			}
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			throw newBitstreamException(STREAM_ERROR, ex);
 		}

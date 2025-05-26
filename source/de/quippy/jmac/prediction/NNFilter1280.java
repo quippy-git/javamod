@@ -29,16 +29,17 @@ import java.nio.ShortBuffer;
  */
 public class NNFilter1280 extends NNFilter {
 
-    public NNFilter1280(int nShift, int nVersion) {
+    public NNFilter1280(final int nShift, final int nVersion) {
         super(1280, nShift, nVersion);
         orderPlusWindow = 1792 /* NN_WINDOW_ELEMENTS + m_nOrder */;
     }
 
-    protected int CalculateDotProductNoMMX(final short[] pA, int indexA, final short[] pB, int indexB) {
+    @Override
+	protected int CalculateDotProductNoMMX(final short[] pA, final int indexA, final short[] pB, final int indexB) {
         int nDotProduct = 0;
-        ShortBuffer a = ShortBuffer.wrap(pA);
+        final ShortBuffer a = ShortBuffer.wrap(pA);
         a.position(indexA);
-        ShortBuffer b = ShortBuffer.wrap(pB);
+        final ShortBuffer b = ShortBuffer.wrap(pB);
         b.position(indexB);
         for (int i = 0; i < 40; i++) {
             nDotProduct += a.get() * b.get() +
@@ -110,7 +111,8 @@ public class NNFilter1280 extends NNFilter {
         return nDotProduct;
     }
 
-    protected void AdaptNoMMX(final short[] pM, int indexM, final short[] pAdapt, int indexA, final int nDirection) {
+    @Override
+	protected void AdaptNoMMX(final short[] pM, int indexM, final short[] pAdapt, int indexA, final int nDirection) {
         if (nDirection < 0) {
             for (int i = 0; i < 40; i++) {
                 pM[indexM++] += pAdapt[indexA++];

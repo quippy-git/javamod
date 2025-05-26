@@ -21,7 +21,7 @@ public interface PCMProcessor {
      * @param streamInfo The FLAC stream info metadata block
      */
     public void processStreamInfo(StreamInfo streamInfo);
-    
+
     /**
      * Called when each data frame is decompressed.
      * @param pcm The decompressed PCM data

@@ -2,7 +2,7 @@
  * @(#) FixedStateCheckBox.java
  *
  * Created on 27.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import javax.swing.JCheckBox;
 public class FixedStateCheckBox extends JCheckBox implements ItemListener
 {
 	private static final long serialVersionUID = -8129487219688669718L;
-	
+
 	private boolean fixedState;
 	/**
 	 * Constructor for FixedStateCheckBox
@@ -50,7 +50,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * Constructor for FixedStateCheckBox
 	 * @param icon
 	 */
-	public FixedStateCheckBox(Icon icon)
+	public FixedStateCheckBox(final Icon icon)
 	{
 		super(icon);
 		addItemListener(this);
@@ -60,7 +60,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * Constructor for FixedStateCheckBox
 	 * @param text
 	 */
-	public FixedStateCheckBox(String text)
+	public FixedStateCheckBox(final String text)
 	{
 		super(text);
 		addItemListener(this);
@@ -70,7 +70,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * Constructor for FixedStateCheckBox
 	 * @param a
 	 */
-	public FixedStateCheckBox(Action a)
+	public FixedStateCheckBox(final Action a)
 	{
 		super(a);
 		addItemListener(this);
@@ -81,7 +81,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * @param icon
 	 * @param selected
 	 */
-	public FixedStateCheckBox(Icon icon, boolean selected)
+	public FixedStateCheckBox(final Icon icon, final boolean selected)
 	{
 		super(icon, selected);
 		addItemListener(this);
@@ -92,7 +92,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * @param text
 	 * @param selected
 	 */
-	public FixedStateCheckBox(String text, boolean selected)
+	public FixedStateCheckBox(final String text, final boolean selected)
 	{
 		super(text, selected);
 		addItemListener(this);
@@ -103,7 +103,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * @param text
 	 * @param icon
 	 */
-	public FixedStateCheckBox(String text, Icon icon)
+	public FixedStateCheckBox(final String text, final Icon icon)
 	{
 		super(text, icon);
 		addItemListener(this);
@@ -115,7 +115,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * @param icon
 	 * @param selected
 	 */
-	public FixedStateCheckBox(String text, Icon icon, boolean selected)
+	public FixedStateCheckBox(final String text, final Icon icon, final boolean selected)
 	{
 		super(text, icon, selected);
 		addItemListener(this);
@@ -131,7 +131,7 @@ public class FixedStateCheckBox extends JCheckBox implements ItemListener
 	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 	 */
 	@Override
-	public void itemStateChanged(ItemEvent e)
+	public void itemStateChanged(final ItemEvent e)
 	{
 		setSelected(fixedState);
 	}

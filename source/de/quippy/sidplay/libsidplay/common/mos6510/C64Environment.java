@@ -24,31 +24,31 @@ public class C64Environment {
 	 */
 	private C64Environment m_envp;
 
-	public void setEnvironment (C64Environment envp) {
+	public void setEnvironment (final C64Environment envp) {
 		m_envp = envp;
 	}
-	
+
 	//
 	// Environment functions
 	//
-	
+
 	protected void envReset() {
 		m_envp.envReset();
 	}
 
-	protected short /* uint8_t */envReadMemByte(int /* uint_least16_t */addr) {
+	protected short /* uint8_t */envReadMemByte(final int /* uint_least16_t */addr) {
 		return m_envp.envReadMemByte(addr);
 	}
 
-	protected void envWriteMemByte(int /* uint_least16_t */addr,
-			short /* uint8_t */data) {
+	protected void envWriteMemByte(final int /* uint_least16_t */addr,
+			final short /* uint8_t */data) {
 		m_envp.envWriteMemByte(addr, data);
 	}
 
 	//
 	// Interrupts
 	//
-	
+
 	protected void envTriggerIRQ() {
 		m_envp.envTriggerIRQ();
 	}
@@ -68,12 +68,12 @@ public class C64Environment {
 	//
 	// Sidplay compatibly functions
 	//
-	
-	protected boolean envCheckBankJump(int /* uint_least16_t */addr) {
+
+	protected boolean envCheckBankJump(final int /* uint_least16_t */addr) {
 		return m_envp.envCheckBankJump(addr);
 	}
 
-	protected short /* uint8_t */envReadMemDataByte(int /* uint_least16_t */addr) {
+	protected short /* uint8_t */envReadMemDataByte(final int /* uint_least16_t */addr) {
 		return m_envp.envReadMemDataByte(addr);
 	}
 
@@ -81,7 +81,7 @@ public class C64Environment {
 		m_envp.envSleep();
 	}
 
-	protected void envLoadFile(String file) {
+	protected void envLoadFile(final String file) {
 		m_envp.envLoadFile(file);
 	}
 }

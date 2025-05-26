@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -58,7 +58,7 @@ public class SyncState{
     return (0);
   }
 
-  public int buffer(int size){
+  public int buffer(final int size){
     // first, clear out any space that has been previously returned
     if(returned!=0){
       fill-=returned;
@@ -70,9 +70,9 @@ public class SyncState{
 
     if(size>storage-fill){
       // We need to extend the internal buffer
-      int newsize=size+fill+4096; // an extra page to be nice
+      final int newsize=size+fill+4096; // an extra page to be nice
       if(data!=null){
-        byte[] foo=new byte[newsize];
+        final byte[] foo=new byte[newsize];
         System.arraycopy(data, 0, foo, 0, data.length);
         data=foo;
       }
@@ -85,7 +85,7 @@ public class SyncState{
     return (fill);
   }
 
-  public int wrote(int bytes){
+  public int wrote(final int bytes){
     if(fill+bytes>storage)
       return (-1);
     fill+=bytes;
@@ -99,10 +99,10 @@ public class SyncState{
   // -n) skipped n bytes
   //  0) page not ready; more data (no bytes skipped)
   //  n) page synced at current location; page length n bytes
-  private Page pageseek=new Page();
-  private byte[] chksum=new byte[4];
+  private final Page pageseek=new Page();
+  private final byte[] chksum=new byte[4];
 
-  public int pageseek(Page og){
+  public int pageseek(final Page og){
     int page=returned;
     int next;
     int bytes=fill-returned;
@@ -159,7 +159,7 @@ public class SyncState{
       data[page+25]=0;
 
       // set up a temp page struct and recompute the checksum
-      Page log=pageseek;
+      final Page log=pageseek;
       log.header_base=data;
       log.header=page;
       log.header_len=headerbytes;
@@ -227,13 +227,13 @@ public class SyncState{
   // Returns pointers into buffered data; invalidated by next call to
   // _stream, _clear, _init, or _buffer
 
-  public int pageout(Page og){
+  public int pageout(final Page og){
     // all we need to do is verify a page at the head of the stream
     // buffer.  If it doesn't verify, we look for the next potential
     // frame
 
     while(true){
-      int ret=pageseek(og);
+      final int ret=pageseek(og);
       if(ret>0){
         // have a page
         return (1);

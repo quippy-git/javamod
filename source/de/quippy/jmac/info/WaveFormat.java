@@ -41,7 +41,7 @@ public class WaveFormat {
 
     public final static int WAV_HEADER_SIZE = 16;
 
-    public static void FillWaveFormatEx(WaveFormat pWaveFormatEx, int nSampleRate, int nBitsPerSample, int nChannels) {
+    public static void FillWaveFormatEx(final WaveFormat pWaveFormatEx, final int nSampleRate, final int nBitsPerSample, final int nChannels) {
         pWaveFormatEx.cbSize = 0;
         pWaveFormatEx.nSamplesPerSec = nSampleRate;
         pWaveFormatEx.wBitsPerSample = (short) nBitsPerSample;
@@ -52,8 +52,8 @@ public class WaveFormat {
         pWaveFormatEx.nAvgBytesPerSec = pWaveFormatEx.nBlockAlign * pWaveFormatEx.nSamplesPerSec;
     }
 
-    public void readHeader(File io) throws IOException {
-        ByteArrayReader reader = new ByteArrayReader(io, WAV_HEADER_SIZE);
+    public void readHeader(final File io) throws IOException {
+        final ByteArrayReader reader = new ByteArrayReader(io, WAV_HEADER_SIZE);
         wFormatTag = reader.readShort();
         nChannels = reader.readShort();
         nSamplesPerSec = reader.readInt();

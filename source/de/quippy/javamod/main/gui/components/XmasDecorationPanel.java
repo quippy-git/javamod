@@ -2,7 +2,7 @@
  * @(#) XmasDecorationPanel.java
  *
  * Created on 05.12.2023 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	private static final int SYNC2FPS_FRAC	= 1<<SYNC2FPS_BITS;
 	private static final int SYNC2FPS_MASK	= SYNC2FPS_FRAC-1;
 	private static final int DEFAULT_FPS	= 2;
-	
+
 	private static final int FLICKERTYPE_ALL_OFF = 0;
 	private static final int FLICKERTYPE_ALL_ON = 1;
 	private static final int FLICKERTYPE_ALTERNATE = 2;
@@ -52,18 +52,18 @@ public class XmasDecorationPanel extends MeterPanelBase
 	private static final int FLICKERTYPE_SOME = 5;
 	private static final int FLICKERTYPE_SOME_FLICKER = 6;
 	private static final int FLICKERTYPE_ALL_FLASH = 7;
-	
+
 	public static String [] FLICKER_TYPES =
 	{
 	 	"All off", "All on", "Alternating", "Chase bulbs", "Random on/off", "Some on/off", "Some flash", "All flash"
 	};
 
-	private ImageIcon[] bulbs;
+	private final ImageIcon[] bulbs;
 	private int[] useIndex;
 	private BufferedImage imageBuffer;
-	
-	private Random rand;
-	
+
+	private final Random rand;
+
 	private int flickerType; // 0: all off, 1: all On, 2: alternate, 3: chase, 4: random
 	private boolean withSpace;
 	private int syncToFPScounter;
@@ -78,7 +78,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	public XmasDecorationPanel(final int desiredFPS, final ImageIcon [] useBulbs)
 	{
 		super(desiredFPS);
-		
+
 		bulbs = useBulbs;
 
 		syncToFPScounter = SYNC2FPS_FRAC;
@@ -88,13 +88,13 @@ public class XmasDecorationPanel extends MeterPanelBase
 		inDraw = false;
 		withSpace = false;
 		setFlickerType(2);
-		
+
 		//startThread(); // will do that only when is set visible in XmasScreenConfigPanel
 	}
 	private void enterCritical()
 	{
 		dontDraw++;
-		while (inDraw) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+		while (inDraw) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 	}
 	private void leaveCritical()
 	{
@@ -111,7 +111,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 			int oldIndex = 0;
 			for (int i=0; i<anz; i++)
 			{
-				if (withSpace && (i%2)==0) 
+				if (withSpace && (i%2)==0)
 					useIndex[i] = 0;
 				else
 				{
@@ -158,7 +158,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	{
     	if (imageBuffer==null && myWidth>0 && myHeight>0)
 		{
-			GraphicsConfiguration graConf = getGraphicsConfiguration();
+			final GraphicsConfiguration graConf = getGraphicsConfiguration();
 			if (graConf!=null)
 			{
 				imageBuffer = graConf.createCompatibleImage(myWidth, myHeight, Transparency.TRANSLUCENT);
@@ -194,7 +194,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#drawMeter(java.awt.Graphics, int, int, int, int)
 	 */
 	@Override
-	protected void drawMeter(Graphics2D g, int newTop, int newLeft, int newWidth, int newHeight)
+	protected void drawMeter(final Graphics2D g, final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		syncToFPScounter += syncToFPSAdd;
 		if (syncToFPScounter >= SYNC2FPS_FRAC)
@@ -203,70 +203,77 @@ public class XmasDecorationPanel extends MeterPanelBase
 			if (bulbs!=null && bulbs.length!=0 && useIndex!=null && useIndex.length!=0 && dontDraw==0)
 			{
 				inDraw = true;
-				int x = 0;
-				for (int index=0; index<useIndex.length; index++)
+				try
 				{
-					int bulbIndex = useIndex[index];
-					if (bulbIndex!=0) // 0 is the hanger
+					int x = 0;
+					for (int index=0; index<useIndex.length; index++)
 					{
-						final boolean isLit = (bulbIndex%2)==0;
-						if (bulbIndex>0)
+						int bulbIndex = useIndex[index];
+						if (bulbIndex!=0) // 0 is the hanger
 						{
-							switch (flickerType)
+							final boolean isLit = (bulbIndex%2)==0;
+							if (bulbIndex>0)
 							{
-								case FLICKERTYPE_ALL_OFF: 
-									useIndex[index] = (isLit)?--bulbIndex:bulbIndex;
-									break;
-								case FLICKERTYPE_ALL_ON: 
-									useIndex[index] = (isLit)?bulbIndex:++bulbIndex;
-									break;
-								case FLICKERTYPE_ALTERNATE:
-								case FLICKERTYPE_ALL_FLASH: //same as 2, but initially all bulbs are off - so all alternate between on/off
-									useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-									break;
-								case FLICKERTYPE_CHASE:
-									if (isLit)
-									{
-										useIndex[index] = --bulbIndex;
-										x += drawBulbAt(g, x, bulbIndex);
-										index++;
-										if (index>=useIndex.length) x = index = 0;
-										if (withSpace)
+								switch (flickerType)
+								{
+									case FLICKERTYPE_ALL_OFF:
+										useIndex[index] = (isLit)?--bulbIndex:bulbIndex;
+										break;
+									case FLICKERTYPE_ALL_ON:
+										useIndex[index] = (isLit)?bulbIndex:++bulbIndex;
+										break;
+									case FLICKERTYPE_ALTERNATE:
+									case FLICKERTYPE_ALL_FLASH: //same as 2, but initially all bulbs are off - so all alternate between on/off
+										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+										break;
+									case FLICKERTYPE_CHASE:
+										if (isLit)
 										{
-											x += bulbs[useIndex[index]].getIconWidth();
+											useIndex[index] = --bulbIndex;
+											x += drawBulbAt(g, x, bulbIndex);
 											index++;
-											if (index>=useIndex.length)
+											if (index>=useIndex.length) x = index = 0;
+											if (withSpace)
 											{
-												index = 0;
-												x += bulbs[useIndex[index++]].getIconWidth();
+												x += bulbs[useIndex[index]].getIconWidth();
+												index++;
+												if (index>=useIndex.length)
+												{
+													index = 0;
+													x += bulbs[useIndex[index++]].getIconWidth();
+												}
+											}
+											bulbIndex = useIndex[index];
+											if ((bulbIndex%2)!=0) useIndex[index] = ++bulbIndex;
+											if ((!withSpace && index==0) || (withSpace && index==1))
+											{
+												drawBulbAt(g, x, bulbIndex);
+												index = useIndex.length;
 											}
 										}
-										bulbIndex = useIndex[index];
-										if ((bulbIndex%2)!=0) useIndex[index] = ++bulbIndex;
-										if ((!withSpace && index==0) || (withSpace && index==1))
-										{
-											drawBulbAt(g, x, bulbIndex);
-											index = useIndex.length;
-										}
-									}
-									break; //??
-								case FLICKERTYPE_RANDOM: 
-									if (rand.nextBoolean())
-										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-									break;
-								case FLICKERTYPE_SOME:
-									if (rand.nextInt(100)<10)
-										useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
-									break;
-								case FLICKERTYPE_SOME_FLICKER: 
-									if (!isLit && rand.nextInt(100)<10) bulbIndex++;
-									break;
-								default:
-									break;
+										break; //??
+									case FLICKERTYPE_RANDOM:
+										if (rand.nextBoolean())
+											useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+										break;
+									case FLICKERTYPE_SOME:
+										if (rand.nextInt(100)<10)
+											useIndex[index] = (isLit)?--bulbIndex:++bulbIndex;
+										break;
+									case FLICKERTYPE_SOME_FLICKER:
+										if (!isLit && rand.nextInt(100)<10) bulbIndex++;
+										break;
+									default:
+										break;
+								}
 							}
 						}
+						x += drawBulbAt(g, x, bulbIndex);
 					}
-					x += drawBulbAt(g, x, bulbIndex);
+				}
+				finally
+				{
+					inDraw=false;
 				}
 			}
 		}
@@ -279,7 +286,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	 * @see de.quippy.javamod.main.gui.components.MeterPanelBase#componentWasResized(int, int, int, int)
 	 */
 	@Override
-	protected void componentWasResized(int newTop, int newLeft, int newWidth, int newHeight)
+	protected void componentWasResized(final int newTop, final int newLeft, final int newWidth, final int newHeight)
 	{
 		createBulbIndex(newWidth);
 	}

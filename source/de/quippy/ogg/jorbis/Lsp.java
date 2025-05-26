@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -32,28 +32,28 @@ package de.quippy.ogg.jorbis;
   The LSP generation code is taken (with minimal modification) from
   "On the Computation of the LSP Frequencies" by Joseph Rothweiler
   <rothwlr@altavista.net>, available at:
-  
-  http://www2.xtdl.com/~rothwlr/lsfpaper/lsfpage.html 
+
+  http://www2.xtdl.com/~rothwlr/lsfpaper/lsfpage.html
  ********************************************************************/
 
 class Lsp{
 
   static final float M_PI=(float)(3.1415926539);
 
-  static void lsp_to_curve(float[] curve, int[] map, int n, int ln,
-      float[] lsp, int m, float amp, float ampoffset){
+  static void lsp_to_curve(final float[] curve, final int[] map, final int n, final int ln,
+      final float[] lsp, final int m, final float amp, final float ampoffset){
     int i;
-    float wdel=M_PI/ln;
+    final float wdel=M_PI/ln;
     for(i=0; i<m; i++)
       lsp[i]=Lookup.coslook(lsp[i]);
-    int m2=(m/2)*2;
+    final int m2=(m/2)*2;
 
     i=0;
     while(i<n){
-      int k=map[i];
+      final int k=map[i];
       float p=.7071067812f;
       float q=.7071067812f;
-      float w=Lookup.coslook(wdel*k);
+      final float w=Lookup.coslook(wdel*k);
 
       for(int j=0; j<m2; j+=2){
         q*=lsp[j]-w;

@@ -27,14 +27,14 @@ import java.util.Arrays;
  * Time: 14:51:31
  */
 public class AntiPredictorExtraHigh3800ToCurrent extends AntiPredictor {
-    private short[] bm = new short[256];
-    private AntiPredictorExtraHighHelper Helper = new AntiPredictorExtraHighHelper();
-    private int[] FM = new int[9];
-    private int[] FP = new int[9];
+    private final short[] bm = new short[256];
+    private final AntiPredictorExtraHighHelper Helper = new AntiPredictorExtraHighHelper();
+    private final int[] FM = new int[9];
+    private final int[] FP = new int[9];
     private short[] IPAdaptFactor = null;
     private short[] IPShort = null;
 
-    public void AntiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements, int nVersion) {
+    public void AntiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements, final int nVersion) {
         final int nFilterStageElements = (nVersion < 3830) ? 128 : 256;
         final int nFilterStageShift = (nVersion < 3830) ? 11 : 12;
         final int nMaxElements = (nVersion < 3830) ? 134 : 262;

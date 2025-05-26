@@ -2,7 +2,7 @@
  * @(#) EffectsPanel.java
  *
  * Created on 15.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 import de.quippy.javamod.mixer.dsp.AudioProcessor;
 import de.quippy.javamod.system.Helpers;
@@ -43,15 +44,15 @@ public class EffectsPanel extends JPanel
 	private JCheckBox passThrough = null;
 	private JCheckBox useGaplessAudio = null;
     private JTabbedPane tabbedPane = null;
-    private JPanel[] effectPanels;
+    private final JPanel[] effectPanels;
 
     private AudioProcessor audioProcessor;
-    private MainForm parent;
-    
+    private final MainForm parent;
+
 	/**
 	 * Constructor for EffectsPanel
 	 */
-	public EffectsPanel(MainForm parent, JPanel[] effectPanels, AudioProcessor audioProcessor)
+	public EffectsPanel(final MainForm parent, final JPanel[] effectPanels, final AudioProcessor audioProcessor)
 	{
 		this.effectPanels = effectPanels;
 		this.audioProcessor = audioProcessor;
@@ -61,7 +62,7 @@ public class EffectsPanel extends JPanel
 	/**
 	 * @param audioProcessor the audioProcessor to set
 	 */
-	public void setAudioProcessor(AudioProcessor newAudioProcessor)
+	public void setAudioProcessor(final AudioProcessor newAudioProcessor)
 	{
 		audioProcessor = newAudioProcessor;
 	}
@@ -85,13 +86,11 @@ public class EffectsPanel extends JPanel
 			if (audioProcessor!=null) passThrough.setSelected(audioProcessor.isDspEnabled());
 			passThrough.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
-					{
-						if (audioProcessor!=null)
-							audioProcessor.setDspEnabled(getPassThrough().isSelected());
-					}
+					if ((e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED) && (audioProcessor!=null))
+						audioProcessor.setDspEnabled(getPassThrough().isSelected());
 				}
 			});
 		}
@@ -109,13 +108,11 @@ public class EffectsPanel extends JPanel
 			if (parent!=null) useGaplessAudio.setSelected(parent.useGaplessAudio());
 			useGaplessAudio.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
-					{
-						if (parent!=null)
-							parent.setUseGaplessAudio(getUseGaplessAudio().isSelected());
-					}
+					if ((e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED) && (parent!=null))
+						parent.setUseGaplessAudio(getUseGaplessAudio().isSelected());
 				}
 			});
 		}
@@ -125,14 +122,13 @@ public class EffectsPanel extends JPanel
 	{
 		if (tabbedPane==null)
 		{
-			tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+			tabbedPane = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 			tabbedPane.setFont(Helpers.getDialogFont());
-			for (int i=0; i<effectPanels.length; i++)
+			for (final JPanel effectPanel : effectPanels)
 			{
-				JPanel effectPanel = effectPanels[i];
 				if (effectPanel != null)
 				{
-					JScrollPane containerScroller = new JScrollPane();
+					final JScrollPane containerScroller = new JScrollPane();
 					containerScroller.setName("scrollPane_Effect_" + effectPanel.getName());
 					containerScroller.setViewportView(effectPanel);
 					tabbedPane.add(effectPanel.getName(), containerScroller);

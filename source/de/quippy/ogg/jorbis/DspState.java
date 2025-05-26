@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -93,14 +93,14 @@ public class DspState{
     window[1][1][1]=new float[2][];
   }
 
-  static float[] window(int type, int window, int left, int right){
-    float[] ret=new float[window];
+  static float[] window(final int type, final int window, final int left, final int right){
+    final float[] ret=new float[window];
     switch(type){
       case 0:
         // The 'vorbis window' (window 0) is sin(sin(x)*sin(x)*2pi)
       {
-        int leftbegin=window/4-left/2;
-        int rightbegin=window-window/4-right/2;
+        final int leftbegin=window/4-left/2;
+        final int rightbegin=window-window/4-right/2;
 
         for(int i=0; i<left; i++){
           float x=(float)((i+.5)/left*M_PI/2.);
@@ -136,7 +136,7 @@ public class DspState{
   // here and not in analysis.c (which is for analysis transforms only).
   // The init is here because some of it is shared
 
-  int init(Info vi, boolean encp){
+  int init(final Info vi, final boolean encp){
     this.vi=vi;
     modebits=Util.ilog2(vi.modes);
 
@@ -204,15 +204,15 @@ public class DspState{
     // initialize all the mapping/backend lookups
     mode=new Object[vi.modes];
     for(int i=0; i<vi.modes; i++){
-      int mapnum=vi.mode_param[i].mapping;
-      int maptype=vi.map_type[mapnum];
+      final int mapnum=vi.mode_param[i].mapping;
+      final int maptype=vi.map_type[mapnum];
       mode[i]=FuncMapping.mapping_P[maptype].look(this, vi.mode_param[i],
           vi.map_param[mapnum]);
     }
     return (0);
   }
 
-  public int synthesis_init(Info vi){
+  public int synthesis_init(final Info vi){
     init(vi, false);
     // Adjust centerW to allow an easier mechanism for determining output
     pcm_returned=centerW;
@@ -222,7 +222,7 @@ public class DspState{
     return (0);
   }
 
-  DspState(Info vi){
+  DspState(final Info vi){
     this();
     init(vi, false);
     // Adjust centerW to allow an easier mechanism for determining output
@@ -236,7 +236,7 @@ public class DspState{
   // block.  The time domain envelope is not yet handled at the point of
   // calling (as it relies on the previous block).
 
-  public int synthesis_blockin(Block vb){
+  public int synthesis_blockin(final Block vb){
     // Shift out any PCM/multipliers that we returned previously
     // centerW is currently the center of the last block added
     if(centerW>vi.blocksizes[1]/2&&pcm_returned>8192){
@@ -271,10 +271,10 @@ public class DspState{
     sequence=vb.sequence;
 
     {
-      int sizeW=vi.blocksizes[W];
+      final int sizeW=vi.blocksizes[W];
       int _centerW=centerW+vi.blocksizes[lW]/4+sizeW/4;
-      int beginW=_centerW-sizeW/2;
-      int endW=beginW+sizeW;
+      final int beginW=_centerW-sizeW/2;
+      final int endW=beginW+sizeW;
       int beginSl=0;
       int endSl=0;
 
@@ -283,7 +283,7 @@ public class DspState{
         // expand the storage
         pcm_storage=endW+vi.blocksizes[1];
         for(int i=0; i<vi.channels; i++){
-          float[] foo=new float[pcm_storage];
+          final float[] foo=new float[pcm_storage];
           System.arraycopy(pcm[i], 0, foo, 0, pcm[i].length);
           pcm[i]=foo;
         }
@@ -302,7 +302,7 @@ public class DspState{
       }
 
       for(int j=0; j<vi.channels; j++){
-        int _pcm=beginW;
+        final int _pcm=beginW;
         // the overlap/add section
         int i=0;
         for(i=beginSl; i<endSl; i++){
@@ -318,7 +318,7 @@ public class DspState{
       // making sure our last packet doesn't end with added padding.  If
       // the last packet is partial, the number of samples we'll have to
       // return will be past the vb->granulepos.
-      //       
+      //
       // This is not foolproof!  It will be confused if we begin
       // decoding at the last page after a seek or hole.  In that case,
       // we don't have a starting point to judge where the last frame
@@ -351,7 +351,7 @@ public class DspState{
   }
 
   // pcm==NULL indicates we just want the pending samples, no more
-  public int synthesis_pcmout(float[][][] _pcm, int[] index){
+  public int synthesis_pcmout(final float[][][] _pcm, final int[] index){
     if(pcm_returned<centerW){
       if(_pcm!=null){
         for(int i=0; i<vi.channels; i++){
@@ -364,7 +364,7 @@ public class DspState{
     return (0);
   }
 
-  public int synthesis_read(int bytes){
+  public int synthesis_read(final int bytes){
     if(bytes!=0&&pcm_returned+bytes>centerW)
       return (-1);
     pcm_returned+=bytes;

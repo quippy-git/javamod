@@ -2,7 +2,7 @@
  * @(#) EmuOPL3.java
  *
  * Created on 10.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class EmuOPL3 extends EmuOPL
 	{
 		buffer[0]=buffer[1]=0;
 		opl3.read(outbuffer, 1);
-		for (int i=0; i<4; i++) 
+		for (int i=0; i<4; i++)
 			buffer[i&1] += outbuffer[i];
 	}
 	/**

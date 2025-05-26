@@ -2,7 +2,7 @@
  * @(#) RoundSlider.java
  *
  * Created on 01.11.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public class RoundSlider extends JComponent
 	private static final long serialVersionUID = 7401158894851891182L;
 
 	private static final RenderingHints AALIAS = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-	private static final double PI_2 = Math.PI * 2.0; 
+	private static final double PI_2 = Math.PI * 2.0;
 	private static final double START_ANG = (315.0 / 360.0) * PI_2;
 	private static final double LENGTH_ANG = (270.0 / 360.0 ) * PI_2;
 //	private static final double MULTIP = 180.0 / Math.PI;
@@ -57,13 +57,13 @@ public class RoundSlider extends JComponent
 	private void initialize()
 	{
 		setValue(0);
-		
+
 //		addComponentListener(new ComponentListener()
 //		{
 //			public void componentHidden(ComponentEvent e) {}
 //			public void componentMoved(ComponentEvent e) {}
 //			public void componentShown(ComponentEvent e) {}
-//			public void componentResized(ComponentEvent e) 
+//			public void componentResized(ComponentEvent e)
 //			{
 //				int width = getWidth();
 //				int height = getHeight();
@@ -73,15 +73,17 @@ public class RoundSlider extends JComponent
 
 		this.addMouseListener(new MouseAdapter()
 		{
-			public void mousePressed(MouseEvent me)
+			@Override
+			public void mousePressed(final MouseEvent me)
 			{
 				lastAngle = getAngle(me);
 				RoundSlider.this.requestFocusInWindow();
 			}
 
-			public void mouseClicked(MouseEvent me)
+			@Override
+			public void mouseClicked(final MouseEvent me)
 			{
-				double ang = getAngle(me);
+				final double ang = getAngle(me);
 				RoundSlider.this.setValue((float)((START_ANG - ang) / LENGTH_ANG));
 			}
 		});
@@ -92,16 +94,18 @@ public class RoundSlider extends JComponent
 			 * @param me
 			 * @see java.awt.event.MouseMotionAdapter#mouseDragged(java.awt.event.MouseEvent)
 			 */
-			public void mouseDragged(MouseEvent me)
+			@Override
+			public void mouseDragged(final MouseEvent me)
 			{
-				double ang = getAngle(me); 
+				final double ang = getAngle(me);
 				final double diff = ang - lastAngle;
 				lastAngle = ang;
-				float newValue = (float) (getValue() - (diff / LENGTH_ANG));
+				final float newValue = (float) (getValue() - (diff / LENGTH_ANG));
 				if (Math.abs(newValue - getValue())<0.5) setValue(newValue);
 			}
 
-			public void mouseMoved(MouseEvent me) {}
+			@Override
+			public void mouseMoved(final MouseEvent me) {}
 		});
 	}
 
@@ -109,32 +113,32 @@ public class RoundSlider extends JComponent
 	{
 		return currentValue;
 	}
-	public void setValue(float newVal)
+	public void setValue(final float newVal)
 	{
-		if (newVal < 0) 
+		if (newVal < 0)
 			this.currentValue = 0;
 		else
-		if (newVal > 1) 
+		if (newVal > 1)
 			currentValue = 1;
 		else
 			this.currentValue = newVal;
-		
+
 		currentAngle = START_ANG - (LENGTH_ANG * currentValue);
 		repaint();
 		fireChangeEvent();
 	}
 
-	public void addChangeListener(ChangeListener cl)
+	public void addChangeListener(final ChangeListener cl)
 	{
 		listenerList.add(ChangeListener.class, cl);
 	}
-	public void removeChangeListener(ChangeListener cl)
+	public void removeChangeListener(final ChangeListener cl)
 	{
 		listenerList.remove(ChangeListener.class, cl);
 	}
 	protected void fireChangeEvent()
 	{
-		Object[] listeners = listenerList.getListenerList();
+		final Object[] listeners = listenerList.getListenerList();
 		for (int i = listeners.length - 2; i >= 0; i -= 2)
 		{
 			if (listeners[i] == ChangeListener.class)
@@ -150,7 +154,7 @@ public class RoundSlider extends JComponent
 		final int height = getHeight();
 		return (width<height)?width:height;
 	}
-	private double getAngle(MouseEvent me)
+	private double getAngle(final MouseEvent me)
 	{
 		final int middle = getMaxSize()>>1;
 		final int xpos = me.getX() - middle;
@@ -164,17 +168,17 @@ public class RoundSlider extends JComponent
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
-	public void paintComponent(Graphics g)
+	public void paintComponent(final Graphics g)
 	{
 		int size = getMaxSize();
 		int middle = size>>1;
-		
-		Graphics2D gfx = (Graphics2D)g.create(); 
+
+		final Graphics2D gfx = (Graphics2D)g.create();
 		try
 		{
 			gfx.setBackground(getParent().getBackground());
 			gfx.setRenderingHints(AALIAS);
-	
+
 			size-=2;
 			middle--;
 			int startColor = 64;
@@ -182,18 +186,18 @@ public class RoundSlider extends JComponent
 			for (int i=size; i>=0; i--)
 			{
 				gfx.setColor(new Color(startColor, startColor, startColor));
-				int x = 1+middle-(i>>1);
+				final int x = 1+middle-(i>>1);
 				gfx.fillOval(x, x, i, i);
 				startColor += colorStep;
 			}
-	
+
 			gfx.setColor(Color.RED);
 			final double sin = Math.sin(currentAngle);
 			final double cos = Math.cos(currentAngle);
 			final int x = middle + (int) (middle * sin);
 			final int y = middle + (int) (middle * cos);
 			gfx.drawLine(middle, middle, x, y);
-	
+
 	//		final int dx = (int) (2 * sin);
 	//		final int dy = (int) (2 * cos);
 	//		gfx.drawLine(middle + dx, middle + dy, x, y);

@@ -2,7 +2,7 @@
  * @(#) FileChooserResult.java
  *
  * Created on 05.01.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,11 +35,11 @@ import javax.swing.filechooser.FileFilter;
 public class FileChooserResult
 {
 	public FileFilter selectedFilter;
-	public File[] selectedFiles; 
+	public File[] selectedFiles;
 	/**
 	 * Constructor for FileChooserResult
 	 */
-	public FileChooserResult(FileFilter selectedFilter, File[] selectedFiles)
+	public FileChooserResult(final FileFilter selectedFilter, final File[] selectedFiles)
 	{
 		super();
 		this.selectedFilter = selectedFilter;
@@ -55,7 +55,7 @@ public class FileChooserResult
 	/**
 	 * @param selectedFilter the selectedFilter to set
 	 */
-	public void setSelectedFilter(FileFilter selectedFilter)
+	public void setSelectedFilter(final FileFilter selectedFilter)
 	{
 		this.selectedFilter = selectedFilter;
 	}
@@ -79,7 +79,7 @@ public class FileChooserResult
 	/**
 	 * @param selectedFile the selectedFile to set
 	 */
-	public void setSelectedFile(File[] selectedFiles)
+	public void setSelectedFile(final File[] selectedFiles)
 	{
 		this.selectedFiles = selectedFiles;
 	}

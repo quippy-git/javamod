@@ -2,7 +2,7 @@
  * @(#)MultimediaContainer.java
  *
  * Created on 12.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,9 +38,9 @@ import de.quippy.javamod.system.Helpers;
  */
 public abstract class MultimediaContainer
 {
-	private ArrayList<MultimediaContainerEventListener> listeners = new ArrayList<MultimediaContainerEventListener>();
+	private final ArrayList<MultimediaContainerEventListener> listeners = new ArrayList<>();
 	private URL fileURL = null;
-	
+
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -88,27 +88,27 @@ public abstract class MultimediaContainer
 		if (urlName==null) return Helpers.EMPTY_STING;
 		try
 		{
-			java.io.File f = new java.io.File(urlName.toURI());
+			final java.io.File f = new java.io.File(urlName.toURI());
 			try
 			{
 				return f.getCanonicalPath();
 			}
-			catch (IOException ex)
+			catch (final IOException ex)
 			{
 				return f.getAbsolutePath();
 			}
 		}
-		catch (Throwable e)
+		catch (final Throwable e)
 		{
 			return urlName.toExternalForm();
 		}
 	}
-	public void updateLookAndFeel() 
+	public void updateLookAndFeel()
 	{
-		JPanel infoPanel = getInfoPanel();
-		JPanel configPanel = getConfigPanel();
-		if (infoPanel!=null) SwingUtilities.updateComponentTreeUI(infoPanel); 
-		if (configPanel!=null) SwingUtilities.updateComponentTreeUI(configPanel); 
+		final JPanel infoPanel = getInfoPanel();
+		final JPanel configPanel = getConfigPanel();
+		if (infoPanel!=null) SwingUtilities.updateComponentTreeUI(infoPanel);
+		if (configPanel!=null) SwingUtilities.updateComponentTreeUI(configPanel);
 	}
 	public void addListener(final MultimediaContainerEventListener listener)
 	{
@@ -120,8 +120,8 @@ public abstract class MultimediaContainer
 	}
 	protected void fireMultimediaContainerEvent(final MultimediaContainerEvent event)
 	{
-		for (int i=0; i<listeners.size(); i++)
-			listeners.get(i).multimediaContainerEventOccured(event);
+		for (final MultimediaContainerEventListener listener : listeners)
+			listener.multimediaContainerEventOccured(event);
 	}
 	/**
 	 * Return the name of the song
@@ -159,7 +159,7 @@ public abstract class MultimediaContainer
 	 */
 	public abstract JPanel getConfigPanel();
 	/**
-	 * The file extensions this container is responsible for 
+	 * The file extensions this container is responsible for
 	 * @since: 12.10.2007
 	 * @return
 	 */

@@ -48,7 +48,7 @@ public class APEHeaderNew {
 
     public static APEHeaderNew read(final File file) throws IOException {
         try {
-            APEHeaderNew header = new APEHeaderNew();
+            final APEHeaderNew header = new APEHeaderNew();
             final ByteArrayReader reader = new ByteArrayReader(file, APE_HEADER_BYTES);
             header.nCompressionLevel = reader.readUnsignedShort();
             header.nFormatFlags = reader.readUnsignedShort();
@@ -59,12 +59,12 @@ public class APEHeaderNew {
             header.nChannels = reader.readUnsignedShort();
             header.nSampleRate = reader.readUnsignedInt();
             return header;
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             throw new JMACException("Unsupported Format");
         }
     }
 
-    public void write(ByteArrayWriter writer) {
+    public void write(final ByteArrayWriter writer) {
         writer.writeUnsignedShort(nCompressionLevel);
         writer.writeUnsignedShort(nFormatFlags);
         writer.writeUnsignedInt(nBlocksPerFrame);

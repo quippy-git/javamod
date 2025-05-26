@@ -2,14 +2,14 @@
  * @(#) SongUpdater.java
  *
  * Created on 12.01.2024 by Daniel Becker
- * 
+ *
  * This class will provide the thread to time the fired Mixer-Updates to
  * the play back so that regardless of the buffer size (i.e. latency) set
  * the display of the information is on point.
  * It is inbetween of the mixer and the pattern-, instrument- and sample
  * dialogs.
  * The wiring is done in the ModContainer
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,22 +42,22 @@ public class SongUpdater implements ModUpdateListener
 	 * This thread will update the pattern view and show the current pattern
 	 * plus highlight the current row.
 	 * We use a thread approach, because we do not want the mixing to be
-	 * interrupted by a listener routine doing arbitrary things. This way that 
+	 * interrupted by a listener routine doing arbitrary things. This way that
 	 * is decoupled. Furthermore, we will synchronize to the time index send
 	 * with each event - and that is done best in this local thread.
-	 * 
+	 *
 	 * Whoever wants to be informed needs to implement the ModUpdateListener
 	 * interface and register at BasicModMixer::registerUpdateListener
-	 * 
+	 *
 	 * The linkage of ModPatternDialog and this songFollower is done in the
 	 * ModContainer::createNewMixer. When a new mod mixer is created, we will
-	 * first de-register the previous one and stop the songFollower thread - 
-	 * but not earlier.  
-	 * 
+	 * first de-register the previous one and stop the songFollower thread -
+	 * but not earlier.
+	 *
 	 * In ModMixer::startPlayback we will toggle the fireUpdates-Flag in
 	 * BasicModMixer to prevent updates fired when we do not want to get
 	 * informed of any.
-	 * 
+	 *
 	 * @author Daniel Becker
 	 * @since 11.11.2023
 	 */
@@ -65,8 +65,8 @@ public class SongUpdater implements ModUpdateListener
 	{
 		private static final int INITIAL_SIZE = 0x1000; // 64 channel with 750ms sound buffer needs a push buffer of approximately 0xF00 size.
 //		private static final int GROW_BY_SIZE = 0x100;
-		private CircularBuffer<TimedInformation> buffer;
-		
+		private final CircularBuffer<TimedInformation> buffer;
+
 		private volatile boolean running;
 		private volatile boolean hasStopped;
 		private volatile boolean updating;
@@ -77,7 +77,7 @@ public class SongUpdater implements ModUpdateListener
 		public SongFollower()
 		{
 			super();
-			buffer = new CircularBuffer<TimedInformation>(INITIAL_SIZE);
+			buffer = new CircularBuffer<>(INITIAL_SIZE);
 			running = true;
 			hasStopped = false;
 			updating = false;
@@ -94,7 +94,7 @@ public class SongUpdater implements ModUpdateListener
 		 */
 		public void push(final TimedInformation information)
 		{
-			while (drain) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+			while (drain) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 			if (running)
 			{
 //				if (buffer.isFull()) buffer.growBy(GROW_BY_SIZE); // we do not want to grow as that is not thread safe. If events cannot be pushed, forget them!
@@ -108,7 +108,7 @@ public class SongUpdater implements ModUpdateListener
 		public void flush()
 		{
 			buffer.flush();
-			while (updating) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+			while (updating) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 		}
 		/**
 		 * Will halt adding of new events and deliver / drain all remains
@@ -119,7 +119,7 @@ public class SongUpdater implements ModUpdateListener
 		public void drain()
 		{
 			drain = true;
-			while (!buffer.isEmpty()) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+			while (!buffer.isEmpty()) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 			drain = false;
 		}
 		/**
@@ -131,7 +131,7 @@ public class SongUpdater implements ModUpdateListener
 		{
 			running = false;
 			flush();
-			while (!hasStopped) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+			while (!hasStopped) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 		}
 		/**
 		 * Will pause/unpause the thread
@@ -141,8 +141,9 @@ public class SongUpdater implements ModUpdateListener
 		public void pause(final boolean doPause)
 		{
 			paused = doPause;
-			while (paused!=isPaused) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+			while (paused!=isPaused) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 		}
+		@Override
 		public void run()
 		{
 			long additionalWait = 0;
@@ -152,22 +153,22 @@ public class SongUpdater implements ModUpdateListener
 			while (running)
 			{
 				// wait for the first event to appear
-				while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP*/ }
-				if (!running) break; // if we got stopped meanwhile, let's drop out... 
-				
+				while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (final InterruptedException ex) { /*NOOP*/ }
+				if (!running) break; // if we got stopped meanwhile, let's drop out...
+
 				while (!buffer.isEmpty())
 				{
 					final long startNanoTime = System.nanoTime();
-					
+
 					TimedInformation information = buffer.peek(0);
-					
+
 					final long nanoWait = ((information.timeCode - lastTimeCode) * 1000000L) - additionalWait;
 					lastTimeCode = information.timeCode;
 					if (nanoWait>0)
-						try { Thread.sleep(nanoWait/1000000L); } catch (InterruptedException ex) { /*NOOP*/ }
+						try { Thread.sleep(nanoWait/1000000L); } catch (final InterruptedException ex) { /*NOOP*/ }
 
 					updating = true;
-					while (!buffer.isEmpty() && ((TimedInformation)buffer.peek(0)).timeCode <= lastTimeCode)
+					while (!buffer.isEmpty() && buffer.peek(0).timeCode <= lastTimeCode)
 					{
 						information = buffer.pop();
 						if (information!=null) SongUpdater.this.fireTimedInformation(information);
@@ -175,15 +176,15 @@ public class SongUpdater implements ModUpdateListener
 					updating = false;
 
 					// if this was the last event in the queue, wait for the next one - typically this is a pattern delay...
-					while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (InterruptedException ex) { /*NOOP*/ }
+					while (buffer.isEmpty() && running) try { Thread.sleep(1L); } catch (final InterruptedException ex) { /*NOOP*/ }
 
 					if (paused) // if we should pause updates, wait here...
 					{
 						isPaused = true;
-						while (paused && running) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+						while (paused && running) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 						isPaused = false;
 					}
-					if (!running) break; // if we got stopped meanwhile, let's drop out... 
+					if (!running) break; // if we got stopped meanwhile, let's drop out...
 
 					additionalWait = System.nanoTime() - (startNanoTime + nanoWait);
 				}
@@ -195,7 +196,7 @@ public class SongUpdater implements ModUpdateListener
 	// The UpdateListener Thread - to decouple whoever wants to get informed
 	private SongFollower songFollower;
 	// The listeners we will fire updates to
-	private ArrayList<ModUpdateListener> listeners;
+	private final ArrayList<ModUpdateListener> listeners;
 
 	/**
 	 * Constructor for SongUpdater
@@ -203,7 +204,7 @@ public class SongUpdater implements ModUpdateListener
 	public SongUpdater()
 	{
 		super();
-		listeners = new ArrayList<ModUpdateListener>();
+		listeners = new ArrayList<>();
 	}
 	/**
 	 * Flush the update Thread buffer
@@ -264,7 +265,7 @@ public class SongUpdater implements ModUpdateListener
 	{
 		if (listeners!=null && information!=null)
 		{
-			for (ModUpdateListener listener : listeners)
+			for (final ModUpdateListener listener : listeners)
 			{
 				listener.getPatternPositionInformation(information);
 			}
@@ -274,7 +275,7 @@ public class SongUpdater implements ModUpdateListener
 	{
 		if (listeners!=null && information!=null)
 		{
-			for (ModUpdateListener listener : listeners)
+			for (final ModUpdateListener listener : listeners)
 			{
 				listener.getPeekInformation(information);
 			}
@@ -295,7 +296,7 @@ public class SongUpdater implements ModUpdateListener
 	{
 		if (listeners!=null && information!=null)
 		{
-			for (ModUpdateListener listener : listeners)
+			for (final ModUpdateListener listener : listeners)
 			{
 				listener.getStatusInformation(information);
 			}
@@ -306,7 +307,7 @@ public class SongUpdater implements ModUpdateListener
 	 * @see de.quippy.javamod.multimedia.mod.gui.ModUpdateListener#getPatternPositionInformation(de.quippy.javamod.multimedia.mod.gui.ModUpdateListener.PatternPositionInformation)
 	 */
 	@Override
-	public void getPatternPositionInformation(PatternPositionInformation infoObject)
+	public void getPatternPositionInformation(final PatternPositionInformation infoObject)
 	{
 		if (songFollower!=null && infoObject!=null) songFollower.push(infoObject);
 	}
@@ -315,7 +316,7 @@ public class SongUpdater implements ModUpdateListener
 	 * @see de.quippy.javamod.multimedia.mod.gui.ModUpdateListener#getPeekInformation(de.quippy.javamod.multimedia.mod.gui.ModUpdateListener.PeekInformation)
 	 */
 	@Override
-	public void getPeekInformation(PeekInformation infoObject)
+	public void getPeekInformation(final PeekInformation infoObject)
 	{
 		if (songFollower!=null && infoObject!=null) songFollower.push(infoObject);
 	}
@@ -324,7 +325,7 @@ public class SongUpdater implements ModUpdateListener
 	 * @see de.quippy.javamod.multimedia.mod.gui.ModUpdateListener#getStatusInformation(de.quippy.javamod.multimedia.mod.gui.ModUpdateListener.StatusInformation)
 	 */
 	@Override
-	public void getStatusInformation(StatusInformation infoObject)
+	public void getStatusInformation(final StatusInformation infoObject)
 	{
 		if (infoObject!=null)
 		{

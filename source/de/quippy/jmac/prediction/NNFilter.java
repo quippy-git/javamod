@@ -36,14 +36,14 @@ public abstract class NNFilter {
     protected int orderPlusWindow;
     private int m_nRunningAverage;
 
-    private RollBufferShort m_rbInput = new RollBufferShort();
-    private RollBufferShort m_rbDeltaM = new RollBufferShort();
+    private final RollBufferShort m_rbInput = new RollBufferShort();
+    private final RollBufferShort m_rbDeltaM = new RollBufferShort();
 
-    private short[] m_paryM;
+    private final short[] m_paryM;
 
     public final static int NN_WINDOW_ELEMENTS = 512;
 
-    public NNFilter(int nOrder, int nShift, int nVersion) {
+    public NNFilter(final int nOrder, final int nShift, final int nVersion) {
         if ((nOrder <= 0) || ((nOrder % 16) != 0))
             throw new JMACException("Wrong Order");
         m_nOrder = nOrder;
@@ -84,7 +84,7 @@ public abstract class NNFilter {
             deltaData[deltaIndex] = (short) 0;
 
         m_nRunningAverage += (nTempABS - m_nRunningAverage) / 16;
-        
+
         deltaData[deltaIndex - 1] >>= 1;
         deltaData[deltaIndex - 2] >>= 1;
         deltaData[deltaIndex - 8] >>= 1;
@@ -105,7 +105,7 @@ public abstract class NNFilter {
     }
 
     public int Decompress(final int nInput) {
-        
+
         final short[] inputData = m_rbInput.m_pData;
         final int inputIndex = m_rbInput.index;
         // figure a dot product

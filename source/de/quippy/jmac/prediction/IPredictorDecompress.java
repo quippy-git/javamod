@@ -25,10 +25,10 @@ package de.quippy.jmac.prediction;
  * Time: 14:51:31
  */
 public abstract class IPredictorDecompress {
-    public IPredictorDecompress(int nCompressionLevel, int nVersion) {
+    public IPredictorDecompress(final int nCompressionLevel, final int nVersion) {
     }
 
-    public int DecompressValue(int nA) {
+    public int DecompressValue(final int nA) {
         return DecompressValue(nA, 0);
     }
 

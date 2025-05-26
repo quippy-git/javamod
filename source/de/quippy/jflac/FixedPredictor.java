@@ -25,9 +25,9 @@ package de.quippy.jflac;
  * @author kc7bfi
  */
 public class FixedPredictor {
-    
+
     private static final double M_LN2 = 0.69314718055994530942;
-    
+
     /**
      * Compute the best predictor order.
      * @param data
@@ -35,7 +35,7 @@ public class FixedPredictor {
      * @param residualBitsPerSample
      * @return
      */
-    public static int computeBestPredictor(int[] data, int dataLen, double[] residualBitsPerSample) {
+    public static int computeBestPredictor(final int[] data, final int dataLen, final double[] residualBitsPerSample) {
         int lastError0 = data[-1];
         int lastError1 = data[-1] - data[-2];
         int lastError2 = lastError1 - (data[-2] - data[-3]);
@@ -43,7 +43,7 @@ public class FixedPredictor {
         int error, save;
         int totalError0 = 0, totalError1 = 0, totalError2 = 0, totalError3 = 0, totalError4 = 0;
         int i, order;
-        
+
         for (i = 0; i < dataLen; i++) {
             error = data[i];
             totalError0 += Math.abs(error);
@@ -64,7 +64,7 @@ public class FixedPredictor {
             totalError4 += Math.abs(error);
             lastError3 = save;
         }
-        
+
         if (totalError0 < Math.min(Math.min(Math.min(totalError1, totalError2), totalError3), totalError4))
             order = 0;
         else if (totalError1 < Math.min(Math.min(totalError2, totalError3), totalError4))
@@ -75,19 +75,19 @@ public class FixedPredictor {
             order = 3;
         else
             order = 4;
-        
+
         // Estimate the expected number of bits per residual signal sample.
         // 'total_error*' is linearly related to the variance of the residual
         // signal, so we use it directly to compute E(|x|)
-        residualBitsPerSample[0] = (double) ((totalError0 > 0) ? Math.log(M_LN2 * (double) totalError0 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[1] = (double) ((totalError1 > 0) ? Math.log(M_LN2 * (double) totalError1 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[2] = (double) ((totalError2 > 0) ? Math.log(M_LN2 * (double) totalError2 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[3] = (double) ((totalError3 > 0) ? Math.log(M_LN2 * (double) totalError3 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[4] = (double) ((totalError4 > 0) ? Math.log(M_LN2 * (double) totalError4 / (double) dataLen) / M_LN2 : 0.0);
-        
+        residualBitsPerSample[0] = (totalError0 > 0) ? Math.log(M_LN2 * totalError0 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[1] = (totalError1 > 0) ? Math.log(M_LN2 * totalError1 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[2] = (totalError2 > 0) ? Math.log(M_LN2 * totalError2 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[3] = (totalError3 > 0) ? Math.log(M_LN2 * totalError3 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[4] = (totalError4 > 0) ? Math.log(M_LN2 * totalError4 / dataLen) / M_LN2 : 0.0;
+
         return order;
     }
-    
+
     /**
      * Compute the best predictor order.
      * @param data
@@ -95,19 +95,19 @@ public class FixedPredictor {
      * @param residualBitsPerSample
      * @return
      */
-    public static int computeBestPredictorWide(int[] data, int dataLen, double[] residualBitsPerSample) {
+    public static int computeBestPredictorWide(final int[] data, final int dataLen, final double[] residualBitsPerSample) {
         int lastError0 = data[-1];
         int lastError1 = data[-1] - data[-2];
         int lastError2 = lastError1 - (data[-2] - data[-3]);
         int lastError3 = lastError2 - (data[-2] - 2 * data[-3] + data[-4]);
         int error, save;
-        
+
         // totalError* are 64-bits to avoid overflow when encoding
         // erratic signals when the bits-per-sample and blocksize are
         // large.
         long totalError0 = 0, totalError1 = 0, totalError2 = 0, totalError3 = 0, totalError4 = 0;
         int i, order;
-        
+
         for (i = 0; i < dataLen; i++) {
             error = data[i];
             totalError0 += Math.abs(error);
@@ -128,7 +128,7 @@ public class FixedPredictor {
             totalError4 += Math.abs(error);
             lastError3 = save;
         }
-        
+
         if (totalError0 < Math.min(Math.min(Math.min(totalError1, totalError2), totalError3), totalError4))
             order = 0;
         else if (totalError1 < Math.min(Math.min(totalError2, totalError3), totalError4))
@@ -139,20 +139,20 @@ public class FixedPredictor {
             order = 3;
         else
             order = 4;
-        
+
         // Estimate the expected number of bits per residual signal sample.
         // 'total_error*' is linearly related to the variance of the residual
         // signal, so we use it directly to compute E(|x|)
         // with VC++ you have to spoon feed it the casting
-        residualBitsPerSample[0] = (double) ((totalError0 > 0) ? Math.log(M_LN2 * (double) (long) totalError0 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[1] = (double) ((totalError1 > 0) ? Math.log(M_LN2 * (double) (long) totalError1 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[2] = (double) ((totalError2 > 0) ? Math.log(M_LN2 * (double) (long) totalError2 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[3] = (double) ((totalError3 > 0) ? Math.log(M_LN2 * (double) (long) totalError3 / (double) dataLen) / M_LN2 : 0.0);
-        residualBitsPerSample[4] = (double) ((totalError4 > 0) ? Math.log(M_LN2 * (double) (long) totalError4 / (double) dataLen) / M_LN2 : 0.0);
-        
+        residualBitsPerSample[0] = (totalError0 > 0) ? Math.log(M_LN2 * totalError0 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[1] = (totalError1 > 0) ? Math.log(M_LN2 * totalError1 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[2] = (totalError2 > 0) ? Math.log(M_LN2 * totalError2 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[3] = (totalError3 > 0) ? Math.log(M_LN2 * totalError3 / dataLen) / M_LN2 : 0.0;
+        residualBitsPerSample[4] = (totalError4 > 0) ? Math.log(M_LN2 * totalError4 / dataLen) / M_LN2 : 0.0;
+
         return order;
     }
-    
+
     /**
      * Compute the residual from the compressed signal.
      * @param data
@@ -160,9 +160,9 @@ public class FixedPredictor {
      * @param order
      * @param residual
      */
-    public static void computeResidual(int[] data, int dataLen, int order, int[] residual) {
-        int idataLen = (int) dataLen;
-        
+    public static void computeResidual(final int[] data, final int dataLen, final int order, final int[] residual) {
+        final int idataLen = dataLen;
+
         switch (order) {
             case 0 :
                 for (int i = 0; i < idataLen; i++) {
@@ -195,7 +195,7 @@ public class FixedPredictor {
             default :
         }
     }
-    
+
     /**
      * Restore the signal from the fixed predictor.
      * @param residual  The residual data
@@ -204,9 +204,9 @@ public class FixedPredictor {
      * @param data      The restored signal (output)
      * @param startAt   The starting position in the data array
      */
-    public static void restoreSignal(int[] residual, int dataLen, int order, int[] data, int startAt) {
-        int idataLen = (int) dataLen;
-        
+    public static void restoreSignal(final int[] residual, final int dataLen, final int order, final int[] data, final int startAt) {
+        final int idataLen = dataLen;
+
         switch (order) {
             case 0 :
                 for (int i = 0; i < idataLen; i++) {

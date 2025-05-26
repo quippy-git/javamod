@@ -51,7 +51,7 @@ public class PSid {
 
 	/**
 	 * Header has been extended for 'RSID' format<BR>
-	 * 
+	 *
 	 * The following changes are present:
 	 * <UL>
 	 * <LI> id = 'RSID'
@@ -62,15 +62,15 @@ public class PSid {
 	 * <LI> load cannot be less than 0x0801 (start of basic)
 	 * </UL>
 	 * all values big-endian
-	 * 
+	 *
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 */
 	public static class PHeader {
 
 		public static final int SIZE = 124;
 
-		public PHeader(short[] s, int offset) {
+		public PHeader(final short[] s, int offset) {
 			for (int i = 0; i < 4; i++) {
 				id[i] = s[offset++];
 			}
@@ -162,7 +162,7 @@ public class PSid {
 
 		/**
 		 * 32-bit speed info:<BR>
-		 * 
+		 *
 		 * bit: 0=50 Hz, 1=CIA 1 Timer A (default: 60 Hz)
 		 */
 		public short /* uint8_t */speed[] = new short[4];
@@ -312,20 +312,20 @@ public class PSid {
 
 	final static int _sidtune_psid_maxStrLen = 31;
 
-	private SidTune sidtune;
+	private final SidTune sidtune;
 
-	private SidTuneInfo info;
+	private final SidTuneInfo info;
 
-	public PSid(SidTune sidtune) {
+	public PSid(final SidTune sidtune) {
 		this.sidtune = sidtune;
 		this.info = sidtune.info;
 	}
 
 	protected final LoadStatus PSID_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
 		short clock, compatibility;
 		long /* uint_least32_t */speed;
-		int /* uint_least32_t */bufLen = dataBuf.len();
+		final int /* uint_least32_t */bufLen = dataBuf.len();
 		if (SIDTUNE_PSID2NG) {
 			clock = SIDTUNE_CLOCK_UNKNOWN;
 		} else {
@@ -340,7 +340,7 @@ public class PSid {
 		// File format check
 		if (bufLen < 6)
 			return LOAD_NOT_MINE;
-		if (endian_big32((short[] /* const uint_least8_t* */) pHeader.id, 0) == PSID_ID) {
+		if (endian_big32(pHeader.id, 0) == PSID_ID) {
 			switch (endian_big16(pHeader.version, 0)) {
 			case 1:
 				compatibility = SIDTUNE_COMPATIBILITY_PSID;
@@ -353,7 +353,7 @@ public class PSid {
 			}
 			info.formatString = _sidtune_format_psid;
 		} else if (endian_big32(
-				(short[] /* const uint_least8_t* */) pHeader.id, 0) == RSID_ID) {
+				pHeader.id, 0) == RSID_ID) {
 			if (endian_big16(pHeader.version, 0) != 2) {
 				info.formatString = _sidtune_unknown_rsid;
 				return LOAD_ERROR;
@@ -392,7 +392,7 @@ public class PSid {
 		info.relocPages = 0;
 		info.relocStartPage = 0;
 		if (endian_big16(pHeader.version, 0) >= 2) {
-			int /* uint_least16_t */flags = endian_big16(pHeader.flags, 0);
+			final int /* uint_least16_t */flags = endian_big16(pHeader.flags, 0);
 			if ((flags & PSID_MUS) != 0) { // MUS tunes run at any speed
 				clock = SIDTUNE_CLOCK_ANY;
 				info.musPlayer = true;
@@ -472,11 +472,11 @@ public class PSid {
 		return LOAD_OK;
 	}
 
-	protected boolean PSID_fileSupportSave(OutputStream fMyOut,
+	protected boolean PSID_fileSupportSave(final OutputStream fMyOut,
 			final short[] /* uint_least8_t* */dataBuffer) {
 		try {
-			PHeader myHeader = new PHeader();
-			endian_big32((short[] /* uint_least8_t* */) myHeader.id, 0, PSID_ID);
+			final PHeader myHeader = new PHeader();
+			endian_big32(myHeader.id, 0, PSID_ID);
 			endian_big16(myHeader.version, 0, 2);
 			endian_big16(myHeader.data, 0, PHeader.SIZE);
 			endian_big16(myHeader.songs, 0, info.songs);
@@ -484,7 +484,7 @@ public class PSid {
 
 			short /* uint_least32_t */speed = 0;
 			//short check = 0;
-			int /* uint_least32_t */maxBugSongs = ((info.songs <= 32) ? info.songs
+			final int /* uint_least32_t */maxBugSongs = ((info.songs <= 32) ? info.songs
 					: 32);
 			for (int /* uint_least32_t */s = 0; s < maxBugSongs; s++) {
 				if (sidtune.songSpeed[s] == SIDTUNE_SPEED_CIA_1A)
@@ -513,7 +513,7 @@ public class PSid {
 				case SIDTUNE_COMPATIBILITY_BASIC:
 					tmpFlags |= PSID_BASIC;
 				case SIDTUNE_COMPATIBILITY_R64:
-					endian_big32((short[] /* uint_least8_t* */) myHeader.id, 0,
+					endian_big32(myHeader.id, 0,
 							RSID_ID);
 					endian_big16(myHeader.play, 0, 0);
 					endian_big32(myHeader.speed, 0, 0);
@@ -553,7 +553,7 @@ public class PSid {
 			if (info.musPlayer)
 				write(fMyOut, dataBuffer, 0, info.dataFileLen);
 			else { // Save C64 lo/hi load address (little-endian).
-				short /* uint_least8_t */saveAddr[] = new short[2];
+				final short /* uint_least8_t */saveAddr[] = new short[2];
 				saveAddr[0] = (short) (info.loadAddr & 255);
 				saveAddr[1] = (short) (info.loadAddr >> 8);
 				write(fMyOut, saveAddr, 0, 2);
@@ -563,15 +563,15 @@ public class PSid {
 				write(fMyOut, dataBuffer, sidtune.fileOffset, info.dataFileLen
 						- sidtune.fileOffset);
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
 
-	private void write(OutputStream myOut, short[] dataBuffer, int offset,
-			int length) throws IOException {
+	private void write(final OutputStream myOut, final short[] dataBuffer, final int offset,
+			final int length) throws IOException {
 		for (int j = offset; j < length; j++) {
 			myOut.write(dataBuffer[j]);
 		}

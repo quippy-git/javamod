@@ -40,7 +40,7 @@ public class ID3FieldDataException extends Exception
 	 *
 	 * @param msg a String specifying the specific problem encountered
 	 */
-	public ID3FieldDataException(String msg)
+	public ID3FieldDataException(final String msg)
 	{
 		super(msg);
 	}

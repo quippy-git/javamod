@@ -2,7 +2,7 @@
  * @(#) SIDConfigPanel.java
  *
  * Created on 10.12.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ public class SIDConfigPanel extends JPanel
 	 * Constructor for SIDConfigPanel
 	 * @param layout
 	 */
-	public SIDConfigPanel(LayoutManager layout)
+	public SIDConfigPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -78,7 +78,7 @@ public class SIDConfigPanel extends JPanel
 	 * Constructor for SIDConfigPanel
 	 * @param isDoubleBuffered
 	 */
-	public SIDConfigPanel(boolean isDoubleBuffered)
+	public SIDConfigPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -88,7 +88,7 @@ public class SIDConfigPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public SIDConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public SIDConfigPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -103,7 +103,7 @@ public class SIDConfigPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(SIDContainer parent)
+	public void setParentContainer(final SIDContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -135,23 +135,24 @@ public class SIDConfigPanel extends JPanel
 	{
 		if (playerSetUp_SampleRate==null)
 		{
-			playerSetUp_SampleRate = new JComboBox<String>();
+			playerSetUp_SampleRate = new JComboBox<>();
 			playerSetUp_SampleRate.setName("playerSetUp_SampleRate");
-			
-			javax.swing.DefaultComboBoxModel<String> theModel = new javax.swing.DefaultComboBoxModel<String>(SIDContainer.SAMPLERATE);
+
+			final javax.swing.DefaultComboBoxModel<String> theModel = new javax.swing.DefaultComboBoxModel<>(SIDContainer.SAMPLERATE);
 			playerSetUp_SampleRate.setModel(theModel);
 			playerSetUp_SampleRate.setFont(Helpers.getDialogFont());
 			playerSetUp_SampleRate.setEnabled(true);
 			playerSetUp_SampleRate.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						SIDContainer parent = getParentContainer();
+						final SIDContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							SIDMixer currentMixer = parent.getCurrentMixer();
+							final SIDMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setSampleRate(Integer.parseInt(getPlayerSetUp_SampleRate().getSelectedItem().toString()));
 						}
@@ -176,23 +177,24 @@ public class SIDConfigPanel extends JPanel
 	{
 		if (playerSetUp_SIDModel==null)
 		{
-			playerSetUp_SIDModel = new JComboBox<String>();
+			playerSetUp_SIDModel = new JComboBox<>();
 			playerSetUp_SIDModel.setName("playerSetUp_SIDModel");
-			
-			javax.swing.DefaultComboBoxModel<String> theModel = new javax.swing.DefaultComboBoxModel<String>(SIDContainer.SIDMODELS);
+
+			final javax.swing.DefaultComboBoxModel<String> theModel = new javax.swing.DefaultComboBoxModel<>(SIDContainer.SIDMODELS);
 			playerSetUp_SIDModel.setModel(theModel);
 			playerSetUp_SIDModel.setFont(Helpers.getDialogFont());
 			playerSetUp_SIDModel.setEnabled(true);
 			playerSetUp_SIDModel.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
-						SIDContainer parent = getParentContainer();
+						final SIDContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							SIDMixer currentMixer = parent.getCurrentMixer();
+							final SIDMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setSIDModel(getPlayerSetUp_SIDModel().getSelectedIndex());
 						}
@@ -244,19 +246,17 @@ public class SIDConfigPanel extends JPanel
 			playerSetUp_Optimization_Level1.setFont(Helpers.getDialogFont());
 			playerSetUp_Optimization_Level1.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED)
+					if ((e.getStateChange()==ItemEvent.SELECTED) && getPlayerSetUp_Optimization_Level1().isSelected())
 					{
-						if (getPlayerSetUp_Optimization_Level1().isSelected())
+						final SIDContainer parent = getParentContainer();
+						if (parent!=null)
 						{
-							SIDContainer parent = getParentContainer();
-							if (parent!=null)
-							{
-								SIDMixer currentMixer = parent.getCurrentMixer();
-								if (currentMixer!=null)
-									currentMixer.setOptimization(1);
-							}
+							final SIDMixer currentMixer = parent.getCurrentMixer();
+							if (currentMixer!=null)
+								currentMixer.setOptimization(1);
 						}
 					}
 				}
@@ -272,19 +272,17 @@ public class SIDConfigPanel extends JPanel
 			playerSetUp_Optimization_Level2.setFont(Helpers.getDialogFont());
 			playerSetUp_Optimization_Level2.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
-					if (e.getStateChange()==ItemEvent.SELECTED)
+					if ((e.getStateChange()==ItemEvent.SELECTED) && getPlayerSetUp_Optimization_Level2().isSelected())
 					{
-						if (getPlayerSetUp_Optimization_Level2().isSelected())
+						final SIDContainer parent = getParentContainer();
+						if (parent!=null)
 						{
-							SIDContainer parent = getParentContainer();
-							if (parent!=null)
-							{
-								SIDMixer currentMixer = parent.getCurrentMixer();
-								if (currentMixer!=null)
-									currentMixer.setOptimization(2);
-							}
+							final SIDMixer currentMixer = parent.getCurrentMixer();
+							if (currentMixer!=null)
+								currentMixer.setOptimization(2);
 						}
 					}
 				}
@@ -302,14 +300,15 @@ public class SIDConfigPanel extends JPanel
 			playerSetUp_UseFilter.setFont(Helpers.getDialogFont());
 			playerSetUp_UseFilter.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						SIDContainer parent = getParentContainer();
+						final SIDContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							SIDMixer currentMixer = parent.getCurrentMixer();
+							final SIDMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setUseSIDFilter(getPlayerSetUp_UseSIDFilter().isSelected());
 						}
@@ -329,14 +328,15 @@ public class SIDConfigPanel extends JPanel
 			playerSetUp_VirtualStereo.setFont(Helpers.getDialogFont());
 			playerSetUp_VirtualStereo.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
-						SIDContainer parent = getParentContainer();
+						final SIDContainer parent = getParentContainer();
 						if (parent!=null)
 						{
-							SIDMixer currentMixer = parent.getCurrentMixer();
+							final SIDMixer currentMixer = parent.getCurrentMixer();
 							if (currentMixer!=null)
 								currentMixer.setVirtualStereo(getPlayerSetUp_VirtualStereo().isSelected());
 						}
@@ -346,19 +346,19 @@ public class SIDConfigPanel extends JPanel
 		}
 		return playerSetUp_VirtualStereo;
 	}
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 		getPlayerSetUp_SampleRate().setSelectedItem(newProps.getProperty(SIDContainer.PROPERTY_SID_FREQUENCY, SIDContainer.DEFAULT_SAMPLERATE));
 		getPlayerSetUp_SIDModel().setSelectedIndex(Integer.parseInt(newProps.getProperty(SIDContainer.PROPERTY_SID_MODEL, SIDContainer.DEFAULT_SIDMODEL)));
 		getPlayerSetUp_UseSIDFilter().setSelected(Boolean.parseBoolean(newProps.getProperty(SIDContainer.PROPERTY_SID_USEFILTER, SIDContainer.DEFAULT_USEFILTER)));
 		getPlayerSetUp_VirtualStereo().setSelected(Boolean.parseBoolean(newProps.getProperty(SIDContainer.PROPERTY_SID_VIRTUALSTEREO, SIDContainer.DEFAULT_VIRTUALSTEREO)));
-		int optimization = Integer.parseInt(newProps.getProperty(SIDContainer.PROPERTY_SID_OPTIMIZATION, SIDContainer.DEFAULT_OPTIMIZATION));
-		if (optimization<=1) 
+		final int optimization = Integer.parseInt(newProps.getProperty(SIDContainer.PROPERTY_SID_OPTIMIZATION, SIDContainer.DEFAULT_OPTIMIZATION));
+		if (optimization<=1)
 			getPlayerSetUp_Optimization_Level1().setSelected(true);
 		else
 			getPlayerSetUp_Optimization_Level2().setSelected(true);
 	}
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 		props.setProperty(SIDContainer.PROPERTY_SID_FREQUENCY, getPlayerSetUp_SampleRate().getSelectedItem().toString());
 		props.setProperty(SIDContainer.PROPERTY_SID_MODEL, Integer.toString(getPlayerSetUp_SIDModel().getSelectedIndex()));

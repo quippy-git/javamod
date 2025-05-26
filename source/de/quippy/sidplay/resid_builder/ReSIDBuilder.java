@@ -33,7 +33,7 @@ import de.quippy.sidplay.libsidplay.common.SIDEmu;
  */
 public class ReSIDBuilder extends SIDBuilder {
 
-	protected ArrayList < SIDEmu > sidobjs = new ArrayList < SIDEmu >();
+	protected ArrayList < SIDEmu > sidobjs = new ArrayList < >();
 
 	// Error String(s)
 
@@ -57,7 +57,7 @@ public class ReSIDBuilder extends SIDBuilder {
 	 * </UL>
 	 * use bool operator to determine error
 	 */
-	public int /* uint */devices(boolean created) {
+	public int /* uint */devices(final boolean created) {
 		m_status = true;
 		if (created)
 			return sidobjs.size();
@@ -68,7 +68,7 @@ public class ReSIDBuilder extends SIDBuilder {
 
 	/**
 	 * Create a new sid emulation. Called by libsidplay2 only.
-	 * 
+	 *
 	 * @param sids
 	 * @return
 	 */
@@ -104,12 +104,13 @@ public class ReSIDBuilder extends SIDBuilder {
 	/**
 	 * Find a free SID of the required specs
 	 */
-	public SIDEmu lock(C64Env env, sid2_model_t model) {
-		int size = sidobjs.size();
+	@Override
+	public SIDEmu lock(final C64Env env, final sid2_model_t model) {
+		final int size = sidobjs.size();
 		m_status = true;
 
 		for (int i = 0; i < size; i++) {
-			ReSID sid = (ReSID) sidobjs.get(i);
+			final ReSID sid = (ReSID) sidobjs.get(i);
 			if (sid.lock(env)) {
 				sid.model(model);
 				return sid;
@@ -124,11 +125,12 @@ public class ReSIDBuilder extends SIDBuilder {
 	/**
 	 * Allow something to use this SID
 	 */
-	public void unlock(SIDEmu device) {
-		int size = sidobjs.size();
+	@Override
+	public void unlock(final SIDEmu device) {
+		final int size = sidobjs.size();
 		// Maek sure this is our SID
 		for (int i = 0; i < size; i++) {
-			ReSID sid = (ReSID) sidobjs.get(i);
+			final ReSID sid = (ReSID) sidobjs.get(i);
 			if (sid == device) {
 				// Unlock it
 				sid.lock(null);
@@ -141,47 +143,49 @@ public class ReSIDBuilder extends SIDBuilder {
 	 * Remove all SID emulations.
 	 */
 	public void remove() {
-		int size = sidobjs.size();
+		final int size = sidobjs.size();
 		for (int i = 0; i < size; i++)
 			sidobjs.remove(sidobjs.get(i));
 		sidobjs.clear();
 	}
 
+	@Override
 	public final String error() {
 		return m_error;
 	}
 
+	@Override
 	public final String credits() {
 		m_status = true;
 
 		// Available devices
 		if (sidobjs.size() != 0) {
-			ReSID sid = (ReSID) sidobjs.get(0);
+			final ReSID sid = (ReSID) sidobjs.get(0);
 			return sid.credits();
 		}
 
 		{ // Create an emulation to obtain credits
-			ReSID sid = new ReSID(this);
+			final ReSID sid = new ReSID(this);
 			return sid.credits();
 		}
 	}
 
 	// Settings that affect all SIDS
 
-	public void filter(boolean enable) {
-		int size = sidobjs.size();
+	public void filter(final boolean enable) {
+		final int size = sidobjs.size();
 		m_status = true;
 		for (int i = 0; i < size; i++) {
-			ReSID sid = (ReSID) sidobjs.get(i);
+			final ReSID sid = (ReSID) sidobjs.get(i);
 			sid.filter(enable);
 		}
 	}
 
 	public void filter(final sid_filter_t filter) {
-		int size = sidobjs.size();
+		final int size = sidobjs.size();
 		m_status = true;
 		for (int i = 0; i < size; i++) {
-			ReSID sid = (ReSID) sidobjs.get(i);
+			final ReSID sid = (ReSID) sidobjs.get(i);
 			if (!sid.filter(filter)) {
 				m_error = ERR_FILTER_DEFINITION;
 				m_status = false;
@@ -189,11 +193,11 @@ public class ReSIDBuilder extends SIDBuilder {
 		}
 	}
 
-	public void sampling(long /* uint_least32_t */freq) {
-		int size = sidobjs.size();
+	public void sampling(final long /* uint_least32_t */freq) {
+		final int size = sidobjs.size();
 		m_status = true;
 		for (int i = 0; i < size; i++) {
-			ReSID sid = (ReSID) sidobjs.get(i);
+			final ReSID sid = (ReSID) sidobjs.get(i);
 			sid.sampling(freq);
 		}
 	}

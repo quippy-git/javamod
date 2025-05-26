@@ -55,7 +55,7 @@ public class ReSID extends SIDEmu {
 	private boolean m_locked;
 
 	private byte /* uint_least8_t */m_optimisation;
-	
+
 	static
 	{
 		// Setup credits
@@ -65,7 +65,7 @@ public class ReSID extends SIDEmu {
 				 + "\t(C) 1999-2002 Dag Lem <resid@nimrod.no>";
 	}
 
-	public ReSID(SIDBuilder builder) {
+	public ReSID(final SIDBuilder builder) {
 		super(builder);
 		m_context = (null);
 		m_phase = (event_phase_t.EVENT_CLOCK_PHI1);
@@ -87,21 +87,25 @@ public class ReSID extends SIDEmu {
 
 	// Standard component functions
 
+	@Override
 	public final String credits() {
 		return m_credit;
 	}
 
+	@Override
 	public void reset() {
 		super.reset();
 	}
 
-	public void reset(short /* uint8_t */volume) {
+	@Override
+	public void reset(final short /* uint8_t */volume) {
 		m_accessClk = 0;
 		m_sid.reset();
 		m_sid.write(0x18, volume);
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 		long /* event_clock_t */cycles = m_context.getTime(m_accessClk,
 				m_phase);
 		m_accessClk += cycles;
@@ -116,7 +120,8 @@ public class ReSID extends SIDEmu {
 		return (short) m_sid.read(addr);
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data) {
 		if (RESID.isLoggable(Level.FINE)) {
 			RESID.fine(String.format("write 0x%02x=0x%02x", Short.valueOf(addr), Short.valueOf(data)));
 			RESID.fine("\n");
@@ -135,13 +140,15 @@ public class ReSID extends SIDEmu {
 		m_sid.write(addr, data);
 	}
 
+	@Override
 	public final String error() {
 		return m_error;
 	}
 
 	// Standard SID functions
 
-	public long /* int_least32_t */output(short /* uint_least8_t */bits) {
+	@Override
+	public long /* int_least32_t */output(final short /* uint_least8_t */bits) {
 		long /* event_clock_t */cycles = m_context.getTime(m_accessClk,
 				m_phase);
 		m_accessClk += cycles;
@@ -156,19 +163,21 @@ public class ReSID extends SIDEmu {
 		return m_sid.output(bits) * m_gain / 100;
 	}
 
-	public void filter(boolean enable) {
+	public void filter(final boolean enable) {
 		m_sid.enable_filter(enable);
 	}
 
-	public void voice(short /* uint_least8_t */num,
-			short /* uint_least8_t */volume, boolean mute) {
+	@Override
+	public void voice(final short /* uint_least8_t */num,
+			final short /* uint_least8_t */volume, final boolean mute) {
 		// At this time
 		// only mute is
 		// supported
 		m_sid.mute(num, mute);
 	}
 
-	public void gain(short /* uint_least8_t */percent) {
+	@Override
+	public void gain(final short /* uint_least8_t */percent) {
 		// 0 to 99 is loss, 101 - 200 is gain
 		m_gain = percent;
 		m_gain += 100;
@@ -179,7 +188,8 @@ public class ReSID extends SIDEmu {
 	/**
 	 * Set optimisation level
 	 */
-	public void optimisation(byte /* uint_least8_t */level) {
+	@Override
+	public void optimisation(final byte /* uint_least8_t */level) {
 		m_optimisation = level;
 	}
 
@@ -189,7 +199,7 @@ public class ReSID extends SIDEmu {
 
 	// Specific to ReSID
 
-	public void sampling(long /* uint_least32_t */freq) {
+	public void sampling(final long /* uint_least32_t */freq) {
 		m_sid.set_sampling_parameters(1000000, sampling_method.SAMPLE_FAST,
 				freq, -1, 0.79);
 	}
@@ -202,7 +212,7 @@ public class ReSID extends SIDEmu {
 		if (filter == null) {
 			// Select default filter
 			// m_sid.fc_default(f0, points);
-			SID.FCPoints fcp = new SID.FCPoints();
+			final SID.FCPoints fcp = new SID.FCPoints();
 			m_sid.fc_default(fcp);
 			fc = fcp.points;
 			points = fcp.count;
@@ -254,10 +264,10 @@ public class ReSID extends SIDEmu {
 
 	/**
 	 * Set the emulated SID model
-	 * 
+	 *
 	 * @param model
 	 */
-	public void model(sid2_model_t model) {
+	public void model(final sid2_model_t model) {
 		if (model == sid2_model_t.SID2_MOS8580)
 			m_sid.set_chip_model(chip_model.MOS8580);
 		else
@@ -268,11 +278,11 @@ public class ReSID extends SIDEmu {
 
 	/**
 	 * Set execution environment and lock sid to it
-	 * 
+	 *
 	 * @param env
 	 * @return
 	 */
-	public boolean lock(C64Env env) {
+	public boolean lock(final C64Env env) {
 		if (env == null) {
 			if (!m_locked)
 				return false;

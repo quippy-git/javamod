@@ -2,7 +2,7 @@
  * @(#) ModInfoPanel.java
  *
  * Created on 13.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import de.quippy.javamod.main.gui.components.FixedStateCheckBox;
@@ -56,7 +57,7 @@ import de.quippy.javamod.system.Helpers;
 public class ModInfoPanel extends JPanel
 {
 	private static final long serialVersionUID = 6435757622273854276L;
-	
+
 	private static final int SAMPLE_INDEX = 0;
 	private static final int INSTRUMENT_INDEX = 1;
 	private static final int SONGMESSAGE_INDEX = 2;
@@ -70,7 +71,7 @@ public class ModInfoPanel extends JPanel
 	private JTextField modInfo_Trackername = null;
 	private JLabel modInfo_L_Author = null;
 	private JTextField modInfo_Author = null;
-	
+
 	private JLabel modInfo_L_FreqTable = null;
 	private JTextField modInfo_FreqTable = null;
 	private JLabel modInfo_L_TempoMode = null;
@@ -121,7 +122,7 @@ public class ModInfoPanel extends JPanel
 	private ModContainer parentContainer = null;
 	private Window parentInfoDialog = null;
 	private Module mod;
-	
+
 	/**
 	 * Constructor for ModInfoPanel
 	 */
@@ -134,7 +135,7 @@ public class ModInfoPanel extends JPanel
 	 * Constructor for ModInfoPanel
 	 * @param layout
 	 */
-	public ModInfoPanel(LayoutManager layout)
+	public ModInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -143,7 +144,7 @@ public class ModInfoPanel extends JPanel
 	 * Constructor for ModInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public ModInfoPanel(boolean isDoubleBuffered)
+	public ModInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -153,7 +154,7 @@ public class ModInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public ModInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public ModInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -168,7 +169,7 @@ public class ModInfoPanel extends JPanel
 	/**
 	 * @param parentInfoDialog the parentInfoDialog to set
 	 */
-	public void setParentContainer(ModContainer parent)
+	public void setParentContainer(final ModContainer parent)
 	{
 		parentContainer = parent;
 	}
@@ -203,7 +204,7 @@ public class ModInfoPanel extends JPanel
 
 		oldModSampleDialogVisibility = (getModSampleDialog().isVisible()) ? 1 : 0;
 		getModSampleDialog().setVisible(false);
-		
+
 		oldModInstrumentDialogVisibility = (getModInstrumentDialog().isVisible()) ? 1 : 0;
 		getModInstrumentDialog().setVisible(false);
 	}
@@ -219,7 +220,7 @@ public class ModInfoPanel extends JPanel
 	public void addNotify()
 	{
 		super.addNotify();
-		
+
 		if (parentInfoDialog == null)
 		{
 			// As we got added somewhere without a MultimediaContainer being
@@ -231,13 +232,13 @@ public class ModInfoPanel extends JPanel
 			{
 				if (p instanceof Window)
 				{
-					parentInfoDialog = (Window)p; 
+					parentInfoDialog = (Window)p;
 					break;
 				}
 				p = p.getParent();
 			}
 		}
-		
+
 		if (oldModPatternDialogVisibility!=-1)
 		{
 			getModPatternDialog().setVisible(oldModPatternDialogVisibility!=0);
@@ -362,7 +363,7 @@ public class ModInfoPanel extends JPanel
 		add(getModInfoDialog_AnzPanel(),	Helpers.getGridBagConstraint(0, 5, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0, Helpers.NULL_INSETS));
 		add(getModInfoDialog_ButtonPanel(),	Helpers.getGridBagConstraint(0, 6, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST, 1.0, 0.0, Helpers.NULL_INSETS));
 		add(getModInfo_InsSamTabbedPane(),	Helpers.getGridBagConstraint(0, 7, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
-		
+
 		fillInfoPanelWith(null);
 	}
 	private JLabel getModInfo_L_Filename()
@@ -690,7 +691,8 @@ public class ModInfoPanel extends JPanel
 			modInfo_openPatternDialog.setToolTipText("Show the pattern data of this mod");
 			modInfo_openPatternDialog.addActionListener(new ActionListener()
 	        {
-	            public void actionPerformed(ActionEvent evt)
+	            @Override
+				public void actionPerformed(final ActionEvent evt)
 	            {
 	            	getModPatternDialog().setVisible(!getModPatternDialog().isVisible());
 	            }
@@ -710,7 +712,8 @@ public class ModInfoPanel extends JPanel
 			modInfo_openSampleDialog.setToolTipText("Show the sample data of this mod");
 			modInfo_openSampleDialog.addActionListener(new ActionListener()
 	        {
-	            public void actionPerformed(ActionEvent evt)
+	            @Override
+				public void actionPerformed(final ActionEvent evt)
 	            {
 	            	getModSampleDialog().setVisible(!getModSampleDialog().isVisible());
 	            }
@@ -730,12 +733,13 @@ public class ModInfoPanel extends JPanel
 			modInfo_openInstrumentDialog.setToolTipText("Show the instrument data of this mod");
 			modInfo_openInstrumentDialog.addActionListener(new ActionListener()
 	        {
-	            public void actionPerformed(ActionEvent evt)
+	            @Override
+				public void actionPerformed(final ActionEvent evt)
 	            {
 	            	getModInstrumentDialog().setVisible(!getModInstrumentDialog().isVisible());
 	            }
 	        });
-			
+
 		}
 		return modInfo_openInstrumentDialog;
 	}
@@ -750,7 +754,7 @@ public class ModInfoPanel extends JPanel
 				modPatternDialog.setPreferredSize(patternDialogSize);
 			}
 			if (patternDialogLocation == null || (patternDialogLocation.getX()==-1 || patternDialogLocation.getY()==-1))
-				patternDialogLocation = Helpers.getFrameCenteredLocation(modPatternDialog, parentInfoDialog); 
+				patternDialogLocation = Helpers.getFrameCenteredLocation(modPatternDialog, parentInfoDialog);
 			modPatternDialog.setLocation(patternDialogLocation);
 		}
 		return modPatternDialog;
@@ -766,7 +770,7 @@ public class ModInfoPanel extends JPanel
 				modSampleDialog.setPreferredSize(sampleDialogSize);
 			}
 			if (sampleDialogLocation == null || (sampleDialogLocation.getX()==-1 || sampleDialogLocation.getY()==-1))
-				sampleDialogLocation = Helpers.getFrameCenteredLocation(modSampleDialog, parentInfoDialog); 
+				sampleDialogLocation = Helpers.getFrameCenteredLocation(modSampleDialog, parentInfoDialog);
 			modSampleDialog.setLocation(sampleDialogLocation);
 		}
 		return modSampleDialog;
@@ -782,7 +786,7 @@ public class ModInfoPanel extends JPanel
 				modInstrumentDialog.setPreferredSize(instrumentDialogSize);
 			}
 			if (instrumentDialogLocation == null || (instrumentDialogLocation.getX()==-1 || instrumentDialogLocation.getY()==-1))
-				instrumentDialogLocation = Helpers.getFrameCenteredLocation(modInstrumentDialog, parentInfoDialog); 
+				instrumentDialogLocation = Helpers.getFrameCenteredLocation(modInstrumentDialog, parentInfoDialog);
 			modInstrumentDialog.setLocation(instrumentDialogLocation);
 		}
 		return modInstrumentDialog;
@@ -791,7 +795,7 @@ public class ModInfoPanel extends JPanel
 	{
 		if (modInfoInsSamTabbedPane==null)
 		{
-			modInfoInsSamTabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+			modInfoInsSamTabbedPane = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 			modInfoInsSamTabbedPane.setFont(Helpers.getDialogFont());
 			modInfoInsSamTabbedPane.add("Samples", getScrollPane_ModInfo_Samples());
 			modInfoInsSamTabbedPane.add("Instruments", getScrollPane_ModInfo_Instruments());
@@ -870,7 +874,7 @@ public class ModInfoPanel extends JPanel
 	 */
 	public void showInstrument(final int instrumentIndex)
 	{
-		if (!mod.getInstrumentContainer().hasInstruments()) 
+		if (!mod.getInstrumentContainer().hasInstruments())
 			showSample(instrumentIndex);
 		else
 		{
@@ -916,7 +920,7 @@ public class ModInfoPanel extends JPanel
 		}
 		else
 		{
-			String modFileName = currentMod.getFileName();
+			final String modFileName = currentMod.getFileName();
 			int i = modFileName.lastIndexOf(File.separatorChar);
 			if (i==-1) i = modFileName.lastIndexOf('/');
 	    	getModInfo_Filename().setText(modFileName.substring(i+1));
@@ -937,21 +941,21 @@ public class ModInfoPanel extends JPanel
 	    	getModInfo_BPM().setCaretPosition(0); getModInfo_FreqTable().moveCaretPosition(0);
 	    	getModInfo_IsStereo().setFixedState(currentMod.isStereo());
 	    	getModInfo_AnzChannels().setText(Integer.toString(currentMod.getNChannels()));
-	    	getModInfo_AnzChannels().setCaretPosition(0); getModInfo_AnzChannels().moveCaretPosition(0);  
+	    	getModInfo_AnzChannels().setCaretPosition(0); getModInfo_AnzChannels().moveCaretPosition(0);
 	    	getModInfo_AnzPattern().setText(Integer.toString(currentMod.getNPattern()));
-	    	getModInfo_AnzPattern().setCaretPosition(0); getModInfo_AnzPattern().moveCaretPosition(0);  
+	    	getModInfo_AnzPattern().setCaretPosition(0); getModInfo_AnzPattern().moveCaretPosition(0);
 
-	    	final InstrumentsContainer instrumentContainer = currentMod.getInstrumentContainer(); 
+	    	final InstrumentsContainer instrumentContainer = currentMod.getInstrumentContainer();
 	    	if (instrumentContainer!=null)
 	    	{
 		    	getModInfo_AnzSamples().setText(Integer.toString(currentMod.getNSamples()));
-		    	getModInfo_AnzSamples().setCaretPosition(0); getModInfo_AnzSamples().moveCaretPosition(0);  
+		    	getModInfo_AnzSamples().setCaretPosition(0); getModInfo_AnzSamples().moveCaretPosition(0);
 	    		getModInfo_Samples().setText(instrumentContainer.getSampleNames());
 		    	getModInfo_Samples().setCaretPosition(0); getModInfo_Samples().moveCaretPosition(0);
 	    		if (instrumentContainer.hasInstruments())
 	    		{
 	    			getModInfo_AnzInstruments().setText(Integer.toString(currentMod.getNInstruments()));
-			    	getModInfo_AnzInstruments().setCaretPosition(0); getModInfo_AnzInstruments().moveCaretPosition(0);  
+			    	getModInfo_AnzInstruments().setCaretPosition(0); getModInfo_AnzInstruments().moveCaretPosition(0);
 	    			getModInfo_Instruments().setText(instrumentContainer.getInstrumentNames());
 			    	getModInfo_Instruments().setCaretPosition(0); getModInfo_Instruments().moveCaretPosition(0);
 	    			getModInfo_InsSamTabbedPane().setEnabledAt(INSTRUMENT_INDEX, true);
@@ -960,14 +964,14 @@ public class ModInfoPanel extends JPanel
 	    		else
 	    		{
 	    			getModInfo_AnzInstruments().setText("0");
-			    	getModInfo_AnzInstruments().setCaretPosition(0); getModInfo_AnzInstruments().moveCaretPosition(0);  
+			    	getModInfo_AnzInstruments().setCaretPosition(0); getModInfo_AnzInstruments().moveCaretPosition(0);
 	    			getModInfo_Instruments().setText(Helpers.EMPTY_STING);
 	    			getModInfo_InsSamTabbedPane().setEnabledAt(INSTRUMENT_INDEX, false);
 	    		}
 	    	}
 
 	    	final String songMessage = currentMod.getSongMessage();
-	    	if (songMessage!=null && songMessage.length()>0)
+	    	if (songMessage!=null && !songMessage.isEmpty())
 	    	{
 	    		getModInfo_SongMessage().setText(songMessage);
 		    	getModInfo_SongMessage().setCaretPosition(0); getModInfo_SongMessage().moveCaretPosition(0);
@@ -979,7 +983,7 @@ public class ModInfoPanel extends JPanel
 	    		getModInfo_SongMessage().setText(Helpers.EMPTY_STING);
     			getModInfo_InsSamTabbedPane().setEnabledAt(SONGMESSAGE_INDEX, false);
 	    	}
-			
+
     		if (currentMod.getPatternContainer()!=null) getModPatternDialog().fillWithPatternArray(currentMod.getModType(), currentMod.getSongLength(), currentMod.getArrangement(), currentMod.getPatternContainer());
 	    	if (currentMod.getInstrumentContainer()!=null)
 	    	{

@@ -2,7 +2,7 @@
  * @(#) OGGMixer.java
  *
  * Created on 01.11.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,17 +75,17 @@ public class OGGMixer extends BasicMixer
 	private int bufferSize;
 	private byte[] output;
 	private int samplesProcessed;
-	
+
 	private long currentSamplesWritten;
-	private int lengthInMilliseconds;
-	
+	private final int lengthInMilliseconds;
+
 	private InputStream inputStream;
-	private URL oggFileUrl;
-	
+	private final URL oggFileUrl;
+
 	/**
 	 * Constructor for OGGMixer
 	 */
-	public OGGMixer(URL oggFileUrl, int lengthInMilliseconds)
+	public OGGMixer(final URL oggFileUrl, final int lengthInMilliseconds)
 	{
 		super();
 		this.oggFileUrl = oggFileUrl;
@@ -95,19 +95,19 @@ public class OGGMixer extends BasicMixer
 	{
 		try
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
-			
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
+
 			inputStream = new FileOrPackedInputStream(oggFileUrl);
-			
+
 			oggEOS = false;
 			decoderState = STATE_INITIAL;
-			
+
 			bufferSize = 0;
 			output = null;
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", e); */ }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException e) { /* Log.error("IGNORED", e); */ }
 			Log.error("[OGGMixer]", ex);
 		}
 	}
@@ -130,7 +130,7 @@ public class OGGMixer extends BasicMixer
 	{
 		if (vorbisInfo!=null)
 		{
-			int bitRate = vorbisInfo.bitrate();
+			final int bitRate = vorbisInfo.bitrate();
 			if (bitRate==-1) return (16*vorbisInfo.rate*vorbisInfo.channels) / 1000;
 			else return bitRate / 1000;
 		}
@@ -163,7 +163,7 @@ public class OGGMixer extends BasicMixer
 	public long getMillisecondPosition()
 	{
 		if (vorbisInfo!=null && vorbisInfo.rate!=0)
-			return (long)currentSamplesWritten * 1000L / (long)vorbisInfo.rate;
+			return currentSamplesWritten * 1000L / vorbisInfo.rate;
 		else
 			return 0;
 	}
@@ -182,7 +182,7 @@ public class OGGMixer extends BasicMixer
 	 * @since 13.02.2012
 	 */
 	@Override
-	protected void seek(long milliseconds)
+	protected void seek(final long milliseconds)
 	{
 		try
 		{
@@ -192,10 +192,10 @@ public class OGGMixer extends BasicMixer
 				initialize();
 			}
 			int byteCount = 1;
-			while (getMillisecondPosition()<milliseconds && byteCount>0) 
+			while (getMillisecondPosition()<milliseconds && byteCount>0)
 				byteCount = decodeFrame();
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[OGGMixer]", ex);
 		}
@@ -235,7 +235,7 @@ public class OGGMixer extends BasicMixer
 					break;
 				case STATE_CONVERTPCM:
 					decoderState = doStateConvertPCM();
-					if (decoderState == STATE_CONVERTPCM) 
+					if (decoderState == STATE_CONVERTPCM)
 						return samplesProcessed * 2 * vorbisInfo.channels;
 					break;
 				default:
@@ -262,7 +262,7 @@ public class OGGMixer extends BasicMixer
 	private int doStateConvertPCM() throws Exception
 	{
 		int nextState = STATE_PROCESSPACKET;
-		int samplesGenerated = vorbisDSPState.synthesis_pcmout(pcmFloatBuffer, pcmGeneratorIndex);
+		final int samplesGenerated = vorbisDSPState.synthesis_pcmout(pcmFloatBuffer, pcmGeneratorIndex);
 		if (samplesGenerated > 0)
 		{
 			samplesProcessed = (samplesGenerated > bufferSize) ? bufferSize : samplesGenerated;
@@ -329,7 +329,7 @@ public class OGGMixer extends BasicMixer
 	private int doStateProcessPacket() throws Exception
 	{
 		int nextState = STATE_PROCESSPACKET;
-		int result = oggStreamState.packetout(oggPacket);
+		final int result = oggStreamState.packetout(oggPacket);
 		if (result == 0)
 		{
 			if (!oggEOS)
@@ -448,7 +448,7 @@ public class OGGMixer extends BasicMixer
 		vorbisBlock.init(vorbisDSPState);
 
 		pcmGeneratorIndex = new int[vorbisInfo.channels];
-	
+
 		currentSamplesWritten = 0;
 
 		// create SampleBuffer for output
@@ -458,8 +458,8 @@ public class OGGMixer extends BasicMixer
 		bufferSize<<=1;
 		output = new byte[bufferSize];
 		setSourceLineBufferSize(bufferSize);
-		
-		AudioFormat audioFormat = new AudioFormat((float)vorbisInfo.rate, 16, vorbisInfo.channels, true, false);  
+
+		final AudioFormat audioFormat = new AudioFormat(vorbisInfo.rate, 16, vorbisInfo.channels, true, false);
 		setAudioFormat(audioFormat);
 
 		openAudioDevice();
@@ -473,10 +473,10 @@ public class OGGMixer extends BasicMixer
 		if (vorbisDSPState!=null) { vorbisDSPState.clear(); vorbisDSPState = null; }
 		if (vorbisInfo!=null) { vorbisInfo.clear(); vorbisInfo = null; }
 		if (oggSyncState!=null) { oggSyncState.clear(); oggSyncState = null; }
-		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -490,7 +490,7 @@ public class OGGMixer extends BasicMixer
 		try
 		{
 			int byteCount = 0;
-			
+
 			do
 			{
 				final long bytesToWrite = (hasStopPosition())?getSamplesToWriteLeft() * getChannelCount() * 2:-1;
@@ -498,9 +498,9 @@ public class OGGMixer extends BasicMixer
 				if (byteCount>0 && isInitialized())
 				{
 					// find out, if all decoded samples are to write
-					if (bytesToWrite>0 && (long)(byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
+					if (bytesToWrite>0 && (byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
 					writeSampleDataToLine(output, 0, byteCount);
-					
+
 					if (stopPositionIsReached()) setIsStopping();
 
 					if (isStopping())
@@ -513,7 +513,7 @@ public class OGGMixer extends BasicMixer
 						setIsPaused();
 						while (isPaused())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /* noop */ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /* noop */ }
 						}
 					}
 					if (isInSeeking())
@@ -521,7 +521,7 @@ public class OGGMixer extends BasicMixer
 						setIsSeeking();
 						while (isInSeeking())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 						}
 					}
 				}
@@ -529,7 +529,7 @@ public class OGGMixer extends BasicMixer
 			while (byteCount!=-1);
 			if (byteCount<=0) setHasFinished(); // Piece finished!
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

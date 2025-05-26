@@ -2,7 +2,7 @@
  * @(#) OggMetaData.java
  *
  * Created on 01.11.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------
  */
- 
+
 package de.quippy.javamod.multimedia.ogg.metadata;
 
 import java.io.FileNotFoundException;
@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import de.quippy.javamod.io.FileOrPackedInputStream;
@@ -36,56 +36,56 @@ import de.quippy.javamod.multimedia.MultimediaContainerManager;
 public class OggMetaData
 {
 	private URL urlName = null;
-	private HashMap<String, String> oggInfo = null;
+	private Map<String, String> oggInfo = null;
 	private int lengthInMilliseconds;
-	
+
 	/**
-	 * Create an id3v1tag from the file specified.  If the file contains a 
+	 * Create an id3v1tag from the file specified.  If the file contains a
 	 * tag, the information is automatically extracted.
 	 *
 	 * @param mp3 the file to read/write the tag to
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public OggMetaData(URL oggFileURL)
+	public OggMetaData(final URL oggFileURL)
 	{
 		super();
 		readMetaData(oggFileURL);
 	}
-	public OggMetaData(InputStream in)
+	public OggMetaData(final InputStream in)
 	{
 		super();
 		readMetaData(in);
 	}
-	private void readMetaData(InputStream in)
+	private void readMetaData(final InputStream in)
 	{
 		try
 		{
-		    JOrbisComment jorbiscomment=new JOrbisComment();
+		    final JOrbisComment jorbiscomment=new JOrbisComment();
 		    jorbiscomment.read(in);
 		    in.close();
-		    
+
 		    lengthInMilliseconds = jorbiscomment.getLengthInMilliseconds();
-		    oggInfo = new HashMap<String, String>();
+		    oggInfo = new HashMap<>();
 			// get data from vorbis comment
 			for (int i = 99; i >= 0; --i)
 			{
 				final String comment = jorbiscomment.getComment().getComment(i);
-				if (comment!=null && comment.length()>0)
+				if (comment!=null && !comment.isEmpty())
 				{
-					int equalIndex = comment.indexOf('=');
-					String key = comment.substring(0, equalIndex);
-					String value = new String(comment.substring(equalIndex+1).getBytes(), "UTF-8");
+					final int equalIndex = comment.indexOf('=');
+					final String key = comment.substring(0, equalIndex);
+					final String value = new String(comment.substring(equalIndex+1).getBytes(), "UTF-8");
 					if (equalIndex!=-1 && key!=null) oggInfo.put(key.toUpperCase(), value);
 				}
 			}
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			throw new RuntimeException(ex);
 		}
 	}
-	private void readMetaData(URL oggFileURL)
+	private void readMetaData(final URL oggFileURL)
 	{
 		InputStream in = null;
 		try
@@ -95,7 +95,7 @@ public class OggMetaData
 			in = new FileOrPackedInputStream(oggFileURL);
 			readMetaData(in);
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			throw new RuntimeException(ex);
 		}
@@ -103,7 +103,7 @@ public class OggMetaData
 		{
 			if (in!=null)
 			{
-				try { in.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+				try { in.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 				in = null;
 			}
 		}
@@ -170,32 +170,31 @@ public class OggMetaData
 	 */
 	public String getShortDescription()
 	{
-		String artist = getArtist();
-		String album = getAlbum();
+		final String artist = getArtist();
+		final String album = getAlbum();
 		String title = getTitle();
-		
-		StringBuilder str = new StringBuilder();
-		if (artist!=null && artist.length()!=0)
+
+		final StringBuilder str = new StringBuilder();
+		if (artist!=null && !artist.isEmpty())
 		{
 			str.append(artist).append(" - ");
 		}
-		if (album!=null && album.length()!=0)
+		if (album!=null && !album.isEmpty())
 		{
 			str.append(album).append(" - ");
 		}
-		if (title==null || title.length()==0) title = MultimediaContainerManager.getSongNameFromURL(urlName);
+		if (title==null || !title.isEmpty()) title = MultimediaContainerManager.getSongNameFromURL(urlName);
 		return str.append(title).toString();
 	}
+	@Override
 	public String toString()
 	{
-		StringBuilder builder = new StringBuilder("OggMetaData\nURL\t\t");
+		final StringBuilder builder = new StringBuilder("OggMetaData\nURL\t\t");
 		builder.append(urlName);
-		Set<String> keys = oggInfo.keySet();
-		Iterator<String> keyIter = keys.iterator();
-		while (keyIter.hasNext())
+		final Set<String> keys = oggInfo.keySet();
+		for (final String key : keys)
 		{
-			String key = keyIter.next();
-			String value = oggInfo.get(key);
+			final String value = oggInfo.get(key);
 			builder.append('\n').append(key).append("\t\t").append(value);
 		}
 		builder.append("\nLength:\t\t\t").append(getLengthInMilliseconds());

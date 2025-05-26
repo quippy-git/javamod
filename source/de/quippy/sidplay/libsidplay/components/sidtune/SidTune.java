@@ -32,7 +32,7 @@ import de.quippy.sidplay.libsidplay.components.sidtune.Mus.Voice3Index;
 
 /**
  * @author Ken H�ndel
- * 
+ *
  */
 public class SidTune {
 
@@ -113,7 +113,7 @@ public class SidTune {
 
 	/**
 	 * Load a sidtune from a file.<BR>
-	 * 
+	 *
 	 * To retrieve data from standard input pass in filename "-". If you want to
 	 * override the default filename extensions use this constructor. Please
 	 * note, that if the specified ``sidTuneFileName'' does exist and the loader
@@ -121,7 +121,7 @@ public class SidTune {
 	 * append any file name extension. See ``SidTune.java'' for the default list
 	 * of file name extensions. You can specific ``sidTuneFileName = 0'', if you
 	 * do not want to load a sidtune. You can later load one with open().<BR>
-	 * 
+	 *
 	 * @param fileName
 	 * @param fileNameExt
 	 */
@@ -141,7 +141,7 @@ public class SidTune {
 	 * <UL>
 	 * <LI>PSID format
 	 * </UL>
-	 * 
+	 *
 	 * @param oneFileFormatSidtune
 	 * @param sidtuneLength
 	 */
@@ -155,7 +155,7 @@ public class SidTune {
 	 * The sidTune class does not copy the list of file name extensions, so make
 	 * sure you keep it. If the provided pointer is 0, the default list will be
 	 * activated. This is a static list which is used by all SidTune objects.
-	 * 
+	 *
 	 * @param fileNameExt
 	 */
 	public static void setFileNameExtensions(final String[] fileNameExt) {
@@ -164,7 +164,7 @@ public class SidTune {
 
 	/**
 	 * Load a sidtune into an existing object. From a file.
-	 * 
+	 *
 	 * @param fileName
 	 * @return
 	 */
@@ -182,7 +182,7 @@ public class SidTune {
 
 	/**
 	 * From a buffer.
-	 * 
+	 *
 	 * @param sourceBuffer
 	 * @param bufferLen
 	 * @return
@@ -198,7 +198,7 @@ public class SidTune {
 	/**
 	 * Select sub-song (0 = default starting song) and retrieve active song
 	 * information.
-	 * 
+	 *
 	 * @param songNum
 	 * @return
 	 */
@@ -210,7 +210,7 @@ public class SidTune {
 	/**
 	 * Select sub-song (0 = default starting song) and return active song number
 	 * out of [1,2,..,SIDTUNE_MAX_SONGS].
-	 * 
+	 *
 	 * @param selectedSong
 	 * @return
 	 */
@@ -248,7 +248,7 @@ public class SidTune {
 
 	/**
 	 * Retrieve sub-song specific information. Beware! Still member-wise copy!
-	 * 
+	 *
 	 * @return
 	 */
 	public final SidTuneInfo getInfo() {
@@ -259,7 +259,7 @@ public class SidTune {
 	 * Determine current state of object (true = okay, false = error). Upon
 	 * error condition use ``getInfo'' to get a descriptive text string in
 	 * ``SidTuneInfo.statusString''.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean bool() {
@@ -270,7 +270,7 @@ public class SidTune {
 	 * Determine current state of object (true = okay, false = error). Upon
 	 * error condition use ``getInfo'' to get a descriptive text string in
 	 * ``SidTuneInfo.statusString''.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean getStatus() {
@@ -279,7 +279,7 @@ public class SidTune {
 
 	/**
 	 * Whether sidtune uses two SID chips.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isStereo() {
@@ -288,13 +288,13 @@ public class SidTune {
 
 	/**
 	 * Copy sidtune into C64 memory (64 KB).
-	 * 
+	 *
 	 * @param c64buf
 	 * @return
 	 */
-	public boolean placeSidTuneInC64mem(short[] /* uint_least8_t* */c64buf) {
+	public boolean placeSidTuneInC64mem(final short[] /* uint_least8_t* */c64buf) {
 		if (status && c64buf != null) {
-			int /* uint_least32_t */endPos = info.loadAddr + info.c64dataLen;
+			final int /* uint_least32_t */endPos = info.loadAddr + info.c64dataLen;
 			if (endPos <= SIDTUNE_MAX_MEMORY) {
 				// Copy data from cache to the correct destination.
 				System.arraycopy(cache.get(), fileOffset, c64buf,
@@ -349,12 +349,12 @@ public class SidTune {
 		// This prevents saving from a bad object.
 		if (status) {
 			try {
-				FileOutputStream fMyOut = new FileOutputStream(destFileName,
+				final FileOutputStream fMyOut = new FileOutputStream(destFileName,
 						!overWriteFlag);
 
 				if (!info.musPlayer) {
 					// Save c64 lo/hi load address.
-					short /* uint_least8_t */saveAddr[] = new short[2];
+					final short /* uint_least8_t */saveAddr[] = new short[2];
 					saveAddr[0] = (short) (info.loadAddr & 255);
 					saveAddr[1] = (short) (info.loadAddr >> 8);
 					fMyOut.write(saveAddr[0]);
@@ -371,7 +371,7 @@ public class SidTune {
 					success = true;
 				}
 				fMyOut.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				info.statusString = txt_cantCreateFile;
 			}
 		}
@@ -393,7 +393,7 @@ public class SidTune {
 		// This prevents saving from a bad object.
 		if (status) {
 			try {
-				FileOutputStream fMyOut = new FileOutputStream(destFileName,
+				final FileOutputStream fMyOut = new FileOutputStream(destFileName,
 						!overWriteFlag);
 				if (!SID_fileSupportSave(fMyOut)) {
 					info.statusString = txt_fileIoError;
@@ -402,7 +402,7 @@ public class SidTune {
 					success = true;
 				}
 				fMyOut.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				info.statusString = txt_cantCreateFile;
 			}
 		}
@@ -424,7 +424,7 @@ public class SidTune {
 		// This prevents saving from a bad object.
 		if (status) {
 			try {
-				FileOutputStream fMyOut = new FileOutputStream(destFileName,
+				final FileOutputStream fMyOut = new FileOutputStream(destFileName,
 						!overWriteFlag);
 				if (!PSID_fileSupportSave(fMyOut, cache.get())) {
 					info.statusString = txt_fileIoError;
@@ -433,7 +433,7 @@ public class SidTune {
 					success = true;
 				}
 				fMyOut.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				info.statusString = txt_cantCreateFile;
 			}
 		}
@@ -445,21 +445,21 @@ public class SidTune {
 	 * C64 data (example: FE 0F 00 10 4C ...). A duplicate load address of
 	 * offset 0x02 is indicated by the ``fixLoad'' flag in the SidTuneInfo
 	 * structure.
-	 * 
+	 *
 	 * The ``force'' flag here can be used to remove the first load address and
 	 * set new INIT/PLAY addresses regardless of whether a duplicate load
 	 * address has been detected and indicated by ``fixLoad''. For instance,
 	 * some position independent sidtunes contain a load address of 0xE000, but
 	 * are loaded to 0x0FFE and call the player code at 0x1000.
-	 * 
+	 *
 	 * Do not forget to save the sidtune file.
-	 * 
+	 *
 	 * @param force
 	 * @param init
 	 * @param play
 	 */
 	public void fixLoadAddress(final boolean force,
-			int /* uint_least16_t */init, int /* uint_least16_t */play) {
+			final int /* uint_least16_t */init, final int /* uint_least16_t */play) {
 		if (info.fixLoad || force) {
 			info.fixLoad = false;
 			info.loadAddr += 2;
@@ -475,18 +475,18 @@ public class SidTune {
 	/**
 	 * Does not affect status of object, and therefore can be used to load
 	 * files. Error string is put into info.statusString, though.
-	 * 
+	 *
 	 * @param fileName
 	 * @param bufferRef
 	 * @return
 	 */
 	public boolean loadFile(final String fileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */bufferRef) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */bufferRef) {
 		FileInputStream myIn = null;
-		Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */fileBuf = new Buffer_sidtt();
+		final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */fileBuf = new Buffer_sidtt();
 		int /* uint_least32_t */fileLen = 0;
 
-		File file = new File(fileName);
+		final File file = new File(fileName);
 
 		if (!file.exists() || !file.canRead()) {
 			info.statusString = txt_cantOpenFile;
@@ -501,7 +501,7 @@ public class SidTune {
 					info.statusString = txt_notEnoughMemory;
 					return false;
 				}
-				int /* uint_least32_t */restFileLen = fileLen;
+				final int /* uint_least32_t */restFileLen = fileLen;
 				if (restFileLen > 0) {
 					for (int i = 0; i < fileLen; i++) {
 						fileBuf.get()[i] = (short) myIn.read();
@@ -509,12 +509,12 @@ public class SidTune {
 				}
 				info.statusString = txt_noErrors;
 				myIn.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				info.statusString = txt_cantLoadFile;
 				return false;
 			}
 			finally {
-				if (myIn!=null) try { myIn.close(); } catch (IOException ex) { info.statusString = ex.getMessage(); }
+				if (myIn!=null) try { myIn.close(); } catch (final IOException ex) { info.statusString = ex.getMessage(); }
 			}
 		}
 		if (fileLen == 0) {
@@ -529,17 +529,17 @@ public class SidTune {
 		return true;
 	}
 
-	public boolean saveToOpenFile(OutputStream toFile,
-			final short[] /* uint_least8_t* */buffer, int bufferOffset,
-			int /* uint_least32_t */bufLen) {
-		int /* uint_least32_t */lenToWrite = bufLen;
+	public boolean saveToOpenFile(final OutputStream toFile,
+			final short[] /* uint_least8_t* */buffer, final int bufferOffset,
+			final int /* uint_least32_t */bufLen) {
+		final int /* uint_least32_t */lenToWrite = bufLen;
 		try {
 			if (lenToWrite > 0) {
 				for (int i = (bufLen - lenToWrite); i < lenToWrite; i++) {
 					toFile.write(buffer[bufferOffset + i]);
 				}
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			info.statusString = txt_fileIoError;
 			return false;
 		}
@@ -614,12 +614,12 @@ public class SidTune {
 
 	/**
 	 * Convert 32-bit PSID-style speed word to internal tables.
-	 * 
+	 *
 	 * @param speed
 	 * @param clock
 	 */
 	protected void convertOldStyleSpeedToTables(
-			long /* uint_least32_t */speed, short clock) {
+			final long /* uint_least32_t */speed, final short clock) {
 		// Create the speed/clock setting tables.
 		//
 		// This does not take into account the PlaySID bug upon evaluating the
@@ -628,7 +628,7 @@ public class SidTune {
 		// The .SID format does the bit-wise/song-wise evaluation of the SPEED
 		// value correctly, like it is described in the PlaySID documentation.
 
-		int toDo = ((info.songs <= SIDTUNE_MAX_SONGS) ? info.songs
+		final int toDo = ((info.songs <= SIDTUNE_MAX_SONGS) ? info.songs
 				: SIDTUNE_MAX_SONGS);
 		for (int s = 0; s < toDo; s++) {
 			clockSpeed[s] = clock;
@@ -640,8 +640,8 @@ public class SidTune {
 	}
 
 	protected int convertPetsciiToAscii(
-			SmartPtr_sidtt /* SmartPtr_sidtt<const uint8_t>& */spPet,
-			StringBuffer dest) {
+			final SmartPtr_sidtt /* SmartPtr_sidtt<const uint8_t>& */spPet,
+			final StringBuffer dest) {
 		int count = 0;
 		short c;
 		if (dest != null) {
@@ -669,7 +669,7 @@ public class SidTune {
 
 	/**
 	 * Check compatibility details are sensible
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean checkCompatibility() {
@@ -706,7 +706,7 @@ public class SidTune {
 
 	/**
 	 * Check for valid relocation information
-	 * 
+	 *
 	 * @return
 	 */
 	protected boolean checkRelocInfo() {
@@ -755,13 +755,13 @@ public class SidTune {
 
 	/**
 	 * Common address resolution procedure
-	 * 
+	 *
 	 * @param c64data
 	 * @param fileOffset2
 	 * @return
 	 */
 	protected boolean resolveAddrs(final short[] /* uint_least8_t* */c64data,
-			int fileOffset2) {
+			final int fileOffset2) {
 		// Originally used as a first attempt at an RSID
 		// style format. Now reserved for future use
 		if (info.playAddr == 0xffff)
@@ -794,58 +794,58 @@ public class SidTune {
 	// Support for various file formats.
 	//
 
-	private PSid psid = new PSid(this);
+	private final PSid psid = new PSid(this);
 
 	protected LoadStatus PSID_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
 		return psid.PSID_fileSupport(dataBuf);
 	}
 
-	protected boolean PSID_fileSupportSave(OutputStream toFile,
+	protected boolean PSID_fileSupportSave(final OutputStream toFile,
 			final short[] /* uint_least8_t* */dataBuffer) {
 		return psid.PSID_fileSupportSave(toFile, dataBuffer);
 	}
 
 	protected LoadStatus SID_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */sidBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */sidBuf) {
 		return LoadStatus.LOAD_NOT_MINE;
 	}
 
-	protected boolean SID_fileSupportSave(OutputStream toFile) {
+	protected boolean SID_fileSupportSave(final OutputStream toFile) {
 		return true;
 	}
 
 	Mus mus = new Mus(this);
 
 	protected LoadStatus MUS_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
 		return mus.MUS_fileSupport(musBuf, strBuf);
 	}
 
 	protected LoadStatus MUS_load(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			boolean init) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final boolean init) {
 		return mus.MUS_load(musBuf, init);
 	}
 
 	protected LoadStatus MUS_load(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf,
-			boolean init) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf,
+			final boolean init) {
 		return mus.MUS_load(musBuf, strBuf, init);
 	}
 
 	protected boolean MUS_detect(final short[] /* const void* */buffer,
 			final int /* uint_least32_t */bufLen,
-			Voice3Index /* uint_least32_t& */voice3Index) {
+			final Voice3Index /* uint_least32_t& */voice3Index) {
 		return mus.MUS_detect(buffer, bufLen, voice3Index);
 	}
 
 	protected boolean MUS_mergeParts(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */musBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */strBuf) {
 		return mus.MUS_mergeParts(musBuf, strBuf);
 	}
 
@@ -853,29 +853,29 @@ public class SidTune {
 		mus.MUS_setPlayerAddress();
 	}
 
-	protected void MUS_installPlayer(short[] /* uint_least8_t * */c64buf) {
+	protected void MUS_installPlayer(final short[] /* uint_least8_t * */c64buf) {
 		mus.MUS_installPlayer(c64buf);
 	}
 
 	InfoFile inf = new InfoFile(this);
 
 	protected LoadStatus INFO_fileSupport(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */infoBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf,
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */infoBuf) {
 		return inf.INFO_fileSupport(dataBuf, infoBuf);
 	}
 
 	Prg prg = new Prg(this);
 
 	protected LoadStatus PRG_fileSupport(final String fileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
 		return prg.PRG_fileSupport(fileName, dataBuf);
 	}
 
 	P00 p00 = new P00(this);
 
 	protected LoadStatus X00_fileSupport(final String fileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */dataBuf) {
 		return p00.X00_fileSupport(fileName, dataBuf);
 	}
 
@@ -921,7 +921,7 @@ public class SidTune {
 
 	/**
 	 * Petscii to Ascii conversion table.<BR>
-	 * 
+	 *
 	 * CHR$ conversion table (0x01 = no output)
 	 */
 	private static final short _sidtune_CHRtab[] = { 0x0, 0x1, 0x1, 0x1, 0x1,
@@ -1026,7 +1026,7 @@ public class SidTune {
 		try {
 			while ((datb = System.in.read()) != -1 && i < SIDTUNE_MAX_FILELEN)
 				fileBuf[i++] = (short /* uint_least8_t */) datb;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 			return;
 		}
@@ -1037,15 +1037,15 @@ public class SidTune {
 
 	/**
 	 * Initializing the object based upon what we find in the specified file.
-	 * 
+	 *
 	 * @param fileName
 	 */
 	private void getFromFiles(final String fileName) {
 		// Assume a failure, so we can simply return.
 		status = false;
 
-		Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */fileBuf1 = new Buffer_sidtt(), fileBuf2 = new Buffer_sidtt();
-		StringBuffer /* Buffer_sidtt<char> */fileName2 = new StringBuffer();
+		final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */fileBuf1 = new Buffer_sidtt(), fileBuf2 = new Buffer_sidtt();
+		final StringBuffer /* Buffer_sidtt<char> */fileName2 = new StringBuffer();
 
 		// Try to load the single specified file. The original method didn't
 		// quite work that well, so instead we now let the support files take
@@ -1102,18 +1102,16 @@ public class SidTune {
 						// 1st data file was loaded into ``fileBuf1'',
 						// so we load the 2nd one into ``fileBuf2''.
 						// Do not load the first file again if names are equal.
-						if (!fileName.equalsIgnoreCase(fileName2.toString())
-								&& loadFile(fileName2.toString(), fileBuf2)) {
-							if ((SID_fileSupport(fileBuf1, fileBuf2) == LoadStatus.LOAD_OK)
-									|| (INFO_fileSupport(fileBuf1, fileBuf2) == LoadStatus.LOAD_OK)) {
-								status = acceptSidTune(fileName, fileName2
-										.toString(), fileBuf1);
-								return;
-							}
+						if ((!fileName.equalsIgnoreCase(fileName2.toString())
+								&& loadFile(fileName2.toString(), fileBuf2)) && ((SID_fileSupport(fileBuf1, fileBuf2) == LoadStatus.LOAD_OK)
+								|| (INFO_fileSupport(fileBuf1, fileBuf2) == LoadStatus.LOAD_OK))) {
+							status = acceptSidTune(fileName, fileName2
+									.toString(), fileBuf1);
+							return;
 						}
 						n++;
 					}
-					
+
 
 					// --------------------------------------- Could not find a
 					// description file.
@@ -1163,7 +1161,7 @@ public class SidTune {
 							}
 							n++;
 						}
-						
+
 						// No (suitable) second file, so reload first without
 						// second
 						fileBuf2.erase();
@@ -1219,22 +1217,17 @@ public class SidTune {
 						// 1st info file was loaded into ``fileBuf'',
 						// so we load the 2nd one into ``fileBuf2''.
 						// Do not load the first file again if names are equal.
-						if (!fileName.equalsIgnoreCase(fileName2.toString()) &&
+						if ((!fileName.equalsIgnoreCase(fileName2.toString()) &&
 
-						loadFile(fileName2.toString(), fileBuf2)) {
-							// -------------- Some data file found, now
-							// identifying the description file.
-
-							if ((SID_fileSupport(fileBuf2, fileBuf1) == LoadStatus.LOAD_OK)
-									|| (INFO_fileSupport(fileBuf2, fileBuf1) == LoadStatus.LOAD_OK)) {
-								status = acceptSidTune(fileName2.toString(),
-										fileName, fileBuf2);
-								return;
-							}
+						loadFile(fileName2.toString(), fileBuf2)) && ((SID_fileSupport(fileBuf2, fileBuf1) == LoadStatus.LOAD_OK)
+								|| (INFO_fileSupport(fileBuf2, fileBuf1) == LoadStatus.LOAD_OK))) {
+							status = acceptSidTune(fileName2.toString(),
+									fileName, fileBuf2);
+							return;
 						}
 						n++;
 					}
-					
+
 
 					// ---------------------------------------- No corresponding
 					// data file found.
@@ -1257,17 +1250,17 @@ public class SidTune {
 
 	/**
 	 * Support for OR-ing two LoadStatus enums
-	 * 
+	 *
 	 * @param support
 	 * @param support2
 	 * @return
 	 */
-	private LoadStatus orStatus(LoadStatus support, LoadStatus support2) {
-		int val1 = (support == LoadStatus.LOAD_NOT_MINE) ? 0
+	private LoadStatus orStatus(final LoadStatus support, final LoadStatus support2) {
+		final int val1 = (support == LoadStatus.LOAD_NOT_MINE) ? 0
 				: (support == LoadStatus.LOAD_OK) ? 1 : 2;
-		int val2 = (support2 == LoadStatus.LOAD_NOT_MINE) ? 0
+		final int val2 = (support2 == LoadStatus.LOAD_NOT_MINE) ? 0
 				: (support2 == LoadStatus.LOAD_OK) ? 1 : 2;
-		int erg = val1 | val2;
+		final int erg = val1 | val2;
 		return (erg == 0) ? LoadStatus.LOAD_NOT_MINE
 				: (erg == 1) ? LoadStatus.LOAD_OK : LoadStatus.LOAD_ERROR;
 	}
@@ -1301,16 +1294,16 @@ public class SidTune {
 			return;
 		}
 
-		short[] /* uint_least8_t* */tmpBuf = new short /* uint_least8_t */[bufferLen]; 
+		final short[] /* uint_least8_t* */tmpBuf = new short /* uint_least8_t */[bufferLen];
 //		if (null == tmpBuf) {
 //			info.statusString = txt_notEnoughMemory;
 //			return;
 //		}
 		System.arraycopy(buffer, 0, tmpBuf, 0, bufferLen);
 
-		Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */buf1 = new Buffer_sidtt(
+		final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */buf1 = new Buffer_sidtt(
 				tmpBuf, bufferLen);
-		Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */buf2 = new Buffer_sidtt(); // empty
+		final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t> */buf2 = new Buffer_sidtt(); // empty
 
 		if (decompressPP20(buf1) < 0)
 			return;
@@ -1343,7 +1336,7 @@ public class SidTune {
 	/**
 	 * Cache the data of a single-file or two-file sidtune and its corresponding
 	 * file names.
-	 * 
+	 *
 	 * @param dataFileName
 	 * @param infoFileName
 	 * @param buf
@@ -1351,13 +1344,13 @@ public class SidTune {
 	 */
 	private boolean acceptSidTune(final String dataFileName,
 			final String infoFileName,
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */buf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */buf) {
 		// @FIXME@ - MUS
 		if (info.numberOfInfoStrings == 3) { // Add <?> (HVSC standard) to
 			// missing title, author,
 			// release fields
 			for (int i = 0; i < 3; i++) {
-				if (infoString[i].length() == 0) {
+				if (infoString[i].isEmpty()) {
 					infoString[i] = "<?>";
 					info.infoString[i] = infoString[i];
 				}
@@ -1367,7 +1360,7 @@ public class SidTune {
 		deleteFileNameCopies();
 		// Make a copy of the data file name and path, if available.
 		if (dataFileName != null) {
-			File file = new File(info.path = dataFileName);
+			final File file = new File(info.path = dataFileName);
 			info.dataFileName = file.getName();
 			info.path = file.getParentFile() != null ? file
 					.getParentFile().getPath() : ""; // path
@@ -1410,11 +1403,7 @@ public class SidTune {
 
 		// Calculate any remaining addresses and then
 		// confirm all the file details are correct
-		if (resolveAddrs(buf.get(), fileOffset) == false)
-			return false;
-		if (checkRelocInfo() == false)
-			return false;
-		if (checkCompatibility() == false)
+		if (!resolveAddrs(buf.get(), fileOffset) || !checkRelocInfo() || !checkCompatibility())
 			return false;
 
 		if (info.dataFileLen >= 2) {
@@ -1440,11 +1429,11 @@ public class SidTune {
 	}
 
 	private boolean createNewFileName(
-			StringBuffer /* Buffer_sidtt<char>& */destString,
+			final StringBuffer /* Buffer_sidtt<char>& */destString,
 			final String sourceName, final String sourceExt) {
-		if (destString.length()>0)
+		if (!destString.isEmpty())
 			destString.delete(0, destString.length() - 1);
-		int extPos = sourceName.lastIndexOf(".");
+		final int extPos = sourceName.lastIndexOf(".");
 		if (extPos != -1) {
 			destString.append(sourceName.substring(0, extPos))
 					.append(sourceExt);
@@ -1465,12 +1454,12 @@ public class SidTune {
 	 *         -1 for error
 	 */
 	private int decompressPP20(
-			Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */buf) {
+			final Buffer_sidtt /* Buffer_sidtt<const uint_least8_t>& */buf) {
 		// Check for PowerPacker compression: load and decompress, if PP20 file.
-		PP20 myPP = new PP20();
+		final PP20 myPP = new PP20();
 		int /* uint_least32_t */fileLen;
 		if (myPP.isCompressed(buf.get(), buf.len())) {
-			Decompressed decomp = new Decompressed();
+			final Decompressed decomp = new Decompressed();
 			if (0 == (fileLen = myPP.decompress(buf.get(), buf.len(), decomp))) {
 				info.statusString = myPP.getStatusString();
 				return -1;

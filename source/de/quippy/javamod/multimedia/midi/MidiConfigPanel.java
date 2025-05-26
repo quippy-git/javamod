@@ -2,7 +2,7 @@
  * @(#) MidiConfigPanel.java
  *
  * Created on 24.10.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Mixer.Info;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -47,17 +48,17 @@ public class MidiConfigPanel extends JPanel
 {
 	private static final long serialVersionUID = -3555440476406286002L;
 
-	private JLabel midiOutputDeviceLabel = null; 
+	private JLabel midiOutputDeviceLabel = null;
 	private JComboBox<MidiDevice.Info> midiOutputDevice = null;
 	private JLabel midiSoundBankLabel = null;
 	private JTextField midiSoundBankUrl = null;
 	private JButton searchButton = null;
 	private JCheckBox capture = null;
-	private JLabel mixerInputDeviceLabel = null; 
+	private JLabel mixerInputDeviceLabel = null;
 	private JComboBox<javax.sound.sampled.Mixer.Info> mixerInputDevice = null;
 
 	private MidiContainer parentContainer = null;
-	
+
 	/**
 	 * Constructor for MidiConfigPanel
 	 */
@@ -70,7 +71,7 @@ public class MidiConfigPanel extends JPanel
 	 * Constructor for MidiConfigPanel
 	 * @param layout
 	 */
-	public MidiConfigPanel(LayoutManager layout)
+	public MidiConfigPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -79,7 +80,7 @@ public class MidiConfigPanel extends JPanel
 	 * Constructor for MidiConfigPanel
 	 * @param isDoubleBuffered
 	 */
-	public MidiConfigPanel(boolean isDoubleBuffered)
+	public MidiConfigPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -89,7 +90,7 @@ public class MidiConfigPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public MidiConfigPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public MidiConfigPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -104,7 +105,7 @@ public class MidiConfigPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(MidiContainer parent)
+	public void setParentContainer(final MidiContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -113,12 +114,12 @@ public class MidiConfigPanel extends JPanel
 	 * @param fromName
 	 * @return
 	 */
-	private static javax.sound.sampled.Mixer.Info getMixerInfo(String fromName)
+	private static javax.sound.sampled.Mixer.Info getMixerInfo(final String fromName)
 	{
-		javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		for (int i=0; i<mixerInfos.length; i++)
+		final javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+		for (final Info element : mixerInfos)
 		{
-			if (mixerInfos[i].getName().equalsIgnoreCase(fromName)) return mixerInfos[i];
+			if (element.getName().equalsIgnoreCase(fromName)) return element;
 		}
 		return null;
 	}
@@ -175,12 +176,12 @@ public class MidiConfigPanel extends JPanel
 	{
 		if (midiOutputDevice==null)
 		{
-			midiOutputDevice = new JComboBox<MidiDevice.Info>();
+			midiOutputDevice = new JComboBox<>();
 			midiOutputDevice.setName("midiOutputDevice");
-			
+
 			if (MidiContainer.MIDIOUTDEVICEINFOS != null)
 			{
-				javax.swing.DefaultComboBoxModel<MidiDevice.Info> theModel = new javax.swing.DefaultComboBoxModel<MidiDevice.Info>(MidiContainer.MIDIOUTDEVICEINFOS);
+				final javax.swing.DefaultComboBoxModel<MidiDevice.Info> theModel = new javax.swing.DefaultComboBoxModel<>(MidiContainer.MIDIOUTDEVICEINFOS);
 				midiOutputDevice.setModel(theModel);
 			}
 			midiOutputDevice.setFont(Helpers.getDialogFont());
@@ -220,11 +221,11 @@ public class MidiConfigPanel extends JPanel
 	}
 	private void doSelectSoundbankFile()
 	{
-		FileFilter[] fileFilter = new FileFilter[] { new FileChooserFilter("*", "All files"), new FileChooserFilter("gm", "Soundbank file (*.gm)"), new FileChooserFilter("sf2", "Soundfont files (*.sf2)") };
-		FileChooserResult selectedFile = Helpers.selectFileNameFor(this, null, "Select soundbank file", fileFilter, false, 0, false, false);
+		final FileFilter[] fileFilter = new FileFilter[] { new FileChooserFilter("*", "All files"), new FileChooserFilter("gm", "Soundbank file (*.gm)"), new FileChooserFilter("sf2", "Soundfont files (*.sf2)") };
+		final FileChooserResult selectedFile = Helpers.selectFileNameFor(this, null, "Select soundbank file", fileFilter, false, 0, false, false);
 		if (selectedFile!=null)
 		{
-			File select = selectedFile.getSelectedFile();
+			final File select = selectedFile.getSelectedFile();
 			getMidiSoundBankURL().setText(select.toString());
 		}
 	}
@@ -239,7 +240,8 @@ public class MidiConfigPanel extends JPanel
 			searchButton.setToolTipText("Search a soundbank file for the default synthesizer");
 			searchButton.addActionListener(new java.awt.event.ActionListener()
 	        {
-	            public void actionPerformed(java.awt.event.ActionEvent evt)
+	            @Override
+				public void actionPerformed(final java.awt.event.ActionEvent evt)
 	            {
 	            	doSelectSoundbankFile();
 	            }
@@ -251,12 +253,12 @@ public class MidiConfigPanel extends JPanel
 	{
 		if (mixerInputDevice==null)
 		{
-			mixerInputDevice = new JComboBox<javax.sound.sampled.Mixer.Info>();
+			mixerInputDevice = new JComboBox<>();
 			mixerInputDevice.setName("mixerInputDevice");
-			
+
 			if (MidiContainer.MIXERDEVICEINFOS!=null)
 			{
-				javax.swing.DefaultComboBoxModel<javax.sound.sampled.Mixer.Info> theModel = new javax.swing.DefaultComboBoxModel<javax.sound.sampled.Mixer.Info>(MidiContainer.MIXERDEVICEINFOS);
+				final javax.swing.DefaultComboBoxModel<javax.sound.sampled.Mixer.Info> theModel = new javax.swing.DefaultComboBoxModel<>(MidiContainer.MIXERDEVICEINFOS);
 				mixerInputDevice.setModel(theModel);
 			}
 			mixerInputDevice.setFont(Helpers.getDialogFont());
@@ -264,12 +266,12 @@ public class MidiConfigPanel extends JPanel
 		}
 		return mixerInputDevice;
 	}
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 		getMidiOutputDevice().setSelectedItem(MidiContainer.getMidiOutDeviceByName(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_OUTPUTDEVICE, MidiContainer.DEFAULT_OUTPUTDEVICE)));
 		getMidiSoundBankURL().setText(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_SOUNDBANK, MidiContainer.DEFAULT_SOUNDBANKURL));
 		getCapture().setSelected((Boolean.valueOf(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_CAPTURE, MidiContainer.DEFAULT_CAPUTRE)).booleanValue()));
-		javax.sound.sampled.Mixer.Info mixerInfo = getMixerInfo(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_MIXERNAME, MidiContainer.DEFAULT_MIXERNAME));
+		final javax.sound.sampled.Mixer.Info mixerInfo = getMixerInfo(newProps.getProperty(MidiContainer.PROPERTY_MIDIPLAYER_MIXERNAME, MidiContainer.DEFAULT_MIXERNAME));
 		if (mixerInfo!=null)
 		{
 			for (int i=0; i<MidiContainer.MIXERDEVICEINFOS.length; i++)
@@ -283,11 +285,11 @@ public class MidiConfigPanel extends JPanel
 	}
 	public void configurationSave(final Properties props)
 	{
-		MidiDevice.Info outputDevice = (MidiDevice.Info)getMidiOutputDevice().getSelectedItem();
+		final MidiDevice.Info outputDevice = (MidiDevice.Info)getMidiOutputDevice().getSelectedItem();
 		if (outputDevice!=null) props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_OUTPUTDEVICE, outputDevice.getName());
 		props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_SOUNDBANK, getMidiSoundBankURL().getText());
 		props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_CAPTURE, Boolean.toString(getCapture().isSelected()));
-		javax.sound.sampled.Mixer.Info mixerInfo = (javax.sound.sampled.Mixer.Info)getMixerInputDevice().getSelectedItem();
+		final javax.sound.sampled.Mixer.Info mixerInfo = (javax.sound.sampled.Mixer.Info)getMixerInputDevice().getSelectedItem();
 		if (mixerInfo!=null) props.setProperty(MidiContainer.PROPERTY_MIDIPLAYER_MIXERNAME, mixerInfo.getName());
 	}
 }

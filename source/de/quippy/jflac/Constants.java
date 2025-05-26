@@ -21,16 +21,16 @@ package de.quippy.jflac;
  */
 
 public class Constants {
-    
+
     /** The maximum number of audio channels. */
     public static final int MAX_CHANNELS = 8;
-    
+
     /** The maximum frame block size. */
     public static final int MAX_BLOCK_SIZE = 65535;
 
     /** The maximum Rice partition order permitted by the format. */
     public static final int MAX_RICE_PARTITION_ORDER = 15;
-    
+
     /** independent channels. */
     public static final int CHANNEL_ASSIGNMENT_INDEPENDENT = 0;
     /** left+side stereo. */

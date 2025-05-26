@@ -2,7 +2,7 @@
  * @(#) ID3v2ExtendedHeader.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ import de.quippy.javamod.io.RandomAccessInputStream;
 import de.quippy.javamod.multimedia.mp3.id3.exceptions.ID3v2FormatException;
 
 /**
- * Description: 
- *  If the id3v2 tag has an extended header, this class will read/write the 
+ * Description:
+ *  If the id3v2 tag has an extended header, this class will read/write the
  *  information contained within it.  NOTE: this class is untested and has
  *  no mutators.  In other words, this class will only be used if an mp3
  *  already has an extended header (at this point at least).
@@ -59,7 +59,7 @@ public class ID3v2ExtendedHeader
 	private int numFlagBytes = 0;
 	private boolean update = false;
 	private boolean crced = false;
-	private byte[] crc = new byte[CRC_SIZE];
+	private final byte[] crc = new byte[CRC_SIZE];
 	//private int maxFrames = -1;
 	private int maxTagSize = -1;
 	private boolean textEncode = false;
@@ -76,7 +76,7 @@ public class ID3v2ExtendedHeader
 	 * @exception IOException if an error occurs
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	public ID3v2ExtendedHeader(RandomAccessInputStream raf) throws IOException, ID3v2FormatException
+	public ID3v2ExtendedHeader(final RandomAccessInputStream raf) throws IOException, ID3v2FormatException
 	{
 		readExtendedHeader(raf);
 	}
@@ -88,7 +88,7 @@ public class ID3v2ExtendedHeader
 	 * @exception IOException if an error occurs
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	private void readExtendedHeader(RandomAccessInputStream raf) throws IOException, ID3v2FormatException
+	private void readExtendedHeader(final RandomAccessInputStream raf) throws IOException, ID3v2FormatException
 	{
 		raf.seek(EXT_HEAD_LOCATION);
 
@@ -120,24 +120,24 @@ public class ID3v2ExtendedHeader
 	 * @param flags the array of extended flags
 	 * @exception ID3v2FormatException if an error occurs
 	 */
-	private void parseFlags(byte[] flags) throws ID3v2FormatException
+	private void parseFlags(final byte[] flags) throws ID3v2FormatException
 	{
 		int bytesRead = 1;
 
 		update = (flags[0]&0x80)!=0;
 		if (update) bytesRead++;
-		
+
 		crced = (flags[0]&0x40)!=0;
 		if (crced)
 		{
 			bytesRead++;
 			for (int i = 0; i < crc.length; i++) crc[i] = flags[bytesRead++];
 		}
-		
+
 		if ((flags[0]&0x80)!=0)
 		{
 			bytesRead++;
-			byte b = flags[bytesRead];
+			final byte b = flags[bytesRead];
 			maxTagSize = (b&0xC0)>>6;
 			textEncode = (b&0x20)!=0;
 			maxTextSize = (b&0x18)>>3;
@@ -158,7 +158,7 @@ public class ID3v2ExtendedHeader
 	 */
 	private byte[] getFlagBytes()
 	{
-		byte[] b = new byte[numFlagBytes];
+		final byte[] b = new byte[numFlagBytes];
 		int bytesCopied = 1;
 		b[0] = 0;
 
@@ -191,14 +191,14 @@ public class ID3v2ExtendedHeader
 	}
 
 	/**
-	 * Return an array of bytes representing this extended header in the 
+	 * Return an array of bytes representing this extended header in the
 	 * standard format to be written to a file.
 	 *
 	 * @return a binary represenation of this extended header
 	 */
 	public byte[] getBytes()
 	{
-		byte[] b = new byte[size];
+		final byte[] b = new byte[size];
 		int bytesCopied = 0;
 
 		System.arraycopy(ID3v2Tag.convertIntToDWord(size), 0, b, bytesCopied, 4);
@@ -349,6 +349,7 @@ public class ID3v2ExtendedHeader
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
 		return "ExtendedSize:\t\t\t" + getSize() + " bytes" + "\nNumFlagBytes:\t\t\t" + getNumFlagBytes() + "\nUpdated:\t\t\t" + getUpdate() + "\nCRC:\t\t\t\t" + getCRCed() + "\nMaxFrames:\t\t\t" + getMaxFrames() + "\nMaxTagSize:\t\t\t" + getMaxTagSize()

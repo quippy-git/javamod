@@ -2,7 +2,7 @@
  * @(#) NullsoftID3GenreTable.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ package de.quippy.javamod.multimedia.mp3.id3;
  * Description:
  *  This class keeps track of all the genre numbers and their corresponding
  *  Strings based on the ID3 and Nullsoft standards.
- *  
+ *
  * @author:  Jonathan Hilliker modified by Daniel Becker
  */
 public final class NullsoftID3GenreTable
@@ -49,9 +49,9 @@ public final class NullsoftID3GenreTable
 	 * @param i the genre code
 	 * @return the genre String or null if the genre code is invalid
 	 */
-	public static String getGenre(int i)
+	public static String getGenre(final int i)
 	{
-		if ((i < GENRES.length) && (i >= 0)) 
+		if ((i < GENRES.length) && (i >= 0))
 			return GENRES[i];
 		else
 			return null;
@@ -59,13 +59,13 @@ public final class NullsoftID3GenreTable
 
 	/**
 	 * Tries to find the string provided in the table and returns the
-	 * corresponding int code if successful.  Returns -1 if the genres is 
+	 * corresponding int code if successful.  Returns -1 if the genres is
 	 * not found in the table.
 	 *
 	 * @param str the genre to search for
 	 * @return the integer code for the genre or -1 if the genre is not found
 	 */
-	public static int getGenre(String str)
+	public static int getGenre(final String str)
 	{
 		for (int i=0; i<GENRES.length; i++)
 			if (GENRES[i].equalsIgnoreCase(str)) return i;

@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -74,9 +74,9 @@ class Lookup{
       -1.0000000000000f,};
 
   /* interpolated lookup based cos function, domain 0 to PI only */
-  static float coslook(float a){
-    double d=a*(.31830989*(float)COS_LOOKUP_SZ);
-    int i=(int)d;
+  static float coslook(final float a){
+    final double d=a*(.31830989*COS_LOOKUP_SZ);
+    final int i=(int)d;
     return COS_LOOKUP[i]+((float)(d-i))*(COS_LOOKUP[i+1]-COS_LOOKUP[i]);
   }
 
@@ -92,9 +92,9 @@ class Lookup{
       1.016001016002f, 1.007905261358f, 1.000000000000f,};
 
   /* interpolated 1./sqrt(p) where .5 <= p < 1. */
-  static float invsqlook(float a){
-    double d=a*(2.f*(float)INVSQ_LOOKUP_SZ)-(float)INVSQ_LOOKUP_SZ;
-    int i=(int)d;
+  static float invsqlook(final float a){
+    final double d=a*(2.f*INVSQ_LOOKUP_SZ)-INVSQ_LOOKUP_SZ;
+    final int i=(int)d;
     return INVSQ_LOOKUP[i]+((float)(d-i))*(INVSQ_LOOKUP[i+1]-INVSQ_LOOKUP[i]);
   }
 
@@ -115,7 +115,7 @@ class Lookup{
       2.157918644e-05f, 1.525878906e-05f,};
 
   /* interpolated 1./sqrt(p) where .5 <= p < 1. */
-  static float invsq2explook(int a){
+  static float invsq2explook(final int a){
     return INVSQ2EXP_LOOKUP[a-INVSQ2EXP_LOOKUP_MIN];
   }
 
@@ -143,8 +143,8 @@ class Lookup{
       0.6540711597f, 0.6447257262f, 0.6355138211f,};
 
   /* interpolated lookup based fromdB function, domain -140dB to 0dB only */
-  static float fromdBlook(float a){
-    int i=(int)(a*((float)(-(1<<FROMdB2_SHIFT))));
+  static float fromdBlook(final float a){
+    final int i=(int)(a*((-(1<<FROMdB2_SHIFT))));
     return (i<0) ? 1.f : ((i>=(FROMdB_LOOKUP_SZ<<FROMdB_SHIFT)) ? 0.f
         : FROMdB_LOOKUP[i>>>FROMdB_SHIFT]*FROMdB2_LOOKUP[i&FROMdB2_MASK]);
   }

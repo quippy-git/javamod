@@ -2,7 +2,7 @@
  * @(#) WavMixer.java
  *
  * Created on 14.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 
-import de.quippy.javamod.io.FileOrPackedInputStream;
 import de.quippy.javamod.mixer.BasicMixer;
 import de.quippy.javamod.system.Log;
 
@@ -48,16 +47,16 @@ public class WavMixer extends BasicMixer
 	private int channels;
 	private int sampleRate;
 	private int lengthInMilliseconds;
-	
-	private URL waveFileUrl;
+
+	private final URL waveFileUrl;
 	private AudioInputStream audioInputStream;
-	
+
 	private long currentSamplesWritten;
-	
+
 	/**
 	 * Constructor for WavMixer
 	 */
-	public WavMixer(URL waveFileUrl)
+	public WavMixer(final URL waveFileUrl)
 	{
 		super();
 		this.waveFileUrl = waveFileUrl;
@@ -67,33 +66,33 @@ public class WavMixer extends BasicMixer
 	{
 		try
 		{
-			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
-			audioInputStream = AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
+			if (audioInputStream!=null) try { audioInputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
+			audioInputStream = WavContainer.getAudioInputStream(waveFileUrl);// AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
 			AudioFormat audioFormat = audioInputStream.getFormat();
-			
+
 			lengthInMilliseconds = 0;
-			float frameRate = audioFormat.getFrameRate();
+			final float frameRate = audioFormat.getFrameRate();
 			if (frameRate != AudioSystem.NOT_SPECIFIED)
 			{
-				lengthInMilliseconds = (int)(((float)audioInputStream.getFrameLength() * 1000f / frameRate)+0.5);
+				lengthInMilliseconds = (int)((audioInputStream.getFrameLength() * 1000f / frameRate)+0.5);
 			}
 			else
 			{
 				try
 				{
-					lengthInMilliseconds = (int)(((long)audioInputStream.available() / ((long)(audioFormat.getSampleSizeInBits()>>3)) / (long)audioFormat.getChannels()) * 1000L / (long)audioFormat.getSampleRate());
+					lengthInMilliseconds = (int)(((long)audioInputStream.available() / ((long)(audioFormat.getSampleSizeInBits()>>3)) / audioFormat.getChannels()) * 1000L / (long)audioFormat.getSampleRate());
 				}
-				catch (IOException ex)
+				catch (final IOException ex)
 				{
 					Log.error("[WavMixer] No data available!", ex);
 				}
 			}
 
 			// Check, if conversion is necessary and possible:
-			DataLine.Info sourceLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+			final DataLine.Info sourceLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
 			if (!AudioSystem.isLineSupported(sourceLineInfo))
 			{
-				AudioFormat[] possibleFormats = AudioSystem.getTargetFormats(AudioFormat.Encoding.PCM_SIGNED, audioFormat);
+				final AudioFormat[] possibleFormats = AudioSystem.getTargetFormats(AudioFormat.Encoding.PCM_SIGNED, audioFormat);
 				if (possibleFormats!=null && possibleFormats.length!=0)
 				{
 					audioInputStream = AudioSystem.getAudioInputStream(possibleFormats[0], audioInputStream);
@@ -107,7 +106,7 @@ public class WavMixer extends BasicMixer
 			this.sampleSizeInBits = audioFormat.getSampleSizeInBits();
 			this.sampleSizeInBytes = this.sampleSizeInBits>>3;
 			this.sampleRate = (int)audioFormat.getSampleRate();
-			
+
 			this.bufferSize = 250 * channels * sampleRate / 1000; // 250ms buffer
 
 			// Now for the bits (linebuffer):
@@ -115,13 +114,13 @@ public class WavMixer extends BasicMixer
 			output = new byte[bufferSize];
 			setSourceLineBufferSize(bufferSize);
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("[WavMixer]", ex);
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#isSeekSupported()
 	 */
 	@Override
@@ -130,14 +129,14 @@ public class WavMixer extends BasicMixer
 		return true;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getMillisecondPosition()
 	 */
 	@Override
 	public long getMillisecondPosition()
 	{
 		if (sampleRate!=0)
-			return ((long)currentSamplesWritten * 1000L) / (long)sampleRate;
+			return (currentSamplesWritten * 1000L) / sampleRate;
 		else
 			return 0;
 	}
@@ -147,17 +146,17 @@ public class WavMixer extends BasicMixer
 	 * @since 13.02.2012
 	 */
 	@Override
-	protected void seek(long milliseconds)
+	protected void seek(final long milliseconds)
 	{
 		try
 		{
 			if (getMillisecondPosition() > milliseconds)
 			{
-				if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+				if (audioInputStream!=null) try { audioInputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 				audioInputStream = AudioSystem.getAudioInputStream(waveFileUrl);
 				currentSamplesWritten = 0;
 			}
-			long skipSamples = (milliseconds * (long)sampleRate / 1000L) - currentSamplesWritten;
+			final long skipSamples = (milliseconds * sampleRate / 1000L) - currentSamplesWritten;
 			long skipBytes = skipSamples * sampleSizeInBytes * channels;
 			while (skipBytes>0)
 			{
@@ -165,13 +164,13 @@ public class WavMixer extends BasicMixer
 			}
 			currentSamplesWritten += skipSamples;
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[WavMixer]: error while seeking", ex);
 		}
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getLengthInMilliseconds()
 	 */
 	@Override
@@ -207,7 +206,7 @@ public class WavMixer extends BasicMixer
 		return sampleRate;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -226,7 +225,7 @@ public class WavMixer extends BasicMixer
 			if (!isInitialized()) return;
 
 			int byteCount = 0;
-			
+
 			do
 			{
 				byteCount = audioInputStream.read(output, 0, bufferSize);
@@ -236,7 +235,7 @@ public class WavMixer extends BasicMixer
 					if (hasStopPosition())
 					{
 						final long bytesToWrite = getSamplesToWriteLeft() * getChannelCount() * sampleSizeInBytes;
-						if ((long)(byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
+						if ((byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;
 					}
 					writeSampleDataToLine(output, 0, byteCount);
 
@@ -254,7 +253,7 @@ public class WavMixer extends BasicMixer
 						setIsPaused();
 						while (isPaused())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 						}
 					}
 					if (isInSeeking())
@@ -262,7 +261,7 @@ public class WavMixer extends BasicMixer
 						setIsSeeking();
 						while (isInSeeking())
 						{
-							try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+							try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 						}
 					}
 				}
@@ -270,7 +269,7 @@ public class WavMixer extends BasicMixer
 			while (byteCount!=-1);
 			if (byteCount<=0) setHasFinished(); // Piece finished fully
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}
@@ -278,7 +277,7 @@ public class WavMixer extends BasicMixer
 		{
 			setIsStopped();
 			closeAudioDevice();
-			if (audioInputStream!=null) try { audioInputStream.close(); audioInputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (audioInputStream!=null) try { audioInputStream.close(); audioInputStream = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 	}
 }

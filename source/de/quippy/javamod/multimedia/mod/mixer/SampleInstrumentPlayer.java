@@ -2,13 +2,13 @@
  * @(#) SampleInstrumentPlayer.java
  *
  * Created on 28.12.2023 by Daniel Becker
- * 
+ *
  * The purpose of this class is to play a certain sample / instrument
  * It is used by the ModSampleDialog and the ModInstrumentDialog for
  * spontaneous play back of displayed samples or instruments.
  * It is re-using a BasicModMixer instance and preparing a global
  * ChannelMemory with all needed information to perform the task.
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,12 +48,12 @@ public class SampleInstrumentPlayer
 	private ModMixer currentModMixer;
 	private BasicModMixer currentMixer;
 	private boolean doHardStop;
-	
+
 	private Sample sample;
 	private Instrument instrument;
 	private int period;
 	private int noteIndex;
-	
+
 	/**
 	 * Constructor for SampleInstrumentPlayer
 	 * @param theModMixer
@@ -67,7 +67,7 @@ public class SampleInstrumentPlayer
 	/**
 	 * @param currentModMixer the currentModMixer to set
 	 */
-	private void setCurrentModMixer(ModMixer currentModMixer)
+	private void setCurrentModMixer(final ModMixer currentModMixer)
 	{
 		this.currentModMixer = currentModMixer;
 		if (currentModMixer!=null)
@@ -81,13 +81,13 @@ public class SampleInstrumentPlayer
 	 * @since 29.12.2023
 	 * @param forInstrument: maybe null, if no instrument - then a Sample must be given
 	 * @param forSample: the sample - null, if instrument given (is overwritten anyways)
-	 * @param forNoteIndex the noteIndex (starting with 1) to play - a corresponding period is found here... 
+	 * @param forNoteIndex the noteIndex (starting with 1) to play - a corresponding period is found here...
 	 */
 	public void startPlayback(final Instrument forInstrument, final Sample forSample, final int forNoteIndex)
 	{
 		if (!aktMemo.instrumentFinished) stopPlayback();
 		if ((forSample==null && forInstrument==null) || forNoteIndex<1) return;
-		
+
 		instrument = forInstrument;
 		noteIndex = forNoteIndex;
 		if (forInstrument!=null)
@@ -100,7 +100,7 @@ public class SampleInstrumentPlayer
 			sample = forSample;
 		}
 		period = ModConstants.noteValues[noteIndex - 1];
-		
+
 		doHardStop = false;
 		aktMemo.instrumentFinished = false;
 		playSample();
@@ -114,7 +114,7 @@ public class SampleInstrumentPlayer
 			doHardStop = true;
 			aktMemo.instrumentFinished = true;
 		}
-		while (doHardStop) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+		while (doHardStop) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 	}
 	public boolean isPlaying()
 	{
@@ -151,7 +151,7 @@ public class SampleInstrumentPlayer
 
 		// now for the tuning of the current note set
 		currentMixer.setNewPlayerTuningFor(aktMemo, currentMixer.getFineTunePeriod(aktMemo));
-		
+
 		// ImpulseTracker specials
 		if (currentMixer.isIT && instrument!=null)
 		{
@@ -160,7 +160,7 @@ public class SampleInstrumentPlayer
 			useFilter = currentMixer.setFilterAndRandomVariations(aktMemo, instrument, useFilter);
 			if (aktMemo.cutOff<0x7F && useFilter) currentMixer.setupChannelFilter(aktMemo, true, 256);
 		}
-		
+
 		// and calculate the samples per tick
 		currentMixer.calculateSamplesPerTick();
 	}
@@ -180,14 +180,14 @@ public class SampleInstrumentPlayer
 		final Dither dither = new Dither(channels, sampleSizeInBits, 4, 2, false);
 
 		prepareAktMemoAndMixer();
-		final int samplesPerTick = currentMixer.samplesPerTick; 
+		final int samplesPerTick = currentMixer.samplesPerTick;
 		final long leftBuffer[] = new long[samplesPerTick];
 		final long rightBuffer[] = new long[samplesPerTick];
 
 		final int bufferSize = ((250 * sampleRate) / 1000) * bytesPerSample * channels;
 		final byte [] output = new byte[bufferSize];
 
-		SoundOutputStream outputStream = new SoundOutputStreamImpl(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false), null, null, false, false, bufferSize);
+		final SoundOutputStream outputStream = new SoundOutputStreamImpl(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false), null, null, false, false, bufferSize);
 		outputStream.open();
 
 		int ox = 0;
@@ -195,13 +195,13 @@ public class SampleInstrumentPlayer
 		{
 			// Process envelopes
 			currentMixer.processEnvelopes(aktMemo);
-			
+
 			// Force a hard stop of any finished instrument (XM will not stop the instrument in this condition...)
 			if (aktMemo.noteFade && (aktMemo.fadeOutVolume<=0 || (aktMemo.actVolumeLeft<=0 && aktMemo.actRampVolRight<=0))) aktMemo.instrumentFinished=true;
 
 			//and then render one tick of sample data
 			currentMixer.mixChannelIntoBuffers(leftBuffer, rightBuffer, 0, samplesPerTick, aktMemo);
-			
+
 			// copy those to the render buffer
 			for (int s=0; s<samplesPerTick; s++)
 			{
@@ -212,16 +212,16 @@ public class SampleInstrumentPlayer
 				// Dither
 				if (sampleSizeInBits<32) // our maximum - no dithering needed
 				{
-					sampleL = (long)((dither.process((double)sampleL/(double)(0x7FFFFFFFL), 0)*(double)maximum) + 0.5d);
-					sampleR = (long)((dither.process((double)sampleR/(double)(0x7FFFFFFFL), 1)*(double)maximum) + 0.5d);
+					sampleL = (long)((dither.process((double)sampleL/(double)(0x7FFFFFFFL), 0)*maximum) + 0.5d);
+					sampleR = (long)((dither.process((double)sampleR/(double)(0x7FFFFFFFL), 1)*maximum) + 0.5d);
 				}
-				
+
 				// Clip the values to target:
 				if (sampleL > maximum) sampleL = maximum;
 				else if (sampleL < minimum) sampleL = minimum;
 				if (sampleR > maximum) sampleR = maximum;
 				else if (sampleR < minimum) sampleR = minimum;
-				
+
 				// and copy stereo / mono
 				if (channels==2)
 				{
@@ -237,14 +237,14 @@ public class SampleInstrumentPlayer
 				}
 				else
 				{
-					long sampleValue = (sampleL + sampleR)>>1; 
+					long sampleValue = (sampleL + sampleR)>>1;
 					for (int i=0; i<bytesPerSample; i++)
 					{
 						output[ox++] = (byte)sampleValue;
 						sampleValue>>=8;
 					}
 				}
-				
+
 				// if render buffer is full, send to sound card
 				if (ox==output.length)
 				{

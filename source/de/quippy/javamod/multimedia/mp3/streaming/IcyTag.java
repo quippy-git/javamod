@@ -1,11 +1,11 @@
 /*
  * IcyTag.
- * 
+ *
  * jicyshout : http://sourceforge.net/projects/jicyshout/
- *  
+ *
  * JavaZOOM : mp3spi@javazoom.net
  * 			  http://www.javazoom.net
- * 
+ *
  *-----------------------------------------------------------------------
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as published
@@ -27,20 +27,25 @@ package de.quippy.javamod.multimedia.mp3.streaming;
 
 import java.io.Serializable;
 
-/** 
- * A tag parsed from an icecast tag. 
+import de.quippy.javamod.system.Helpers;
+
+/**
+ * A tag parsed from an icecast tag.
  */
 public class IcyTag implements Serializable
 {
 	private static final long serialVersionUID = -5433537975531168164L;
 
-	private String name;
-	private String value;
+	private final String name;
+	private final String value;
 
-	public IcyTag(String name, String value)
+	public IcyTag(final String name, final String value)
 	{
-		this.name = name;
-		this.value = value;
+		this.name = (name!=null)?name.toLowerCase():"NULL";
+		// This is somewhat ridiculous but unavoidable. We must read from the stream in ISO-8859-1 (cannot accept encoding UTF-8 - would mangle even more)
+		// After that the headers (that are not affected by "Accept-Encodig" due to conventions) will contain two byte characters for UTF-8 ones - so we need to re-encode with UTF-8
+		// and now do that in general here.
+		this.value = Helpers.convertStringEncoding(value, Helpers.CODING_ICY, Helpers.CODING_UTF8);
 	}
 	public String getName()
 	{
@@ -50,6 +55,7 @@ public class IcyTag implements Serializable
 	{
 		return value;
 	}
+	@Override
 	public String toString()
 	{
 		return getName() + ":" + getValue();

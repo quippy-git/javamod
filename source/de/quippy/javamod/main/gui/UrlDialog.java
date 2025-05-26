@@ -46,7 +46,7 @@ public class UrlDialog extends JDialog
     /**
      * Creates new form ud
      */
-    public UrlDialog(JFrame parent, boolean modal, String url)
+    public UrlDialog(final JFrame parent, final boolean modal, final String url)
     {
         super(parent, "Select URL", modal);
 		setIconImages(parent.getIconImages());
@@ -78,7 +78,7 @@ public class UrlDialog extends JDialog
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
         getContentPane().add(jLabel1, gridBagConstraints);
-        
+
         jLabel2 = new javax.swing.JLabel();
         jLabel2.setText("\"For example: http://www.server.com:8000\"");
         jLabel2.setFont(Helpers.getDialogFont());
@@ -108,7 +108,8 @@ public class UrlDialog extends JDialog
         openButton.setToolTipText("Open");
         openButton.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            @Override
+			public void actionPerformed(final java.awt.event.ActionEvent evt)
             {
                 doOpen();
             }
@@ -121,13 +122,14 @@ public class UrlDialog extends JDialog
         cancelButton.setFont(Helpers.getDialogFont());
         cancelButton.addActionListener(new java.awt.event.ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
+            @Override
+			public void actionPerformed(final java.awt.event.ActionEvent evt)
             {
                 doCancel();
             }
         });
         jPanel1.add(cancelButton);
-        
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -139,7 +141,7 @@ public class UrlDialog extends JDialog
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
@@ -158,7 +160,7 @@ public class UrlDialog extends JDialog
 		setVisible(false);
 		dispose();
 		//if we are alone in the world, exit the vm
-		if (getParent() == null) System.exit(0); // this should not be needed! 
+		if (getParent() == null) System.exit(0); // this should not be needed!
 	}
     private void doOpen()
     {

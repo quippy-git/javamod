@@ -2,7 +2,7 @@
  * @(#) ThreadUpdatePanel.java
  *
  * Created on 09.09.2009 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,21 +41,21 @@ public abstract class ThreadUpdatePanel extends JComponent
 
 	private static final class MeterUpdateThread extends Thread
 	{
-		private long nanoFPS;
+		private final long nanoFPS;
 		private final ThreadUpdatePanel me;
-		
-		public MeterUpdateThread(ThreadUpdatePanel me, final long desiredFPS)
+
+		public MeterUpdateThread(final ThreadUpdatePanel me, final long desiredFPS)
 		{
 			super();
 			this.me = me;
 			nanoFPS = 1000000000L / desiredFPS;
-			
+
 			setName("ThreadUpdatePanel::" + me.getClass().getName());
 			setDaemon(true);
 			//setPriority(Thread.MAX_PRIORITY);
 		}
 		/**
-		 * Will do the Update of this... 
+		 * Will do the Update of this...
 		 * @see java.lang.Thread#run()
 		 */
 		@Override
@@ -65,28 +65,28 @@ public abstract class ThreadUpdatePanel extends JComponent
 			while (me.threadRunning)
 			{
 				final long now = System.nanoTime();
-				
+
 				long stillToWait = nanoFPS - additionalWait;
 				if (stillToWait<=0)
 					stillToWait = 0L;
 				else
-					try { Thread.sleep(stillToWait/1000000L); } catch (InterruptedException ex) { /*noop*/ }
-				
+					try { Thread.sleep(stillToWait/1000000L); } catch (final InterruptedException ex) { /*noop*/ }
+
 				try
 				{
 					me.doThreadUpdate();
 				}
-				catch (Throwable ex)
+				catch (final Throwable ex)
 				{
 					Log.error(this.getName(), ex);
 				}
-				
+
 				if (me.pause==1)
 				{
 					me.pause=2;
-					while (me.pause==2) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+					while (me.pause==2) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 				}
-				
+
 				additionalWait = System.nanoTime() - now - stillToWait;
 			}
 		}
@@ -95,7 +95,7 @@ public abstract class ThreadUpdatePanel extends JComponent
 	/**
 	 * Constructor for ThreadUpdatePanel
 	 */
-	public ThreadUpdatePanel(int desiredFPS)
+	public ThreadUpdatePanel(final int desiredFPS)
 	{
 		super();
 		setDoubleBuffered(true);
@@ -120,7 +120,7 @@ public abstract class ThreadUpdatePanel extends JComponent
 		{
 			pause = 1; // move into status isPaused
 			// wait for pause to reach status 2 (isPaused)
-			while (pause==1) try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP */ }
+			while (pause==1) try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP */ }
 		}
 	}
 	public void unPauseThread()

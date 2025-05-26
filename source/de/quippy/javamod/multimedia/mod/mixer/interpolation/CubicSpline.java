@@ -1,8 +1,8 @@
 /*
  * @(#) CubicSpline.java
- * 
+ *
  * Created on 15.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,15 +75,15 @@ public class CubicSpline
 	// number of bits used to scale spline coefs
 	public  static final int SPLINE_QUANTBITS	= 14;
 	private static final int SPLINE_QUANTSCALE	= 1<<SPLINE_QUANTBITS;
-	// log2(number) of precalculated splines (range is [4..14])	
+	// log2(number) of precalculated splines (range is [4..14])
 	private static final int SPLINE_FRACBITS 	= 10;
 	private static final int SPLINE_LUTLEN		= 1<<SPLINE_FRACBITS;
 	// Shifting of calculated Samples:
 	public  static final int SPLINE_FRACSHIFT	= (ModConstants.SHIFT-SPLINE_FRACBITS)-2;
 	public  static final int SPLINE_FRACMASK	= ((1<<(ModConstants.SHIFT-SPLINE_FRACSHIFT))-1) & ~3;
-	
+
 	public static final int [] lut = new int [4*SPLINE_LUTLEN]; // prevent a 2 dimensional array...
-	
+
 	static
 	{
 		initialize();
@@ -95,19 +95,19 @@ public class CubicSpline
 	{
 		super();
 	}
-	
+
 	/**
 	 * Init the static params
 	 * @since 15.06.2006
 	 */
 	private static void initialize()
 	{
-		final double len	= 1.0d / (double)SPLINE_LUTLEN;
-		final double scale	= (double)SPLINE_QUANTSCALE;
-		
+		final double len	= 1.0d / SPLINE_LUTLEN;
+		final double scale	= SPLINE_QUANTSCALE;
+
 		for(int i=0; i<SPLINE_LUTLEN; i++)
-		{	
-			final double	x		= ((double)i)*len;
+		{
+			final double	x		= (i)*len;
 			final int 		idx	= i<<2;
 			final double	cm1	= Math.floor(0.5 + scale * (-0.5*x*x*x + 1.0 * x*x - 0.5 * x      ));
 			final double	c0	= Math.floor(0.5 + scale * ( 1.5*x*x*x - 2.5 * x*x           + 1.0));
@@ -117,11 +117,11 @@ public class CubicSpline
 			lut[idx+1]		= (int)((c0  < -scale) ? -scale : ((c0  > scale) ? scale : c0 ));
 			lut[idx+2]		= (int)((c1  < -scale) ? -scale : ((c1  > scale) ? scale : c1 ));
 			lut[idx+3]		= (int)((c2  < -scale) ? -scale : ((c2  > scale) ? scale : c2 ));
-			
+
 			// forces coefs-set to unity gain:
 			final int sum	= lut[idx] + lut[idx+1] + lut[idx+2] + lut[idx+3];
 			if (sum != SPLINE_QUANTSCALE)
-			{	
+			{
 				int max = idx;
 				if (lut[idx+1] > lut[max]) max = idx+1;
 				if (lut[idx+2] > lut[max]) max = idx+2;

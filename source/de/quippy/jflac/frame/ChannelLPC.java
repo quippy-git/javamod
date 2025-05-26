@@ -37,11 +37,11 @@ public class ChannelLPC extends Channel {
     private static final int MAX_LPC_ORDER = 32;
 
     private EntropyCodingMethod entropyCodingMethod; // The residual coding method.
-    private int order; // The FIR order.
-    private int qlpCoeffPrecision; // Quantized FIR filter coefficient precision in bits.
-    private int quantizationLevel; // The qlp coeff shift needed.
-    private int[] qlpCoeff = new int[MAX_LPC_ORDER]; // FIR filter coefficients.
-    private int[] warmup = new int[MAX_LPC_ORDER]; // Warmup samples to prime the predictor, length == order.
+    private final int order; // The FIR order.
+    private final int qlpCoeffPrecision; // Quantized FIR filter coefficient precision in bits.
+    private final int quantizationLevel; // The qlp coeff shift needed.
+    private final int[] qlpCoeff = new int[MAX_LPC_ORDER]; // FIR filter coefficients.
+    private final int[] warmup = new int[MAX_LPC_ORDER]; // Warmup samples to prime the predictor, length == order.
 //    private int[] residual; // The residual signal, length == (blocksize minus order) samples.
 
     /**
@@ -54,7 +54,7 @@ public class ChannelLPC extends Channel {
      * @param order         The predicate order
      * @throws IOException  Thrown if error reading from the InputBitStream
      */
-    public ChannelLPC(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits, int order) throws IOException {
+    public ChannelLPC(final BitInputStream is, final Header header, final ChannelData channelData, final int bps, final int wastedBits, final int order) throws IOException {
         super(header, wastedBits);
 
 //        this.residual = channelData.getResidual();
@@ -68,7 +68,7 @@ public class ChannelLPC extends Channel {
         //for (int i = 0; i < order; i++) System.out.println("Warm "+i+" "+warmup[i]);
 
         // read qlp coeff precision
-        int u32 = is.readRawUInt(SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN);
+        final int u32 = is.readRawUInt(SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN);
         if (u32 == (1 << SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN) - 1) {
             throw new IOException("STREAM_DECODER_ERROR_STATUS_LOST_SYNC");
         }
@@ -85,7 +85,7 @@ public class ChannelLPC extends Channel {
         }
 
         // read entropy coding method info
-        int codingType = is.readRawUInt(ENTROPY_CODING_METHOD_TYPE_LEN);
+        final int codingType = is.readRawUInt(ENTROPY_CODING_METHOD_TYPE_LEN);
         //System.out.println("codingType="+codingType);
         switch (codingType) {
             case ENTROPY_CODING_METHOD_PARTITIONED_RICE :
@@ -96,16 +96,16 @@ public class ChannelLPC extends Channel {
             default :
                 throw new IOException("STREAM_DECODER_UNPARSEABLE_STREAM");
         }
- 
+
         // read residual
         /*if (entropyCodingMethod instanceof EntropyPartitionedRice) {*/ // Always true
-            ((EntropyPartitionedRice) entropyCodingMethod).readResidual(is, 
+            ((EntropyPartitionedRice) entropyCodingMethod).readResidual(is,
                 order,
                 ((EntropyPartitionedRice) entropyCodingMethod).order,
                 header,
                 channelData.getResidual());
         //}
-        
+
         //System.out.println();
         //for (int i = 0; i < header.blockSize; i++) {System.out.print(channelData.residual[i]+" ");
         //if (i%200==0)System.out.println();
@@ -123,12 +123,13 @@ public class ChannelLPC extends Channel {
             LPCPredictor.restoreSignalWide(channelData.getResidual(), header.blockSize - order, qlpCoeff, order, quantizationLevel, channelData.getOutput(), order);
         }
     }
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
-        StringBuffer sb = new StringBuffer("ChannelLPC: Order=" + order +  " WastedBits=" + wastedBits);
+    @Override
+	public String toString() {
+        final StringBuilder sb = new StringBuilder("ChannelLPC: Order=" + order +  " WastedBits=" + wastedBits);
         sb.append(" qlpCoeffPrecision=" + qlpCoeffPrecision + " quantizationLevel=" + quantizationLevel);
         sb.append("\n\t\tqlpCoeff: ");
         for (int i = 0; i < order; i++) sb.append(qlpCoeff[i] + " ");

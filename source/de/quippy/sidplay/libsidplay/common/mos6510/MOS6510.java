@@ -139,9 +139,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Resolve use of function pointer
-	 * 
+	 *
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 */
 	protected interface IFunc {
 		void invoke();
@@ -160,9 +160,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Declare processor operations
-	 * 
+	 *
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 */
 	protected static class ProcessorOperations {
 		ProcessorCycle cycle[];
@@ -261,7 +261,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * Emulate One Complete Cycle
 	 */
 	protected void clock() {
-		byte /* int_least8_t */i = cycleCount++;
+		final byte /* int_least8_t */i = cycleCount++;
 		if (procCycle[i].nosteal || aec) {
 			this.procCycle[i].func.invoke();
 			return;
@@ -277,6 +277,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * Resolve multiple inheritance
 	 */
 	protected Event event = new Event("CPU") {
+		@Override
 		public void event() {
 			eventContext.schedule(event, 1, m_phase);
 			clock();
@@ -381,7 +382,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 			case oNMI: {
 				// Try to determine if we should be processing the NMI yet
-				long /* event_clock_t */cycles = eventContext.getTime(
+				final long /* event_clock_t */cycles = eventContext.getTime(
 						interrupts.nmiClk, m_extPhase);
 				if (cycles >= MOS6510_INTERRUPT_DELAY) {
 					interrupts.pending &= ~iNMI & 0xff;
@@ -395,7 +396,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 			case oIRQ: {
 				// Try to determine if we should be processing the IRQ yet
-				long /* event_clock_t */cycles = eventContext.getTime(
+				final long /* event_clock_t */cycles = eventContext.getTime(
 						interrupts.irqClk, m_extPhase);
 				if (cycles >= MOS6510_INTERRUPT_DELAY)
 					break;
@@ -410,7 +411,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 			}
 
 			if (MOS6510.isLoggable(Level.FINE)) {
-				long /* event_clock_t */cycles = eventContext.getTime(m_phase);
+				final long /* event_clock_t */cycles = eventContext.getTime(m_phase);
 				if (dodump) {
 					MOS6510.fine("****************************************************\n");
 					switch (offset) {
@@ -452,7 +453,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch opcode, increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes: All
 	 */
 	protected void FetchOpcode() {
@@ -485,7 +486,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch value, increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Immediate
@@ -498,12 +499,12 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		Register_ProgramCounter++;
 
 		// Next line used for Debug
-		Instr_Operand = (int /* uint_least16_t */) Cycle_Data;
+		Instr_Operand = Cycle_Data;
 	}
 
 	/**
 	 * Fetch low address byte, increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Stack Manipulation
@@ -524,7 +525,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Read from address, add index register X to it<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Zero Page Indexed
@@ -537,7 +538,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Read from address, add index register Y to it<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Zero Page Indexed
@@ -550,9 +551,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch high address byte, increment PC (Absolute Addressing)<BR>
-	 * 
+	 *
 	 * Low byte must have been obtained first!<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Absolute
@@ -571,9 +572,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch high byte of address, add index register X to low address byte,<BR>
-	 * 
+	 *
 	 * increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Absolute Indexed
@@ -586,11 +587,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		page = endian_16hi8(Cycle_EffectiveAddress);
 		Cycle_EffectiveAddress += Register_X;
 
-		if (MOS6510_ACCURATE_CYCLES) {
-			// Handle page boundary crossing
-			if (endian_16hi8(Cycle_EffectiveAddress) == page)
-				cycleCount++;
-		}
+		// Handle page boundary crossing
+		if (MOS6510_ACCURATE_CYCLES && (endian_16hi8(Cycle_EffectiveAddress) == page))
+			cycleCount++;
 	}
 
 	/**
@@ -603,9 +602,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch high byte of address, add index register Y to low address byte,<BR>
-	 * 
+	 *
 	 * increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Absolute Indexed
@@ -618,11 +617,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		page = endian_16hi8(Cycle_EffectiveAddress);
 		Cycle_EffectiveAddress += Register_Y;
 
-		if (MOS6510_ACCURATE_CYCLES) {
-			// Handle page boundary crossing
-			if (endian_16hi8(Cycle_EffectiveAddress) == page)
-				cycleCount++;
-		}
+		// Handle page boundary crossing
+		if (MOS6510_ACCURATE_CYCLES && (endian_16hi8(Cycle_EffectiveAddress) == page))
+			cycleCount++;
 	}
 
 	/**
@@ -635,7 +632,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch effective address low<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Indirect
@@ -649,7 +646,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch effective address high<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Indirect
@@ -666,7 +663,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch effective address high, add Y to low byte of effective address<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Indirect indexed (post Y)
@@ -679,11 +676,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		page = endian_16hi8(Cycle_EffectiveAddress);
 		Cycle_EffectiveAddress += Register_Y;
 
-		if (MOS6510_ACCURATE_CYCLES) {
-			// Handle page boundary crossing
-			if (endian_16hi8(Cycle_EffectiveAddress) == page)
-				cycleCount++;
-		}
+		// Handle page boundary crossing
+		if (MOS6510_ACCURATE_CYCLES && (endian_16hi8(Cycle_EffectiveAddress) == page))
+			cycleCount++;
 	}
 
 	/**
@@ -696,7 +691,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch pointer address low, increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Absolute Indirect
@@ -712,7 +707,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Read pointer from the address and add X to it<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Indexed Indirect (pre X)
@@ -727,7 +722,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Fetch pointer address high, increment PC<BR>
-	 * 
+	 *
 	 * Addressing Modes:
 	 * <UL>
 	 * <LI> Absolute Indirect
@@ -780,10 +775,10 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Push P on stack, decrement S
-	 * 
+	 *
 	 * @param b_flag
 	 */
-	protected void PushSR(boolean b_flag) {
+	protected void PushSR(final boolean b_flag) {
 		int /* uint_least16_t */addr = Register_StackPointer;
 		addr = endian_16hi8(addr, SP_PAGE);
 		/* Rev 1.04 - Corrected flag mask */
@@ -926,7 +921,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * Frodo C64 Emulator)
 	 */
 	protected void arr_instr() {
-		short /* uint8_t */data = (short) (Cycle_Data & Register_Accumulator);
+		final short /* uint8_t */data = (short) (Cycle_Data & Register_Accumulator);
 		Register_Accumulator = (short) (data >> 1);
 		if (getFlagC())
 			Register_Accumulator |= 0x80;
@@ -1020,7 +1015,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		branch_instr(!getFlagZ());
 	}
 
-	protected void branch_instr(boolean condition) {
+	protected void branch_instr(final boolean condition) {
 		if (MOS6510_ACCURATE_CYCLES) {
 			if (condition) {
 				short /* uint8_t */page;
@@ -1062,7 +1057,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 		// Check for an NMI, and switch over if pending
 		if ((interrupts.pending & iNMI) != 0) {
-			long /* event_clock_t */cycles = eventContext.getTime(
+			final long /* event_clock_t */cycles = eventContext.getTime(
 					interrupts.nmiClk, m_extPhase);
 			if (cycles > MOS6510_INTERRUPT_DELAY) {
 				interrupts.pending &= ~iNMI & 0xff;
@@ -1091,7 +1086,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void cli_instr() {
-		boolean oldFlagI = getFlagI();
+		final boolean oldFlagI = getFlagI();
 		setFlagI((short) 0);
 		// I flag change is delayed by 1 instruction
 		interrupts.irqLatch = oldFlagI ^ getFlagI();
@@ -1107,7 +1102,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void cmp_instr() {
-		int /* uint_least16_t */tmp = (int /* uint_least16_t */) Register_Accumulator
+		final int /* uint_least16_t */tmp = Register_Accumulator
 				- Cycle_Data & 0xffff;
 		setFlagsNZ((short) tmp);
 		setFlagC((short) ((tmp < 0x100) ? 1 : 0));
@@ -1115,7 +1110,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void cpx_instr() {
-		int /* uint_least16_t */tmp = (int /* uint_least16_t */) Register_X
+		final int /* uint_least16_t */tmp = Register_X
 				- Cycle_Data & 0xffff;
 		setFlagsNZ((short) tmp);
 		setFlagC((short) ((tmp < 0x100) ? 1 : 0));
@@ -1123,7 +1118,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void cpy_instr() {
-		int /* uint_least16_t */tmp = (int /* uint_least16_t */) Register_Y
+		final int /* uint_least16_t */tmp = Register_Y
 				- Cycle_Data & 0xffff;
 		setFlagsNZ((short) tmp);
 		setFlagC((short) ((tmp < 0x100) ? 1 : 0));
@@ -1138,7 +1133,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		int /* uint_least16_t */tmp;
 		PutEffAddrDataByte();
 		Cycle_Data = (short) ((Cycle_Data-1) & 0xff);
-		tmp = (int /* uint_least16_t */) Register_Accumulator - Cycle_Data;
+		tmp = Register_Accumulator - Cycle_Data;
 		setFlagsNZ((short) tmp);
 		setFlagC((short) ((tmp < 0x100) ? 1 : 0));
 	}
@@ -1208,9 +1203,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 		if (PC64_TESTSUITE) {
 			// Hack - Output character to screen
-			int pc = endian_32lo16(Register_ProgramCounter);
+			final int pc = endian_32lo16(Register_ProgramCounter);
 			if (pc == 0xffd2) {
-				char ch = _sidtune_CHRtab[Register_Accumulator];
+				final char ch = _sidtune_CHRtab[Register_Accumulator];
 				switch (ch) {
 				case 0:
 					break;
@@ -1356,7 +1351,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * the result with the accumulator.
 	 */
 	protected void rla_instr() {
-		short /* uint8_t */tmp = (short) (Cycle_Data & 0x80);
+		final short /* uint8_t */tmp = (short) (Cycle_Data & 0x80);
 		PutEffAddrDataByte();
 		Cycle_Data = (short) ((Cycle_Data << 1) & 0xff);
 		if (getFlagC())
@@ -1366,7 +1361,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void rol_instr() {
-		short /* uint8_t */tmp = (short) (Cycle_Data & 0x80);
+		final short /* uint8_t */tmp = (short) (Cycle_Data & 0x80);
 		PutEffAddrDataByte();
 		Cycle_Data = (short) ((Cycle_Data << 1) & 0xff);
 		if (getFlagC())
@@ -1376,7 +1371,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void rola_instr() {
-		short /* uint8_t */tmp = (short) (Register_Accumulator & 0x80);
+		final short /* uint8_t */tmp = (short) (Register_Accumulator & 0x80);
 		Register_Accumulator = (short) ((Register_Accumulator << 1) & 0xff);
 		if (getFlagC())
 			Register_Accumulator |= 0x01;
@@ -1386,7 +1381,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void ror_instr() {
-		short /* uint8_t */tmp = (short) (Cycle_Data & 0x01);
+		final short /* uint8_t */tmp = (short) (Cycle_Data & 0x01);
 		PutEffAddrDataByte();
 		Cycle_Data >>= 1;
 		if (getFlagC())
@@ -1396,7 +1391,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void rora_instr() {
-		short /* uint8_t */tmp = (short) (Register_Accumulator & 0x01);
+		final short /* uint8_t */tmp = (short) (Register_Accumulator & 0x01);
 		Register_Accumulator >>= 1;
 		if (getFlagC())
 			Register_Accumulator |= 0x80;
@@ -1410,7 +1405,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * the result with the accumulator.
 	 */
 	protected void rra_instr() {
-		short /* uint8_t */tmp = (short) (Cycle_Data & 0x01);
+		final short /* uint8_t */tmp = (short) (Cycle_Data & 0x01);
 		PutEffAddrDataByte();
 		Cycle_Data >>= 1;
 		if (getFlagC())
@@ -1425,11 +1420,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	 * interrupt routine as soon as the opcode ends, if necessary.
 	 */
 	protected void rti_instr() {
-		if (MOS6510.isLoggable(Level.FINE)) {
-			if (dodump)
-				MOS6510
-						.fine("****************************************************\n\n");
-		}
+		if (MOS6510.isLoggable(Level.FINE) && dodump)
+			MOS6510
+					.fine("****************************************************\n\n");
 
 		Register_ProgramCounter = endian_32lo16(Register_ProgramCounter,
 				Cycle_EffectiveAddress);
@@ -1444,7 +1437,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void sbx_instr() {
-		long /* uint */tmp = (Register_X & Register_Accumulator) - Cycle_Data;
+		final long /* uint */tmp = (Register_X & Register_Accumulator) - Cycle_Data;
 		setFlagsNZ((Register_X = (short) (tmp & 0xff)));
 		setFlagC((short) ((tmp < 0x100) ? 1 : 0));
 		clock();
@@ -1475,7 +1468,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void sei_instr() {
-		boolean oldFlagI = getFlagI();
+		final boolean oldFlagI = getFlagI();
 		setFlagI((short) 1);
 		// I flag change is delayed by 1 instruction
 		interrupts.irqLatch = oldFlagI ^ getFlagI();
@@ -1528,7 +1521,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	protected void tas_instr() {
 		Register_StackPointer = endian_16lo8(Register_StackPointer,
 				(short) (Register_Accumulator & Register_X));
-		int /* uint_least16_t */tmp = Register_StackPointer
+		final int /* uint_least16_t */tmp = Register_StackPointer
 				& (Cycle_EffectiveAddress + 1);
 		Cycle_Data = /* (signed) */endian_16lo8(tmp);
 	}
@@ -1589,10 +1582,10 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	//
 
 	protected void Perform_ADC() {
-		int /* uint */C = getFlagC() ? 1 : 0;
-		int /* uint */A = Register_Accumulator;
-		int /* uint */s = Cycle_Data;
-		int /* uint */regAC2 = A + s + C;
+		final int /* uint */C = getFlagC() ? 1 : 0;
+		final int /* uint */A = Register_Accumulator;
+		final int /* uint */s = Cycle_Data;
+		final int /* uint */regAC2 = A + s + C;
 
 		if (getFlagD()) {
 			// BCD mode
@@ -1622,10 +1615,10 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	protected void Perform_SBC() {
-		int /* uint */C = getFlagC() ? 0 : 1;
-		int /* uint */A = Register_Accumulator;
-		int /* uint */s = Cycle_Data;
-		int /* uint */regAC2 = A - s - C & 0xffff;
+		final int /* uint */C = getFlagC() ? 0 : 1;
+		final int /* uint */A = Register_Accumulator;
+		final int /* uint */s = Cycle_Data;
+		final int /* uint */regAC2 = A - s - C & 0xffff;
 
 		setFlagC((regAC2 < 0x100) ? (short) 1 : (short) 0);
 		setFlagV(((((regAC2 ^ A) & 0x80) != 0) && (((A ^ s) & 0x80) != 0)) ? (short) 1
@@ -1655,7 +1648,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	protected void IRQRequest_sidplay_irq() {
 		IRQRequest();
 	}
-	
+
 	/**
 	 * Overridden in the Sub-class SID6510 for Sidplay compatibility
 	 */
@@ -1672,10 +1665,10 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Initialize and create CPU Chip
-	 * 
+	 *
 	 * @param context
 	 */
-	public MOS6510(IEventContext context) {
+	public MOS6510(final IEventContext context) {
 		eventContext = context;
 		m_phase = Event.event_phase_t.EVENT_CLOCK_PHI2;
 		m_extPhase = Event.event_phase_t.EVENT_CLOCK_PHI1;
@@ -1695,14 +1688,14 @@ public class MOS6510 extends C64Environment /* extends Event */{
 			procCycle = null;
 
 			for (int pass = 0; pass < 2; pass++) {
-				int WRITE = 0;
-				int READ = 1;
+				final int WRITE = 0;
+				final int READ = 1;
 				int access = WRITE;
 				cycleCount = -1;
 				legalMode = true;
 				legalInstr = true;
 
-				switch ((int) i) {
+				switch (i) {
 				// Accumulator or Implied addressing
 				case ASLn:
 				case CLCn:
@@ -1742,6 +1735,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -1787,6 +1781,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchDataByte();
 							}
@@ -1832,6 +1827,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -1842,6 +1838,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -1884,6 +1881,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddrX();
 							}
@@ -1893,6 +1891,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -1903,6 +1902,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -1921,6 +1921,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddrY();
 							}
@@ -1930,6 +1931,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -1940,6 +1942,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -1986,6 +1989,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -1995,6 +1999,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighAddr();
 							}
@@ -2005,6 +2010,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -2032,6 +2038,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -2041,6 +2048,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighAddrX();
 							}
@@ -2050,6 +2058,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2059,6 +2068,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchEffAddrDataByte();
 							}
@@ -2086,6 +2096,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -2095,6 +2106,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighAddrX2();
 							}
@@ -2104,6 +2116,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2114,6 +2127,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -2137,6 +2151,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -2146,6 +2161,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighAddrY();
 							}
@@ -2155,6 +2171,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2164,6 +2181,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchEffAddrDataByte();
 							}
@@ -2187,6 +2205,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowAddr();
 							}
@@ -2196,6 +2215,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighAddrY2();
 							}
@@ -2205,6 +2225,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2215,6 +2236,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -2229,6 +2251,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowPointer();
 							}
@@ -2238,6 +2261,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighPointer();
 							}
@@ -2247,6 +2271,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowEffAddr();
 							}
@@ -2256,6 +2281,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighEffAddr();
 							}
@@ -2285,6 +2311,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowPointer();
 							}
@@ -2294,6 +2321,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowPointerX();
 							}
@@ -2303,6 +2331,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowEffAddr();
 							}
@@ -2312,6 +2341,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighEffAddr();
 							}
@@ -2322,6 +2352,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -2343,6 +2374,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowPointer();
 							}
@@ -2352,6 +2384,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowEffAddr();
 							}
@@ -2361,6 +2394,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighEffAddrY();
 							}
@@ -2370,6 +2404,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2379,6 +2414,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchEffAddrDataByte();
 							}
@@ -2400,6 +2436,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowPointer();
 							}
@@ -2409,6 +2446,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchLowEffAddr();
 							}
@@ -2418,6 +2456,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchHighEffAddrY2();
 							}
@@ -2427,6 +2466,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if ((pass) != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -2437,6 +2477,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if ((pass) != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									FetchEffAddrDataByte();
 								}
@@ -2457,24 +2498,23 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						procCycle[++c].nosteal = false;
 				}
 
-				if (MOS6510.isLoggable(Level.FINE)) {
-					if (legalMode) {
-						cycleCount++;
-						if (pass != 0)
-							procCycle[cycleCount].func = new IFunc() {
+				if (MOS6510.isLoggable(Level.FINE) && legalMode) {
+					cycleCount++;
+					if (pass != 0)
+						procCycle[cycleCount].func = new IFunc() {
 
-								public void invoke() {
-									DebugCycle();
-								}
+							@Override
+							public void invoke() {
+								DebugCycle();
+							}
 
-							};
-					}
+						};
 				}
 
 				// ---------------------------------------------------------------------------------------
 				// Addressing Modes Finished, other cycles are instruction
 				// dependent
-				switch ((int) i) {
+				switch (i) {
 				case ADCz:
 				case ADCzx:
 				case ADCa:
@@ -2487,6 +2527,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								adc_instr();
 							}
@@ -2500,6 +2541,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								anc_instr();
 							}
@@ -2519,6 +2561,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								and_instr();
 							}
@@ -2531,6 +2574,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ane_instr();
 							}
@@ -2543,6 +2587,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								arr_instr();
 							}
@@ -2555,6 +2600,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								asla_instr();
 							}
@@ -2570,6 +2616,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								asl_instr();
 							}
@@ -2579,6 +2626,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -2591,6 +2639,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								alr_instr();
 							}
@@ -2603,6 +2652,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bcc_instr();
 							}
@@ -2613,6 +2663,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2622,6 +2673,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2635,6 +2687,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bcs_instr();
 							}
@@ -2645,6 +2698,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2655,6 +2709,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2668,6 +2723,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								beq_instr();
 							}
@@ -2678,6 +2734,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2687,6 +2744,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2701,6 +2759,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bit_instr();
 							}
@@ -2713,6 +2772,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bmi_instr();
 							}
@@ -2723,6 +2783,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2732,6 +2793,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2745,6 +2807,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bne_instr();
 							}
@@ -2755,6 +2818,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2764,6 +2828,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2777,6 +2842,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bpl_instr();
 							}
@@ -2787,6 +2853,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2796,6 +2863,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2809,6 +2877,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushHighPC_sidplay_brk();
 							}
@@ -2818,6 +2887,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushLowPC();
 							}
@@ -2827,6 +2897,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								brk_instr();
 							}
@@ -2836,6 +2907,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQ1Request();
 							}
@@ -2847,6 +2919,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQ2Request();
 							}
@@ -2858,6 +2931,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchOpcode();
 							}
@@ -2870,6 +2944,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bvc_instr();
 							}
@@ -2880,6 +2955,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2889,6 +2965,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2902,6 +2979,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								bvs_instr();
 							}
@@ -2912,6 +2990,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									branch2_instr();
 								}
@@ -2921,6 +3000,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 						if (pass != 0)
 							procCycle[cycleCount].func = new IFunc() {
 
+								@Override
 								public void invoke() {
 									WasteCycle();
 								}
@@ -2934,6 +3014,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								clc_instr();
 							}
@@ -2946,6 +3027,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								cld_instr();
 							}
@@ -2958,6 +3040,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								cli_instr();
 							}
@@ -2970,6 +3053,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								clv_instr();
 							}
@@ -2989,6 +3073,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								cmp_instr();
 							}
@@ -3003,6 +3088,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								cpx_instr();
 							}
@@ -3017,6 +3103,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								cpy_instr();
 							}
@@ -3035,6 +3122,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								dcm_instr();
 							}
@@ -3044,6 +3132,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3059,6 +3148,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								dec_instr();
 							}
@@ -3068,6 +3158,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3080,6 +3171,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								dex_instr();
 							}
@@ -3092,6 +3184,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								dey_instr();
 							}
@@ -3111,6 +3204,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								eor_instr();
 							}
@@ -3136,6 +3230,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								inc_instr();
 							}
@@ -3145,6 +3240,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3157,6 +3253,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								inx_instr();
 							}
@@ -3169,6 +3266,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								iny_instr();
 							}
@@ -3187,6 +3285,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ins_instr();
 							}
@@ -3196,6 +3295,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3208,6 +3308,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								jsr_instr();
 							}
@@ -3217,6 +3318,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushLowPC();
 							}
@@ -3226,6 +3328,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -3237,6 +3340,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								jmp_instr();
 							}
@@ -3249,6 +3353,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								las_instr();
 							}
@@ -3266,6 +3371,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								lax_instr();
 							}
@@ -3285,6 +3391,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								lda_instr();
 							}
@@ -3301,6 +3408,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ldx_instr();
 							}
@@ -3317,6 +3425,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ldy_instr();
 							}
@@ -3329,6 +3438,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								lsra_instr();
 							}
@@ -3344,6 +3454,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								lsr_instr();
 							}
@@ -3353,6 +3464,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3397,6 +3509,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								oal_instr();
 							}
@@ -3416,6 +3529,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ora_instr();
 							}
@@ -3428,6 +3542,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								pha_instr();
 							}
@@ -3440,6 +3555,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushSR();
 							}
@@ -3452,6 +3568,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -3461,6 +3578,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								pla_instr();
 							}
@@ -3475,6 +3593,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -3484,6 +3603,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopSR();
 							}
@@ -3504,6 +3624,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rla_instr();
 							}
@@ -3513,6 +3634,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3525,6 +3647,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rola_instr();
 							}
@@ -3540,6 +3663,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rol_instr();
 							}
@@ -3549,6 +3673,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3561,6 +3686,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rora_instr();
 							}
@@ -3576,6 +3702,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								ror_instr();
 							}
@@ -3585,6 +3712,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3603,6 +3731,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rra_instr();
 							}
@@ -3612,6 +3741,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3624,6 +3754,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -3633,6 +3764,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopSR_sidplay_rti();
 							}
@@ -3644,6 +3776,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopLowPC();
 							}
@@ -3655,6 +3788,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopHighPC();
 							}
@@ -3666,6 +3800,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rti_instr();
 							}
@@ -3678,6 +3813,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -3687,6 +3823,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopLowPC();
 							}
@@ -3698,6 +3835,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PopHighPC();
 							}
@@ -3709,6 +3847,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								rts_instr();
 							}
@@ -3724,6 +3863,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								axs_instr();
 							}
@@ -3744,6 +3884,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sbc_instr();
 							}
@@ -3756,6 +3897,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sbx_instr();
 							}
@@ -3768,6 +3910,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sec_instr();
 							}
@@ -3780,6 +3923,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sed_instr();
 							}
@@ -3792,6 +3936,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sei_instr();
 							}
@@ -3805,6 +3950,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								axa_instr();
 							}
@@ -3817,6 +3963,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								shs_instr();
 							}
@@ -3829,6 +3976,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								xas_instr();
 							}
@@ -3841,6 +3989,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								say_instr();
 							}
@@ -3859,6 +4008,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								aso_instr();
 							}
@@ -3868,6 +4018,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3886,6 +4037,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								lse_instr();
 							}
@@ -3895,6 +4047,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PutEffAddrDataByte();
 							}
@@ -3913,6 +4066,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sta_instr();
 							}
@@ -3927,6 +4081,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								stx_instr();
 							}
@@ -3941,6 +4096,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								sty_instr();
 							}
@@ -3953,6 +4109,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								tax_instr();
 							}
@@ -3965,6 +4122,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								tay_instr();
 							}
@@ -3977,6 +4135,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								tsx_instr();
 							}
@@ -3989,6 +4148,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								txa_instr();
 							}
@@ -4001,6 +4161,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								txs_instr();
 							}
@@ -4013,6 +4174,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								tya_instr();
 							}
@@ -4030,6 +4192,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								illegal_instr();
 							}
@@ -4045,25 +4208,24 @@ public class MOS6510 extends C64Environment /* extends Event */{
 				if (pass != 0)
 					procCycle[cycleCount].func = new IFunc() {
 
+						@Override
 						public void invoke() {
 							NextInstr();
 						}
 
 					};
 				cycleCount++;
-				if (pass == 0) {
-					// Pass 1 - Allocate Memory
-					if ((cycleCount) != 0) {
-						instr.cycle = new ProcessorCycle[cycleCount];
-						procCycle = instr.cycle;
+				// Pass 1 - Allocate Memory
+				if ((pass == 0) && ((cycleCount) != 0)) {
+					instr.cycle = new ProcessorCycle[cycleCount];
+					procCycle = instr.cycle;
 
-						int c = cycleCount;
-						while (c > 0) {
-							procCycle[--c] = new ProcessorCycle();
-							procCycle[c].nosteal = true;
-						}
+					int c = cycleCount;
+					while (c > 0) {
+						procCycle[--c] = new ProcessorCycle();
+						procCycle[c].nosteal = true;
 					}
-				} 
+				}
 //				else
 //					instr.opcode = (short) i;
 
@@ -4101,6 +4263,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4110,6 +4273,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4119,6 +4283,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4128,6 +4293,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4137,6 +4303,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4146,6 +4313,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								RSTRequest();
 							}
@@ -4155,6 +4323,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchOpcode();
 							}
@@ -4167,6 +4336,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4176,6 +4346,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4185,6 +4356,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushHighPC();
 							}
@@ -4196,6 +4368,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushLowPC();
 							}
@@ -4207,6 +4380,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQRequest();
 							}
@@ -4218,6 +4392,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								NMIRequest();
 							}
@@ -4227,6 +4402,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								NMI1Request();
 							}
@@ -4236,6 +4412,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchOpcode();
 							}
@@ -4248,6 +4425,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4257,6 +4435,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								WasteCycle();
 							}
@@ -4266,6 +4445,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushHighPC();
 							}
@@ -4277,6 +4457,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								PushLowPC();
 							}
@@ -4288,6 +4469,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQRequest_sidplay_irq();
 							}
@@ -4299,6 +4481,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQ1Request();
 							}
@@ -4308,6 +4491,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								IRQ2Request();
 							}
@@ -4317,6 +4501,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 					if (pass != 0)
 						procCycle[cycleCount].func = new IFunc() {
 
+							@Override
 							public void invoke() {
 								FetchOpcode();
 							}
@@ -4326,15 +4511,13 @@ public class MOS6510 extends C64Environment /* extends Event */{
 				}
 
 				cycleCount++;
-				if (pass == 0) {
-					// Pass 1 - Allocate Memory
-					if (cycleCount != 0) {
-						instr.cycle = new ProcessorCycle[cycleCount];
-						procCycle = instr.cycle;
-						for (int c = 0; c < cycleCount; c++) {
-							procCycle[c] = new ProcessorCycle();
-							procCycle[c].nosteal = false;
-						}
+				// Pass 1 - Allocate Memory
+				if ((pass == 0) && (cycleCount != 0)) {
+					instr.cycle = new ProcessorCycle[cycleCount];
+					procCycle = instr.cycle;
+					for (int c = 0; c < cycleCount; c++) {
+						procCycle[c] = new ProcessorCycle();
+						procCycle[c].nosteal = false;
 					}
 				}
 
@@ -4358,6 +4541,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		Cycle_Data = 0;
 		fetchCycle.func = new IFunc() {
 
+			@Override
 			public void invoke() {
 				FetchOpcode();
 			}
@@ -4391,10 +4575,10 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Module Credits
-	 * 
+	 *
 	 * @param sbuffer
 	 */
-	public void credits(StringBuffer sbuffer) { // Copy credits to buffer
+	public void credits(final StringBuffer sbuffer) { // Copy credits to buffer
 
 		sbuffer.append(String
 				.format("Module     : MOS6510 Cycle Exact Emulation\n"));
@@ -4408,8 +4592,8 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		short /* uint8_t */opcode, data;
 		int /* uint_least16_t */operand, address;
 
-		StringBuffer m_fdbg = new StringBuffer();
-		m_fdbg.append(String.format("%5d :", Integer.valueOf(line++))); 
+		final StringBuilder m_fdbg = new StringBuilder();
+		m_fdbg.append(String.format("%5d :", Integer.valueOf(line++)));
 	    m_fdbg.append(String.format(" PC  I  A  X  Y  SP  DR PR NV-BDIZC  Instruction (%d)\n", Long.valueOf(m_dbgClk)));
 		m_fdbg.append(String.format("XXXXXXX%04x ", Integer.valueOf(instrStartPC)));
 		m_fdbg.append(String.format("%d ", Short.valueOf(interrupts.irqs)));
@@ -5491,19 +5675,19 @@ public class MOS6510 extends C64Environment /* extends Event */{
 
 	/**
 	 * Handle bus access signals
-	 * 
+	 *
 	 * @param state
 	 */
-	public void aecSignal(boolean state) {
+	public void aecSignal(final boolean state) {
 		if (aec != state) {
-			long /* event_clock_t */clock = eventContext.getTime(m_extPhase);
+			final long /* event_clock_t */clock = eventContext.getTime(m_extPhase);
 
 			// If the CPU blocked waiting for the bus
 			// then schedule a retry.
 			aec = state;
 			if (state && m_blocked) {
 				// Correct IRQs that appeared before the steal
-				long /* event_clock_t */stolen = clock - m_stealingClk;
+				final long /* event_clock_t */stolen = clock - m_stealingClk;
 				interrupts.nmiClk += stolen;
 				interrupts.irqClk += stolen;
 				// IRQs that appeared during the steal must have
@@ -5573,11 +5757,9 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	}
 
 	public void clearIRQ() {
-		if (interrupts.irqs > 0) {
-			if ((--interrupts.irqs) == 0) {
-				// Clear off the interrupts
-				interrupts.irqRequest = false;
-			}
+		if ((interrupts.irqs > 0) && ((--interrupts.irqs) == 0)) {
+			// Clear off the interrupts
+			interrupts.irqRequest = false;
 		}
 	}
 
@@ -5586,34 +5768,34 @@ public class MOS6510 extends C64Environment /* extends Event */{
 	// Set N and Z flags according to byte
 	//
 
-	void setFlagsNZ(short x) {
-		Register_z_Flag = (Register_n_Flag = (short /* uint_least8_t */) (x));
+	void setFlagsNZ(final short x) {
+		Register_z_Flag = (Register_n_Flag = (x));
 	}
 
-	void setFlagN(short x) {
-		Register_n_Flag = (short /* uint_least8_t */) (x);
+	void setFlagN(final short x) {
+		Register_n_Flag = (x);
 	}
 
-	void setFlagV(short x) {
-		Register_v_Flag = (short /* uint_least8_t */) (x);
+	void setFlagV(final short x) {
+		Register_v_Flag = (x);
 	}
 
-	void setFlagD(short x) {
+	void setFlagD(final short x) {
 		Register_Status = (short) ((Register_Status & (~(1 << SR_DECIMAL) & 0xff)) | ((((x) != 0) ? 1
 				: 0) << SR_DECIMAL));
 	}
 
-	void setFlagI(short x) {
+	void setFlagI(final short x) {
 		Register_Status = (short) ((Register_Status & (~(1 << SR_INTERRUPT) & 0xff)) | ((((x) != 0) ? 1
 				: 0) << SR_INTERRUPT));
 	}
 
-	void setFlagZ(short x) {
-		Register_z_Flag = (short /* uint_least8_t */) (x);
+	void setFlagZ(final short x) {
+		Register_z_Flag = (x);
 	}
 
-	void setFlagC(short x) {
-		Register_c_Flag = (short /* uint_least8_t */) (x);
+	void setFlagC(final short x) {
+		Register_c_Flag = (x);
 	}
 
 	boolean getFlagN() {
@@ -5640,7 +5822,7 @@ public class MOS6510 extends C64Environment /* extends Event */{
 		return Register_c_Flag != 0;
 	}
 
-	public void debug(boolean enable) {
+	public void debug(final boolean enable) {
 		dodump = enable;
 	}
 

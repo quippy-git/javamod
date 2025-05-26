@@ -1,11 +1,11 @@
 /*
  * TagParseEvent.
- * 
+ *
  * jicyshout : http://sourceforge.net/projects/jicyshout/
- *  
+ *
  * JavaZOOM : mp3spi@javazoom.net
  * 			  http://www.javazoom.net
- * 
+ *
  *-----------------------------------------------------------------------
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU Library General Public License as published
@@ -27,7 +27,7 @@ package de.quippy.javamod.multimedia.mp3.streaming;
 
 import java.util.EventObject;
 
-/** 
+/**
  * Event to indicate that an MP3 tag was received through
  * some means (parsed in stream, received via UDP, whatever)
  * and converted into an MP3Tag object.
@@ -38,12 +38,12 @@ public class TagParseEvent extends EventObject
 
 	protected IcyTag tag;
 
-	public TagParseEvent(Object source, IcyTag tag)
+	public TagParseEvent(final Object source, final IcyTag tag)
 	{
 		super(source);
 		this.tag = tag;
 	}
-	/** 
+	/**
 	 * Get the tag that was parsed.
 	 */
 	public IcyTag getIcyTag()

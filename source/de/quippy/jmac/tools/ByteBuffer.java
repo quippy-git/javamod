@@ -37,12 +37,12 @@ public class ByteBuffer {
         this.index = index;
     }
 
-    public void reset(byte[] data) {
+    public void reset(final byte[] data) {
         this.data = data;
         this.index = 0;
     }
 
-    public void reset(byte[] data, int index) {
+    public void reset(final byte[] data, final int index) {
         this.data = data;
         this.index = index;
     }
@@ -96,11 +96,11 @@ public class ByteBuffer {
         abyte0[index++] = (byte) (value >> 24 & 0xff);
     }
 
-    public void append(byte[] bytes) {
+    public void append(final byte[] bytes) {
         append(bytes, 0, bytes.length);
     }
 
-    public void append(byte[] bytes, int off, int len) {
+    public void append(final byte[] bytes, final int off, final int len) {
         if (0 < len) {
             byte abyte1[];
             (abyte1 = data)[index++] = bytes[off];

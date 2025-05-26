@@ -2,7 +2,7 @@
  * @(#) ModInstrumentDialog.java
  *
  * Created on 25.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ import de.quippy.javamod.system.Helpers;
 public class ModInstrumentDialog extends JDialog
 {
 	private static final long serialVersionUID = -5890906666611603247L;
-	
+
 	private static final int SAMPLE_MAP_LINE_LENGTH = 15;
 
 	public static final String BUTTONPLAY_INACTIVE = "/de/quippy/javamod/main/gui/ressources/play.gif";
@@ -86,7 +86,7 @@ public class ModInstrumentDialog extends JDialog
 
 	private JLabel labelSelectInstrument = null;
 	private JSpinner selectInstrument = null;
-	
+
 	private JButton button_Play = null;
 
 	private JPanel instrumentNamePanel = null;
@@ -111,7 +111,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField pitchPanSep = null;
 	private JLabel pitchPanCenterLabel = null;
 	private JTextField pitchPanCenter = null;
-	
+
 	private JPanel sampleQualityPanel = null;
 	private JLabel rampingLabel = null;
 	private JTextField ramping = null;
@@ -125,7 +125,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField cutOffValue = null;
 	private JLabel filterModeLabel = null;
 	private JTextField filterMode = null;
-	
+
 	private JPanel randomVariationPanel = null;
 	private JLabel volumeVariationLabel = null;
 	private JTextField volumeVariation = null;
@@ -155,7 +155,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField midiBank = null;
 	private JLabel pwdDepthLabel = null;
 	private JTextField pwdDepth = null;
-	
+
 	private JPanel sampleMapPanel = null;
 	private JScrollPane sampleMapScrollPane = null;
 	private JTextArea sampleMap = null;
@@ -164,13 +164,13 @@ public class ModInstrumentDialog extends JDialog
 	private EnvelopePanel volumeEnvelopePanel = null;
 	private EnvelopePanel panningEnvelopePanel = null;
 	private EnvelopePanel pitchEnvelopePanel = null;
-	
+
 	private SampleInstrumentPlayer player = null;
 	private Instrument [] instruments = null;
 	private ArrayList<String> spinnerModelData = null;
 	private int noteIndexRow = ModConstants.BASENOTEINDEX;
-	
-	private ModInfoPanel myModInfoPanel;
+
+	private final ModInfoPanel myModInfoPanel;
 	private ModMixer currentModMixer;
 	private BasicModMixer currentMixer;
 
@@ -180,7 +180,7 @@ public class ModInstrumentDialog extends JDialog
 	 * @param modal
 	 * @param infoPanel
 	 */
-	public ModInstrumentDialog(Window owner, boolean modal, ModInfoPanel infoPanel)
+	public ModInstrumentDialog(final Window owner, final boolean modal, final ModInfoPanel infoPanel)
 	{
 		super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
 		myModInfoPanel = infoPanel;
@@ -204,7 +204,7 @@ public class ModInstrumentDialog extends JDialog
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
@@ -214,7 +214,7 @@ public class ModInstrumentDialog extends JDialog
 		setTitle("Show mod instruments");
 		setResizable(true);
         pack();
-		
+
 		clearInstrument();
 	}
 	public void doClose()
@@ -255,7 +255,7 @@ public class ModInstrumentDialog extends JDialog
 			selectInstrument.addChangeListener(new ChangeListener()
 			{
 				@Override
-				public void stateChanged(ChangeEvent e)
+				public void stateChanged(final ChangeEvent e)
 				{
 					if (instruments!=null)
 					{
@@ -277,7 +277,7 @@ public class ModInstrumentDialog extends JDialog
 			instrumentNamePanel.add(getInstrumentName(), 			Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 			instrumentNamePanel.add(getFileNameLabel(), 			Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 			instrumentNamePanel.add(getFileName(), 					Helpers.getGridBagConstraint(3, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-			
+
 		}
 		return instrumentNamePanel;
 	}
@@ -303,7 +303,8 @@ public class ModInstrumentDialog extends JDialog
 			{
 				boolean playing = false;
 
-				public void actionPerformed(ActionEvent e)
+				@Override
+				public void actionPerformed(final ActionEvent e)
 				{
 					if (playing)
 					{
@@ -319,6 +320,7 @@ public class ModInstrumentDialog extends JDialog
 						// play inside a thread, so we do not block anything...
 						new Thread(new Runnable()
 						{
+							@Override
 							public void run()
 							{
 								player.startPlayback(instruments[getCurrentInstrument()], null, (noteIndexRow<0)?ModConstants.BASENOTEINDEX:noteIndexRow + 1);
@@ -330,7 +332,7 @@ public class ModInstrumentDialog extends JDialog
 					}
 				}
 			});
-					
+
 		}
 		return button_Play;
 	}
@@ -854,7 +856,7 @@ public class ModInstrumentDialog extends JDialog
 	private JTextField getCheckDNA()
 	{
 		if (checkDNA==null)
-			
+
 		{
 			checkDNA = new JTextField();
 			checkDNA.setName("checkDNA");
@@ -1024,9 +1026,9 @@ public class ModInstrumentDialog extends JDialog
 			sampleMapPanel.setLayout(new GridBagLayout());
 
 			sampleMapPanel.add(getSampleMapScrollPane(), Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.BOTH, java.awt.GridBagConstraints.WEST, 1.0, 1.0));
-			
+
 //			final Insets inset = getSampleMapScrollPane().getInsets();
-//			final int scrollbarSpace = (getSampleMapScrollPane().getVerticalScrollBar().getPreferredSize().width<<1) + inset.left + inset.right; 
+//			final int scrollbarSpace = (getSampleMapScrollPane().getVerticalScrollBar().getPreferredSize().width<<1) + inset.left + inset.right;
 //			final FontMetrics metrics = sampleMapPanel.getFontMetrics(Helpers.getDialogFont());
 //			final Dimension d = new Dimension((SAMPLE_MAP_LINE_LENGTH*metrics.charWidth('0')) + scrollbarSpace, 12*metrics.getHeight());
 //			sampleMapPanel.setSize(d);
@@ -1056,7 +1058,7 @@ public class ModInstrumentDialog extends JDialog
 			getSampleMap().moveCaretPosition(endPoint);
 			return newNoteIndexRow;
 		}
-		catch (IllegalArgumentException ex)
+		catch (final IllegalArgumentException ex)
 		{
 			// Ignore it...
 		}
@@ -1083,7 +1085,7 @@ public class ModInstrumentDialog extends JDialog
 				 * @see javax.swing.text.DefaultCaret#focusLost(java.awt.event.FocusEvent)
 				 */
 				@Override
-				public void focusLost(FocusEvent e)
+				public void focusLost(final FocusEvent e)
 				{
 					super.focusLost(e);
 					setSelectionVisible(true);
@@ -1097,24 +1099,22 @@ public class ModInstrumentDialog extends JDialog
 
 			sampleMap.addMouseListener(new MouseAdapter()
 			{
-				public void mouseClicked(MouseEvent e)
+				@Override
+				public void mouseClicked(final MouseEvent e)
 				{
 					if (e.isConsumed() || instruments == null) return;
-					
+
 					final int newRow = markRowInSampleMap(e.getPoint());
 					if (newRow==-1)
 						markRowInSampleMap(noteIndexRow);
 					else
 					{
 						noteIndexRow = newRow;
-						if (SwingUtilities.isLeftMouseButton(e))
+						if (SwingUtilities.isLeftMouseButton(e) && (e.getClickCount()>1))
 						{
-							if (e.getClickCount()>1)
-							{
-								// now get the sample and force sample dialog to open and show that:
-								final int sampleIndex = getSampleIndex(getCurrentInstrument(), noteIndexRow);
-								if (sampleIndex!=-1 && myModInfoPanel!=null) myModInfoPanel.showSample(sampleIndex);
-							}
+							// now get the sample and force sample dialog to open and show that:
+							final int sampleIndex = getSampleIndex(getCurrentInstrument(), noteIndexRow);
+							if (sampleIndex!=-1 && myModInfoPanel!=null) myModInfoPanel.showSample(sampleIndex);
 						}
 					}
 				}
@@ -1126,7 +1126,7 @@ public class ModInstrumentDialog extends JDialog
 	{
 		if (envelopeTabbedPane==null)
 		{
-			envelopeTabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+			envelopeTabbedPane = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 			envelopeTabbedPane.setFont(Helpers.getDialogFont());
 			envelopeTabbedPane.add("Volume", getVolumeEnvelopePanel());
 			envelopeTabbedPane.add("Panning", getPanningEnvelopePanel());
@@ -1213,7 +1213,7 @@ public class ModInstrumentDialog extends JDialog
 	{
 		switch (filterMode)
 		{
-			case ModConstants.FLTMODE_HIGHPASS: 
+			case ModConstants.FLTMODE_HIGHPASS:
 				return "force highpass";
 			case ModConstants.FLTMODE_BANDPASS:
 				return "force bandpass";
@@ -1224,9 +1224,9 @@ public class ModInstrumentDialog extends JDialog
 				return "Channel default";
 		}
 	}
-	private String getSampleMapString(int [] noteIndex, int [] sampleIndex)
+	private String getSampleMapString(final int [] noteIndex, final int [] sampleIndex)
 	{
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		for (int i=0; i<noteIndex.length; i++)
 		{
 			sb.append(ModConstants.getNoteNameForIndex(i+1)).append(" | ");
@@ -1247,7 +1247,7 @@ public class ModInstrumentDialog extends JDialog
 	{
 		if (instruments!=null)
 		{
-			Instrument instrument = instruments[instrumentIndex];
+			final Instrument instrument = instruments[instrumentIndex];
 			if (instrument!=null)
 			{
 				final int noteIndex = instrument.getNoteIndex(row);
@@ -1258,24 +1258,24 @@ public class ModInstrumentDialog extends JDialog
 	}
 	private void clearInstrument()
 	{
-		spinnerModelData = new ArrayList<String>(1);
+		spinnerModelData = new ArrayList<>(1);
 		spinnerModelData.add(ModConstants.getAsHex(0, 2));
 		getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
-		
+
 		getButton_Play().setEnabled(false);
 		markRowInSampleMap(-1);
 
 		getInstrumentName().setText(Helpers.EMPTY_STING);
 		getFileName().setText(Helpers.EMPTY_STING);
-		
+
 		getGlobalVolume().setText(Helpers.EMPTY_STING);
 		getFadeOutVolume().setText(Helpers.EMPTY_STING);
 		getSetPan().setFixedState(false);
 		getSetPanValue().setText(Helpers.EMPTY_STING);
-		
+
 		getPitchPanSep().setText(Helpers.EMPTY_STING);
 		getPitchPanCenter().setText(Helpers.EMPTY_STING);
-		
+
 		getRamping().setText(Helpers.EMPTY_STING);
 		getResampling().setText(Helpers.EMPTY_STING);
 
@@ -1284,25 +1284,25 @@ public class ModInstrumentDialog extends JDialog
 		getSetCutOff().setFixedState(false);
 		getCutOffValue().setText(Helpers.EMPTY_STING);
 		getFilterMode().setText(Helpers.EMPTY_STING);
-		
+
 		getVolumeVariation().setText(Helpers.EMPTY_STING);
 		getPanningVariation().setText(Helpers.EMPTY_STING);
 		getResonanceVariation().setText(Helpers.EMPTY_STING);
 		getCutOffVariation().setText(Helpers.EMPTY_STING);
-		
+
 		getActionNNA().setText(Helpers.EMPTY_STING);
 		getCheckDNA().setText(Helpers.EMPTY_STING);
 		getActionDNA().setText(Helpers.EMPTY_STING);
-		
+
 		getPlugin().setText(Helpers.EMPTY_STING);
 		getMidiChannel().setText(Helpers.EMPTY_STING);
 		getMidiProgram().setText(Helpers.EMPTY_STING);
 		getMidiBank().setText(Helpers.EMPTY_STING);
 		getPwdDepth().setText(Helpers.EMPTY_STING);
-		
+
 		getSampleMap().setText(Helpers.EMPTY_STING);
 		getSampleMap().select(0,0);
-		
+
 		getVolumeEnvelopePanel().setEnvelope(null);
 		getPanningEnvelopePanel().setEnvelope(null);
 		getPitchEnvelopePanel().setEnvelope(null);
@@ -1310,24 +1310,24 @@ public class ModInstrumentDialog extends JDialog
 		// after setting the new model, make the editor of the spinner un-editable
 		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
 	}
-	private void fillWithInstrument(Instrument newInstrument)
+	private void fillWithInstrument(final Instrument newInstrument)
 	{
 		getInstrumentName().setText(newInstrument.name);
 		getInstrumentName().setCaretPosition(0); getInstrumentName().moveCaretPosition(0);
 		getFileName().setText(newInstrument.dosFileName);
 		getFileName().setCaretPosition(0); getFileName().moveCaretPosition(0);
-		
+
 		getGlobalVolume().setText(Integer.toString(newInstrument.globalVolume));
 		getFadeOutVolume().setText(Integer.toString(newInstrument.volumeFadeOut));
 		getSetPan().setFixedState(newInstrument.setPanning);
 		getSetPanValue().setText(Integer.toString(newInstrument.defaultPanning));
-		
+
 		getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
 		getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
 
 		getRamping().setText((newInstrument.volRampUp>0)?Integer.toString(newInstrument.volRampUp):"default");
 		getResampling().setText((newInstrument.resampling>-1)?Integer.toString(newInstrument.resampling):"default");
-		
+
 		if (newInstrument.initialFilterResonance!=-1)
 		{
 			getSetResonance().setFixedState((newInstrument.initialFilterResonance&0x80)!=0);
@@ -1349,16 +1349,16 @@ public class ModInstrumentDialog extends JDialog
 			getCutOffValue().setText("-1");
 		}
 		getFilterMode().setText(getFilterModeString(newInstrument.filterMode));
-		
+
 		getVolumeVariation().setText(Integer.toString(newInstrument.randomVolumeVariation));
 		getPanningVariation().setText(Integer.toString(newInstrument.randomPanningVariation));
 		getResonanceVariation().setText(Integer.toString(newInstrument.randomResonanceVariation));
 		getCutOffVariation().setText(Integer.toString(newInstrument.randomCutOffVariation));
-		
+
 		getActionNNA().setText(getNNAActionString(newInstrument.NNA));
 		getCheckDNA().setText(getDNACheckString(newInstrument.dublicateNoteCheck));
 		getActionDNA().setText(getDNAActionString(newInstrument.dublicateNoteAction));
-		
+
 		getPlugin().setText(Integer.toString(newInstrument.plugin));
 		getMidiChannel().setText(Integer.toString(newInstrument.midiChannel));
 		getMidiProgram().setText(Integer.toString(newInstrument.midiProgram));
@@ -1366,7 +1366,7 @@ public class ModInstrumentDialog extends JDialog
 		getPwdDepth().setText(Integer.toString(newInstrument.pitchWheelDepth));
 
 		getSampleMap().setText(getSampleMapString(newInstrument.noteIndex, newInstrument.sampleIndex));
-		
+
 		getVolumeEnvelopePanel().setEnvelope(newInstrument.volumeEnvelope);
 		getPanningEnvelopePanel().setEnvelope(newInstrument.panningEnvelope);
 		getPitchEnvelopePanel().setEnvelope(newInstrument.pitchEnvelope);
@@ -1383,7 +1383,7 @@ public class ModInstrumentDialog extends JDialog
 		this.instruments = instruments;
 		if (instruments!=null)
 		{
-			spinnerModelData = new ArrayList<String>(instruments.length);
+			spinnerModelData = new ArrayList<>(instruments.length);
 			for (int i=0; i<instruments.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
 			getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
 			getSelectInstrument().setValue(spinnerModelData.get(0)); // in some unknown cases, the index is not really set.
@@ -1402,10 +1402,10 @@ public class ModInstrumentDialog extends JDialog
 	 * @since 28.11.2023
 	 * @param mixer
 	 */
-	public void setMixer(ModMixer theModMixer)
+	public void setMixer(final ModMixer theModMixer)
 	{
 		currentModMixer = theModMixer;
-		
+
 		if (currentModMixer!=null)
 		{
 			currentMixer = currentModMixer.getModMixer();

@@ -2,7 +2,7 @@
  * @(#) EnvelopePanel.java
  *
  * Created on 01.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ public class EnvelopePanel extends JPanel
 {
 	private static final long serialVersionUID = 5511415780545189305L;
 	private static String [] ZOOM_TYPES = new String [] { "Auto", "2:1", "4:1", "8:1", "16:1", "32:1" };
-	
+
 	private EnvelopeImagePanel envelopeImagePanel = null;
 
 	private FixedStateCheckBox isEnabled = null;
@@ -69,7 +69,7 @@ public class EnvelopePanel extends JPanel
 	 * Constructor for EnvelopePanel
 	 * @param layout
 	 */
-	public EnvelopePanel(LayoutManager layout)
+	public EnvelopePanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -78,7 +78,7 @@ public class EnvelopePanel extends JPanel
 	 * Constructor for EnvelopePanel
 	 * @param isDoubleBuffered
 	 */
-	public EnvelopePanel(boolean isDoubleBuffered)
+	public EnvelopePanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -88,7 +88,7 @@ public class EnvelopePanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public EnvelopePanel(LayoutManager layout, boolean isDoubleBuffered)
+	public EnvelopePanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -159,19 +159,20 @@ public class EnvelopePanel extends JPanel
 		}
 		return isSustainEnabled;
 	}
-	private JComboBox getZoomSelector()
+	private JComboBox<String> getZoomSelector()
 	{
 		if (zoomSelector==null)
 		{
-			zoomSelector = new JComboBox<String>();
+			zoomSelector = new JComboBox<>();
 			zoomSelector.setName("zoomSelector");
 			zoomSelector.setFont(Helpers.getDialogFont());
 
-			for (int i=0; i<ZOOM_TYPES.length; i++) zoomSelector.addItem(ZOOM_TYPES[i]);
+			for (final String element : ZOOM_TYPES)
+				zoomSelector.addItem(element);
 			zoomSelector.addItemListener(new ItemListener()
 			{
 				@Override
-				public void itemStateChanged(ItemEvent e)
+				public void itemStateChanged(final ItemEvent e)
 				{
 					final Envelope theEnvelope = getEnvelopeImagePanel().getEnvelope();
 					if (theEnvelope==null) return;
@@ -179,7 +180,7 @@ public class EnvelopePanel extends JPanel
 				}
 			});
 		}
-		
+
 		return zoomSelector;
 	}
 	private JScrollPane getImageBufferScrollPane()
@@ -214,8 +215,9 @@ public class EnvelopePanel extends JPanel
 		}
 		EventQueue.invokeLater(new Runnable()
 		{
+			@Override
 			public void run()
-			{				
+			{
 				try
 				{
 					getEnvelopeImagePanel().setSize(d);
@@ -223,7 +225,7 @@ public class EnvelopePanel extends JPanel
 					getEnvelopeImagePanel().setMaximumSize(d);
 					getEnvelopeImagePanel().setPreferredSize(d);
 				}
-				catch (Throwable ex)
+				catch (final Throwable ex)
 				{
 					// Keep it!
 				}

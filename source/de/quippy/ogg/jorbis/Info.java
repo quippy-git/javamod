@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -48,14 +48,14 @@ public class Info{
 
   // The below bitrate declarations are *hints*.
   // Combinations of the three values carry the following implications:
-  //     
-  // all three set to the same value: 
+  //
+  // all three set to the same value:
   // implies a fixed rate bitstream
-  // only nominal set: 
-  // implies a VBR stream that averages the nominal bitrate.  No hard 
+  // only nominal set:
+  // implies a VBR stream that averages the nominal bitrate.  No hard
   // upper/lower limit
-  // upper and or lower set: 
-  // implies a VBR bitstream that obeys the bitrate limits. nominal 
+  // upper and or lower set:
+  // implies a VBR bitstream that obeys the bitrate limits. nominal
   // may also be set to give a nominal rate.
   // none set:
   //  the coder does not care to speculate.
@@ -157,7 +157,7 @@ public class Info{
   }
 
   // Header packing/unpacking
-  int unpack_info(Buffer opb){
+  int unpack_info(final Buffer opb){
     version=opb.read(32);
     if(version!=0)
       return (-1);
@@ -182,7 +182,7 @@ public class Info{
 
   // all of the real encoding details are here.  The modes, books,
   // everything
-  int unpack_books(Buffer opb){
+  int unpack_books(final Buffer opb){
 
     books=opb.read(8)+1;
 
@@ -309,8 +309,8 @@ public class Info{
   // with bitstream comments and a third packet that holds the
   // codebook.
 
-  public int synthesis_headerin(Comment vc, Packet op){
-    Buffer opb=new Buffer();
+  public int synthesis_headerin(final Comment vc, final Packet op){
+    final Buffer opb=new Buffer();
 
     if(op!=null){
       opb.readinit(op.packet_base, op.packet, op.bytes);
@@ -318,8 +318,8 @@ public class Info{
       // Which of the three types of header is this?
       // Also verify header-ness, vorbis
       {
-        byte[] buffer=new byte[6];
-        int packtype=opb.read(8);
+        final byte[] buffer=new byte[6];
+        final int packtype=opb.read(8);
         opb.read(buffer, 6);
         if(buffer[0]!='v'||buffer[1]!='o'||buffer[2]!='r'||buffer[3]!='b'
             ||buffer[4]!='i'||buffer[5]!='s'){
@@ -328,11 +328,7 @@ public class Info{
         }
         switch(packtype){
           case 0x01: // least significant *bit* is read first
-            if(op.b_o_s==0){
-              // Not the initial packet
-              return (-1);
-            }
-            if(rate!=0){
+				if((op.b_o_s==0) || (rate!=0)){
               // previously initialized info header
               return (-1);
             }
@@ -360,7 +356,7 @@ public class Info{
   }
 
   // pack side
-  int pack_info(Buffer opb){
+  int pack_info(final Buffer opb){
     // preamble
     opb.write(0x01, 8);
     opb.write(_vorbis);
@@ -380,7 +376,7 @@ public class Info{
     return (0);
   }
 
-  int pack_books(Buffer opb){
+  int pack_books(final Buffer opb){
     opb.write(0x05, 8);
     opb.write(_vorbis);
 
@@ -433,9 +429,9 @@ public class Info{
     return (0);
   }
 
-  public int blocksize(Packet op){
+  public int blocksize(final Packet op){
     //codec_setup_info
-    Buffer opb=new Buffer();
+    final Buffer opb=new Buffer();
 
     int mode;
 
@@ -484,7 +480,8 @@ public class Info{
 		}
 		return (-1);
 	}
-  public String toString(){
+  @Override
+public String toString(){
     return "version:"+Integer.valueOf(version)+", channels:"+Integer.valueOf(channels)
         +", rate:"+Integer.valueOf(rate)+", bitrate:"+Integer.valueOf(bitrate_upper)
         +","+Integer.valueOf(bitrate_nominal)+","+Integer.valueOf(bitrate_lower);

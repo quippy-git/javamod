@@ -31,9 +31,9 @@ import de.quippy.jflac.io.BitInputStream;
  * @author kc7bfi
  */
 public class ChannelConstant extends Channel {
-    
+
     /** The constant signal value. */
-    private int value;
+    private final int value;
 
     /**
      * The constructor.
@@ -44,7 +44,7 @@ public class ChannelConstant extends Channel {
      * @param wastedBits    The bits waisted in the frame
      * @throws IOException  Thrown if error reading from the InputBitStream
      */
-    public ChannelConstant(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits) throws IOException {
+    public ChannelConstant(final BitInputStream is, final Header header, final ChannelData channelData, final int bps, final int wastedBits) throws IOException {
         super(header, wastedBits);
 
         value = is.readRawInt(bps);
@@ -52,12 +52,13 @@ public class ChannelConstant extends Channel {
         // decode the subframe
         for (int i = 0; i < header.blockSize; i++) channelData.getOutput()[i] = value;
     }
-    
+
     /**
      * toString conversion.
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         return "ChannelConstant: Value=" + value + " WastedBits=" + wastedBits;
     }
 }

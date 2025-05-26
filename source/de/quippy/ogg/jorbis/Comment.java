@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -49,24 +49,24 @@ public class Comment{
     vendor=null;
   }
 
-  public void add(String comment){
+  public void add(final String comment){
     add(comment.getBytes());
   }
 
-  private void add(byte[] comment){
-    byte[][] foo=new byte[comments+2][];
+  private void add(final byte[] comment){
+    final byte[][] foo=new byte[comments+2][];
     if(user_comments!=null){
       System.arraycopy(user_comments, 0, foo, 0, comments);
     }
     user_comments=foo;
 
-    int[] goo=new int[comments+2];
+    final int[] goo=new int[comments+2];
     if(comment_lengths!=null){
       System.arraycopy(comment_lengths, 0, goo, 0, comments);
     }
     comment_lengths=goo;
 
-    byte[] bar=new byte[comment.length+1];
+    final byte[] bar=new byte[comment.length+1];
     System.arraycopy(comment, 0, bar, 0, comment.length);
     user_comments[comments]=bar;
     comment_lengths[comments]=comment.length;
@@ -74,13 +74,13 @@ public class Comment{
     user_comments[comments]=null;
   }
 
-  public void add_tag(String tag, String contents){
+  public void add_tag(final String tag, String contents){
     if(contents==null)
       contents="";
     add(tag+"="+contents);
   }
 
-  static boolean tagcompare(byte[] s1, byte[] s2, int n){
+  static boolean tagcompare(final byte[] s1, final byte[] s2, final int n){
     int c=0;
     byte u1, u2;
     while(c<n){
@@ -98,15 +98,15 @@ public class Comment{
     return true;
   }
 
-  public String query(String tag){
+  public String query(final String tag){
     return query(tag, 0);
   }
 
-  public String query(String tag, int count){
-    int foo=query(tag.getBytes(), count);
+  public String query(final String tag, final int count){
+    final int foo=query(tag.getBytes(), count);
     if(foo==-1)
       return null;
-    byte[] comment=user_comments[foo];
+    final byte[] comment=user_comments[foo];
     for(int i=0; i<comment_lengths[foo]; i++){
       if(comment[i]=='='){
         return new String(comment, i+1, comment_lengths[foo]-(i+1));
@@ -115,11 +115,11 @@ public class Comment{
     return null;
   }
 
-  private int query(byte[] tag, int count){
+  private int query(final byte[] tag, final int count){
     int i=0;
     int found=0;
-    int fulltaglen=tag.length+1;
-    byte[] fulltag=new byte[fulltaglen];
+    final int fulltaglen=tag.length+1;
+    final byte[] fulltag=new byte[fulltaglen];
     System.arraycopy(tag, 0, fulltag, 0, tag.length);
     fulltag[tag.length]=(byte)'=';
 
@@ -138,8 +138,8 @@ public class Comment{
     return -1;
   }
 
-  int unpack(Buffer opb){
-    int vendorlen=opb.read(32);
+  int unpack(final Buffer opb){
+    final int vendorlen=opb.read(32);
     if(vendorlen<0){
       clear();
       return (-1);
@@ -155,7 +155,7 @@ public class Comment{
     comment_lengths=new int[comments+1];
 
     for(int i=0; i<comments; i++){
-      int len=opb.read(32);
+      final int len=opb.read(32);
       if(len<0){
         clear();
         return (-1);
@@ -172,7 +172,7 @@ public class Comment{
     return (0);
   }
 
-  int pack(Buffer opb){
+  int pack(final Buffer opb){
     // preamble
     opb.write(0x03, 8);
     opb.write(_vorbis);
@@ -198,8 +198,8 @@ public class Comment{
     return (0);
   }
 
-  public int header_out(Packet op){
-    Buffer opb=new Buffer();
+  public int header_out(final Packet op){
+    final Buffer opb=new Buffer();
     opb.writeinit();
 
     if(pack(opb)!=0)
@@ -226,14 +226,15 @@ public class Comment{
     return new String(vendor, 0, vendor.length-1);
   }
 
-  public String getComment(int i){
+  public String getComment(final int i){
     if(comments<=i)
       return null;
     return new String(user_comments[i], 0, user_comments[i].length-1);
   }
 
-  public String toString(){
-	  StringBuilder b = new StringBuilder("Vendor: ").append(new String(vendor));
+  @Override
+public String toString(){
+	  final StringBuilder b = new StringBuilder("Vendor: ").append(new String(vendor));
     for(int i=0; i<comments; i++){
       b.append("\nComment: ").append(new String(user_comments[i]));
     }

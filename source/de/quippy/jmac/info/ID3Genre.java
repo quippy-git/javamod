@@ -49,11 +49,12 @@ public class ID3Genre {
 
     private int genre = GENRE_UNDEFINED;
 
-    public String toString() {
+    @Override
+	public String toString() {
         return genres[genre];
     }
 
-    public final static String genreString(int genre) {
+    public final static String genreString(final int genre) {
         if (genre != GENRE_UNDEFINED && (genre < 0 || genre >= genres.length))
             throw new JMACException("Wrong Genre");
         return genres[genre];
@@ -89,10 +90,10 @@ public class ID3Genre {
         return genre;
     }
 
-    public void setGenre(int genre) {
+    public void setGenre(final int genre) {
         this.genre = genre;
     }
-    
+
     public static String [] getGenres()
     {
     	return genres;

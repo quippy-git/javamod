@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -31,13 +31,13 @@ class Drft{
   float[] trigcache;
   int[] splitcache;
 
-  void backward(float[] data){
+  void backward(final float[] data){
     if(n==1)
       return;
     drftb1(n, data, trigcache, trigcache, n, splitcache);
   }
 
-  void init(int n){
+  void init(final int n){
     this.n=n;
     trigcache=new float[3*n];
     splitcache=new int[32];
@@ -58,7 +58,7 @@ class Drft{
   static float taur=-.5f;
   static float sqrt2=1.4142135623730950488016887242097f;
 
-  static void drfti1(int n, float[] wa, int index, int[] ifac){
+  static void drfti1(final int n, final float[] wa, final int index, final int[] ifac){
     float arg, argh, argld, fi;
     int ntry=0, i, j=-1;
     int k1, l1, l2, ib;
@@ -87,11 +87,7 @@ class Drft{
           nf++;
           ifac[nf+1]=ntry;
           nl=nq;
-          if(ntry!=2){
-            state=107;
-            break;
-          }
-          if(nf==1){
+			if((ntry!=2) || (nf==1)){
             state=107;
             break;
           }
@@ -126,7 +122,7 @@ class Drft{
             for(j=0; j<ipm; j++){
               ld+=l1;
               i=is;
-              argld=(float)ld*argh;
+              argld=ld*argh;
               fi=0.f;
               for(ii=2; ii<ido; ii+=2){
                 fi+=1.f;
@@ -143,14 +139,14 @@ class Drft{
     }
   }
 
-  static void fdrffti(int n, float[] wsave, int[] ifac){
+  static void fdrffti(final int n, final float[] wsave, final int[] ifac){
     if(n==1)
       return;
     drfti1(n, wsave, n, ifac);
   }
 
-  static void dradf2(int ido, int l1, float[] cc, float[] ch, float[] wa1,
-      int index){
+  static void dradf2(final int ido, final int l1, final float[] cc, final float[] ch, final float[] wa1,
+      final int index){
     int i, k;
     float ti2, tr2;
     int t0, t1, t2, t3, t4, t5, t6;
@@ -205,8 +201,8 @@ class Drft{
     }
   }
 
-  static void dradf4(int ido, int l1, float[] cc, float[] ch, float[] wa1,
-      int index1, float[] wa2, int index2, float[] wa3, int index3){
+  static void dradf4(final int ido, final int l1, final float[] cc, final float[] ch, final float[] wa1,
+      final int index1, final float[] wa2, final int index2, final float[] wa3, final int index3){
     int i, k, t0, t1, t2, t3, t4, t5, t6;
     float ci2, ci3, ci4, cr2, cr3, cr4, ti1, ti2, ti3, ti4, tr1, tr2, tr3, tr4;
     t0=l1*ido;
@@ -305,8 +301,8 @@ class Drft{
     }
   }
 
-  static void dradfg(int ido, int ip, int l1, int idl1, float[] cc, float[] c1,
-      float[] c2, float[] ch, float[] ch2, float[] wa, int index){
+  static void dradfg(final int ido, final int ip, final int l1, final int idl1, final float[] cc, final float[] c1,
+      final float[] c2, final float[] ch, final float[] ch2, final float[] wa, final int index){
     int idij, ipph, i, j, k, l, ic, ik, is;
     int t0, t1, t2=0, t3, t4, t5, t6, t7, t8, t9, t10;
     float dc2, ai1, ai2, ar1, ar2, ds2;
@@ -314,7 +310,7 @@ class Drft{
     float dcp=0, arg, dsp=0, ar1h, ar2h;
     int idp2, ipp2;
 
-    arg=tpi/(float)ip;
+    arg=tpi/ip;
     dcp=(float)Math.cos(arg);
     dsp=(float)Math.sin(arg);
     ipph=(ip+1)>>1;
@@ -622,7 +618,7 @@ class Drft{
     }
   }
 
-  static void drftf1(int n, float[] c, float[] ch, float[] wa, int[] ifac){
+  static void drftf1(final int n, final float[] c, final float[] ch, final float[] wa, final int[] ifac){
     int i, k1, l1, l2;
     int na, kh, nf;
     int ip, iw, ido, idl1, ix2, ix3;
@@ -698,8 +694,8 @@ class Drft{
       c[i]=ch[i];
   }
 
-  static void dradb2(int ido, int l1, float[] cc, float[] ch, float[] wa1,
-      int index){
+  static void dradb2(final int ido, final int l1, final float[] cc, final float[] ch, final float[] wa1,
+      final int index){
     int i, k, t0, t1, t2, t3, t4, t5, t6;
     float ti2, tr2;
 
@@ -737,7 +733,7 @@ class Drft{
         }
         t2=(t1+=ido)<<1;
       }
-      
+
       if((ido%2)!=0) return;
     }
 
@@ -751,8 +747,8 @@ class Drft{
     }
   }
 
-  static void dradb3(int ido, int l1, float[] cc, float[] ch, float[] wa1,
-      int index1, float[] wa2, int index2){
+  static void dradb3(final int ido, final int l1, final float[] cc, final float[] ch, final float[] wa1,
+      final int index1, final float[] wa2, final int index2){
     int i, k, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
     float ci2, ci3, di2, di3, cr2, cr3, dr2, dr3, ti2, tr2;
     t0=l1*ido;
@@ -813,8 +809,8 @@ class Drft{
     }
   }
 
-  static void dradb4(int ido, int l1, float[] cc, float[] ch, float[] wa1,
-      int index1, float[] wa2, int index2, float[] wa3, int index3){
+  static void dradb4(final int ido, final int l1, final float[] cc, final float[] ch, final float[] wa1,
+      final int index1, final float[] wa2, final int index2, final float[] wa3, final int index3){
     int i, k, t0, t1, t2, t3, t4, t5, t6, t7, t8;
     float ci2, ci3, ci4, cr2, cr3, cr4, ti1, ti2, ti3, ti4, tr1, tr2, tr3, tr4;
     t0=l1*ido;
@@ -877,7 +873,7 @@ class Drft{
         }
         t1+=ido;
       }
-      
+
       if(ido%2!=0) return;
     }
 
@@ -902,8 +898,8 @@ class Drft{
     }
   }
 
-  static void dradbg(int ido, int ip, int l1, int idl1, float[] cc, float[] c1,
-      float[] c2, float[] ch, float[] ch2, float[] wa, int index){
+  static void dradbg(final int ido, final int ip, final int l1, final int idl1, final float[] cc, final float[] c1,
+      final float[] c2, final float[] ch, final float[] ch2, final float[] wa, final int index){
 
     int idij, ipph=0, i, j, k, l, ik, is, t0=0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10=0, t11, t12;
     float dc2, ai1, ai2, ar1, ar2, ds2;
@@ -918,7 +914,7 @@ class Drft{
         case 100:
           t10=ip*ido;
           t0=l1*ido;
-          arg=tpi/(float)ip;
+          arg=tpi/ip;
           dcp=(float)Math.cos(arg);
           dsp=(float)Math.sin(arg);
           nbd=(ido-1)>>>1;
@@ -1239,8 +1235,8 @@ class Drft{
     }
   }
 
-  static void drftb1(int n, float[] c, float[] ch, float[] wa, int index,
-      int[] ifac){
+  static void drftb1(final int n, final float[] c, final float[] ch, final float[] wa, final int index,
+      final int[] ifac){
     int i, k1, l1, l2=0;
     int na;
     int nf, ip=0, iw, ix2, ix3, ido=0, idl1=0;

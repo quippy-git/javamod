@@ -21,53 +21,53 @@
 package de.quippy.mp3.decoder;
 
 /**
- * Instances of <code>BitstreamException</code> are thrown 
- * when operations on a <code>Bitstream</code> fail. 
+ * Instances of <code>BitstreamException</code> are thrown
+ * when operations on a <code>Bitstream</code> fail.
  * <p>
- * The exception provides details of the exception condition 
+ * The exception provides details of the exception condition
  * in two ways:
  * <ol><li>
  *		as an error-code describing the nature of the error
  * </li><br></br><li>
  *		as the <code>Throwable</code> instance, if any, that was thrown
- *		indicating that an exceptional condition has occurred. 
+ *		indicating that an exceptional condition has occurred.
  * </li></ol></p>
- * 
+ *
  * @since 0.0.6
  * @author MDM	12/12/99
  */
 
 public class BitstreamException extends JavaLayerException
 	implements BitstreamErrors
-{	
+{
 	private static final long serialVersionUID = -5195786983687628551L;
 
 	private int errorcode = UNKNOWN_ERROR;
-	
-	public BitstreamException(String msg, Throwable t)
+
+	public BitstreamException(final String msg, final Throwable t)
 	{
-		super(msg, t);	
+		super(msg, t);
 	}
-	
-	public BitstreamException(int errorcode, Throwable t)
+
+	public BitstreamException(final int errorcode, final Throwable t)
 	{
 		this(getErrorString(errorcode), t);
 		this.errorcode = errorcode;
 	}
-	
+
 	public int getErrorCode()
 	{
-		return errorcode;	
+		return errorcode;
 	}
-	
-	
-	static public String getErrorString(int errorcode)
+
+
+	static public String getErrorString(final int errorcode)
 	{
 		// REVIEW: use resource bundle to map error codes
 		// to locale-sensitive strings.
-		
+
 		return "Bitstream errorcode "+Integer.toHexString(errorcode);
 	}
-	
-	
+
+
 }

@@ -82,7 +82,7 @@ public interface ISID2Types {
 
 	/**
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 * Soundcard sample format
 	 */
 	enum sid2_sample_t {

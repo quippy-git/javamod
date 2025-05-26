@@ -39,7 +39,7 @@ public class Violation extends Exception {
      * Constructor.
      * @param msg   The error message
      */
-    public Violation(String msg) {
+    public Violation(final String msg) {
         super(msg);
     }
 
@@ -47,7 +47,7 @@ public class Violation extends Exception {
      * Constructor.
      * @param err   The causing exception
      */
-    public Violation(Throwable err) {
+    public Violation(final Throwable err) {
         super(err);
     }
 
@@ -56,7 +56,7 @@ public class Violation extends Exception {
      * @param msg   The error message
      * @param err   The causing exception
      */
-    public Violation(String msg, Throwable err) {
+    public Violation(final String msg, final Throwable err) {
         super(msg, err);
     }
 

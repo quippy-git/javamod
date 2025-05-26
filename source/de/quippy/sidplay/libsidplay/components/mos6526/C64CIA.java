@@ -20,9 +20,9 @@ import de.quippy.sidplay.libsidplay.common.C64Env;
 /**
  * The CIA emulations are very generic and here we need to effectively wire them
  * into the computer (like adding a chip to a PCB).
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class C64CIA {
 
@@ -30,33 +30,38 @@ public class C64CIA {
 	 * CIA 1 specifics: Generates IRQs
 	 */
 	public static class C64cia1 extends MOS6526 {
-		private C64Env m_env;
+		private final C64Env m_env;
 
 		private short /* uint8_t */lp;
 
-		public void interrupt(boolean state) {
+		@Override
+		public void interrupt(final boolean state) {
 			m_env.interruptIRQ(state);
 		}
 
+		@Override
 		public void portA() {
 		}
 
+		@Override
 		public void portB() {
-			short /* uint8_t */lp = (short) ((regs[PRB] /* prb */| (~regs[DDRB] /* ddrb */& 0xff)) & 0x10);
+			final short /* uint8_t */lp = (short) ((regs[PRB] /* prb */| (~regs[DDRB] /* ddrb */& 0xff)) & 0x10);
 			if (lp != this.lp)
 				m_env.lightpen();
 			this.lp = lp;
 		}
 
-		public C64cia1(C64Env env) {
+		public C64cia1(final C64Env env) {
 			super(env.context());
 			m_env = (env);
 		}
 
+		@Override
 		public final String error() {
 			return "";
 		}
 
+		@Override
 		public void reset() {
 			lp = 0x10;
 			super.reset();
@@ -67,24 +72,28 @@ public class C64CIA {
 	 * CIA 2 specifics: Generates NMIs
 	 */
 	public static class C64cia2 extends MOS6526 {
-		private C64Env m_env;
+		private final C64Env m_env;
 
+		@Override
 		public void portA() {
 		}
 
+		@Override
 		public void portB() {
 		}
 
-		public void interrupt(boolean state) {
+		@Override
+		public void interrupt(final boolean state) {
 			if (state)
 				m_env.interruptNMI();
 		}
 
-		public C64cia2(C64Env env) {
+		public C64cia2(final C64Env env) {
 			super((env.context()));
 			m_env = (env);
 		}
 
+		@Override
 		public final String error() {
 			return "";
 		}

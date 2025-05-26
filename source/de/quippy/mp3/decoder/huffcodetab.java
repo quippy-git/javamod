@@ -9,16 +9,16 @@
  *  changes by Jeff Tsay (ctsay@pasteur.eecs.berkeley.edu).
  *-----------------------------------------------------------------------
  * Copyright (c) 1991 MPEG/audio software simulation group, All Rights Reserved
- * MPEG/audio coding/decoding software, work in progress              
- *   NOT for public distribution until verified and approved by the   
- *   MPEG/audio committee.  For further information, please contact   
- *   Davis Pan, 508-493-2241, e-mail: pan@3d.enet.dec.com             
- *                                                                    
- * VERSION 4.1                                                        
- *   changes made since last update:                                  
- *   date   programmers         comment                        
- *  27.2.92 F.O.Witte (ITT Intermetall)				                  
- *  8/24/93 M. Iwadare          Changed for 1 pass decoding.          
+ * MPEG/audio coding/decoding software, work in progress
+ *   NOT for public distribution until verified and approved by the
+ *   MPEG/audio committee.  For further information, please contact
+ *   Davis Pan, 508-493-2241, e-mail: pan@3d.enet.dec.com
+ *
+ * VERSION 4.1
+ *   changes made since last update:
+ *   date   programmers         comment
+ *  27.2.92 F.O.Witte (ITT Intermetall)
+ *  8/24/93 M. Iwadare          Changed for 1 pass decoding.
  *  7/14/94 J. Koller		    useless 'typedef' before huffcodetab  removed
  *-----------------------------------------------------------------------
  *   This program is free software; you can redistribute it and/or modify
@@ -46,20 +46,20 @@ final class huffcodetab
 {
   private static final int	 MXOFF=250;
   private static final int	 HTN=34;
-  
+
   private char				 tablename0 = ' ';      /* string, containing table_description   */
   private char				 tablename1 = ' ';      /* string, containing table_description   */
 //  private char				 tablename2 = ' ';      /* string, containing table_description   */
-  
-  private int				 xlen; 			        /* max. x-index+                          */
-  private int				 ylen;	                /* max. y-index+				          */
-  private int				 linbits; 		        /* number of linbits   	                  */
+
+  private final int				 xlen; 			        /* max. x-index+                          */
+  private final int				 ylen;	                /* max. y-index+				          */
+  private final int				 linbits; 		        /* number of linbits   	                  */
 //  private int 				 linmax;		        /* max number to be stored in linbits	  */
 //  private int				 ref;			        /* a positive value indicates a reference */
 //  private int[]				 table=null;	        /* pointer to array[xlen][ylen]		      */
 //  private int[]   			 hlen=null;             /* pointer to array[xlen][ylen]		      */
   private int[][]			 val=null;		        /* decoder tree		    	              */
-  private int 				 treelen;	            /* length of decoder tree  	              */
+  private final int 				 treelen;	            /* length of decoder tree  	              */
 
   private static int ValTab0[][] = {
 	{0,0}	// dummy
@@ -68,12 +68,12 @@ final class huffcodetab
   private static int ValTab1[][] = {
 	{2,1},{0,0},{2,1},{0,16},{2,1},{0,1},{0,17},
 	};
-	
+
   private static int ValTab2[][] = {
 	{2,1},{0,0},{4,1},{2,1},{0,16},{0,1},{2,1},{0,17},{4,1},{2,1},
 	{0,32},{0,33},{2,1},{0,18},{2,1},{0,2},{0,34},
 	};
-	
+
   private static int ValTab3[][] = {
 	{4,1},{2,1},{0,0},{0,1},{2,1},{0,17},{2,1},{0,16},{4,1},{2,1},
 	{0,32},{0,33},{2,1},{0,18},{2,1},{0,2},{0,34},
@@ -94,7 +94,7 @@ final class huffcodetab
 	{0,49},{0,19},{4,1},{2,1},{0,48},{0,50},{2,1},{0,35},{2,1},{0,3},
 	{0,51},
 	};
-	
+
   private static int ValTab7[][] = {
 	{2,1},{0,0},{4,1},{2,1},{0,16},{0,1},{8,1},{2,1},{0,17},{4,1},
 	{2,1},{0,32},{0,2},{0,33},{18,1},{6,1},{2,1},{0,18},{2,1},{0,34},
@@ -105,7 +105,7 @@ final class huffcodetab
 	{4,1},{2,1},{0,68},{0,53},{4,1},{2,1},{0,83},{0,84},{2,1},{0,69},
 	{0,85},
 	};
-	
+
   private static int ValTab8[][] = {
 	{6,1},{2,1},{0,0},{2,1},{0,16},{0,1},{2,1},{0,17},{4,1},{2,1},
 	{0,33},{0,18},{14,1},{4,1},{2,1},{0,32},{0,2},{2,1},{0,34},{4,1},
@@ -116,7 +116,7 @@ final class huffcodetab
 	{0,37},{2,1},{0,68},{0,53},{2,1},{0,83},{2,1},{0,69},{2,1},{0,84},
 	{0,85},
 	};
-	
+
   private static int ValTab9[][] = {
 	{8,1},{4,1},{2,1},{0,0},{0,16},{2,1},{0,1},{0,17},{10,1},{4,1},
 	{2,1},{0,32},{0,33},{2,1},{0,18},{2,1},{0,2},{0,34},{12,1},{6,1},
@@ -127,7 +127,7 @@ final class huffcodetab
 	{6,1},{4,1},{2,1},{0,5},{0,84},{0,83},{2,1},{0,53},{2,1},{0,69},
 	{0,85},
 	};
-	
+
   private static int ValTab10[][] = {
 	{2,1},{0,0},{4,1},{2,1},{0,16},{0,1},{10,1},{2,1},{0,17},{4,1},
 	{2,1},{0,32},{0,2},{2,1},{0,33},{0,18},{28,1},{8,1},{4,1},{2,1},
@@ -344,7 +344,7 @@ final class huffcodetab
 	{0,191},{2,1},{0,252},{0,207},{4,1},{2,1},{0,253},{0,223},{2,1},{0,254},
 	{0,239},
 	};
-	
+
   private static int ValTab24[][] = {
 	{60,1},{8,1},{4,1},{2,1},{0,0},{0,16},{2,1},{0,1},{0,17},{14,1},
 	{6,1},{4,1},{2,1},{0,32},{0,2},{0,33},{2,1},{0,18},{2,1},{0,34},
@@ -399,7 +399,7 @@ final class huffcodetab
 	{0,251},{0,191},{2,1},{0,252},{0,207},{4,1},{2,1},{0,253},{0,223},{2,1},
 	{0,254},{0,239},
 	};
-	
+
   private static int ValTab32[][] = {
 	{2,1},{0,0},{8,1},{4,1},{2,1},{0,8},{0,4},{2,1},{0,1},{0,2},
 	{8,1},{4,1},{2,1},{0,12},{0,10},{2,1},{0,3},{0,6},{6,1},{2,1},
@@ -418,12 +418,12 @@ final class huffcodetab
   public static huffcodetab[]  ht = null;     /* Simulate extern struct                 */
 
   //private static int[] bitbuf = new int[32];
-  
+
   /**
    * Big Constructor : Computes all Huffman Tables.
    */
-  private huffcodetab(String S,int XLEN, int YLEN, int LINBITS, int LINMAX, int REF,
-                     int[] TABLE, int[] HLEN, int[][] VAL, int TREELEN)                     
+  private huffcodetab(final String S,final int XLEN, final int YLEN, final int LINBITS, final int LINMAX, final int REF,
+                     final int[] TABLE, final int[] HLEN, final int[][] VAL, final int TREELEN)
   {
     tablename0 = S.charAt(0);
 	tablename1 = S.charAt(1);
@@ -439,20 +439,20 @@ final class huffcodetab
     treelen = TREELEN;
   }
 
-  
-  
+
+
   /**
    * Do the huffman-decoding.
    * note! for counta,countb -the 4 bit value is returned in y,
    * discard x.
    */
-  public static int huffman_decoder(huffcodetab h, int[] x, int[] y, int[] v, int[] w, BitReserve br)
+  public static int huffman_decoder(final huffcodetab h, final int[] x, final int[] y, final int[] v, final int[] w, final BitReserve br)
   {
 	// array of all huffcodtable headers
 	// 0..31 Huffman code table 0..31
 	// 32,33 count1-tables
 
-	int dmask = 1 << ((4 * 8) - 1);
+	final int dmask = 1 << ((4 * 8) - 1);
 	//int hs    = 4 * 8;
   	int level;
   	int point = 0;
@@ -463,18 +463,18 @@ final class huffcodetab
 
      /* table 0 needs no bits */
      if ( h.treelen == 0)
-	 { 
+	 {
 	   x[0] = y[0] = 0;
 	   return 0;
      }
 
      /* Lookup in Huffman table. */
 
-	 /*int bitsAvailable = 0;	 
+	 /*int bitsAvailable = 0;
 	 int bitIndex = 0;
-	 
+
 	 int bits[] = bitbuf;*/
-   	 do 
+   	 do
 	 {
 	    if (h.val[point][0]==0)
 		{   /*end of tree*/
@@ -483,13 +483,13 @@ final class huffcodetab
 		   error = 0;
 		   break;
  	    }
-	    
+
 		// hget1bit() is called thousands of times, and so needs to be
-		// ultra fast. 
+		// ultra fast.
 		/*
 		if (bitIndex==bitsAvailable)
 		{
-			bitsAvailable = br.readBits(bits, 32);			
+			bitsAvailable = br.readBits(bits, 32);
 			bitIndex = 0;
 		}
 		*/
@@ -507,9 +507,9 @@ final class huffcodetab
 	    level >>>= 1;
 		// MDM: ht[0] is always 0;
 	 } while ((level !=0 )  || (point < 0 /*ht[0].treelen*/) );
-		
+
 		// put back any bits not consumed
-	/*	
+	/*
 	 int unread = (bitsAvailable-bitIndex);
 		if (unread>0)
 			br.rewindNbits(unread);
@@ -557,22 +557,22 @@ final class huffcodetab
 
   public synchronized static void inithuff()
   {
-	
+
 	if (ht!=null)
 		return;
-	
+
 	ht = new huffcodetab[HTN];
     ht[0] = new huffcodetab("0  ",0,0,0,0,-1,null,null,ValTab0,0);
     ht[1] = new huffcodetab("1  ",2,2,0,0,-1,null,null,ValTab1,7);
     ht[2] = new huffcodetab("2  ",3,3,0,0,-1,null,null,ValTab2,17);
     ht[3] = new huffcodetab("3  ",3,3,0,0,-1,null,null,ValTab3,17);
-    ht[4] = new huffcodetab("4  ",0,0,0,0,-1,null,null,ValTab4,0);    
+    ht[4] = new huffcodetab("4  ",0,0,0,0,-1,null,null,ValTab4,0);
     ht[5] = new huffcodetab("5  ",4,4,0,0,-1,null,null,ValTab5,31);
     ht[6] = new huffcodetab("6  ",4,4,0,0,-1,null,null,ValTab6,31);
     ht[7] = new huffcodetab("7  ",6,6,0,0,-1,null,null,ValTab7,71);
     ht[8] = new huffcodetab("8  ",6,6,0,0,-1,null,null,ValTab8,71);
     ht[9] = new huffcodetab("9  ",6,6,0,0,-1,null,null,ValTab9,71);
-    ht[10] = new huffcodetab("10 ",8,8,0,0,-1,null,null,ValTab10,127);  
+    ht[10] = new huffcodetab("10 ",8,8,0,0,-1,null,null,ValTab10,127);
     ht[11] = new huffcodetab("11 ",8,8,0,0,-1,null,null,ValTab11,127);
     ht[12] = new huffcodetab("12 ",8,8,0,0,-1,null,null,ValTab12,127);
     ht[13] = new huffcodetab("13 ",16,16,0,0,-1,null,null,ValTab13,511);
@@ -590,7 +590,7 @@ final class huffcodetab
     ht[25] = new huffcodetab("25 ",16,16,5,31,24,null,null,ValTab24,512);
     ht[26] = new huffcodetab("26 ",16,16,6,63,24,null,null,ValTab24,512);
     ht[27] = new huffcodetab("27 ",16,16,7,127,24,null,null,ValTab24,512);
-	ht[28] = new huffcodetab("28 ",16,16,8,255,24,null,null,ValTab24,512);  
+	ht[28] = new huffcodetab("28 ",16,16,8,255,24,null,null,ValTab24,512);
     ht[29] = new huffcodetab("29 ",16,16,9,511,24,null,null,ValTab24,512);
     ht[30] = new huffcodetab("30 ",16,16,11,2047,24,null,null,ValTab24,512);
     ht[31] = new huffcodetab("31 ",16,16,13,8191,24,null,null,ValTab24,512);

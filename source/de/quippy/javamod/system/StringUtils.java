@@ -18,6 +18,7 @@
 package de.quippy.javamod.system;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Daniel Becker
@@ -302,7 +303,7 @@ public class StringUtils
 	 * @param source
 	 * @return
 	 */
-	public static String encodeHtml(String source)
+	public static String encodeHtml(final String source)
 	{
 		return encode(source, htmlEncodeChars);
 	}
@@ -313,26 +314,26 @@ public class StringUtils
 	 * @param encodingTable
 	 * @return
 	 */
-	private static String encode(String source, HashMap<Character, String> encodingTable)
+	private static String encode(final String source, final Map<Character, String> encodingTable)
 	{
 		if (source == null || encodingTable == null)
 		{
 			return source;
 		}
 
-		StringBuffer encoded_string = null;
-		char[] string_to_encode_array = source.toCharArray();
+		StringBuilder encoded_string = null;
+		final char[] string_to_encode_array = source.toCharArray();
 		int last_match = -1;
 		int difference = 0;
 
 		for (int i=0; i<string_to_encode_array.length; i++)
 		{
-			Character char_to_encode = Character.valueOf(string_to_encode_array[i]);
+			final Character char_to_encode = Character.valueOf(string_to_encode_array[i]);
 
 			if (encodingTable.containsKey(char_to_encode))
 			{
 				// lazy... But if nothing is to replace, avoid object creation and return source string
-				if (encoded_string == null) encoded_string = new StringBuffer(source.length());
+				if (encoded_string == null) encoded_string = new StringBuilder(source.length());
 
 				difference = i - (last_match + 1);
 				if (difference>0) encoded_string.append(string_to_encode_array, last_match + 1, difference);

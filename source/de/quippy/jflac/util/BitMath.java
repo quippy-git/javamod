@@ -25,7 +25,7 @@ package de.quippy.jflac.util;
  * @author kc7bfi
  */
 public final class BitMath {
-    
+
     /**
      * Compute ilog2().
      *  An example of what ilog2() computes:
@@ -49,7 +49,7 @@ public final class BitMath {
      * ilog2(16) = 4
      * ilog2(17) = 4
      * ilog2(18) = 4
-     * 
+     *
      * @param v     The value
      * @return      The ilog2 value
      */
@@ -58,7 +58,7 @@ public final class BitMath {
         while ((v >>= 1) != 0) l++;
         return l;
     }
-    
+
     /**
      * Compute silog2().
      * An example of what silog2() computes:
@@ -84,7 +84,7 @@ public final class BitMath {
      * silog2(  8) = 5
      * silog2(  9) = 5
      * silog2( 10) = 5
-     * 
+     *
      * @param v     The value
      * @return      The silog2 value
      */
@@ -104,7 +104,7 @@ public final class BitMath {
             v = -v;
         }
     }
-    
+
     /**
      * Compute silog2().
      * An example of what silog2() computes:
@@ -130,7 +130,7 @@ public final class BitMath {
      * silog2(  8) = 5
      * silog2(  9) = 5
      * silog2( 10) = 5
-     * 
+     *
      * @param v     The value
      * @return      The silog2 value
      */

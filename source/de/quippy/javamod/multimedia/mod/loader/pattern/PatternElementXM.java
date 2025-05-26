@@ -2,7 +2,7 @@
  * @(#) PatternElementXM.java
  *
  * Created on 09.01.2024 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public class PatternElementXM extends PatternElement
 	 * @param patternRow
 	 * @param channel
 	 */
-	public PatternElementXM(final Module parentMod, final PatternRow parentPatternRow, final int patternIndex, final int patternRow, int channel)
+	public PatternElementXM(final Module parentMod, final PatternRow parentPatternRow, final int patternIndex, final int patternRow, final int channel)
 	{
 		super(parentMod, parentPatternRow, patternIndex, patternRow, channel);
 	}
@@ -103,7 +103,7 @@ public class PatternElementXM extends PatternElement
 					case 0xF: return ((parentMod.getModType()&ModConstants.MODTYPE_XM)!=0)?"Set MIDI Macro":"Funk It!";
 				}
 				break;
-			case 0x0F: return (effektOp>31 && !parentMod.getModSpeedIsTicks())?"Set BPM":"Set Speed"; 
+			case 0x0F: return (effektOp>31 && !parentMod.getModSpeedIsTicks())?"Set BPM":"Set Speed";
 			case 0x10: return "Set global volume";
 			case 0x11: return "Global Volume Slide";
 			case 0x14: return "Key off";
@@ -139,7 +139,7 @@ public class PatternElementXM extends PatternElement
 					case 0xA: return "Set High Offset";
 				}
 				break;
-			case 0x22: return "Panbrello"; 
+			case 0x22: return "Panbrello";
 			case 0x23: return "Midi Macro";
 			case 0x24: return "Smooth Midi Macro";
 			case 0x26: return "Parameter Extension";
@@ -191,7 +191,7 @@ public class PatternElementXM extends PatternElement
 					case 0xF: return EFFECT_NORMAL;
 				}
 				break;
-			case 0x0F: return EFFECT_GLOBAL; 
+			case 0x0F: return EFFECT_GLOBAL;
 			case 0x10: return EFFECT_GLOBAL;
 			case 0x11: return EFFECT_GLOBAL;
 			case 0x14: return EFFECT_NORMAL;
@@ -225,7 +225,7 @@ public class PatternElementXM extends PatternElement
 					case 0xA: return EFFECT_NORMAL;
 				}
 				break;
-			case 0x22: return EFFECT_PANNING; 
+			case 0x22: return EFFECT_PANNING;
 			case 0x23: return EFFECT_NORMAL;
 			case 0x24: return EFFECT_NORMAL;
 			case 0x26: return EFFECT_NORMAL;
@@ -282,7 +282,7 @@ public class PatternElementXM extends PatternElement
 //			case 0x0D: return "Porta Up";
 		}
 		//Log.error("Unknown: " + ModConstants.getAsHex(assignedVolumeEffekt, 2) + "/" + ModConstants.getAsHex(assignedVolumeEffektOp, 2));
-		return Helpers.EMPTY_STING; 
+		return Helpers.EMPTY_STING;
 	}
 	/**
 	 * @return
@@ -293,7 +293,7 @@ public class PatternElementXM extends PatternElement
 	{
 		switch (volumeEffekt)
 		{
-			case 0x00: return EFFECT_NORMAL; 
+			case 0x00: return EFFECT_NORMAL;
 			case 0x01: return EFFECT_VOLUME;
 			case 0x02: return EFFECT_VOLUME;
 			case 0x03: return EFFECT_VOLUME;

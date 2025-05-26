@@ -2,7 +2,7 @@
  * @(#) EmuFMOPL_072.java
  *
  * Created on 11.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,15 +40,15 @@ public class EmuFMOPL_072 extends EmuOPL
 	 * @param ver the OPL Version
 	 * @param sampleRate
 	 * @param OPLType
-	 * @throws IllegalArgumentException if OPLType is OPL3 
+	 * @throws IllegalArgumentException if OPLType is OPL3
 	 */
 	public EmuFMOPL_072(final version ver, final float sampleRate, final oplType OPLType)
 	{
 		super(ver, sampleRate, OPLType);
-		
+
 		if (OPLType == oplType.OPL3)
 		{
-			final String type = (ver == EmuOPL.version.FMOPL_072_YM3526)?"YM3226":"YM3812"; 
+			final String type = (ver == EmuOPL.version.FMOPL_072_YM3526)?"YM3226":"YM3812";
 			throw new IllegalArgumentException(type + " does not support OPL3.");
 		}
 
@@ -76,14 +76,14 @@ public class EmuFMOPL_072 extends EmuOPL
 	}
 
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.multimedia.opl3.emu.EmuOPL#resetOPL()
 	 */
 	@Override
 	public void resetOPL()
 	{
 		FMOPL_072.reset_chip(opl[0]);
-		if (opl[1]!=null) 
+		if (opl[1]!=null)
 			FMOPL_072.reset_chip(opl[1]);
 	}
 
@@ -98,14 +98,14 @@ public class EmuFMOPL_072 extends EmuOPL
 //		{
 //			FMOPL_072.y8950_update_one(opl[0], buffer, 1);
 //			buffer[1] = buffer[0];
-//			if (opl[1]!=null) 
+//			if (opl[1]!=null)
 //				FMOPL_072.y8950_update_one(opl[1], buffer, 1);
 //		}
 //		else
 //		{
 			FMOPL_072.update_one(opl[0], buffer, 1);
 			buffer[1] = buffer[0];
-			if (opl[1]!=null) 
+			if (opl[1]!=null)
 				FMOPL_072.update_one(opl[1], buffer, 1);
 //		}
 	}

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -72,10 +72,10 @@ public class Voice {
 
 	/**
 	 * Set chip model.
-	 * 
+	 *
 	 * @param model
 	 */
-	public void set_chip_model(chip_model model) {
+	public void set_chip_model(final chip_model model) {
 		wave.set_chip_model(model);
 
 		if (model == chip_model.MOS6581) {
@@ -151,16 +151,16 @@ public class Voice {
 	/**
 	 * Set sync source.
 	 */
-	public void set_sync_source(Voice source) {
+	public void set_sync_source(final Voice source) {
 		wave.set_sync_source(source.wave);
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param control
 	 */
-	public void writeCONTROL_REG(int /* reg8 */control) {
+	public void writeCONTROL_REG(final int /* reg8 */control) {
 		wave.writeCONTROL_REG(control);
 		envelope.writeCONTROL_REG(control);
 	}
@@ -175,10 +175,10 @@ public class Voice {
 
 	/**
 	 * Voice mute.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void mute(boolean enable) {
+	public void mute(final boolean enable) {
 		// enable = true (means voice is muted)
 		muted = enable;
 	}

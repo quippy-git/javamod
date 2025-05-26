@@ -26,7 +26,7 @@ package de.quippy.jflac;
  */
 public class LPCPredictor {
     //static private final double M_LN2 = 0.69314718055994530942;
-    
+
     /*
      void FLAC__lpc_compute_autocorrelation(double data[], int data_len, int lag, double autoc[])
      {
@@ -37,7 +37,7 @@ public class LPCPredictor {
          double d;
          int sample, coeff;
          int limit = data_len - lag;
-         
+
          for(coeff = 0; coeff < lag; coeff++)
          autoc[coeff] = 0.0;
          for(sample = 0; sample <= limit; sample++) {
@@ -51,23 +51,23 @@ public class LPCPredictor {
          autoc[coeff] += d * data[sample+coeff];
          }
          }
-         
+
          void FLAC__lpc_compute_lp_coefficients(double autoc[], int max_order, double[][] lp_coeff, double error[])
          {
          int i, j;
          double r, err;
          double ref = new double[Constants.MAX_LPC_ORDER];
          double lpc = new double[Constants.MAX_LPC_ORDER];
-         
+
          err = autoc[0];
-         
+
          for(i = 0; i < max_order; i++) {
          // Sum up this iteration's reflection coefficient.
           r = -autoc[i+1];
           for(j = 0; j < i; j++)
           r -= lpc[j] * autoc[i-j];
           ref[i] = (r/=err);
-          
+
           // Update LPC coefficients and total error.
            lpc[i]=r;
            for(j = 0; j < (i>>1); j++) {
@@ -77,16 +77,16 @@ public class LPCPredictor {
            }
            if(i & 1)
            lpc[j] += lpc[j] * r;
-           
+
            err *= (1.0 - r * r);
-           
+
            // save this order
             for(j = 0; j <= i; j++)
             lp_coeff[i][j] = (double)(-lpc[j]); // negate FIR filter coeff to get predictor coeff
             error[i] = (double)err;
             }
             }
-            
+
             int FLAC__lpc_quantize_coefficients(double lp_coeff[], int order, int precision, FLAC__int32 qlp_coeff[], int *shift)
             {
             int i;
@@ -94,16 +94,16 @@ public class LPCPredictor {
             FLAC__int32 qmax, qmin;
             int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
             int min_shiftlimit = -max_shiftlimit - 1;
-            
+
             FLAC__ASSERT(precision > 0);
             FLAC__ASSERT(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
-            
+
             // drop one bit for the sign; from here on out we consider only |lp_coeff[i]|
              precision--;
              qmax = 1 << precision;
              qmin = -qmax;
              qmax--;
-             
+
              for(i = 0; i < order; i++) {
              if(lp_coeff[i] == 0.0)
              continue;
@@ -113,16 +113,16 @@ public class LPCPredictor {
              }
              redo_it:
              if(cmax <= 0.0) {
-             // => coefficients are all 0, which means our constant-detect didn't work 
+             // => coefficients are all 0, which means our constant-detect didn't work
               return 2;
               }
               else {
               int log2cmax;
-              
+
               (void)frexp(cmax, &log2cmax);
               log2cmax--;
               *shift = (int)precision - log2cmax - 1;
-              
+
               if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
               #if 0
               //@@@ this does not seem to help at all, but was not extensively tested either:
@@ -133,11 +133,11 @@ public class LPCPredictor {
                return 1;
                }
                }
-               
+
                if(*shift >= 0) {
                for(i = 0; i < order; i++) {
                qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] * (double)(1 << *shift));
-               
+
                // double-check the result
                 if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
                 #ifdef FLAC__OVERFLOW_DETECT
@@ -155,7 +155,7 @@ public class LPCPredictor {
                 #endif
                 for(i = 0; i < order; i++) {
                 qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] / (double)(1 << nshift));
-                
+
                 // double-check the result
                  if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
                  #ifdef FLAC__OVERFLOW_DETECT
@@ -166,16 +166,16 @@ public class LPCPredictor {
                  }
                  }
                  }
-                 
+
                  return 0;
                  }
                  */
-    
+
     /*
      void FLAC__lpc_compute_residual_from_qlp_coefficients(int[] data, int dataLen, int[] qlp_coeff, int order, int lp_quantization, int[] residual) {
      int[] history;
-     
-     
+
+
      for(int i = 0; i < dataLen; i++) {
      int sum = 0;
      history = data;
@@ -185,12 +185,12 @@ public class LPCPredictor {
      residual[i] = data[i] - (sum >> lp_quantization);
      }
      }
-     
+
      void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(int[] data, int data_len, int[] qlp_coeff, int order, int lp_quantization, int[] residual)
      {
      int[] history;
-     
-     
+
+
      for(int i = 0; i < data_len; i++) {
      long sum = 0;
      history = data;
@@ -200,7 +200,7 @@ public class LPCPredictor {
      }
      }
      */
-    
+
     /**
      * Restore the signal from the LPC compression.
      * @param residual  The residual signal
@@ -211,7 +211,7 @@ public class LPCPredictor {
      * @param data      The restored signal (output)
      * @param startAt   The starting position in the data array
      */
-    public static void restoreSignal(int[] residual, int dataLen, int[] qlpCoeff, int order, int lpQuantization, int[] data, int startAt) {
+    public static void restoreSignal(final int[] residual, final int dataLen, final int[] qlpCoeff, final int order, final int lpQuantization, final int[] data, final int startAt) {
         //System.out.println("Q="+lpQuantization);
         for (int i = 0; i < dataLen; i++) {
             int sum = 0;
@@ -226,7 +226,7 @@ public class LPCPredictor {
         //for (int j = 0; j < order; j++) System.out.print(qlpCoeff[j]+" ");System.out.println();
         //System.exit(1);
     }
-    
+
     /**
      * Restore the signal from the LPC compression.
      * @param residual  The residual signal
@@ -237,7 +237,7 @@ public class LPCPredictor {
      * @param data      The restored signal (output)
      * @param startAt   The starting position in the data array
      */
-    public static void restoreSignalWide(int[] residual, int dataLen, int[] qlpCoeff, int order, int lpQuantization, int[] data, int startAt) {
+    public static void restoreSignalWide(final int[] residual, final int dataLen, final int[] qlpCoeff, final int order, final int lpQuantization, final int[] data, final int startAt) {
         for (int i = 0; i < dataLen; i++) {
             long sum = 0;
             for (int j = 0; j < order; j++)
@@ -245,19 +245,19 @@ public class LPCPredictor {
             data[startAt + i] = residual[i] + (int) (sum >> lpQuantization);
         }
     }
-    
+
     /*
      double FLAC__lpc_compute_expected_bits_per_residual_sample(double lpc_error, int total_samples)
      {
      double error_scale;
-     
+
      FLAC__ASSERT(total_samples > 0);
-     
+
      error_scale = 0.5 * M_LN2 * M_LN2 / (double)total_samples;
-     
+
      return FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error, error_scale);
      }
-     
+
      double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(double lpc_error, double error_scale)
      {
      if(lpc_error > 0.0) {
@@ -274,21 +274,21 @@ public class LPCPredictor {
      return 0.0;
      }
      }
-     
+
      int FLAC__lpc_compute_best_order(double lpc_error[], int max_order, int total_samples, int bits_per_signal_sample)
      {
      int order, best_order;
      double best_bits, tmp_bits;
      double error_scale;
-     
+
      FLAC__ASSERT(max_order > 0);
      FLAC__ASSERT(total_samples > 0);
-     
+
      error_scale = 0.5 * M_LN2 * M_LN2 / (double)total_samples;
-     
+
      best_order = 0;
      best_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[0], error_scale) * (double)total_samples;
-     
+
      for(order = 1; order < max_order; order++) {
      tmp_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[order], error_scale) * (double)(total_samples - order) + (double)(order * bits_per_signal_sample);
      if(tmp_bits < best_bits) {
@@ -296,7 +296,7 @@ public class LPCPredictor {
      best_bits = tmp_bits;
      }
      }
-     
+
      return best_order+1; // +1 since index of lpc_error[] is order-1
      }
      */

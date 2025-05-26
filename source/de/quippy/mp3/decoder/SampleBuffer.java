@@ -1,8 +1,8 @@
-/* 
+/*
  * 11/19/04	 1.0 moved to LGPL.
- * 
+ *
  * 12/12/99  Initial Version based on FileObuffer.	mdm@techie.com.
- * 
+ *
  * FileObuffer:
  * 15/02/99  Java Conversion by E.B ,javalayer@javazoom.net
  *
@@ -27,98 +27,104 @@ package de.quippy.mp3.decoder;
 
 /**
  * The <code>SampleBuffer</code> class implements an output buffer
- * that provides storage for a fixed size block of samples. 
+ * that provides storage for a fixed size block of samples.
  */
 public class SampleBuffer extends Obuffer
 {
-  private short[] 		buffer;
-  private int[] 		bufferp;
-  private int 			channels;
-  private int			frequency;
-  
+  private final short[] 		buffer;
+  private final int[] 		bufferp;
+  private final int 			channels;
+  private final int			frequency;
+
   /**
    * Constructor
    */
-  public SampleBuffer(int sample_frequency, int number_of_channels)
+  public SampleBuffer(final int sample_frequency, final int number_of_channels)
   {
   	buffer = new short[OBUFFERSIZE];
 	bufferp = new int[MAXCHANNELS];
 	channels = number_of_channels;
 	frequency = sample_frequency;
-	
-	for (int i = 0; i < number_of_channels; ++i) 
+
+	for (int i = 0; i < number_of_channels; ++i)
 		bufferp[i] = (short)i;
-	
+
   }
 
   public int getChannelCount()
   {
-	return this.channels;  
+	return this.channels;
   }
-  
+
   public int getSampleFrequency()
   {
 	  return this.frequency;
   }
-  
+
   public short[] getBuffer()
   {
-	return this.buffer;  
+	return this.buffer;
   }
-  
+
   public int getBufferLength()
   {
 	  return bufferp[0];
   }
-  
+
   /**
    * Takes a 16 Bit PCM sample.
    */
-  public void append(int channel, short value)
+  @Override
+public void append(final int channel, final short value)
   {
 	buffer[bufferp[channel]] = value;
-	bufferp[channel] += channels;	  	
+	bufferp[channel] += channels;
   }
-  
-	public void appendSamples(int channel, float[] f)
+
+	@Override
+	public void appendSamples(final int channel, final float[] f)
 	{
 	    int pos = bufferp[channel];
-		
+
 	    for (int i=0; i<32;)
 	    {
 		  	final float fs = f[i++];
 			buffer[pos] = (short)(fs>32767.0f ? 32767.0f : (fs < -32768.0f ? -32768.0f : fs));
 			pos += channels;
 	    }
-		
+
 		bufferp[channel] = pos;
 	}
-  
-  
+
+
   /**
    * Write the samples to the file (Random Access).
    */
-  public void write_buffer(int val)
+  @Override
+public void write_buffer(final int val)
   {
-	//for (int i = 0; i < channels; ++i) 
+	//for (int i = 0; i < channels; ++i)
 	//	bufferp[i] = (short)i;
   }
 
-  public void close()
+  @Override
+public void close()
   {}
-  
+
   /**
    *
    */
-  public void clear_buffer()
+  @Override
+public void clear_buffer()
   {
-	for (int i = 0; i < channels; ++i) 
+	for (int i = 0; i < channels; ++i)
 		bufferp[i] = (short)i;
   }
 
   /**
    *
    */
-  public void set_stop_flag()
+  @Override
+public void set_stop_flag()
   {}
 }

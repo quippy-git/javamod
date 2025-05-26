@@ -1,8 +1,8 @@
 /*
  * @(#) JavaModMainBase.java
- * 
+ *
  * Created on 15.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ public class JavaModMainBase
 	/**
 	 * Constructor for JavaModMainBase
 	 */
-	public JavaModMainBase(boolean gui)
+	public JavaModMainBase(final boolean gui)
 	{
 		super();
 		Helpers.setCoding(gui);

@@ -1,8 +1,8 @@
 /*
  * @(#) ROLSequence.java
- * 
+ *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  * -----------------------------------------------------------------------
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  * ----------------------------------------------------------------------
- * 
+ *
  * Java port of ROL.CPP by OPLx for adplug project
- * 
+ *
  * Java port and optimizations by Daniel Becker
  * - verified loading against my old Effekter loading routine
  *   -> check for section start during load - some ROLs are corrupt!
@@ -28,7 +28,7 @@
  * - unnecessary event checking during play removed.
  *   If there are no more events (array size exceeded), we find out
  *   without setting a marker
- * - play till real end, not only till last note (possible pitch event after 
+ * - play till real end, not only till last note (possible pitch event after
  *   last note would be ignored)
  * - no table for note index or octave needed. Lookup takes same time as
  *   calculation (index = note%12; octave = note/12)
@@ -166,12 +166,12 @@ public class ROLSequence extends OPL3Sequence
 		private int		edit_scale_x;
 		private byte	unused1;
 		private byte	mode;
-		private byte[]	unused = new byte[ROL_UNUSED2_SIZE + ROL_FILLER0_SIZE + ROL_FILLER1_SIZE];
+		private final byte[]	unused = new byte[ROL_UNUSED2_SIZE + ROL_FILLER0_SIZE + ROL_FILLER1_SIZE];
 		private double	basic_tempo;
 
-		private static SRolHeader readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SRolHeader readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SRolHeader result = new SRolHeader();
+			final SRolHeader result = new SRolHeader();
 			result.version_major = inputStream.readIntelWord();
 			result.version_minor = inputStream.readIntelWord();
 			result.comment = inputStream.readString(ROL_COMMENT_SIZE);
@@ -183,13 +183,13 @@ public class ROLSequence extends OPL3Sequence
 			result.unused1 = inputStream.readByte();
 			result.mode = inputStream.readByte();
 			inputStream.read(result.unused);
-			result.basic_tempo = (double)inputStream.readIntelFloat();
+			result.basic_tempo = inputStream.readIntelFloat();
 			return result;
 		}
 		@Override
 		public String toString()
 		{
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			sb.append("Version:").append(version_major).append('.').append(version_minor).
 				append(" Comment:").append(comment).
 				append(" Ticks: ").append(ticks_per_beat).append('/').append(beats_per_measure).
@@ -205,11 +205,11 @@ public class ROLSequence extends OPL3Sequence
 		private int 	time;
 		private double	multiplier;
 
-		private static STempoEvent readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static STempoEvent readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			STempoEvent event = new STempoEvent();
+			final STempoEvent event = new STempoEvent();
 			event.time = inputStream.readIntelWord();
-			event.multiplier = (double)inputStream.readIntelFloat();
+			event.multiplier = inputStream.readIntelFloat();
 			if (event.multiplier<0.01) event.multiplier = 0.01;
 			else
 			if (event.multiplier>10.0) event.multiplier = 10.0;
@@ -227,9 +227,9 @@ public class ROLSequence extends OPL3Sequence
 		private int number;
 		private int duration;
 
-		private static SNoteEvent readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SNoteEvent readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SNoteEvent event = new SNoteEvent();
+			final SNoteEvent event = new SNoteEvent();
 			event.number = inputStream.readIntelWord();
 			event.duration = inputStream.readIntelWord();
 			event.number += kSilenceNote; // adding -12
@@ -248,9 +248,9 @@ public class ROLSequence extends OPL3Sequence
 		private String	name;
 		private int		ins_index;
 
-		private static SInstrumentEvent readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SInstrumentEvent readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SInstrumentEvent event = new SInstrumentEvent();
+			final SInstrumentEvent event = new SInstrumentEvent();
 			event.time = inputStream.readIntelWord();
 			event.name = inputStream.readString(ROL_MAX_NAME_SIZE).toUpperCase();
 			return event;
@@ -267,11 +267,11 @@ public class ROLSequence extends OPL3Sequence
 		private int		time;
 		private double	multiplier;
 
-		private static SVolumeEvent readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SVolumeEvent readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SVolumeEvent event = new SVolumeEvent();
+			final SVolumeEvent event = new SVolumeEvent();
 			event.time = inputStream.readIntelWord();
-			event.multiplier = (double)inputStream.readIntelFloat();
+			event.multiplier = inputStream.readIntelFloat();
 			if (event.multiplier<0) event.multiplier = 0;
 			else
 			if (event.multiplier>1.0) event.multiplier = 1.0;
@@ -289,11 +289,11 @@ public class ROLSequence extends OPL3Sequence
 		private int		time;
 		private double	variation;
 
-		private static SPitchEvent readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SPitchEvent readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SPitchEvent event = new SPitchEvent();
+			final SPitchEvent event = new SPitchEvent();
 			event.time = inputStream.readIntelWord();
-			event.variation = (double)inputStream.readIntelFloat();
+			event.variation = inputStream.readIntelFloat();
 			if (event.variation<0) event.variation = 0;
 			else
 			if (event.variation>2.0) event.variation = 2.0;
@@ -328,7 +328,7 @@ public class ROLSequence extends OPL3Sequence
 		private void reset()
 		{
 			mNoteDuration =
-			current_note_duration = 
+			current_note_duration =
 			next_note_event =
 			next_instrument_event =
 			next_volume_event =
@@ -343,9 +343,9 @@ public class ROLSequence extends OPL3Sequence
 		private byte	record_used;
 		private String	name;
 
-		private static SInstrumentName readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SInstrumentName readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SInstrumentName result = new SInstrumentName();
+			final SInstrumentName result = new SInstrumentName();
 			result.index = inputStream.readIntelWord();
 			result.record_used = inputStream.readByte();
 			result.name = inputStream.readString(ROL_MAX_NAME_SIZE).toUpperCase();
@@ -367,12 +367,12 @@ public class ROLSequence extends OPL3Sequence
 		private int		total_number_of_list_entries;
 		private long	abs_offset_of_name_list;
 		private long	abs_offset_of_data;
-		
+
 		private ArrayList<SInstrumentName> ins_name_list;
 
-		private static SBnkHeader readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SBnkHeader readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SBnkHeader result = new SBnkHeader();
+			final SBnkHeader result = new SBnkHeader();
 			result.version_major = inputStream.read();
 			result.version_minor = inputStream.read();
 			result.signature = inputStream.readString(ROL_BNK_SIGNATURE_SIZE);
@@ -380,7 +380,7 @@ public class ROLSequence extends OPL3Sequence
 			result.total_number_of_list_entries = inputStream.readIntelWord();
 			result.abs_offset_of_name_list = inputStream.readIntelDWord();
 			result.abs_offset_of_data = inputStream.readIntelDWord();
-			result.ins_name_list = new ArrayList<SInstrumentName>(result.total_number_of_list_entries);
+			result.ins_name_list = new ArrayList<>(result.total_number_of_list_entries);
 
 			inputStream.seek(result.abs_offset_of_name_list);
 			for (int i = 0; i < result.total_number_of_list_entries; i++)
@@ -411,9 +411,9 @@ public class ROLSequence extends OPL3Sequence
 		private int envelope_scaling;
 		private int fm_type;
 
-		private static SFMOperator readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SFMOperator readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SFMOperator result = new SFMOperator();
+			final SFMOperator result = new SFMOperator();
 			result.key_scale_level = inputStream.read();
 			result.freq_multiplier = inputStream.read();
 			result.feed_back = inputStream.read();
@@ -440,10 +440,10 @@ public class ROLSequence extends OPL3Sequence
 		private int fbc;
 		private int waveform;
 
-		private static SOPL2Op readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SOPL2Op readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SFMOperator fm_op = SFMOperator.readMe(inputStream);
-			SOPL2Op result = new SOPL2Op();
+			final SFMOperator fm_op = SFMOperator.readMe(inputStream);
+			final SOPL2Op result = new SOPL2Op();
 			result.ammulti	= fm_op.amplitude_vibrato	<< 7 | fm_op.frequency_vibrato << 6 | fm_op.sustaining_sound << 5 | fm_op.envelope_scaling << 4 | fm_op.freq_multiplier;
 			result.ksltl	= fm_op.key_scale_level		<< 6 | fm_op.output_level;
 			result.ardr		= fm_op.attack_rate			<< 4 | fm_op.decay_rate;
@@ -465,9 +465,9 @@ public class ROLSequence extends OPL3Sequence
 		private SOPL2Op modulator;
 		private SOPL2Op carrier;
 
-		private static SRolInstrument readMe(RandomAccessInputStreamImpl inputStream) throws IOException
+		private static SRolInstrument readMe(final RandomAccessInputStreamImpl inputStream) throws IOException
 		{
-			SRolInstrument result = new SRolInstrument();
+			final SRolInstrument result = new SRolInstrument();
 			result.mode = inputStream.read();
 			result.voice_number = inputStream.read();
 			result.modulator = SOPL2Op.readMe(inputStream);
@@ -500,17 +500,17 @@ public class ROLSequence extends OPL3Sequence
 	private int						mpOldFNumFreqPtr;
 	private ArrayList<STempoEvent>	mTempoEvents;
 	private ArrayList<CVoiceData>	mVoiceData;
-	private ArrayList<SInstrument>	mInstrumentList;
-	private int[]					mFNumFreqPtrList;
-	private int[]					mHalfToneOffset;
-	private int[]					mVolumeCache;
-	private int[]					mKSLTLCache;
-	private int[]					mNoteCache;
-	private int[]					mKOnOctFNumCache;
-	private boolean[]				mKeyOnCache;
+	private final ArrayList<SInstrument>	mInstrumentList;
+	private final int[]					mFNumFreqPtrList;
+	private final int[]					mHalfToneOffset;
+	private final int[]					mVolumeCache;
+	private final int[]					mKSLTLCache;
+	private final int[]					mNoteCache;
+	private final int[]					mKOnOctFNumCache;
+	private final boolean[]				mKeyOnCache;
 	private double					mRefresh;
 	private long					mOldPitchBendLength;
-	private int						mPitchRangeStep;
+	private final int						mPitchRangeStep;
 	private int						mNextTempoEvent;
 	private int						mCurrTick;
 	private int						mTimeOfLastNote;
@@ -531,7 +531,7 @@ public class ROLSequence extends OPL3Sequence
 		mpOldFNumFreqPtr	= 0;
 		mTempoEvents		= null;
 		mVoiceData			= null;
-		mInstrumentList		= new ArrayList<SInstrument>();
+		mInstrumentList		= new ArrayList<>();
 		mFNumFreqPtrList	= new int[kNumPercussiveVoices];	//Arrays.fill(mFNumFreqPtrList, 0);
 		mHalfToneOffset		= new int[kNumPercussiveVoices];	//Arrays.fill(mHalfToneOffset, 0);
 		mVolumeCache		= new int[kNumPercussiveVoices];		//Arrays.fill(mVolumeCache, 0);
@@ -562,9 +562,9 @@ public class ROLSequence extends OPL3Sequence
 		mpROLHeader = SRolHeader.readMe(inputStream);
 		if (mpROLHeader.version_major != skVersionMajor || mpROLHeader.version_minor != skVersionMinor) throw new IOException("Unsupported ROL-File version V" + mpROLHeader.version_major + "." + mpROLHeader.version_minor);
 
-		// Effekter uses "Notes" instead of "Voix" for next voice section 
+		// Effekter uses "Notes" instead of "Voix" for next voice section
 		if (mpROLHeader.comment.toUpperCase().contains(EFFEKTER_MAGIC_STRING)) FILLER_NOTE_SECTION = FILLER_EFFEKTER_SECTION;
-		
+
 		load_Tempo_Events(inputStream);
 		load_Voice_Data(inputStream);
 	}
@@ -579,7 +579,7 @@ public class ROLSequence extends OPL3Sequence
 	 * @return true, if section found. False otherwise
 	 * @throws IOException
 	 */
-	private boolean check_for_event(final RandomAccessInputStreamImpl inputStream, String check) throws IOException
+	private boolean check_for_event(final RandomAccessInputStreamImpl inputStream, final String check) throws IOException
 	{
 		final long currentPosition = inputStream.getFilePointer();
 		final String compare = inputStream.readString(check.length());
@@ -590,7 +590,7 @@ public class ROLSequence extends OPL3Sequence
 	{
 		final int num_tempo_events = inputStream.readIntelWord();
 
-		mTempoEvents = new ArrayList<STempoEvent>(num_tempo_events);
+		mTempoEvents = new ArrayList<>(num_tempo_events);
 
 		for (int i=0; i<num_tempo_events && !check_for_event(inputStream, FILLER_NOTE_SECTION); i++)
 		{
@@ -605,22 +605,22 @@ public class ROLSequence extends OPL3Sequence
 		try
 		{
 			bnkInputStream = new RandomAccessInputStreamImpl(bnkFile);
-			SBnkHeader bnkHeader = SBnkHeader.readMe(bnkInputStream);
+			final SBnkHeader bnkHeader = SBnkHeader.readMe(bnkInputStream);
 
 			// In my old sources loading a ROL file there was a check for a comp_mode:
 			// this ignores the mode value in the header and sets to fix kNumPercussiveVoices
 			// if
 			// a) we want this check (comp_mode == true)
 			// b) "(AdLib file-mode)" can be found in the header comment
-			// c) but not ".ROL" 
+			// c) but not ".ROL"
 //	        if (comp_mode && mpROLHeader.comment.contains("(AdLib file-mode)") && mpROLHeader.comment.indexOf(".ROL")==-1)
 //	        	comp_mode = false;
 			final int numVoices = /* (comp_mode)? kNumPercussiveVoices : */(mpROLHeader.mode != 0) ? kNumMelodicVoices : kNumPercussiveVoices;
 
-			mVoiceData = new ArrayList<CVoiceData>(numVoices);
+			mVoiceData = new ArrayList<>(numVoices);
 			for (int i=0; i<numVoices; i++)
 			{
-				CVoiceData voice = new CVoiceData();
+				final CVoiceData voice = new CVoiceData();
 
 				inputStream.skip(ROL_FILLER_SIZE); // Voix
 				load_Note_Events(inputStream, voice);
@@ -636,31 +636,31 @@ public class ROLSequence extends OPL3Sequence
 		}
 		finally
 		{
-			if (bnkInputStream != null) try { bnkInputStream.close(); } catch (Exception ex) { /* NOOP */ }
+			if (bnkInputStream != null) try { bnkInputStream.close(); } catch (final Exception ex) { /* NOOP */ }
 		}
 	}
 	private void load_Note_Events(final RandomAccessInputStreamImpl inputStream, final CVoiceData voice) throws IOException
 	{
-		final ArrayList<SNoteEvent> note_events = voice.note_events = new ArrayList<SNoteEvent>();
+		final ArrayList<SNoteEvent> note_events = voice.note_events = new ArrayList<>();
 
 		final int time_of_last_note = inputStream.readIntelWord();
 		int total_duration = 0;
 
 		while (total_duration<time_of_last_note && !check_for_event(inputStream, FILLER_TIMBRE_SECTION))
 		{
-			SNoteEvent event = SNoteEvent.readMe(inputStream);
+			final SNoteEvent event = SNoteEvent.readMe(inputStream);
 			note_events.add(event);
 			total_duration += event.duration;
 		}
 
-		final int newTimeOfLastNote = (total_duration<time_of_last_note)? total_duration : time_of_last_note; 
-		if (newTimeOfLastNote > mTimeOfLastNote) mTimeOfLastNote = newTimeOfLastNote; 
+		final int newTimeOfLastNote = (total_duration<time_of_last_note)? total_duration : time_of_last_note;
+		if (newTimeOfLastNote > mTimeOfLastNote) mTimeOfLastNote = newTimeOfLastNote;
 	}
 	private void load_Volume_Events(final RandomAccessInputStreamImpl inputStream, final CVoiceData voice) throws IOException
 	{
 		final int number_of_volume_events = inputStream.readIntelWord();
 
-		voice.volume_events = new ArrayList<SVolumeEvent>(number_of_volume_events);
+		voice.volume_events = new ArrayList<>(number_of_volume_events);
 
 		for (int i=0; i<number_of_volume_events && !check_for_event(inputStream, FILLER_PITCH_SECTION); i++)
 		{
@@ -671,7 +671,7 @@ public class ROLSequence extends OPL3Sequence
 	{
 		final int number_of_pitch_events = inputStream.readIntelWord();
 
-		voice.pitch_events = new ArrayList<SPitchEvent>(number_of_pitch_events);
+		voice.pitch_events = new ArrayList<>(number_of_pitch_events);
 
 		for (int i=0; i<number_of_pitch_events && !check_for_event(inputStream, FILLER_NOTE_SECTION); i++)
 		{
@@ -682,13 +682,13 @@ public class ROLSequence extends OPL3Sequence
 	{
 		final int number_of_instrument_events = inputStream.readIntelWord();
 
-		voice.instrument_events = new ArrayList<SInstrumentEvent>(number_of_instrument_events);
+		voice.instrument_events = new ArrayList<>(number_of_instrument_events);
 
 		for (int i=0; i<number_of_instrument_events && !check_for_event(inputStream, FILLER_VOLUME_SECTION); i++)
 		{
-			SInstrumentEvent event = SInstrumentEvent.readMe(inputStream);
+			final SInstrumentEvent event = SInstrumentEvent.readMe(inputStream);
 
-			String event_name = event.name;
+			final String event_name = event.name;
 			event.ins_index = load_Rol_Instrument(bnk_file, bnk_header, event_name);
 
 			voice.instrument_events.add(event);
@@ -765,11 +765,11 @@ public class ROLSequence extends OPL3Sequence
 	@Override
 	public String getDescription()
 	{
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		if (mInstrumentList != null)
 		{
 			sb.append("Instruments used:").append('\n');
-			for (SInstrument ins : mInstrumentList)
+			for (final SInstrument ins : mInstrumentList)
 			{
 				sb.append(ins.name).append('\n');
 			}
@@ -802,7 +802,7 @@ public class ROLSequence extends OPL3Sequence
 	 * @see de.quippy.javamod.multimedia.opl3.sequencer.OPL3Sequence#setURL(java.net.URL)
 	 */
 	@Override
-	public void setURL(URL url)
+	public void setURL(final URL url)
 	{
 		this.rolFile = url;
 	}
@@ -810,14 +810,14 @@ public class ROLSequence extends OPL3Sequence
 	 * @since 05.08.2020
 	 * @param bnkURL
 	 */
-	public void setBNKFile(URL bnkURL)
+	public void setBNKFile(final URL bnkURL)
 	{
 		this.bnkFile = bnkURL;
 	}
 	// ---------------------------------------------------------
 	private void setRefresh(final double multiplier)
 	{
-		mRefresh = ((double)mpROLHeader.ticks_per_beat * mpROLHeader.basic_tempo * multiplier) / 60.0;
+		mRefresh = (mpROLHeader.ticks_per_beat * mpROLHeader.basic_tempo * multiplier) / 60.0;
 	}
 	/**
 	 * @param opl
@@ -840,12 +840,12 @@ public class ROLSequence extends OPL3Sequence
 		if (mCurrTick > mTimeOfLastNote) return false;
 		return true;
 	}
-	private void updateVoice(final EmuOPL opl, final int voice, CVoiceData voiceData)
+	private void updateVoice(final EmuOPL opl, final int voice, final CVoiceData voiceData)
 	{
-		ArrayList<SInstrumentEvent> iEvents = voiceData.instrument_events;
-		ArrayList<SVolumeEvent> vEvents = voiceData.volume_events;
-		ArrayList<SNoteEvent> nEvents = voiceData.note_events;
-		ArrayList<SPitchEvent> pEvents = voiceData.pitch_events;
+		final ArrayList<SInstrumentEvent> iEvents = voiceData.instrument_events;
+		final ArrayList<SVolumeEvent> vEvents = voiceData.volume_events;
+		final ArrayList<SNoteEvent> nEvents = voiceData.note_events;
+		final ArrayList<SPitchEvent> pEvents = voiceData.pitch_events;
 
 		if (voiceData.next_instrument_event < iEvents.size())
 		{
@@ -872,7 +872,7 @@ public class ROLSequence extends OPL3Sequence
 		{
 			if (voiceData.next_note_event < nEvents.size())
 			{
-				SNoteEvent noteEvent = nEvents.get(voiceData.next_note_event);
+				final SNoteEvent noteEvent = nEvents.get(voiceData.next_note_event);
 
 				setNote(opl, voice, noteEvent.number);
 				voiceData.current_note_duration = 0;
@@ -888,7 +888,7 @@ public class ROLSequence extends OPL3Sequence
 
 		if (voiceData.next_pitch_event < pEvents.size())
 		{
-			SPitchEvent pitchEvent = pEvents.get(voiceData.next_pitch_event);
+			final SPitchEvent pitchEvent = pEvents.get(voiceData.next_pitch_event);
 			if (pitchEvent.time == mCurrTick)
 			{
 				setPitch(opl, voice, pitchEvent.variation);
@@ -998,7 +998,7 @@ public class ROLSequence extends OPL3Sequence
 	{
 		int biased_note = note + mHalfToneOffset[voice];
 		if (biased_note < 0) biased_note = 0;
-		else 
+		else
 		if (biased_note >= skMaxNotes) biased_note = skMaxNotes - 1;
 
 		mNoteCache[voice] = note;
@@ -1019,7 +1019,7 @@ public class ROLSequence extends OPL3Sequence
 		int newVolume = ((baseVolume * mVolumeCache[voice]) + (1 << (skVolumeQualityShift - 1))) >> skVolumeQualityShift;
 		// clamp it
 		if (newVolume < 0) newVolume = 0;
-		else 
+		else
 		if (newVolume > skOPL2_TLMinLevel) newVolume = skOPL2_TLMinLevel;
 		// rebuild register output with old KSL plus new TL (logic vice verca: 0= maxvolume, 0x3F= minimum)
 		return (mKSLTLCache[voice] & skOPL2_KSLMask) | ((skOPL2_TLMinLevel - newVolume) & 0x3F);
@@ -1079,7 +1079,7 @@ public class ROLSequence extends OPL3Sequence
 	@Override
 	public void initialize(final EmuOPL opl)
 	{
-		for (CVoiceData voice : mVoiceData)
+		for (final CVoiceData voice : mVoiceData)
 			voice.reset();
 
 		Arrays.fill(mHalfToneOffset, 0);

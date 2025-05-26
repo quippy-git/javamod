@@ -2,7 +2,7 @@
  * @(#) HttpResource.java
  *
  * Created on 03.10.2016 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ import de.quippy.javamod.system.Log;
 /**
  * @author Daniel Becker
  * @since 03.10.2016
- * This class will wrap around a URL as a http-ressource
+ * This class will wrap around a URL as a http-resource
  * and read it. It will reflect on http headers and do a
  * reload if for instance "302 - moved"
  */
@@ -51,38 +51,38 @@ public class HttpResource implements Closeable
 	private static final String HEADER_LOCATION = "LOCATION";
 	private static final String HEADER_CONTENTTYPE = "CONTENT-TYPE";
 	private static final String HEADER_CONTENTLENGTH = "CONTENT-LENGTH";
-	
-	private URL ressource;
+
+	private URL resource;
 	private Socket socket;
 	private boolean isHTTPS;
 	private int port;
 	private String path;
-	
-	private HashMap<String, String> resourceHeaders;
+
+	private Map<String, String> resourceHeaders;
 	private int httpCode;
 	private URL newLocation;
 	private String contentType;
 	private long contentLength;
-	
+
 	private String user_agent = "Java HttpResource 1.0";
 	private String accept_charset = "UTF-8";
 
 	/**
 	 * Constructor for HttpResource
-	 * @param in
+	 * @param resource
 	 */
-	public HttpResource(URL ressource)
+	public HttpResource(final URL resource)
 	{
 		super();
-		initialize(ressource);
+		initialize(resource);
 	}
 
-	private void initialize(URL ressource)
+	private void initialize(final URL newResource)
 	{
-		this.ressource = ressource;
-		final String protocol = ressource.getProtocol().toLowerCase(); 
+		resource = newResource;
+		final String protocol = resource.getProtocol().toLowerCase();
 		isHTTPS = protocol.equals("https");
-		port = ressource.getPort();
+		port = resource.getPort();
 		if (port<0) // no port specified - so get default!
 		{
 			if (isHTTPS)
@@ -90,23 +90,22 @@ public class HttpResource implements Closeable
 			else
 				port = 80;
 		}
-		path = ressource.getPath();
-		if (path==null || path.length()==0) path = "/";
+		path = resource.getPath();
+		if (path==null || path.isEmpty()) path = "/";
 	}
 	/**
 	 * Create the socket connection
 	 * @since 03.10.2016
-	 * @param ressource
 	 */
 	private void open()
 	{
 		try
 		{
-			socket = new Socket(ressource.getHost(), port);
+			socket = new Socket(resource.getHost(), port);
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
-			Log.error("Connection to ressource " + ressource.toString() + " failed", ex);
+			Log.error("Connection to resource " + resource.toString() + " failed", ex);
 		}
 	}
 	/**
@@ -121,7 +120,7 @@ public class HttpResource implements Closeable
 	/**
 	 * @param user_agent the user_agent to set
 	 */
-	public void setUser_agent(String user_agent)
+	public void setUser_agent(final String user_agent)
 	{
 		this.user_agent = user_agent;
 	}
@@ -142,14 +141,14 @@ public class HttpResource implements Closeable
 	/**
 	 * @param accept_charset the accept_charset to set
 	 */
-	public void setAccept_charset(String accept_charset)
+	public void setAccept_charset(final String accept_charset)
 	{
 		this.accept_charset = accept_charset;
 	}
 	/**
 	 * @return the resourceHeaders
 	 */
-	public HashMap<String, String> getResourceHeaders()
+	public Map<String, String> getResourceHeaders()
 	{
 		return resourceHeaders;
 	}
@@ -201,20 +200,20 @@ public class HttpResource implements Closeable
 	 */
 	public void readHeadersFromMap(final Map<String, List<String>> headers) throws IOException
 	{
-		resourceHeaders = new HashMap<String, String>();
-		for (String key : headers.keySet())
+		resourceHeaders = new HashMap<>();
+		for (final String key : headers.keySet())
 		{
 			final List<String> values = headers.get(key);
 			if (values==null) continue;
-			
+
 			final String value = values.get(0);
-			
+
 			if (key==null)
 			{
 		    	final StringTokenizer spaceTokenizer = new StringTokenizer(value, " ");
-		    	final String httpType			= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null; 
-		    	final String httpCodeString		= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null; 
-		    	final String httpStatusString	= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null; 
+		    	final String httpType			= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null;
+		    	final String httpCodeString		= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null;
+		    	final String httpStatusString	= (spaceTokenizer.hasMoreTokens())?spaceTokenizer.nextToken():null;
 		    	if (httpCodeString!=null)
 		    	{
 		    		httpCode = Integer.parseInt(httpCodeString);
@@ -224,7 +223,7 @@ public class HttpResource implements Closeable
 			else
 			{
 		    	final String compare = key.toUpperCase();
-	
+
 		    	if (compare.startsWith(HEADER_LOCATION))
 			    {
 					newLocation = Helpers.createURLfromString(value);
@@ -250,25 +249,25 @@ public class HttpResource implements Closeable
 	 */
 	public void readHeaders(final BufferedReader reader) throws IOException
 	{
-		Map<String, List<String>> headers = new HashMap<String, List<String>>();
-		
+		final Map<String, List<String>> headers = new HashMap<>();
+
     	String line;
 		while ((line = reader.readLine()) != null)
 		{
-			if (line.length()==0) break; // empty line: all headers read
-	    	int pos = line.indexOf(':');
+			if (line.isEmpty()) break; // empty line: all headers read
+	    	final int pos = line.indexOf(':');
 	    	if (pos>0)
 	    	{
-		    	String keyWord = line.substring(0, pos);
+		    	final String keyWord = line.substring(0, pos);
 		    	String value = line.substring(pos+1).trim();
 		    	if (value.toLowerCase().endsWith("<br>")) value = value.substring(0, value.length()-4);
-		    	List<String> list = new ArrayList<String>();
+		    	final List<String> list = new ArrayList<>();
 		    	list.add(value);
 		    	headers.put(keyWord, list);
 	    	}
 	    	else
 	    	{
-		    	List<String> list = new ArrayList<String>();
+		    	final List<String> list = new ArrayList<>();
 		    	list.add(line);
 		    	headers.put(null, list);
 	    	}
@@ -283,20 +282,20 @@ public class HttpResource implements Closeable
 	 * @return
 	 * @throws IOException
 	 */
-	public InputStream getResource(final HashMap<String, String> additionalRequestHeaders, final boolean keep_alive) throws IOException
+	public InputStream getResource(final Map<String, String> additionalRequestHeaders, final boolean keep_alive) throws IOException
 	{
 		if (isHTTPS)
 		{
-			URLConnection con = ressource.openConnection();
+			final URLConnection con = resource.openConnection();
 			con.addRequestProperty("user-agent", user_agent);
 			con.addRequestProperty("Connection", (keep_alive)?"keep_alive":"close");
-			for (String key: additionalRequestHeaders.keySet())
+			for (final String key: additionalRequestHeaders.keySet())
 			{
 				if (key==null) continue;
 				con.addRequestProperty(key, additionalRequestHeaders.get(key));
 			}
-			
-			InputStream result = con.getInputStream();
+
+			final InputStream result = con.getInputStream();
 			readHeadersFromMap(con.getHeaderFields());
 			// if the resource moved, re-read at new location
 			if (isMoved() && newLocation!=null)
@@ -312,10 +311,10 @@ public class HttpResource implements Closeable
 		else
 		{
 			final StringBuilder getString = new StringBuilder()
-					.append("GET ").append(path).append(" HTTP/1.1\r\nHost: ").append(ressource.getHost())
+					.append("GET ").append(path).append(" HTTP/1.1\r\nHost: ").append(resource.getHost())
 					.append("\r\nuser-agent: ").append(user_agent).append("\r\nAccept: */*\r\nAccept-Charset: ").append(accept_charset)
 					.append("\r\n");
-			for (String key: additionalRequestHeaders.keySet())
+			for (final String key: additionalRequestHeaders.keySet())
 			{
 				getString.append(key).append(": ").append(additionalRequestHeaders.get(key)).append("\r\n");
 			}

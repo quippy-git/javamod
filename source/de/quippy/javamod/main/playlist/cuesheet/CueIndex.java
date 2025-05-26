@@ -2,7 +2,7 @@
  * @(#) CueIndex.java
  *
  * Created on 14.02.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ public class CueIndex
 	private int indexNo;
 	private long millisecondIndex;
 	/**
-	 * 
+	 *
 	 * @since 14.02.2012
 	 */
 	public CueIndex()
@@ -50,7 +50,7 @@ public class CueIndex
 	 * @param indexNo the indexNo to set
 	 * @since 14.02.2012
 	 */
-	public void setIndexNo(int indexNo)
+	public void setIndexNo(final int indexNo)
 	{
 		this.indexNo = indexNo;
 	}
@@ -66,7 +66,7 @@ public class CueIndex
 	 * @param millisecondIndex the millisecondIndex to set
 	 * @since 14.02.2012
 	 */
-	public void setMillisecondIndex(long millisecondIndex)
+	public void setMillisecondIndex(final long millisecondIndex)
 	{
 		this.millisecondIndex = millisecondIndex;
 	}

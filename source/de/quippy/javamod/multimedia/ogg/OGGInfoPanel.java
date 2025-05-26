@@ -2,7 +2,7 @@
  * @(#) OGGInfoPanel.java
  *
  * Created on 05.12.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ public class OGGInfoPanel extends JPanel
 	 * Constructor for OGGInfoPanel
 	 * @param layout
 	 */
-	public OGGInfoPanel(LayoutManager layout)
+	public OGGInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -87,7 +87,7 @@ public class OGGInfoPanel extends JPanel
 	 * Constructor for OGGInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public OGGInfoPanel(boolean isDoubleBuffered)
+	public OGGInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -97,7 +97,7 @@ public class OGGInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public OGGInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public OGGInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -112,7 +112,7 @@ public class OGGInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(OGGContainer parent)
+	public void setParentContainer(final OGGContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -120,7 +120,7 @@ public class OGGInfoPanel extends JPanel
 	{
 		this.setName("OGGInfoPane");
 		this.setLayout(new java.awt.GridBagLayout());
-		
+
 		this.add(getOGGInfo_L_Filename(),			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getOGGInfo_Filename(),				Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getOGGInfo_L_ShortDescription(),	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -177,7 +177,7 @@ public class OGGInfoPanel extends JPanel
 		{
 			oggIDPanel = new JPanel();
 			oggIDPanel.setLayout(new java.awt.GridBagLayout());
-			
+
 			oggIDPanel.add(getV1_L_Track(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
 			oggIDPanel.add(getV1_Track(),		Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.NORTHWEST, 1.0, 0.0));
 			oggIDPanel.add(getV1_L_Title(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
@@ -321,7 +321,7 @@ public class OGGInfoPanel extends JPanel
 	{
 		if (v1_Genre==null)
 		{
-			v1_Genre = new javax.swing.JComboBox<String>(NullsoftID3GenreTable.getGenres());
+			v1_Genre = new javax.swing.JComboBox<>(NullsoftID3GenreTable.getGenres());
 			v1_Genre.setName("v1_Genre");
 			v1_Genre.setFont(Helpers.getDialogFont());
 			v1_Genre.setEditable(true);
@@ -362,11 +362,11 @@ public class OGGInfoPanel extends JPanel
 		}
 		return v1_Comment;
 	}
-	public void fillInfoPanelWith(OggMetaData currentID, String fileName)
+	public void fillInfoPanelWith(final OggMetaData currentID, final String fileName)
 	{
 		getOGGInfo_Filename().setText(fileName);
 		getOGGInfo_ShortDescription().setText(currentID.getShortDescription());
-		
+
 		getV1_Track().setText(currentID.getTrackNumber());
 		getV1_Title().setText(currentID.getTitle());
 		getV1_Artist().setText(currentID.getArtist());

@@ -1,6 +1,6 @@
 /*
  * 11/19/04 : 1.0 moved to LGPL.
- * 
+ *
  * 02/12/99 : Java Conversion by E.B , javalayer@javazoom.net
  *
  *  @(#) crc.h 1.5, last edit: 6/15/94 16:55:32
@@ -36,14 +36,14 @@ public final class Crc16
    * Dummy Constructor
    */
   public Crc16()
-  { 
+  {
   	crc = (short) 0xFFFF;
   }
 
   /**
    * Feed a bitstring to the crc calculation (0 < length <= 32).
    */
-  public void add_bits (int bitstring, int length)
+  public void add_bits (final int bitstring, final int length)
   {
   	int bitmask = 1 << (length - 1);
   	do
@@ -63,7 +63,7 @@ public final class Crc16
    */
   public short	checksum()
   {
-    short sum = crc;
+    final short sum = crc;
     crc = (short) 0xFFFF;
     return sum;
   }

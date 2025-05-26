@@ -2,7 +2,7 @@
  * @(#) ModSampleDialog.java
  *
  * Created on 25.07.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -87,7 +87,7 @@ public class ModSampleDialog extends JDialog
 	private static final int WAVEFORM_POS		= 17;
 	private static final int VIBRATO_POS		= 18;
 	private static final int TREMOLO_POS		= 19;
-	private static final String [] LABELS = 
+	private static final String [] LABELS =
 	{
 		"Attack rate:", "Decay rate:", "Sustain level:", "Release level:",
 		"Sustain sound",
@@ -158,7 +158,7 @@ public class ModSampleDialog extends JDialog
 	private JTextField autoVibSweepValue = null;
 	private JLabel autoVibRateLabel = null;
 	private JTextField autoVibRateValue = null;
-	
+
 	private JPanel adlibSamplePanel = null;
 	private FixedStateCheckBox additiveSynthesis = null;
 	private JLabel modulationFeedBackLabel = null;
@@ -172,7 +172,7 @@ public class ModSampleDialog extends JDialog
 	private Sample [] samples;
 	private ArrayList<String> spinnerModelData = null;
 
-	private ModInfoPanel myModInfoPanel;
+	private final ModInfoPanel myModInfoPanel;
 
 	/**
 	 * Constructor for ModSampleDialog
@@ -180,7 +180,7 @@ public class ModSampleDialog extends JDialog
 	 * @param modal
 	 * @param infoPanel
 	 */
-	public ModSampleDialog(Window owner, boolean modal, ModInfoPanel infoPanel)
+	public ModSampleDialog(final Window owner, final boolean modal, final ModInfoPanel infoPanel)
 	{
 		super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
 		myModInfoPanel = infoPanel;
@@ -190,7 +190,7 @@ public class ModSampleDialog extends JDialog
 	{
         final Container baseContentPane = getContentPane();
 		baseContentPane.setLayout(new java.awt.GridBagLayout());
-		
+
 		baseContentPane.add(getLabelSelectSample(), 		Helpers.getGridBagConstraint(0, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getSelectSample(), 				Helpers.getGridBagConstraint(1, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getZoomSelector(),				Helpers.getGridBagConstraint(2, 0, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
@@ -201,12 +201,12 @@ public class ModSampleDialog extends JDialog
 		baseContentPane.add(getSampleNameAndLoopsPanel(),	Helpers.getGridBagConstraint(3, 1, 1, 0, GridBagConstraints.NONE, GridBagConstraints.WEST, 0.0, 0.0));
 		baseContentPane.add(getImageBufferPanel(), 			Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
 		baseContentPane.add(getAdlibSamplePanel(), 			Helpers.getGridBagConstraint(0, 4, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));
-		
+
 		setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
 			@Override
-			public void windowClosing(java.awt.event.WindowEvent e)
+			public void windowClosing(final java.awt.event.WindowEvent e)
 			{
 				doClose();
 			}
@@ -216,7 +216,7 @@ public class ModSampleDialog extends JDialog
 		setTitle("Show mod samples");
 		setResizable(true);
         pack();
-		
+
 		clearSample();
 	}
 	public void doClose()
@@ -237,7 +237,7 @@ public class ModSampleDialog extends JDialog
 	}
 	private int getCurrentSampleIndex()
 	{
-		return Integer.parseInt((String)getSelectSample().getModel().getValue(), 16) - 1; 
+		return Integer.parseInt((String)getSelectSample().getModel().getValue(), 16) - 1;
 	}
 	private JSpinner getSelectSample()
 	{
@@ -257,7 +257,7 @@ public class ModSampleDialog extends JDialog
 			selectSample.addChangeListener(new ChangeListener()
 			{
 				@Override
-				public void stateChanged(ChangeEvent e)
+				public void stateChanged(final ChangeEvent e)
 				{
 					if (samples!=null)
 					{
@@ -268,40 +268,41 @@ public class ModSampleDialog extends JDialog
 		}
 		return selectSample;
 	}
-	private JComboBox getZoomSelector()
+	private JComboBox<String> getZoomSelector()
 	{
 		if (zoomSelector==null)
 		{
-			zoomSelector = new JComboBox<String>();
+			zoomSelector = new JComboBox<>();
 			zoomSelector.setName("zoomSelector");
 			zoomSelector.setFont(Helpers.getDialogFont());
 
-			for (int i=0; i<ZOOM_TYPES.length; i++) zoomSelector.addItem(ZOOM_TYPES[i]);
+			for (final String element : ZOOM_TYPES)
+				zoomSelector.addItem(element);
 			zoomSelector.addItemListener(new ItemListener()
 			{
 				@Override
-				public void itemStateChanged(ItemEvent e)
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (samples==null) return;
 					changeZoom(getZoomSelector().getSelectedIndex());
 				}
 			});
 		}
-		
+
 		return zoomSelector;
 	}
-	private JComboBox getNoteSelector()
+	private JComboBox<String> getNoteSelector()
 	{
 		if (noteSelector==null)
 		{
-			noteSelector = new JComboBox<String>();
+			noteSelector = new JComboBox<>();
 			noteSelector.setName("noteSelector");
 			noteSelector.setFont(Helpers.getDialogFont());
 
 			for (int i=1; i<=ModConstants.noteValues.length; i++) noteSelector.addItem(ModConstants.getNoteNameForIndex(i));
 			noteSelector.setSelectedIndex(ModConstants.getNoteIndexForPeriod(ModConstants.BASEPERIOD));
 		}
-		
+
 		return noteSelector;
 	}
 	private JButton getButton_Play()
@@ -326,7 +327,8 @@ public class ModSampleDialog extends JDialog
 			{
 				boolean playing = false;
 
-				public void actionPerformed(ActionEvent e)
+				@Override
+				public void actionPerformed(final ActionEvent e)
 				{
 					if (playing)
 					{
@@ -342,6 +344,7 @@ public class ModSampleDialog extends JDialog
 						// play inside a thread, so we do not block anything...
 						new Thread(new Runnable()
 						{
+							@Override
 							public void run()
 							{
 								player.startPlayback(null, samples[getCurrentSampleIndex()], getNoteSelector().getSelectedIndex()+1);
@@ -353,7 +356,7 @@ public class ModSampleDialog extends JDialog
 					}
 				}
 			});
-					
+
 		}
 		return button_Play;
 	}
@@ -1009,8 +1012,9 @@ public class ModSampleDialog extends JDialog
 		}
 		EventQueue.invokeLater(new Runnable()
 		{
+			@Override
 			public void run()
-			{				
+			{
 				try
 				{
 					getImageBufferPanel().setSize(d);
@@ -1019,7 +1023,7 @@ public class ModSampleDialog extends JDialog
 					getImageBufferPanel().setPreferredSize(d);
 					pack();
 				}
-				catch (Throwable ex)
+				catch (final Throwable ex)
 				{
 					// Keep it!
 				}
@@ -1090,18 +1094,17 @@ public class ModSampleDialog extends JDialog
 	}
 	private JComponent[] createComponents()
 	{
-		ArrayList<JComponent> list = new ArrayList<JComponent>();
-		for (int i=0; i<LABELS.length; i++)
+		final ArrayList<JComponent> list = new ArrayList<>();
+		for (final String label : LABELS)
 		{
-			final String label = LABELS[i];
 			if (label.endsWith(":"))
 			{
-				JLabel newLabel = new JLabel();
+				final JLabel newLabel = new JLabel();
 				newLabel.setName("adLibLabel_"+label);
 				newLabel.setText(label);
 				newLabel.setFont(Helpers.getDialogFont());
 				list.add(newLabel);
-				JTextField newValue = new JTextField();
+				final JTextField newValue = new JTextField();
 				newValue.setName("newValue_"+label);
 				newValue.setEditable(false);
 				newValue.setFont(Helpers.getDialogFont());
@@ -1109,7 +1112,7 @@ public class ModSampleDialog extends JDialog
 			}
 			else
 			{
-				FixedStateCheckBox newChkBox = new FixedStateCheckBox();
+				final FixedStateCheckBox newChkBox = new FixedStateCheckBox();
 				newChkBox.setName(label);
 				newChkBox.setText(label);
 				newChkBox.setFont(Helpers.getDialogFont());
@@ -1118,7 +1121,7 @@ public class ModSampleDialog extends JDialog
 		}
 		return list.toArray(new JComponent[list.size()]);
 	}
-	private JComponent[] addComponentsToPanel(JComponent[] components, JPanel panel)
+	private JComponent[] addComponentsToPanel(JComponent[] components, final JPanel panel)
 	{
 		if (components==null)
 		{
@@ -1185,10 +1188,10 @@ public class ModSampleDialog extends JDialog
 	}
 	private void clearSample()
 	{
-		spinnerModelData = new ArrayList<String>(1);
+		spinnerModelData = new ArrayList<>(1);
 		spinnerModelData.add(ModConstants.getAsHex(0, 2));
 		getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
-		
+
 		getButton_Play().setEnabled(false);
 		getZoomSelector().setEnabled(false);
 
@@ -1212,10 +1215,10 @@ public class ModSampleDialog extends JDialog
 		getAutoVibDepthValue().setText(Helpers.EMPTY_STING);
 		getAutoVibSweepValue().setText(Helpers.EMPTY_STING);
 		getAutoVibRateValue().setText(Helpers.EMPTY_STING);
-		
+
 		getZoomSelector().setSelectedIndex(0);
 		getImageBufferPanel().setSample(null);
-		
+
 		getImageBufferPanel().setVisible(true);
 		getAdlibSamplePanel().setVisible(false);
 
@@ -1250,7 +1253,7 @@ public class ModSampleDialog extends JDialog
 		getAutoVibDepthValue().setText(Integer.toString(sample.vibratoDepth));
 		getAutoVibSweepValue().setText(Integer.toString(sample.vibratoSweep));
 		getAutoVibRateValue().setText(Integer.toString(sample.vibratoRate));
-		
+
 		if (sample.adLib_Instrument!=null)
 		{
 			getAdditiveSynthesis().setFixedState(sample.getAdlibAdditiveSynthesis());
@@ -1276,7 +1279,7 @@ public class ModSampleDialog extends JDialog
 		this.samples = samples;
 		if (samples!=null)
 		{
-			spinnerModelData = new ArrayList<String>(samples.length);
+			spinnerModelData = new ArrayList<>(samples.length);
 			for (int i=0; i<samples.length; i++) spinnerModelData.add(ModConstants.getAsHex(i+1, 2));
 			getSelectSample().setModel(new SpinnerListModel(spinnerModelData));
 			getSelectSample().setValue(spinnerModelData.get(0)); // in some unknown cases, the index is not really set.

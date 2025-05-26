@@ -138,13 +138,14 @@ public abstract class MOS6526 implements IComponent {
 	long /* event_clock_t */m_todCycles, m_todPeriod;
 
 	protected static class EventTa extends Event {
-		private MOS6526 m_cia;
+		private final MOS6526 m_cia;
 
+		@Override
 		public void event() {
 			m_cia.ta_event();
 		}
 
-		public EventTa(MOS6526 cia) {
+		public EventTa(final MOS6526 cia) {
 			super("CIA Timer A");
 			m_cia = cia;
 		}
@@ -168,13 +169,14 @@ public abstract class MOS6526 implements IComponent {
 	// protected EventStateMachineA event_stateMachineA;
 
 	protected static class EventTb extends Event {
-		private MOS6526 m_cia;
+		private final MOS6526 m_cia;
 
+		@Override
 		public void event() {
 			m_cia.tb_event();
 		}
 
-		public EventTb(MOS6526 cia) {
+		public EventTb(final MOS6526 cia) {
 			super("CIA Timer B");
 			m_cia = cia;
 		}
@@ -183,13 +185,14 @@ public abstract class MOS6526 implements IComponent {
 	protected EventTb event_tb;
 
 	protected static class EventTod extends Event {
-		private MOS6526 m_cia;
+		private final MOS6526 m_cia;
 
+		@Override
 		public void event() {
 			m_cia.tod_event();
 		}
 
-		public EventTod(MOS6526 cia) {
+		public EventTod(final MOS6526 cia) {
 			super("CIA Time of Day");
 			m_cia = cia;
 		}
@@ -197,7 +200,7 @@ public abstract class MOS6526 implements IComponent {
 
 	protected EventTod event_tod;
 
-	protected MOS6526(IEventContext context) {
+	protected MOS6526(final IEventContext context) {
 		idr = 0;
 		event_context = (context);
 		m_phase = event_phase_t.EVENT_CLOCK_PHI1;
@@ -211,12 +214,10 @@ public abstract class MOS6526 implements IComponent {
 	protected void ta_event() {
 		// Timer Modes
 		long /* event_clock_t */cycles;
-		short /* uint8_t */mode = (short) (cra & 0x21);
+		final short /* uint8_t */mode = (short) (cra & 0x21);
 
-		if (mode == 0x21) {
-			if ((ta--) != 0)
-				return;
-		}
+		if ((mode == 0x21) && ((ta--) != 0))
+			return;
 
 		cycles = event_context.getTime(m_accessClk, m_phase);
 		m_accessClk += cycles;
@@ -235,10 +236,8 @@ public abstract class MOS6526 implements IComponent {
 
 		// Handle serial port
 		if ((cra & 0x40) != 0) {
-			if (sdr_count != 0) {
-				if ((--sdr_count) == 0)
-					trigger(INTERRUPT_SP);
-			}
+			if ((sdr_count != 0) && ((--sdr_count) == 0))
+				trigger(INTERRUPT_SP);
 			if ((sdr_count == 0) && sdr_buffered) {
 				sdr_out = regs[SDR];
 				sdr_buffered = false;
@@ -259,7 +258,7 @@ public abstract class MOS6526 implements IComponent {
 
 	protected void tb_event() {
 		// Timer Modes
-		short /* uint8_t */mode = (short) (crb & 0x61);
+		final short /* uint8_t */mode = (short) (crb & 0x61);
 		switch (mode) {
 		case 0x01:
 			break;
@@ -271,10 +270,8 @@ public abstract class MOS6526 implements IComponent {
 			break;
 
 		case 0x61:
-			if (cnt_high) {
-				if ((tb--) != 0)
+				if (cnt_high && ((tb--) != 0))
 					return;
-			}
 			break;
 
 		default:
@@ -298,12 +295,12 @@ public abstract class MOS6526 implements IComponent {
 	//
 	// TOD implementation taken from Vice
 	//
-	
-	private final static short byte2bcd(short thebyte) {
+
+	private final static short byte2bcd(final short thebyte) {
 		return (short) (((((thebyte) / 10) << 4) + ((thebyte) % 10)) & 0xff);
 	}
 
-	private final static short bcd2byte(short bcd) {
+	private final static short bcd2byte(final short bcd) {
 		return (short) (((10 * (((bcd) & 0xf0) >> 4)) + ((bcd) & 0xf)) & 0xff);
 	}
 
@@ -321,7 +318,7 @@ public abstract class MOS6526 implements IComponent {
 
 		if (!m_todstopped) {
 			// inc timer
-			short /* uint8_t */tod[] = m_todclock;
+			final short /* uint8_t */tod[] = m_todclock;
 			int todPos = 0;
 			short /* uint8_t */t = (short) (bcd2byte(tod[todPos]) + 1);
 			tod[todPos++] = byte2bcd((short) (t % 10));
@@ -351,7 +348,7 @@ public abstract class MOS6526 implements IComponent {
 		}
 	}
 
-	protected void trigger(int irq) {
+	protected void trigger(final int irq) {
 		if (irq == 0) {
 			// Clear any requested IRQs
 			if ((idr & INTERRUPT_REQUEST) != 0)
@@ -361,11 +358,9 @@ public abstract class MOS6526 implements IComponent {
 		}
 
 		idr |= irq;
-		if ((icr & idr) != 0) {
-			if ((idr & INTERRUPT_REQUEST) == 0) {
-				idr |= INTERRUPT_REQUEST;
-				interrupt(true);
-			}
+		if (((icr & idr) != 0) && ((idr & INTERRUPT_REQUEST) == 0)) {
+			idr |= INTERRUPT_REQUEST;
+			interrupt(true);
 		}
 	}
 
@@ -385,6 +380,7 @@ public abstract class MOS6526 implements IComponent {
 	// Component Standard Calls
 	//
 
+	@Override
 	public void reset() {
 		ta = ta_latch = 0xffff;
 		tb = tb_latch = 0xffff;
@@ -424,7 +420,8 @@ public abstract class MOS6526 implements IComponent {
 		event_context.schedule(event_tod, 0, m_phase);
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 		long /* event_clock_t */cycles;
 		if (addr > 0x0f)
 			return 0;
@@ -499,7 +496,7 @@ public abstract class MOS6526 implements IComponent {
 		case IDR: {
 			// Clear IRQs, and return interrupt
 			// data register
-			short /* uint8_t */ret = idr;
+			final short /* uint8_t */ret = idr;
 			trigger(0);
 			return ret;
 		}
@@ -513,7 +510,8 @@ public abstract class MOS6526 implements IComponent {
 		}
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
+	@Override
+	public void write(final short /* uint_least8_t */addr, short /* uint8_t */data) {
 		long /* event_clock_t */cycles;
 		if (addr > 0x0f)
 			return;
@@ -656,6 +654,7 @@ public abstract class MOS6526 implements IComponent {
 		}
 	}
 
+	@Override
 	public final String credits() {
 		return credit;
 	}
@@ -667,12 +666,12 @@ public abstract class MOS6526 implements IComponent {
 	 * IC.
 	 * @param clock
 	 */
-	public void clock(double /* float64_t */clock) {
+	public void clock(final double /* float64_t */clock) {
 		// Fixed point 25.7
-		m_todPeriod = (long /* event_clock_t */) (clock * (double /* float64_t */) (1 << 7));
+		m_todPeriod = (long /* event_clock_t */) (clock * (1 << 7));
 	}
 
-	private boolean memcmp(short[] m_todalarm2, short[] m_todclock2, int length) {
+	private boolean memcmp(final short[] m_todalarm2, final short[] m_todclock2, final int length) {
 		for (int i = 0; i < length; i++) {
 			if (m_todalarm2[i] != m_todclock2[i]) {
 				return true;

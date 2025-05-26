@@ -27,12 +27,13 @@ package de.quippy.jmac.prediction;
  */
 public class NNFilter64 extends NNFilter {
 
-    public NNFilter64(int nShift, int nVersion) {
+    public NNFilter64(final int nShift, final int nVersion) {
         super(64, nShift, nVersion);
         orderPlusWindow = 576 /* NN_WINDOW_ELEMENTS + m_nOrder */;
     }
 
-    protected int CalculateDotProductNoMMX(final short[] pA, int indexA, final short[] pB, int indexB) {
+    @Override
+	protected int CalculateDotProductNoMMX(final short[] pA, int indexA, final short[] pB, int indexB) {
         int nDotProduct = 0;
         for (int i = 0; i < 2; i++) {
             nDotProduct += (pA[indexA++] * pB[indexB++]) +
@@ -71,7 +72,8 @@ public class NNFilter64 extends NNFilter {
         return nDotProduct;
     }
 
-    protected void AdaptNoMMX(final short[] pM, int indexM, final short[] pAdapt, int indexA, final int nDirection) {
+    @Override
+	protected void AdaptNoMMX(final short[] pM, int indexM, final short[] pAdapt, int indexA, final int nDirection) {
         if (nDirection < 0) {
             for (int i = 0; i < 2; i++) {
                 pM[indexM++] += pAdapt[indexA++];

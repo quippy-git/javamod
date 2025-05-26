@@ -25,23 +25,25 @@ import de.quippy.sidplay.libsidplay.common.SIDEmu;
  */
 public class C64XSID extends XSID {
 
-	private C64Env m_env;
+	private final C64Env m_env;
 
 	private SIDEmu m_sid;
 
 	private long /* int_least32_t */m_gain;
 
-	protected  short /* uint8_t */readMemByte(int /* uint_least16_t */addr) {
-		short /* uint8_t */data = m_env.readMemRamByte(addr);
+	@Override
+	protected  short /* uint8_t */readMemByte(final int /* uint_least16_t */addr) {
+		final short /* uint8_t */data = m_env.readMemRamByte(addr);
 		m_env.sid2crc(data);
 		return data;
 	}
 
-	protected void writeMemByte(short /* uint8_t */data) {
+	@Override
+	protected void writeMemByte(final short /* uint8_t */data) {
 		m_sid.write((short) 0x18, data);
 	}
 
-	public C64XSID(C64Env env, SIDEmu sid) {
+	public C64XSID(final C64Env env, final SIDEmu sid) {
 		super(env.context());
 		m_env = (env);
 		m_sid = (sid);
@@ -51,55 +53,63 @@ public class C64XSID extends XSID {
 	//
 	// Standard component interface
 	//
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public final String error() {
 		return "";
 	}
 
+	@Override
 	public void reset() {
 		super.reset();
 	}
 
-	public void reset(short /* uint8_t */volume) {
+	@Override
+	public void reset(final short /* uint8_t */volume) {
 		super.reset(volume);
 		m_sid.reset(volume);
 	}
 
-	public short /* uint8_t */read(short /* uint_least8_t */addr) {
+	@Override
+	public short /* uint8_t */read(final short /* uint_least8_t */addr) {
 		return m_sid.read(addr);
 	}
 
-	public void write(short /* uint_least8_t */addr, short /* uint8_t */data) {
+	@Override
+	public void write(final short /* uint_least8_t */addr, final short /* uint8_t */data) {
 		if (addr == 0x18)
 			super.storeSidData0x18(data);
 		else
 			m_sid.write(addr, data);
 	}
 
-	public void write16(int /* uint_least16_t */addr, short /* uint8_t */data) {
+	public void write16(final int /* uint_least16_t */addr, final short /* uint8_t */data) {
 		super.write(addr, data);
 	}
 
 	//
 	// Standard SID interface
 	//
-	
-	public long /* int_least32_t */output(short /* uint_least8_t */bits) {
+
+	@Override
+	public long /* int_least32_t */output(final short /* uint_least8_t */bits) {
 		return m_sid.output(bits) + (super.output(bits) * m_gain / 100);
 	}
 
-	public void voice(short /* uint_least8_t */num,
-			short /* uint_least8_t */vol, boolean mute) {
+	@Override
+	public void voice(final short /* uint_least8_t */num,
+			final short /* uint_least8_t */vol, final boolean mute) {
 		if (num == 3)
 			super.mute(mute);
 		else
 			m_sid.voice(num, vol, mute);
 	}
 
-	public void gain(short /* uint_least8_t */percent) {
+	@Override
+	public void gain(final short /* uint_least8_t */percent) {
 		// 0 to 99 is loss, 101 - 200 is gain
 		m_gain = percent;
 		m_gain += 100;
@@ -110,8 +120,8 @@ public class C64XSID extends XSID {
 	//
 	// Xsid specific
 	//
-	
-	public void emulation(SIDEmu sid) {
+
+	public void emulation(final SIDEmu sid) {
 		m_sid = sid;
 	}
 

@@ -2,7 +2,7 @@
  * @(#) ID3v2Footer.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import de.quippy.javamod.io.RandomAccessInputStream;
 import de.quippy.javamod.system.Helpers;
 
 /**
- * Description: 
+ * Description:
  *  This class implements and id3v2 footer which is essentially the same as an id3v2
  *  header but occurs at the end of the tag and is optional.
  *
@@ -63,7 +63,7 @@ public class ID3v2Footer
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public ID3v2Footer(RandomAccessInputStream raf, int location) throws IOException
+	public ID3v2Footer(final RandomAccessInputStream raf, final int location) throws IOException
 	{
 		footerExists = checkFooter(raf, location);
 		if (footerExists) readFooter(raf, location);
@@ -78,25 +78,22 @@ public class ID3v2Footer
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private boolean checkFooter(RandomAccessInputStream raf, int location) throws IOException
+	private boolean checkFooter(final RandomAccessInputStream raf, final int location) throws IOException
 	{
 		raf.seek(location);
-		byte[] buf = new byte[FOOT_SIZE];
+		final byte[] buf = new byte[FOOT_SIZE];
 
 		if (raf.read(buf) != FOOT_SIZE)
 		{
 			throw new IOException("Error encountered finding id3v2 footer");
 		}
 
-		String result = new String(buf, ENC_TYPE);
-		if (result.substring(0, TAG_START.length()).equals(TAG_START))
+		final String result = new String(buf, ENC_TYPE);
+		if (result.substring(0, TAG_START.length()).equals(TAG_START) && (((buf[3]&0xFF) != 0xff) && ((buf[4]&0xFF) != 0xff)))
 		{
-			if ((((int)buf[3]&0xFF) != 0xff) && (((int)buf[4]&0xFF) != 0xff))
+			if ((buf[6]&0x80)==0 && (buf[7]&0x80)==0 && (buf[8]&0x80)==0 && (buf[9]&0x80)==0)
 			{
-				if (((int)buf[6]&0x80)==0 && ((int)buf[7]&0x80)==0 && ((int)buf[8]&0x80)==0 && ((int)buf[9]&0x80)==0)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 
@@ -110,21 +107,21 @@ public class ID3v2Footer
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private void readFooter(RandomAccessInputStream raf, int location) throws IOException
+	private void readFooter(final RandomAccessInputStream raf, final int location) throws IOException
 	{
 		raf.seek(location);
-		byte[] foot = new byte[FOOT_SIZE];
+		final byte[] foot = new byte[FOOT_SIZE];
 
 		if (raf.read(foot) != FOOT_SIZE)
 		{
 			throw new IOException("Error encountered reading id3v2 footer");
 		}
 
-		majorVersion = (int) foot[3];
+		majorVersion = foot[3];
 
 		if (majorVersion <= NEW_MAJOR_VERSION)
 		{
-			minorVersion = (int) foot[4];
+			minorVersion = foot[4];
 			unsynchronisation = (foot[5]&0x80)!=0;
 			extended = (foot[5]&0x40)!=0;
 			experimental = (foot[5]&0x20)!=0;
@@ -141,7 +138,7 @@ public class ID3v2Footer
 	 */
 	public byte[] getBytes()
 	{
-		byte[] b = new byte[FOOT_SIZE];
+		final byte[] b = new byte[FOOT_SIZE];
 		int bytesCopied = 0;
 
 		System.arraycopy(Helpers.getBytesFromString(TAG_START, TAG_START.length(), ENC_TYPE), 0, b, 0, TAG_START.length());
@@ -214,7 +211,7 @@ public class ID3v2Footer
 	 *
 	 * @param size a value of type 'int'
 	 */
-	public void setTagSize(int size)
+	public void setTagSize(final int size)
 	{
 		if (size > 0)
 		{
@@ -258,7 +255,7 @@ public class ID3v2Footer
 	 *
 	 * @param unsynch the new value of the unsynchronisation flag
 	 */
-	public void setUnsynchronisation(boolean unsynch)
+	public void setUnsynchronisation(final boolean unsynch)
 	{
 		unsynchronisation = unsynch;
 	}
@@ -278,7 +275,7 @@ public class ID3v2Footer
 	 *
 	 * @param extend the new value of the extended footer bit
 	 */
-	public void setExtendedFooter(boolean extend)
+	public void setExtendedFooter(final boolean extend)
 	{
 		extended = extend;
 	}
@@ -298,7 +295,7 @@ public class ID3v2Footer
 	 *
 	 * @param experiment the new value of the experimental bit
 	 */
-	public void setExperimental(boolean experiment)
+	public void setExperimental(final boolean experiment)
 	{
 		experimental = experiment;
 	}
@@ -318,7 +315,7 @@ public class ID3v2Footer
 	 *
 	 * @param foot the new value of the footer bit for this footer
 	 */
-	public void setFooter(boolean foot)
+	public void setFooter(final boolean foot)
 	{
 		footer = foot;
 	}
@@ -329,6 +326,7 @@ public class ID3v2Footer
 	 *
 	 * @return a string representation of this object
 	 */
+	@Override
 	public String toString()
 	{
 		return "ID3v2." + getMajorVersion() + "." + getMinorVersion() + "\n" + "TagSize:\t\t\t" + getTagSize() + " bytes\nUnsynchronisation:\t\t" + getUnsynchronisation() + "\nExtended Footer:\t\t" + getExtendedFooter() + "\nExperimental:\t\t\t"

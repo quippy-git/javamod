@@ -2,7 +2,7 @@
  * @(#) IIRBandpassFilter.java
  *
  * Created on 09.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  *----------------------------------------------------------------------
  *
  * Source adopted from package com.db.media.audio.dsp.*;
- * 
+ *
  * Copyright (c) 2000 Silvere Martin-Michiellot All Rights Reserved.
  *
  * Silvere Martin-Michiellot grants you ("Licensee") a non-exclusive,
@@ -49,7 +49,7 @@
  * the design, construction, operation or maintenance of any nuclear
  * facility. Licensee represents and warrants that it will not use or
  * redistribute the Software for such purposes.
- * 
+ *
  */
 package de.quippy.javamod.mixer.dsp.iir.filter;
 
@@ -82,8 +82,8 @@ public class IIRBandpassFilter extends IIRFilterBase
 		super.initialize(sampleRate, channels, frequency, parameter);
         // thetaZero = 2 * Pi * Freq * T or (2 * Pi * Freq) / sampleRate
         // where Freq is center frequency of bandpass filter
-        float thetaZero = getThetaZero();
-        float theTan = (float)Math.tan(thetaZero / (2.0f * parameter));
+        final float thetaZero = getThetaZero();
+        final float theTan = (float)Math.tan(thetaZero / (2.0f * parameter));
 
         // Beta relates gain to bandwidth (and therefore q) at -3 db points
         beta = 0.5f * ((1.0f - theTan) / (1.0f + theTan));
@@ -111,9 +111,9 @@ public class IIRBandpassFilter extends IIRFilterBase
 	{
 		final float [] x = inArray[channel];
 		final float [] y = outArray[channel];
-		
-		y[iIndex] = (alpha * ((x[iIndex] = sample) - x[jIndex])) + 
-					(gamma * y[kIndex]) - 
+
+		y[iIndex] = (alpha * ((x[iIndex] = sample) - x[jIndex])) +
+					(gamma * y[kIndex]) -
 					(beta  * y[jIndex]);
 		return y[iIndex];
 	}

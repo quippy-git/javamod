@@ -2,7 +2,7 @@
  * @(#) FarandoleTrackerMod.java
  *
  * Created on 13.08.2022 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class FarandoleTrackerMod extends ScreamTrackerMod
 {
-	private static final String[] MODFILEEXTENSION = new String [] 
+	private static final String[] MODFILEEXTENSION = new String []
 	{
 		"far"
 	};
@@ -52,12 +52,12 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	{
 		ModuleFactory.registerModule(new FarandoleTrackerMod());
 	}
-	
+
 	private static final int FARFILEMAGIC = 0xFE524146;
 	private static final int BREAK_ROW_INVALID = -1;
-	
+
 	private String songMessage;
-	
+
 	/**
 	 * Constructor for FarandoleTrackerMod
 	 */
@@ -69,7 +69,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * Constructor for FarandoleTrackerMod
 	 * @param fileName
 	 */
-	public FarandoleTrackerMod(String fileName)
+	public FarandoleTrackerMod(final String fileName)
 	{
 		super(fileName);
 	}
@@ -92,7 +92,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int, int, int, int)
 	 */
 	@Override
-	public BasicModMixer getModMixer(int sampleRate, int doISP, int doNoLoops, int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
 	{
 		return new ScreamTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
 	}
@@ -111,7 +111,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getPanningValue(int)
 	 */
 	@Override
-	public int getPanningValue(int channel)
+	public int getPanningValue(final int channel)
 	{
 		return panningValue[channel];
 	}
@@ -121,7 +121,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getChannelVolume(int)
 	 */
 	@Override
-	public int getChannelVolume(int channel)
+	public int getChannelVolume(final int channel)
 	{
 		return 64;
 	}
@@ -159,9 +159,9 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#checkLoadingPossible(de.quippy.javamod.io.ModfileInputStream)
 	 */
 	@Override
-	public boolean checkLoadingPossible(ModfileInputStream inputStream) throws IOException
+	public boolean checkLoadingPossible(final ModfileInputStream inputStream) throws IOException
 	{
-		int id = inputStream.readIntelDWord();
+		final int id = inputStream.readIntelDWord();
 		inputStream.seek(0);
 		return id == FARFILEMAGIC;
 	}
@@ -171,12 +171,12 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getNewInstance(java.lang.String)
 	 */
 	@Override
-	protected Module getNewInstance(String fileName)
+	protected Module getNewInstance(final String fileName)
 	{
 		return new FarandoleTrackerMod(fileName);
 	}
 	/**
-	 * Internal Routine for reading and converting a pattern entry 
+	 * Internal Routine for reading and converting a pattern entry
 	 * @since 13.08.2022
 	 * @param pattNum
 	 * @param patternSize
@@ -188,13 +188,13 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	{
 		//final int rows = (patternSizes[pattNum] - 2) / (16 * 4); // documentation: 16 Channels, 4 bytes each
 		final int rows = (patternSize - 2) >> 6;
-		
+
 		// read length in rows - is interpreted as pattern row break:
 		int breakRow = inputStream.read();
 		inputStream.skip(1); // Tempo for pattern, - Unsupported, use not recommended
 		if (breakRow > 0 && breakRow < (rows - 2))
 			breakRow++;
-		else 
+		else
 			breakRow = BREAK_ROW_INVALID;
 		patternContainer.createPattern(pattNum, rows);
 		for (int row=0; row<rows; row++)
@@ -204,14 +204,14 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			// now read the data and set the pattern row:
 			for (int channel=0; channel<getNChannels(); channel++)
 			{
-				PatternElement currentElement = patternContainer.createPatternElement(pattNum, row, channel);
-				
+				final PatternElement currentElement = patternContainer.createPatternElement(pattNum, row, channel);
+
 				// now read in:
 				final int note = inputStream.read(); // 0 - 72
 				final int inst = inputStream.read();
 				final int vol  = inputStream.read(); // 0 - 16
 				final int eff  = inputStream.read();
-				
+
 				if (note>0 && note<72)
 				{
 					final int noteIndex = note + 48;
@@ -221,7 +221,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 						currentElement.setPeriod(ModConstants.noteValues[noteIndex]);
 					}
 				}
-				
+
 				currentElement.setInstrument(inst + 1);
 
 				if (note>0 || vol>0)
@@ -229,17 +229,17 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 					currentElement.setVolumeEffekt(0x01); // Default setVolume effect
 					currentElement.setVolumeEffektOp((vol>16)?64:(vol-1)<<2); // max 64 instead 16
 				}
-				
+
 				int effekt = eff>>4;
 				int effektOp = eff&0x0F;
-				
+
 				if (effekt == 0x09) // special treatment!
 				{
 					currentElement.setVolumeEffekt(0x01); // Default setVolume effect
 					currentElement.setVolumeEffektOp((effektOp+1)<<2); // max 64 instead 15
 					effekt = effektOp = 0;
 				}
-				
+
 				// Translation:
 				switch (effekt)
 				{
@@ -277,7 +277,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 //						break;
 					case 0x0B:// set Balance
 						effekt = 0x13;
-						effektOp |= 0x80; // set Fine Panning 
+						effektOp |= 0x80; // set Fine Panning
 						break;
 					case 0x0D: // Fine Tempo Down
 						break;
@@ -294,17 +294,17 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	}
 	private void readSampleData(final int sampleIndex, final ModfileInputStream inputStream) throws IOException
 	{
-		Sample current = new Sample();
+		final Sample current = new Sample();
 		current.setName(inputStream.readString(32));
-		
+
 		// Length
 		int length = inputStream.readIntelDWord();
-		
+
 		// finetune Value>7 means negative 8..15= -8..-1
 		/*final int fine = */inputStream.read(); // shall we use this?!
 		current.setFineTune(0);
 		current.setBaseFrequency(ModConstants.BASEFREQUENCY);
-		
+
 		// volume
 		final int vol = inputStream.read();
 		current.setVolume((vol>64)?64:vol);
@@ -316,28 +316,28 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		// Flags
 		final int sampleType = inputStream.read();
 		final int loopType = inputStream.read();
-		
+
 		if (current.length>0)
 		{
 			if (repeatStart > current.length) repeatStart=current.length-1;
 			if (repeatStop > current.length) repeatStop=current.length;
 			if (repeatStop <= repeatStart) repeatStart = repeatStop = 0;
 		}
-		
+
 		if ((sampleType & 0x01)!=0) //16Bit:
 		{
 			length>>=1;
 			repeatStart>>=1;
 			repeatStop>>=1;
 		}
-		
+
 		current.setLength(length);
 		current.setLoopStart(repeatStart);
 		current.setLoopStop(repeatStop);
 		current.setLoopLength(repeatStop-repeatStart);
 		if ((loopType & 8)!=0 && repeatStop > repeatStart)
 			current.setLoopType(ModConstants.LOOP_ON);
-		
+
 		// Defaults for non-existent SustainLoop
 		current.setSustainLoopStart(0);
 		current.setSustainLoopStop(0);
@@ -349,13 +349,13 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		current.setTranspose(0);
 		current.setPanning(false);
 		current.setDefaultPanning(128);
-		
+
 		// SampleData
 		int flags = ModConstants.SM_PCMS;
 		if ((sampleType & 0x01)!=0) flags|=ModConstants.SM_16BIT;
 		current.setSampleType(flags);
 		readSampleData(current, inputStream);
-		
+
 		getInstrumentContainer().setSample(sampleIndex, current);
 	}
 	/**
@@ -364,7 +364,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#loadModFileInternal(de.quippy.javamod.io.ModfileInputStream)
 	 */
 	@Override
-	protected void loadModFileInternal(ModfileInputStream inputStream) throws IOException
+	protected void loadModFileInternal(final ModfileInputStream inputStream) throws IOException
 	{
 		setModType(ModConstants.MODTYPE_S3M); // Farandole is converted internally to s3m
 		setNChannels(16);
@@ -372,7 +372,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		final int preAmp = ModConstants.MAX_MIXING_PREAMP / getNChannels();
 		setMixingPreAmp((preAmp<ModConstants.MIN_MIXING_PREAMP)?ModConstants.MIN_MIXING_PREAMP:(preAmp>0x80)?0x80:preAmp);
 		songFlags = ModConstants.SONG_ISSTEREO;
-		
+
 		// ModID
 		final int modID = inputStream.readIntelDWord();
 
@@ -387,33 +387,33 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 
 		// check if header is valid...
 		if (modID!=FARFILEMAGIC || eof!=0x000D0A1A || headerLength < 98) throw new IOException("Unsupported Farandole MOD");
-		
+
 		// Composer Version
 		version = inputStream.read();
 
 		// onOff
 		final byte [] onOff = new byte[16];
 		inputStream.read(onOff, 0, 16);
-		
+
 		// skip Editing State of Composer:
 		inputStream.skip(9);
-		
+
 		// Tempo & BPM
 		setTempo(inputStream.read());
 		setBPMSpeed(80); // default BPM
-		
+
 		// Panning values:
 		usePanningValues = true;
 		panningValue = new int[16];
 		for (int ch=0; ch<16; ch++)
 		{
-			final int readByte = inputStream.read(); 
+			final int readByte = inputStream.read();
 			panningValue[ch] = ((readByte & 0x0F) << 4) + 8;
 		}
-		
+
 		// skip Pattern state
 		inputStream.skip(4);
-		
+
 		// Message Length
 		final int messageLength = inputStream.readIntelUnsignedWord();
 		if (messageLength>0)
@@ -422,7 +422,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			int start = 0;
 			int rest = 132;
 			final int rows = message.length() / rest;
-			StringBuilder b = new StringBuilder(messageLength+rows); // length plus "\n"
+			final StringBuilder b = new StringBuilder(messageLength+rows); // length plus "\n"
 			for (int i=0; i<rows; i++)
 			{
 				b.append(message.substring(start, start+rest));
@@ -432,10 +432,10 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			}
 			songMessage = b.toString();
 		}
-		
+
 		setModID("FAR");
 		setTrackerName("Farandole Composer V" + ((version>>4)&0x0F) + '.' + (version&0x0F));
-	
+
 		// now for the pattern order
 		allocArrangement(256);
 		for (int i=0; i<256; i++) getArrangement()[i]=inputStream.read();
@@ -448,11 +448,11 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		for (int i=0; i<patternSizes.length; i++) patternSizes[i] = inputStream.readIntelUnsignedWord();
 		setSongRestart(restartPos);
 		setSongLength(numOrders);
-		
+
 		// now skip to patterns
 		inputStream.seek(headerLength);
 
-		PatternContainer patternContainer = new PatternContainer(this, getNPattern());
+		final PatternContainer patternContainer = new PatternContainer(this, getNPattern());
 		setPatternContainer(patternContainer);
 		for (int pattNum=0; pattNum<getNPattern(); pattNum++)
 		{
@@ -465,12 +465,12 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			// Create the Pattern
 			setPattern(pattNum, patternSizes[pattNum], patternContainer, inputStream);
 		}
-		
+
 		final byte [] sampleMap = new byte[8];
 		inputStream.read(sampleMap, 0, 8);
 		// 64 Instruments max (8 bytes) if a bit is set, the instrument is stored!
 		setNSamples(64);
-		InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
+		final InstrumentsContainer instrumentContainer = new InstrumentsContainer(this, 0, getNSamples());
 		this.setInstrumentContainer(instrumentContainer);
 		for (int instIndex=0; instIndex<64; instIndex++)
 		{

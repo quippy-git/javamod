@@ -2,7 +2,7 @@
  * @(#) MeterPanelBase.java
  *
  * Created on 01.01.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	/**
 	 * Constructor for MeterPanelBase
 	 */
-	public MeterPanelBase(int desiredFPS)
+	public MeterPanelBase(final int desiredFPS)
 	{
 		super(desiredFPS);
 		prepareComponentListener();
@@ -64,13 +64,13 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 		addComponentListener(new ComponentListener()
 		{
 			@Override
-			public void componentHidden(ComponentEvent e) {}
+			public void componentHidden(final ComponentEvent e) {}
 			@Override
-			public void componentMoved(ComponentEvent e) {}
+			public void componentMoved(final ComponentEvent e) {}
 			@Override
-			public void componentShown(ComponentEvent e) {}
+			public void componentShown(final ComponentEvent e) {}
 			@Override
-			public void componentResized(ComponentEvent e)
+			public void componentResized(final ComponentEvent e)
 			{
 				internalComponentWasResized();
 			}
@@ -81,13 +81,13 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	 */
 	protected synchronized void internalComponentWasResized()
 	{
-		Border b = this.getBorder();
-		Insets inset = (b==null)?new Insets(0,0,0,0):b.getBorderInsets(this);
+		final Border b = this.getBorder();
+		final Insets inset = (b==null)?new Insets(0,0,0,0):b.getBorderInsets(this);
 		myTop = inset.top;
 		myLeft = inset.left;
 		myWidth = this.getWidth() - inset.left - inset.right;
 		myHeight = this.getHeight() - inset.top - inset.bottom;
-		
+
 		imageBuffer=null;
 
 		if (myWidth>0 && myHeight>0) componentWasResized(0, 0, myWidth, myHeight);
@@ -104,18 +104,19 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	/**
 	 * @since 06.10.2007
 	 */
+	@Override
 	protected synchronized void doThreadUpdate()
 	{
        	final BufferedImage buffer = getDoubleBuffer(myWidth, myHeight);
        	if (buffer!=null)
        	{
-   			final Graphics2D gfx = (Graphics2D)buffer.getGraphics(); 
+   			final Graphics2D gfx = (Graphics2D)buffer.getGraphics();
 	   		try
 	   		{
 	   			drawMeter(gfx, 0, 0, myWidth, myHeight);
 		   		repaint(myTop, myLeft, myWidth, myHeight);
 	   		}
-	   		catch (Exception ex)
+	   		catch (final Exception ex)
 	   		{
 	   			Log.error("[MeterPanelBase]:", ex);
 	   		}
@@ -130,7 +131,7 @@ public abstract class MeterPanelBase extends ThreadUpdatePanel
 	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
 	 */
 	@Override
-	public void paintComponent(Graphics g)
+	public void paintComponent(final Graphics g)
 	{
 		super.paintComponent(g);
 		final BufferedImage buffer = getDoubleBuffer(myWidth, myHeight);

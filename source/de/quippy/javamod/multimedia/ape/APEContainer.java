@@ -2,7 +2,7 @@
  * @(#) APEContainer.java
  *
  * Created on 22.12.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,14 +40,14 @@ import de.quippy.jmac.tools.File;
  */
 public class APEContainer extends MultimediaContainer
 {
-	private static final String[] APEFILEEXTENSION = new String [] 
+	private static final String[] APEFILEEXTENSION = new String []
  	{
  		"ape", "apl", "mac"
  	};
 	private APEInfoPanel apeInfoPanel;
 
 	private APETag idTag;
-	
+
 	/**
 	 * Will be executed during class load
 	 */
@@ -77,23 +77,23 @@ public class APEContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInstance(java.net.URL)
 	 */
 	@Override
-	public MultimediaContainer getInstance(URL url)
+	public MultimediaContainer getInstance(final URL url)
 	{
-		MultimediaContainer result = super.getInstance(url);
+		final MultimediaContainer result = super.getInstance(url);
 		File apeFile = null;
 		try
 		{
 			apeFile = File.createFile(url, "r");
-			IAPEDecompress spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
+			final IAPEDecompress spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
 			idTag = spAPEDecompress.getApeInfoTag();
 			if (!MultimediaContainerManager.isHeadlessMode()) ((APEInfoPanel)getInfoPanel()).fillInfoPanelWith(spAPEDecompress, getPrintableFileUrl(), getSongName());
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 		}
 		finally
 		{
-			if (apeFile!=null) try { apeFile.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (apeFile!=null) try { apeFile.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -106,29 +106,29 @@ public class APEContainer extends MultimediaContainer
 	{
 		return new APEMixer(getFileURL());
 	}
-	private String getSongName(APETag idTag, URL forURL)
+	private String getSongName(final APETag idTag, final URL forURL)
 	{
 		if (idTag!=null)
 		{
 			try
 			{
-				String artist = idTag.GetFieldString(APETag.APE_TAG_FIELD_ARTIST);
-				String album = idTag.GetFieldString(APETag.APE_TAG_FIELD_ALBUM);
+				final String artist = idTag.GetFieldString(APETag.APE_TAG_FIELD_ARTIST);
+				final String album = idTag.GetFieldString(APETag.APE_TAG_FIELD_ALBUM);
 				String title = idTag.GetFieldString(APETag.APE_TAG_FIELD_TITLE);
-				if (title==null || title.length()==0) title = MultimediaContainerManager.getSongNameFromURL(forURL);
-				
-				StringBuilder str = new StringBuilder();
-				if (artist!=null && artist.length()!=0)
+				if (title==null || title.isEmpty()) title = MultimediaContainerManager.getSongNameFromURL(forURL);
+
+				final StringBuilder str = new StringBuilder();
+				if (artist!=null && !artist.isEmpty())
 				{
 					str.append(artist).append(" - ");
 				}
-				if (album!=null && album.length()!=0)
+				if (album!=null && !album.isEmpty())
 				{
 					str.append(album).append(" - ");
 				}
 				return str.append(title).toString();
 			}
-			catch (Throwable ex) // we can get the runtime exception "Unsupported Function"
+			catch (final Throwable ex) // we can get the runtime exception "Unsupported Function"
 			{
 			}
 		}
@@ -152,19 +152,19 @@ public class APEContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getSongInfosFor(java.net.URL)
 	 */
 	@Override
-	public Object[] getSongInfosFor(URL url)
+	public Object[] getSongInfosFor(final URL url)
 	{
 		String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
 		try
 		{
-			File apeFile = File.createFile(url, "r");
-			IAPEDecompress spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
-			APETag idTag = spAPEDecompress.getApeInfoTag();
+			final File apeFile = File.createFile(url, "r");
+			final IAPEDecompress spAPEDecompress = IAPEDecompress.CreateIAPEDecompress(apeFile);
+			final APETag idTag = spAPEDecompress.getApeInfoTag();
 			songName = getSongName(idTag, url);
 			duration = Long.valueOf(spAPEDecompress.getApeInfoDecompressLengthMS());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		return new Object[] { songName, duration };
@@ -197,7 +197,7 @@ public class APEContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 	}
 	/**
@@ -205,7 +205,7 @@ public class APEContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationSave(java.util.Properties)
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 	}
 	/**

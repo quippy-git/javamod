@@ -34,11 +34,11 @@ public class JMACException extends RuntimeException {
     public JMACException() {
     }
 
-    public JMACException(String msg) {
+    public JMACException(final String msg) {
         super(msg);
     }
 
-    public JMACException(String msg, Throwable t) {
+    public JMACException(final String msg, final Throwable t) {
         super(msg);
         exception = t;
     }
@@ -47,11 +47,13 @@ public class JMACException extends RuntimeException {
         return exception;
     }
 
-    public void printStackTrace() {
+    @Override
+	public void printStackTrace() {
         printStackTrace(System.err);
     }
 
-    public void printStackTrace(PrintStream ps) {
+    @Override
+	public void printStackTrace(final PrintStream ps) {
         if (this.exception == null) {
             super.printStackTrace(ps);
         } else {

@@ -2,7 +2,7 @@
  * @(#) SIDMixer.java
  *
  * Created on 04.10.2009 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ import de.quippy.sidplay.resid_builder.ReSIDBuilder;
 public class SIDMixer extends BasicMixer
 {
 	private SIDPlay2 sidPlayer;
-	private SidTune sidTune;
+	private final SidTune sidTune;
 
 	private byte[] output;
 
@@ -54,12 +54,12 @@ public class SIDMixer extends BasicMixer
 	private int multiplier;
 	private int songNumber;
 
-	private SIDContainer parentSIDContainer;
+	private final SIDContainer parentSIDContainer;
 
 	/**
 	 * Constructor for SIDMixer
 	 */
-	public SIDMixer(SidTune sidTune, SIDContainer parent, int sampleRate, int sidModel, int optimization, boolean sidFilter, boolean isStereo)
+	public SIDMixer(final SidTune sidTune, final SIDContainer parent, final int sampleRate, final int sidModel, final int optimization, final boolean sidFilter, final boolean isStereo)
 	{
 		super();
 		this.sidTune = sidTune;
@@ -83,7 +83,7 @@ public class SIDMixer extends BasicMixer
 		{
 			sidPlayer = new SIDPlay2();
 
-			ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+			final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
 			sidConfig.frequency = sampleRate;
 			sidConfig.emulateStereo = isStereo;
 			sidConfig.playback = (isStereo ? ISID2Types.sid2_playback_t.sid2_stereo : ISID2Types.sid2_playback_t.sid2_mono);
@@ -102,8 +102,8 @@ public class SIDMixer extends BasicMixer
 			sidConfig.sidSamples = true;
 			sidConfig.precision = ISID2Types.SID2_DEFAULT_PRECISION;
 			sidPlayer.config(sidConfig);
-			
-			ReSIDBuilder rs = new ReSIDBuilder("ReSID");
+
+			final ReSIDBuilder rs = new ReSIDBuilder("ReSID");
 			if (rs.bool())
 			{
 				sidConfig.sidEmulation = rs;
@@ -118,16 +118,16 @@ public class SIDMixer extends BasicMixer
 
 			multiplier = MULTIPLIER_VALUE;
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("[SIDMixer]", ex);
 		}
 	}
-	public void setSampleRate(int newSampleRate)
+	public void setSampleRate(final int newSampleRate)
 	{
-		int oldSampleRate = sampleRate;
+		final int oldSampleRate = sampleRate;
 
-		final boolean wasPaused = isPaused(); 
+		final boolean wasPaused = isPaused();
 		final boolean wasPlaying = isPlaying();
 		if (wasPlaying && !wasPaused) pausePlayback();
 
@@ -144,10 +144,10 @@ public class SIDMixer extends BasicMixer
 			}
 			else
 			{
-				ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+				final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
 				sidConfig.frequency = sampleRate;
-				SIDBuilder rs = sidConfig.sidEmulation;
-				if (rs!=null && rs.bool()&& rs instanceof ReSIDBuilder) 
+				final SIDBuilder rs = sidConfig.sidEmulation;
+				if (rs!=null && rs.bool()&& rs instanceof ReSIDBuilder)
 					((ReSIDBuilder)rs).sampling(sampleRate);
 				sidPlayer.config(sidConfig);
 			}
@@ -155,17 +155,17 @@ public class SIDMixer extends BasicMixer
 			if (!wasPaused) pausePlayback();
 		}
 	}
-	public void setSIDModel(int newSidModel)
+	public void setSIDModel(final int newSidModel)
 	{
-		boolean wasPlaying = !isPaused();
+		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
 
 		sidModel = newSidModel;
-		ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+		final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
 		sidConfig.sidModel = (sidModel==0)?ISID2Types.sid2_model_t.SID2_MODEL_CORRECT:((sidModel==1)?ISID2Types.sid2_model_t.SID2_MOS6581:ISID2Types.sid2_model_t.SID2_MOS8580);
 		sidPlayer.config(sidConfig);
 
-		ReSIDBuilder rs = new ReSIDBuilder("ReSID");
+		final ReSIDBuilder rs = new ReSIDBuilder("ReSID");
 		if (rs.bool())
 		{
 			sidConfig.sidEmulation = rs;
@@ -175,20 +175,20 @@ public class SIDMixer extends BasicMixer
 			rs.sampling(sampleRate);
 		}
 		sidPlayer.config(sidConfig);
-		
+
 		if (wasPlaying) pausePlayback();
 	}
-	public void setOptimization(int newOptimization)
+	public void setOptimization(final int newOptimization)
 	{
-		boolean wasPlaying = !isPaused();
+		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
-		
+
 		optimization = newOptimization;
-		ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+		final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
 		sidConfig.optimisation = (byte)optimization;
 		sidPlayer.config(sidConfig);
 
-		ReSIDBuilder rs = new ReSIDBuilder("ReSID");
+		final ReSIDBuilder rs = new ReSIDBuilder("ReSID");
 		if (rs.bool())
 		{
 			sidConfig.sidEmulation = rs;
@@ -201,32 +201,32 @@ public class SIDMixer extends BasicMixer
 
 		if (wasPlaying) pausePlayback();
 	}
-	public void setUseSIDFilter(boolean useSIDFilter)
+	public void setUseSIDFilter(final boolean useSIDFilter)
 	{
-		boolean wasPlaying = !isPaused();
+		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
-		
+
 		sidFilter = useSIDFilter;
-		ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
-		SIDBuilder rs = sidConfig.sidEmulation;
-		if (rs!=null && rs.bool() && rs instanceof ReSIDBuilder) 
+		final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+		final SIDBuilder rs = sidConfig.sidEmulation;
+		if (rs!=null && rs.bool() && rs instanceof ReSIDBuilder)
 			((ReSIDBuilder)rs).filter(sidFilter);
 		sidPlayer.config(sidConfig);
 
 		if (wasPlaying) pausePlayback();
 	}
-	public void setVirtualStereo(boolean newIsStereo)
+	public void setVirtualStereo(final boolean newIsStereo)
 	{
-		boolean wasPlaying = !isPaused();
+		final boolean wasPlaying = !isPaused();
 		if (wasPlaying) pausePlayback();
-		
+
 		isStereo = newIsStereo;
-		ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
+		final ISID2Types.sid2_config_t sidConfig = sidPlayer.config();
 		sidConfig.emulateStereo = isStereo;
 		sidConfig.playback = (isStereo ? ISID2Types.sid2_playback_t.sid2_stereo : ISID2Types.sid2_playback_t.sid2_mono);
 		sidPlayer.config(sidConfig);
 
-		ReSIDBuilder rs = new ReSIDBuilder("ReSID");
+		final ReSIDBuilder rs = new ReSIDBuilder("ReSID");
 		if (rs.bool())
 		{
 			sidConfig.sidEmulation = rs;
@@ -302,7 +302,8 @@ public class SIDMixer extends BasicMixer
 	 * @see de.quippy.javamod.mixer.BasicMixer#seek(long)
 	 * @since 13.02.2012
 	 */
-	protected void seek(long milliseconds)
+	@Override
+	protected void seek(final long milliseconds)
 	{
 		if (sidTune != null)
 		{
@@ -314,13 +315,13 @@ public class SIDMixer extends BasicMixer
 			pausePlayback();
 		}
 	}
-	private byte[] getOutputBuffer(int length)
+	private byte[] getOutputBuffer(final int length)
 	{
 		if (output == null || output.length < length) output = new byte[length];
 		return output;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -343,14 +344,14 @@ public class SIDMixer extends BasicMixer
 			openAudioDevice();
 			if (!isInitialized()) return;
 
-			boolean finished = false;
+			final boolean finished = false;
 
 			do
 			{
 				sidPlayer.play(shortBuffer, bufferSize);
 
 				// convert short buffer to byte array
-				byte[] b = getOutputBuffer(byteBufferSize);
+				final byte[] b = getOutputBuffer(byteBufferSize);
 				int idx = byteBufferSize;
 				int pos = bufferSize;
 				while (pos > 0)
@@ -360,8 +361,8 @@ public class SIDMixer extends BasicMixer
 					{
 						int sl = (short) ((shortBuffer[--pos] << 8) | (shortBuffer[--pos]));
 						int sr = (short) ((shortBuffer[--pos] << 8) | (shortBuffer[--pos]));
-						sl = (int) (sl * multiplier) >> MULTIPLIER_SHIFT;
-						sr = (int) (sr * multiplier) >> MULTIPLIER_SHIFT;
+						sl = sl * multiplier >> MULTIPLIER_SHIFT;
+						sr = sr * multiplier >> MULTIPLIER_SHIFT;
 
 						ll = (byte) (sl & 0xFF);
 						lh = (byte) (sl >> 8);
@@ -371,14 +372,14 @@ public class SIDMixer extends BasicMixer
 					else
 					{
 						int s = (short) ((shortBuffer[--pos] << 8) | (shortBuffer[--pos]));
-						s = (int) (s * multiplier) >> MULTIPLIER_SHIFT;
+						s = s * multiplier >> MULTIPLIER_SHIFT;
 						ll = rl = (byte) (s & 0xFF);
 						lh = rh = (byte) (s >> 8);
 					}
-					b[--idx] = (byte) lh;
-					b[--idx] = (byte) ll;
-					b[--idx] = (byte) rh;
-					b[--idx] = (byte) rl;
+					b[--idx] = lh;
+					b[--idx] = ll;
+					b[--idx] = rh;
+					b[--idx] = rl;
 				}
 				writeSampleDataToLine(b, 0, byteBufferSize);
 
@@ -394,7 +395,7 @@ public class SIDMixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /* noop */ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /* noop */ }
 					}
 				}
 				if (isInSeeking())
@@ -402,14 +403,14 @@ public class SIDMixer extends BasicMixer
 					setIsSeeking();
 					while (isInSeeking())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
 			while (!finished);
 			if (finished) setHasFinished(); // Piece was played full
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

@@ -32,7 +32,7 @@ public class Application extends Metadata {
 
     private static final int APPLICATION_ID_LEN = 32; // bits
 
-    private byte[] id = new byte[4];
+    private final byte[] id = new byte[4];
     private byte[] data;
 
     /**
@@ -42,7 +42,7 @@ public class Application extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public Application(BitInputStream is, int length, boolean isLast) throws IOException {
+    public Application(final BitInputStream is, int length, final boolean isLast) throws IOException {
         super(isLast);
         is.readByteBlockAlignedNoCRC(id, APPLICATION_ID_LEN / 8);
         length -= APPLICATION_ID_LEN / 8;

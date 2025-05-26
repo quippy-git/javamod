@@ -24,7 +24,7 @@ import de.quippy.sidplay.libsidplay.components.sidtune.SidTune;
 
 public class SIDPlay2 {
 
-	private Player sidplayer;
+	private final Player sidplayer;
 
 	public SIDPlay2() {
 		sidplayer = new Player();
@@ -46,11 +46,11 @@ public class SIDPlay2 {
 		return sidplayer.error();
 	}
 
-	public int fastForward(int percent) {
+	public int fastForward(final int percent) {
 		return sidplayer.fastForward(percent);
 	}
 
-	public int load(SidTune tune) {
+	public int load(final SidTune tune) {
 		return sidplayer.load(tune);
 	}
 
@@ -58,8 +58,8 @@ public class SIDPlay2 {
 		sidplayer.pause();
 	}
 
-	public long /* uint_least32_t */play(short[] buffer,
-			int /* uint_least32_t */length) {
+	public long /* uint_least32_t */play(final short[] buffer,
+			final int /* uint_least32_t */length) {
 		return sidplayer.play(buffer, length);
 	}
 
@@ -71,7 +71,7 @@ public class SIDPlay2 {
 		sidplayer.stop();
 	}
 
-	public void debug(boolean enable) {
+	public void debug(final boolean enable) {
 		sidplayer.debug(enable);
 	}
 

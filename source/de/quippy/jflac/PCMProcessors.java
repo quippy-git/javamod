@@ -7,7 +7,6 @@
 package de.quippy.jflac;
 
 import java.util.HashSet;
-import java.util.Iterator;
 
 import de.quippy.jflac.metadata.StreamInfo;
 import de.quippy.jflac.util.ByteData;
@@ -18,53 +17,53 @@ import de.quippy.jflac.util.ByteData;
  * @author kc7bfi
  */
 class PCMProcessors implements PCMProcessor {
-    private HashSet<PCMProcessor> pcmProcessors = new HashSet<PCMProcessor>();
-    
+    private final HashSet<PCMProcessor> pcmProcessors = new HashSet<>();
+
     /**
      * Add a PCM processor.
      * @param processor  The processor listener to add
      */
-    public void addPCMProcessor(PCMProcessor processor) {
+    public void addPCMProcessor(final PCMProcessor processor) {
         synchronized (pcmProcessors) {
             pcmProcessors.add(processor);
         }
     }
-     
+
     /**
      * Remove a PCM processor.
      * @param processor  The processor listener to remove
      */
-    public void removePCMProcessor(PCMProcessor processor) {
+    public void removePCMProcessor(final PCMProcessor processor) {
         synchronized (pcmProcessors) {
             pcmProcessors.remove(processor);
         }
     }
-    
+
     /**
      * Process the StreamInfo block.
      * @param info the StreamInfo block
      * @see de.quippy.jflac.PCMProcessor#processStreamInfo(de.quippy.jflac.metadata.StreamInfo)
      */
-    public void processStreamInfo(StreamInfo info) {
+    @Override
+	public void processStreamInfo(final StreamInfo info) {
         synchronized (pcmProcessors) {
-            Iterator<PCMProcessor> it = pcmProcessors.iterator();
-            while (it.hasNext()) {
-                PCMProcessor processor = (PCMProcessor)it.next();
+            for (final PCMProcessor processor : pcmProcessors)
+			{
                 processor.processStreamInfo(info);
             }
         }
     }
-    
+
     /**
      * Process the decoded PCM bytes.
      * @param pcm The decoded PCM data
      * @see de.quippy.jflac.PCMProcessor#processPCM(de.quippy.jflac.util.ByteSpace)
      */
-    public void processPCM(ByteData pcm) {
+    @Override
+	public void processPCM(final ByteData pcm) {
         synchronized (pcmProcessors) {
-            Iterator<PCMProcessor> it = pcmProcessors.iterator();
-            while (it.hasNext()) {
-                PCMProcessor processor = (PCMProcessor)it.next();
+            for (final PCMProcessor processor : pcmProcessors)
+			{
                 processor.processPCM(pcm);
             }
         }

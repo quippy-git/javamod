@@ -38,7 +38,7 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
 
     /**
      * Read compressed signal residual data.
-     * 
+     *
      * @param is                The InputBitStream
      * @param predictorOrder    The predicate order
      * @param partitionOrder    The partition order
@@ -46,11 +46,11 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
      * @param residual          The residual signal (output)
      * @throws IOException      On error reading from InputBitStream
      */
-    void readResidual(BitInputStream is, int predictorOrder, int partitionOrder, Header header, int[] residual) throws IOException {
+    void readResidual(final BitInputStream is, final int predictorOrder, final int partitionOrder, final Header header, final int[] residual) throws IOException {
         //System.out.println("readREsidual Pred="+predictorOrder+" part="+partitionOrder);
         int sample = 0;
-        int partitions = 1 << partitionOrder;
-        int partitionSamples = partitionOrder > 0 ? header.blockSize >> partitionOrder : header.blockSize - predictorOrder;
+        final int partitions = 1 << partitionOrder;
+        final int partitionSamples = partitionOrder > 0 ? header.blockSize >> partitionOrder : header.blockSize - predictorOrder;
         contents.ensureSize(Math.max(6, partitionOrder));
         contents.parameters = new int[partitions];
 
@@ -58,7 +58,7 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
             int riceParameter = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);
             contents.parameters[partition] = riceParameter;
             if (riceParameter < ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-                int u = (partitionOrder == 0 || partition > 0) ? partitionSamples : partitionSamples - predictorOrder;
+                final int u = (partitionOrder == 0 || partition > 0) ? partitionSamples : partitionSamples - predictorOrder;
                 is.readRiceSignedBlock(residual, sample, u, riceParameter);
                 sample += u;
             } else {

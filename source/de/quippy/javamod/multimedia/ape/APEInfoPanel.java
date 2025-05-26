@@ -2,7 +2,7 @@
  * @(#) APEInfoPanel.java
  *
  * Created on 23.12.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ public class APEInfoPanel extends JPanel
 	private JTextField v1_Track = null;
 
 	private APEContainer parentContainer = null;
-	
+
 	/**
 	 * Constructor for APEInfoPanel
 	 */
@@ -87,7 +87,7 @@ public class APEInfoPanel extends JPanel
 	 * Constructor for APEInfoPanel
 	 * @param layout
 	 */
-	public APEInfoPanel(LayoutManager layout)
+	public APEInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -96,7 +96,7 @@ public class APEInfoPanel extends JPanel
 	 * Constructor for APEInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public APEInfoPanel(boolean isDoubleBuffered)
+	public APEInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -106,7 +106,7 @@ public class APEInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public APEInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public APEInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -121,7 +121,7 @@ public class APEInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(APEContainer parent)
+	public void setParentContainer(final APEContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -129,7 +129,7 @@ public class APEInfoPanel extends JPanel
 	{
 		this.setName("APEInfoPane");
 		this.setLayout(new java.awt.GridBagLayout());
-		
+
 		this.add(getAPEInfo_L_Filename(),			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getAPEInfo_Filename(),				Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getAPEInfo_L_ShortDescription(),	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -312,7 +312,7 @@ public class APEInfoPanel extends JPanel
 		{
 			APEIDPanel = new JPanel();
 			APEIDPanel.setLayout(new java.awt.GridBagLayout());
-			
+
 			APEIDPanel.add(getV1_L_Track(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
 			APEIDPanel.add(getV1_Track(),		Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.NORTHWEST, 1.0, 0.0));
 			APEIDPanel.add(getV1_L_Title(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
@@ -454,7 +454,7 @@ public class APEInfoPanel extends JPanel
 	{
 		if (v1_Genre==null)
 		{
-			v1_Genre = new javax.swing.JComboBox<String>(ID3Genre.getGenres());
+			v1_Genre = new javax.swing.JComboBox<>(ID3Genre.getGenres());
 			v1_Genre.setName("v1_Genre");
 			v1_Genre.setFont(Helpers.getDialogFont());
 			v1_Genre.setEditable(true);
@@ -474,9 +474,9 @@ public class APEInfoPanel extends JPanel
 		final int v1 = apeVersion / 1000;
 		final int v2 = (apeVersion-(v1*1000)) / 10;
 		final int v3 = (apeVersion-(v1*1000)-(v2*10));
-		
+
 		getAPEInfo_VersionInfo().setText(v1+"."+v2+"."+v3);
-		
+
 		final APETag apeTag = spAPEDecompress.getApeInfoTag();
 		try
 		{
@@ -487,7 +487,7 @@ public class APEInfoPanel extends JPanel
 			getV1_Year().setText(apeTag.GetFieldString(APETag.APE_TAG_FIELD_YEAR));
 			getV1_Genre().setSelectedItem(apeTag.GetFieldString(APETag.APE_TAG_FIELD_GENRE));
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 		}
 	}

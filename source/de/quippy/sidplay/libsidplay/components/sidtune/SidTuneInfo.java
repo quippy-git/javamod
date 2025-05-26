@@ -19,25 +19,25 @@ package de.quippy.sidplay.libsidplay.components.sidtune;
  * An instance of this structure is used to transport values to and from SidTune
  * objects.<BR>
  * You must read (i.e. activate) sub-song specific information via:
- * 
+ *
  * <pre>
  * final SidTuneInfo tuneInfo = SidTune[songNumber];
  * final SidTuneInfo tuneInfo = SidTune.getInfo();
  * void SidTune.getInfo(tuneInfo);
  * </pre>
- * 
+ *
  * Consider the following fields as read-only, because the SidTune class does
  * not provide an implementation of:
- * 
+ *
  * <pre>
  *  boolean setInfo(final SidTuneInfo)
  * </pre>
- * 
+ *
  * Currently, the only way to get the class to accept values which are written
  * to these fields is by creating a derived class.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class SidTuneInfo {
 
@@ -68,14 +68,14 @@ public class SidTuneInfo {
 
 	/**
 	 * The SID chip base address used by the sidtune.
-	 * 
+	 *
 	 * 0xD400 (normal, 1st SID)
 	 */
 	public int /* uint_least16_t */sidChipBase1;
 
 	/**
 	 * The SID chip base address used by the sidtune.
-	 * 
+	 *
 	 * 0xD?00 (2nd SID) or 0 (no 2nd SID)
 	 */
 	public int /* uint_least16_t */sidChipBase2;
@@ -136,7 +136,7 @@ public class SidTuneInfo {
 
 	/**
 	 * Song title, credits, ... 0 = Title, 1 = Author, 2 = Copyright/Publisher
-	 * 
+	 *
 	 * the number of available text info lines
 	 */
 	public short /* uint_least8_t */numberOfInfoStrings;

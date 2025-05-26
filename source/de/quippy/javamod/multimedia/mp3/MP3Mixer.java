@@ -2,7 +2,7 @@
  * @(#) MP3Mixer.java
  *
  * Created on 17.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.sound.sampled.AudioFormat;
 
@@ -49,37 +50,33 @@ import de.quippy.mp3.decoder.SampleBuffer;
 public class MP3Mixer extends BasicMixer
 {
 	private byte [] output;
-	
+
 	private HttpResource httpResource;
 	private InputStream inputStream;
 	private Bitstream bitStream;
-	private Decoder	decoder; 
-	
-	private URL mp3FileUrl;
-	
+	private Decoder	decoder;
+
+	private final URL mp3FileUrl;
+
 	private TagParseListener tagParseListener;
-	
+
 	private long played_ms;
 	private long samplesWritten;
 	private AudioFormat audioFormat;
-	
+
 	private Boolean isStreaming;
+// There is a X-Loudness tag in ICY streams - however, is that information or something to handle? No documentation found!
+//	private static final int LOUDNESS_SHIFT = 8;
+//	private static final int LOUDNESS_FACTOR = 1<<LOUDNESS_SHIFT;
+//	private int loudness = 0;
 
 	/**
 	 * Constructor for MP3Mixer
 	 */
-	public MP3Mixer(URL mp3FileUrl)
+	public MP3Mixer(final URL mp3FileUrl)
 	{
 		super();
 		this.mp3FileUrl = mp3FileUrl;
-	}
-	/**
-	 * @since 27.12.2008
-	 * @param tagParseListener
-	 */
-	public void setTagParserListener(TagParseListener tagParseListener)
-	{
-		this.tagParseListener = tagParseListener;
 	}
 	private InputStream createHttpRessource(final URL mp3FileUrl) throws IOException
 	{
@@ -88,7 +85,7 @@ public class MP3Mixer extends BasicMixer
 		httpResource = new HttpResource(mp3FileUrl);
 		httpResource.setUser_agent(Helpers.USER_AGENT);
 		httpResource.setAccept_charset(Helpers.CODING_ICY);
-		HashMap<String, String> additionalHeaders = new HashMap<String, String>();
+		final Map<String, String> additionalHeaders = new HashMap<>();
 		additionalHeaders.put("Ultravox-transport-type", "TCP");
 		additionalHeaders.put("Icy-MetaData", "1");
 		result = httpResource.getResource(additionalHeaders, true);
@@ -100,14 +97,14 @@ public class MP3Mixer extends BasicMixer
 		try
 		{
 			closeAllInputStreams();
-			
+
 			if (!isStreaming())
 			{
 				inputStream = new FileOrPackedInputStream(mp3FileUrl);
 			}
 			else
 			{
-				InputStream httpInputStream = createHttpRessource(mp3FileUrl);
+				final InputStream httpInputStream = createHttpRessource(mp3FileUrl);
 				if (httpInputStream!=null)
 					inputStream = new IcyInputStream(new BufferedInputStream(httpInputStream), tagParseListener, httpResource.getResourceHeaders());
 			}
@@ -119,9 +116,9 @@ public class MP3Mixer extends BasicMixer
 			// Setting the AudioFormat is only possible during
 			// playback so it is done in startPlayBack
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
-			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException e) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException e) { /* Log.error("IGNORED", ex); */ }
 			Log.error("[MP3Mixer]", ex);
 		}
 	}
@@ -133,7 +130,7 @@ public class MP3Mixer extends BasicMixer
 	{
 		if (isStreaming==null)
 		{
-			if (Helpers.isFile(mp3FileUrl)) 
+			if (Helpers.isFile(mp3FileUrl))
 				isStreaming = Boolean.FALSE;
 			else
 			{
@@ -161,7 +158,26 @@ public class MP3Mixer extends BasicMixer
 		return isStreaming.booleanValue();
 	}
 	/**
-	 * 
+	 * @since 27.12.2008
+	 * @param tagParseListener
+	 */
+	public void setTagParserListener(final TagParseListener tagParseListener)
+	{
+		this.tagParseListener = tagParseListener;
+	}
+//	/**
+//	 * @since 03.12.2024
+//	 * @param loudness
+//	 */
+//	public void setLoudness(final double loudness)
+//	{
+//		if (loudness>0)
+//			this.loudness = (int)(LOUDNESS_FACTOR * 40d / (40d - loudness));
+//		else
+//			this.loudness = (int)(LOUDNESS_FACTOR * (40d + loudness) / 40d);
+//	}
+	/**
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#isSeekSupported()
 	 */
 	@Override
@@ -170,7 +186,7 @@ public class MP3Mixer extends BasicMixer
 		return !isStreaming();
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getMillisecondPosition()
 	 */
 	@Override
@@ -182,7 +198,7 @@ public class MP3Mixer extends BasicMixer
 			return 0;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#getLengthInMilliseconds()
 	 */
 	@Override
@@ -193,11 +209,11 @@ public class MP3Mixer extends BasicMixer
 			try
 			{
 				initialize();
-				Header h = bitStream.readFrame();
-				if (h!=null)  
+				final Header h = bitStream.readFrame();
+				if (h!=null)
 					return (long)(h.total_ms(inputStream.available()) + 0.5);
 			}
-			catch (Throwable ex)
+			catch (final Throwable ex)
 			{
 				//Log.error("IGNORED", ex);
 			}
@@ -210,9 +226,9 @@ public class MP3Mixer extends BasicMixer
 	 */
 	private void closeAllInputStreams()
 	{
-		if (bitStream!=null) try { bitStream.close(); bitStream = null; } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
-		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
-		if (httpResource!=null) try { httpResource.close(); httpResource = null; } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+		if (bitStream!=null) try { bitStream.close(); bitStream = null; } catch (final BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+		if (inputStream!=null) try { inputStream.close(); inputStream = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
+		if (httpResource!=null) try { httpResource.close(); httpResource = null; } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		isStreaming = null;
 	}
 	/**
@@ -221,7 +237,7 @@ public class MP3Mixer extends BasicMixer
 	 * @since 13.02.2012
 	 */
 	@Override
-	protected void seek(long milliseconds)
+	protected void seek(final long milliseconds)
 	{
 		try
 		{
@@ -230,21 +246,21 @@ public class MP3Mixer extends BasicMixer
 				if (played_ms>milliseconds)
 				{
 					closeAllInputStreams();
-					
+
 					inputStream = new FileOrPackedInputStream(mp3FileUrl);
 					bitStream = new Bitstream(inputStream);
 					this.decoder = new Decoder();
 					played_ms = 0;
 				}
-				
-				float f_played_ms = (float)played_ms;
+
+				float f_played_ms = played_ms;
 				boolean isFirstFrame = true;
 				int sampleRate = 0;
 				while (f_played_ms < milliseconds)
 				{
-					Header h = bitStream.readFrame();
+					final Header h = bitStream.readFrame();
 					if (h==null) break;
-					f_played_ms += h.ms_per_frame(); 
+					f_played_ms += h.ms_per_frame();
 					bitStream.closeFrame();
 					if (isFirstFrame)
 					{
@@ -257,7 +273,7 @@ public class MP3Mixer extends BasicMixer
 				samplesWritten = (long)(played_ms * (float)sampleRate / 1000.0);
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("[MP3Mixer]", ex);
 		}
@@ -284,7 +300,7 @@ public class MP3Mixer extends BasicMixer
 	{
 		if (bitStream!=null)
 		{
-			Header h = bitStream.getHeader();
+			final Header h = bitStream.getHeader();
 			if (h!=null) return h.bitrate_instant()/1000;
 		}
 		return 0;
@@ -306,14 +322,14 @@ public class MP3Mixer extends BasicMixer
 	 * @param length
 	 * @return
 	 */
-	private byte[] getOutputBuffer(int length)
+	private byte[] getOutputBuffer(final int length)
 	{
 		if (output==null || output.length<length)
 			output = new byte[length];
 		return output;
 	}
 	/**
-	 * 
+	 *
 	 * @see de.quippy.javamod.mixer.Mixer#startPlayback()
 	 */
 	@Override
@@ -321,9 +337,9 @@ public class MP3Mixer extends BasicMixer
 	{
 		initialize();
 		if (bitStream==null) return; // something went wrong...
-		
+
 		setIsPlaying();
-		
+
 		if (getSeekPosition()>0) seek(getSeekPosition());
 
 		try
@@ -331,7 +347,7 @@ public class MP3Mixer extends BasicMixer
 			boolean isFirstFrame = true;
 			Header h = null;
 			int channels = -1;
-			
+
 			do
 			{
 				h = bitStream.readFrame();
@@ -348,31 +364,32 @@ public class MP3Mixer extends BasicMixer
 						openAudioDevice();
 						if (!isInitialized()) return;
 					}
-					
+
 					final long samplesToWrite = (hasStopPosition() && channels!=-1)?getSamplesToWriteLeft() * getChannelCount():-1;
-					
+
 					final short[] samples = output.getBuffer();
 					int origLen = output.getBufferLength();
 					// find out, if all decoded samples are to write
-					if (samplesToWrite>0 && (long)(origLen)>samplesToWrite) 
+					if (samplesToWrite>0 && (origLen)>samplesToWrite)
 						origLen = (int)samplesToWrite;
 					samplesWritten += origLen / (long)decoder.getOutputChannels();
-					played_ms = samplesWritten * 1000L / (long)decoder.getOutputFrequency();
+					played_ms = samplesWritten * 1000L / decoder.getOutputFrequency();
 					final int len = origLen<<1;
-					byte[] b = getOutputBuffer(len);
-					
+					final byte[] b = getOutputBuffer(len);
+
 					int idx = 0;
 					int pos = 0;
-					short s;
-					boolean allZero = true;
+					int s;
+					boolean allZero = true; // filter out complete silence blocks...
 					while (origLen-- > 0)
 					{
 						s = samples[pos++];
 						if (allZero && s!=0) allZero = false;
+						//if (loudness!=0) s = (s * loudness)>>LOUDNESS_SHIFT;
 						b[idx++] = (byte)(s&0xFF);
 						b[idx++] = (byte)((s>>8)&0xFF);
 					}
-	
+
 					if (!isFirstFrame || !allZero) writeSampleDataToLine(b, 0, len);
 				}
 
@@ -390,7 +407,7 @@ public class MP3Mixer extends BasicMixer
 					setIsPaused();
 					while (isPaused())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 				if (isInSeeking())
@@ -398,14 +415,14 @@ public class MP3Mixer extends BasicMixer
 					setIsSeeking();
 					while (isInSeeking())
 					{
-						try { Thread.sleep(10L); } catch (InterruptedException ex) { /*noop*/ }
+						try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*noop*/ }
 					}
 				}
 			}
 			while (h!=null);
 			if (h==null) setHasFinished(); // piece finished
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			throw new RuntimeException(ex);
 		}

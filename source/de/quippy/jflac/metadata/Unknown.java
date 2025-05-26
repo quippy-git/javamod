@@ -30,7 +30,7 @@ import de.quippy.jflac.io.BitInputStream;
  */
 public class Unknown extends Metadata {
     protected byte[] data;
-    
+
     /**
      * The constructor.
      * @param is                The InputBitStream
@@ -38,11 +38,11 @@ public class Unknown extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public Unknown(BitInputStream is, int length, boolean isLast) throws IOException {
+    public Unknown(final BitInputStream is, final int length, final boolean isLast) throws IOException {
         super(isLast);
         if (length > 0) {
             data = new byte[length];
             is.readByteBlockAlignedNoCRC(data, length);
-        }    
+        }
     }
 }

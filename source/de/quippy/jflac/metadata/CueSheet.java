@@ -36,7 +36,7 @@ public class CueSheet extends Metadata {
     private static final int CUESHEET_RESERVED_LEN = 7 + 258 * 8; // bits
     private static final int CUESHEET_NUM_TRACKS_LEN = 8; // bits
 
-    /** 
+    /**
      * Media catalog number.
      * in ASCII printable characters 0x20-0x7e.  In
      * general, the media catalog number may be 0 to 128 bytes long; any
@@ -56,7 +56,7 @@ public class CueSheet extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public CueSheet(BitInputStream is, int length, boolean isLast) throws IOException {
+    public CueSheet(final BitInputStream is, final int length, final boolean isLast) throws IOException {
         super(isLast);
         is.readByteBlockAlignedNoCRC(mediaCatalogNumber, CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8);
         leadIn = is.readRawULong(CUESHEET_LEAD_IN_LEN);
@@ -77,7 +77,7 @@ public class CueSheet extends Metadata {
      * @param checkCdDaSubset   True for check CD subset
      * @throws Violation        Thrown if invalid Cue Sheet
      */
-    void isLegal(boolean checkCdDaSubset) throws Violation {
+    void isLegal(final boolean checkCdDaSubset) throws Violation {
 
         if (checkCdDaSubset) {
             if (leadIn < 2 * 44100) {
@@ -101,11 +101,9 @@ public class CueSheet extends Metadata {
                 throw new Violation("cue sheet may not have a track number 0");
             }
 
-            if (checkCdDaSubset) {
-                if (!((tracks[i].number >= 1 && tracks[i].number <= 99) || tracks[i].number == 170)) {
-                        throw new Violation("CD-DA cue sheet track number must be 1-99 or 170");
-                }
-            }
+            if (checkCdDaSubset && !((tracks[i].number >= 1 && tracks[i].number <= 99) || tracks[i].number == 170)) {
+			        throw new Violation("CD-DA cue sheet track number must be 1-99 or 170");
+			}
 
             if (checkCdDaSubset && tracks[i].offset % 588 != 0) {
                 throw new Violation("CD-DA cue sheet track offset must be evenly divisible by 588 samples");
@@ -126,11 +124,9 @@ public class CueSheet extends Metadata {
                     throw new Violation("CD-DA cue sheet track index offset must be evenly divisible by 588 samples");
                 }
 
-                if (j > 0) {
-                    if (tracks[i].indices[j].number != tracks[i].indices[j - 1].number + 1) {
-                        throw new Violation("cue sheet track index numbers must increase by 1");
-                    }
-                }
+                if ((j > 0) && (tracks[i].indices[j].number != tracks[i].indices[j - 1].number + 1)) {
+				    throw new Violation("cue sheet track index numbers must increase by 1");
+				}
             }
         }
     }

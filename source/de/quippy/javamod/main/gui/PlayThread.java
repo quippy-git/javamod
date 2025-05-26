@@ -2,7 +2,7 @@
  * @(#) PlayThread.java
  *
  * Created on 18.05.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ public final class PlayThread extends Thread implements Serializable
 	private final PlayThreadEventListener listener;
 	private volatile boolean isRunning;
 	private volatile boolean finishedNormaly;
-	
-	public PlayThread(Mixer currentMixer, PlayThreadEventListener listener)
+
+	public PlayThread(final Mixer currentMixer, final PlayThreadEventListener listener)
 	{
 		if (currentMixer==null) throw new IllegalArgumentException("Provided Mixer was NULL");
 		this.currentMixer = currentMixer;
@@ -48,7 +48,7 @@ public final class PlayThread extends Thread implements Serializable
 		this.listener = listener;
 		this.setName("PlayThread");
 		this.setDaemon(true);
-		try { this.setPriority(Thread.MAX_PRIORITY); } catch (SecurityException ex) { /*NOOP*/ }
+		try { this.setPriority(Thread.MAX_PRIORITY); } catch (final SecurityException ex) { /*NOOP*/ }
 	}
 	private void informListener()
 	{
@@ -61,7 +61,7 @@ public final class PlayThread extends Thread implements Serializable
 			this.currentMixer.stopPlayback();
 			while (isRunning)
 			{
-				try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+				try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 			}
 		}
 	}
@@ -92,7 +92,7 @@ public final class PlayThread extends Thread implements Serializable
 		{
 			getCurrentMixer().startPlayback();
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			Log.error("[PlayThread::run]", ex);
 		}

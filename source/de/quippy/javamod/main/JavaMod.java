@@ -1,8 +1,8 @@
 /*
  * @(#) JavaMod.java
- * 
+ *
  * Created on 22.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,14 +48,14 @@ public class JavaMod extends JavaModMainBase
 	 * @param args
 	 * @return the given filename
 	 */
-	private static String getFileName(String[] args)
+	private static String getFileName(final String[] args)
 	{
 		String fileName = null;
-		for (int i=0; i<args.length; i++)
+		for (final String arg : args)
 		{
-			if (!args[i].startsWith("-"))
+			if (!arg.startsWith("-"))
 			{
-				fileName = args[i];
+				fileName = arg;
 				break;
 			}
 		}
@@ -69,17 +69,18 @@ public class JavaMod extends JavaModMainBase
 	{
 		EventQueue.invokeLater(new Runnable()
 		{
+			@Override
 			public void run()
 			{
-				MainForm mainForm = new MainForm();
+				final MainForm mainForm = new MainForm();
 				Helpers.setCoding(true);
 				mainForm.setVisible(true);
 				if (args.length>0)
 				{
-					String fileName = getFileName(args);
+					final String fileName = getFileName(args);
 					if (fileName!=null)
 					{
-						File f = new File(fileName);
+						final File f = new File(fileName);
 						if (f.exists())
 							mainForm.doOpenFile(new File[] { f });
 						else

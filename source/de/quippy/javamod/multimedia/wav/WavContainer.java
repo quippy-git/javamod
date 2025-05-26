@@ -2,7 +2,7 @@
  * @(#) WavContainer.java
  *
  * Created on 14.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,16 +47,17 @@ public class WavContainer extends MultimediaContainer
 
 	private WavInfoPanel wavInfoPanel;
 	private WavMixer currentMixer;
-	
+
 	/**
 	 * Will be executed during class load
 	 */
 	static
 	{
-		AudioFileFormat.Type[] types = AudioSystem.getAudioFileTypes();
-		wavefile_Extensions = new String[types.length];
+		final AudioFileFormat.Type[] types = AudioSystem.getAudioFileTypes();
+		wavefile_Extensions = new String[types.length + 1];
 		for (int i=0; i<types.length; i++)
 			wavefile_Extensions[i] = types[i].getExtension();
+		wavefile_Extensions[types.length] = "img"; // we will interpret IMG files as CloneCD IMG files from an audio CD cue sheets
 		MultimediaContainerManager.registerContainer(new WavContainer());
 	}
 	/**
@@ -67,27 +68,41 @@ public class WavContainer extends MultimediaContainer
 		super();
 	}
 	/**
+	 * @since 06.12.2024
+	 * @param waveFileUrl
+	 * @return
+	 * @throws IOException
+	 * @throws UnsupportedAudioFileException
+	 */
+	public static AudioInputStream getAudioInputStream(final URL waveFileUrl) throws IOException, UnsupportedAudioFileException
+	{
+		if (waveFileUrl.getFile().toLowerCase().endsWith(".img"))
+			return new AudioInputStream(new FileOrPackedInputStream(waveFileUrl), new AudioFormat(44100, 16, 2, true, false), AudioSystem.NOT_SPECIFIED);
+		else
+			return AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
+	}
+	/**
 	 * @param url
 	 * @return
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInstance(java.net.URL)
 	 */
 	@Override
-	public MultimediaContainer getInstance(URL waveFileUrl)
+	public MultimediaContainer getInstance(final URL waveFileUrl)
 	{
-		MultimediaContainer result = super.getInstance(waveFileUrl);
+		final MultimediaContainer result = super.getInstance(waveFileUrl);
 		AudioInputStream audioInputStream = null;
 		try
 		{
-			audioInputStream = AudioSystem.getAudioInputStream(new FileOrPackedInputStream(waveFileUrl));
+			audioInputStream = getAudioInputStream(waveFileUrl);
 			if (!MultimediaContainerManager.isHeadlessMode()) ((WavInfoPanel)getInfoPanel()).fillInfoPanelWith(audioInputStream, getSongName());
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			throw new RuntimeException(ex);
 		}
 		finally
 		{
-			if (audioInputStream!=null) try { audioInputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (audioInputStream!=null) try { audioInputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -97,29 +112,30 @@ public class WavContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getSongInfosFor(java.net.URL)
 	 */
 	@Override
-	public Object[] getSongInfosFor(URL url)
+	public Object[] getSongInfosFor(final URL url)
 	{
-		String songName = MultimediaContainerManager.getSongNameFromURL(url);
+		final String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
 		try
 		{
-			AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new FileOrPackedInputStream(url));
-			AudioFormat audioFormat = audioInputStream.getFormat();
-			float frameRate = audioFormat.getFrameRate();
-			if (frameRate != AudioSystem.NOT_SPECIFIED)
+			final AudioInputStream audioInputStream = getAudioInputStream(url);
+			final AudioFormat audioFormat = audioInputStream.getFormat();
+			final float frameRate = audioFormat.getFrameRate();
+			final long frameLength = audioInputStream.getFrameLength();
+			if (frameRate != AudioSystem.NOT_SPECIFIED && frameLength != AudioSystem.NOT_SPECIFIED)
 			{
-				duration = Long.valueOf((long)(((float)audioInputStream.getFrameLength() * 1000f / frameRate)+0.5));
+				duration = Long.valueOf((long)((frameLength * 1000f / frameRate)+0.5));
 			}
 			else
 			{
-				int channels = audioFormat.getChannels();
-				int sampleSizeInBits = audioFormat.getSampleSizeInBits();
-				int sampleSizeInBytes = sampleSizeInBits>>3;
-				int sampleRate = (int)audioFormat.getSampleRate();
-				duration = Long.valueOf(((long)audioInputStream.available() / ((long)sampleSizeInBytes) / (long)channels) * 1000L / (long)sampleRate);
+				final int channels = audioFormat.getChannels();
+				final int sampleSizeInBits = audioFormat.getSampleSizeInBits();
+				final int sampleSizeInBytes = sampleSizeInBits>>3;
+				final int sampleRate = (int)audioFormat.getSampleRate();
+				duration = Long.valueOf(((long)audioInputStream.available() / ((long)sampleSizeInBytes) / channels) * 1000L / sampleRate);
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		return new Object[] { songName, duration };
@@ -179,7 +195,7 @@ public class WavContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 	}
 	/**
@@ -187,7 +203,7 @@ public class WavContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationSave(java.util.Properties)
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 	}
 	/**

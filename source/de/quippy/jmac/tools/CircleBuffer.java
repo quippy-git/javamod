@@ -36,7 +36,7 @@ public class CircleBuffer {
     }
 
     // create the buffer
-    public void CreateBuffer(int nBytes, int nMaxDirectWriteBytes) {
+    public void CreateBuffer(final int nBytes, final int nMaxDirectWriteBytes) {
         m_nMaxDirectWriteBytes = nMaxDirectWriteBytes;
         m_nTotal = nBytes + 1 + nMaxDirectWriteBytes;
         m_pBuffer = new byte[m_nTotal];
@@ -48,7 +48,7 @@ public class CircleBuffer {
 
     // query
     public int MaxAdd() {
-        int nMaxAdd = (m_nTail >= m_nHead) ? (m_nTotal - 1 - m_nMaxDirectWriteBytes) - (m_nTail - m_nHead) : m_nHead - m_nTail - 1;
+        final int nMaxAdd = (m_nTail >= m_nHead) ? (m_nTotal - 1 - m_nMaxDirectWriteBytes) - (m_nTail - m_nHead) : m_nHead - m_nTail - 1;
         return nMaxAdd;
     }
 
@@ -64,7 +64,7 @@ public class CircleBuffer {
         return byteBuffer;
     }
 
-    public void UpdateAfterDirectWrite(int nBytes) {
+    public void UpdateAfterDirectWrite(final int nBytes) {
         // update the tail
         m_nTail += nBytes;
 
@@ -76,12 +76,12 @@ public class CircleBuffer {
     }
 
     // get data
-    public int Get(byte[] pBuffer, int index, int nBytes) {
+    public int Get(final byte[] pBuffer, final int index, final int nBytes) {
         int nTotalGetBytes = 0;
 
         if (pBuffer != null && nBytes > 0) {
-            int nHeadBytes = Math.min(m_nEndCap - m_nHead, nBytes);
-            int nFrontBytes = nBytes - nHeadBytes;
+            final int nHeadBytes = Math.min(m_nEndCap - m_nHead, nBytes);
+            final int nFrontBytes = nBytes - nHeadBytes;
 
             System.arraycopy(m_pBuffer, m_nHead, pBuffer, index, nHeadBytes);
             nTotalGetBytes = nHeadBytes;

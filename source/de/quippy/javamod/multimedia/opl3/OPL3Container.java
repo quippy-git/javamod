@@ -2,7 +2,7 @@
  * @(#) OPL3Container.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,19 +41,19 @@ import de.quippy.javamod.system.Log;
  */
 public class OPL3Container extends MultimediaContainer
 {
-	private static final String[] OPL3FILEEXTENSION = new String [] 
+	private static final String[] OPL3FILEEXTENSION = new String []
   	{
   		"rol", "laa", "cmf", "dro", "sci"
   	};
 	public static final String PROPERTY_OPL3PLAYER_SOUNDBANK = "javamod.player.opl3.soundbankurl";
 	public static final String PROPERTY_OPL3PLAYER_OPLVERSION = "javamod.player.opl3.oplversion";
 	public static final String PROPERTY_OPL3PLAYER_VIRTUAL_STEREO = "javamod.player.opl3.virtualStereo";
-	
+
 	public static final String DEFAULT_SOUNDBANKURL = Helpers.EMPTY_STING;
 	public static final String DEFAULT_VIRTUAL_STEREO = "false";
 	public static final String DEFAULT_OPLVERSION = "FMOPL_072_YM3812";
-	
-	
+
+
 	private Properties currentProps = null;
 
 	private OPL3Sequence opl3Sequence;
@@ -90,7 +90,7 @@ public class OPL3Container extends MultimediaContainer
 	private URL getSoundBankURL()
 	{
 		final String soundBankURL = (currentProps!=null)?currentProps.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL):DEFAULT_SOUNDBANKURL;
-		if (soundBankURL==null || soundBankURL.length()==0) return null;
+		if (soundBankURL==null || soundBankURL.isEmpty()) return null;
 		return Helpers.createURLfromString(soundBankURL);
 	}
 	/**
@@ -101,13 +101,13 @@ public class OPL3Container extends MultimediaContainer
 	@Override
 	public MultimediaContainer getInstance(final URL url)
 	{
-		MultimediaContainer result = super.getInstance(url);
+		final MultimediaContainer result = super.getInstance(url);
 		try
 		{
 			opl3Sequence = OPL3Sequence.createOPL3Sequence(url, getSoundBankURL());
 			if (!MultimediaContainerManager.isHeadlessMode()) ((OPL3InfoPanel)getInfoPanel()).fillInfoPanelWith(opl3Sequence);
 		}
-		catch (IOException ex)
+		catch (final IOException ex)
 		{
 			Log.error("Loading of sequence failed", ex);
 		}
@@ -129,7 +129,7 @@ public class OPL3Container extends MultimediaContainer
 			songName = opl3Sequence.getSongName();
 			duration = Long.valueOf(opl3Sequence.getLengthInMilliseconds());
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 			/* NOOP */
 		}
@@ -213,7 +213,7 @@ public class OPL3Container extends MultimediaContainer
 		currentProps.setProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, newProps.getProperty(PROPERTY_OPL3PLAYER_SOUNDBANK, DEFAULT_SOUNDBANKURL));
 		currentProps.setProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, newProps.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
 		currentProps.setProperty(PROPERTY_OPL3PLAYER_OPLVERSION, newProps.getProperty(PROPERTY_OPL3PLAYER_OPLVERSION, DEFAULT_OPLVERSION));
-		
+
 		if (!MultimediaContainerManager.isHeadlessMode())
 		{
 			final OPL3ConfigPanel configPanel = (OPL3ConfigPanel)getConfigPanel();
@@ -249,11 +249,11 @@ public class OPL3Container extends MultimediaContainer
 	public Mixer createNewMixer()
 	{
 		if (opl3Sequence == null) return null;
-		
+
 		configurationSave(currentProps);
-		
+
 		final boolean doVirtualStereoMix = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_OPL3PLAYER_VIRTUAL_STEREO, DEFAULT_VIRTUAL_STEREO));
-		
+
 		currentMixer = new OPL3Mixer(getOPLVersion(), getSampleRate(), opl3Sequence, doVirtualStereoMix);
 		return currentMixer;
 	}

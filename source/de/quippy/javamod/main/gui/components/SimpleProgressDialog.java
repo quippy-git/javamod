@@ -2,7 +2,7 @@
  * @(#) SimpleProgressDialog.java
  *
  * Created on 22.04.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public SimpleProgressDialog(Frame owner, String title)
+	public SimpleProgressDialog(final Frame owner, final String title)
 	{
 		super(owner, title, false);
 		initialize();
@@ -59,7 +59,7 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public SimpleProgressDialog(Dialog owner, String title)
+	public SimpleProgressDialog(final Dialog owner, final String title)
 	{
 		super(owner, title, false);
 		initialize();
@@ -69,7 +69,7 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param modalityType
 	 */
-	public SimpleProgressDialog(Window owner, ModalityType modalityType)
+	public SimpleProgressDialog(final Window owner, final ModalityType modalityType)
 	{
 		super(owner, modalityType);
 		initialize();
@@ -79,7 +79,7 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 	 * @param owner
 	 * @param title
 	 */
-	public SimpleProgressDialog(Window owner, String title)
+	public SimpleProgressDialog(final Window owner, final String title)
 	{
 		super(owner, title, ModalityType.MODELESS);
 		initialize();
@@ -112,7 +112,7 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 		}
 		return currentFileName;
 	}
-	public void setCurrentFileName(String newFileName)
+	public void setCurrentFileName(final String newFileName)
 	{
 		getCurrentFileName().setText(newFileName);
 	}
@@ -127,15 +127,18 @@ public class SimpleProgressDialog extends JDialog implements ProgressDialog
 		}
 		return downloadProgressBar;
 	}
-	public void setDetailMinimum(int minValue)
+	@Override
+	public void setDetailMinimum(final int minValue)
 	{
 		getDownloadProgressBar().setMinimum(minValue);
 	}
-	public void setDetailMaximum(int maxValue)
+	@Override
+	public void setDetailMaximum(final int maxValue)
 	{
 		getDownloadProgressBar().setMaximum(maxValue);
 	}
-	public void setDetailValue(int value)
+	@Override
+	public void setDetailValue(final int value)
 	{
 		getDownloadProgressBar().setValue(value);
 	}

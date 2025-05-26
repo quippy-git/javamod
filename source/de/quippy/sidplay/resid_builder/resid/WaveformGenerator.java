@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -31,9 +31,9 @@ import de.quippy.sidplay.resid_builder.resid.ISIDDefs.chip_model;
  * zero when TEST is set, and starts counting when TEST is cleared. The noise
  * waveform is taken from intermediate bits of a 23 bit shift register. This
  * register is clocked by bit 19 of the accumulator.
- * 
+ *
  * @author Ken H�ndel
- * 
+ *
  */
 public class WaveformGenerator {
 
@@ -108,22 +108,22 @@ public class WaveformGenerator {
 
 	/**
 	 * Set sync source.
-	 * 
+	 *
 	 * @param source
 	 *            sync source
 	 */
-	public void set_sync_source(WaveformGenerator source) {
+	public void set_sync_source(final WaveformGenerator source) {
 		sync_source = source;
 		source.sync_dest = this;
 	}
 
 	/**
 	 * Set chip model.
-	 * 
+	 *
 	 * @param model
 	 *            chip model
 	 */
-	public void set_chip_model(chip_model model) {
+	public void set_chip_model(final chip_model model) {
 		if (model == chip_model.MOS6581) {
 			wave__ST = Wave.wave6581__ST;
 			wave_P_T = Wave.wave6581_P_T;
@@ -139,51 +139,51 @@ public class WaveformGenerator {
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param freq_lo
 	 */
-	public void writeFREQ_LO(int /* reg8 */freq_lo) {
+	public void writeFREQ_LO(final int /* reg8 */freq_lo) {
 		freq = freq & 0xff00 | freq_lo & 0x00ff;
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param freq_hi
 	 */
-	public void writeFREQ_HI(int /* reg8 */freq_hi) {
+	public void writeFREQ_HI(final int /* reg8 */freq_hi) {
 		freq = (freq_hi << 8) & 0xff00 | freq & 0x00ff;
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param pw_lo
 	 */
-	public void writePW_LO(int /* reg8 */pw_lo) {
+	public void writePW_LO(final int /* reg8 */pw_lo) {
 		pw = pw & 0xf00 | pw_lo & 0x0ff;
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param pw_hi
 	 */
-	public void writePW_HI(int /* reg8 */pw_hi) {
+	public void writePW_HI(final int /* reg8 */pw_hi) {
 		pw = (pw_hi << 8) & 0xf00 | pw & 0x0ff;
 	}
 
 	/**
 	 * Register functions.
-	 * 
+	 *
 	 * @param control
 	 */
-	public void writeCONTROL_REG(int /* reg8 */control) {
+	public void writeCONTROL_REG(final int /* reg8 */control) {
 		waveform = (control >> 4) & 0x0f;
 		ring_mod = control & 0x04;
 		sync = control & 0x02;
 
-		int /* reg8 */test_next = control & 0x08;
+		final int /* reg8 */test_next = control & 0x08;
 
 		if (ANTTI_LANKILA_PATCH) {
 			/*
@@ -194,7 +194,7 @@ public class WaveformGenerator {
 			// testbit set. invert bit 19 and write it to bit 1
 			if (test_next != 0 && test == 0) {
 				accumulator = 0;
-				int /* reg24 */bit19 = (shift_register >> 19) & 1;
+				final int /* reg24 */bit19 = (shift_register >> 19) & 1;
 				shift_register = (shift_register & 0x7ffffd)
 						| ((bit19 ^ 1) << 1);
 			}
@@ -208,7 +208,7 @@ public class WaveformGenerator {
 			// shift register bits have not had time to fade to zero.
 			// This is not modeled.
 			else if (test_next == 0 && test > 0) {
-				int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
+				final int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
 				shift_register <<= 1;
 				shift_register &= 0x7fffff;
 				shift_register |= bit0;
@@ -291,7 +291,7 @@ public class WaveformGenerator {
 			return;
 		}
 
-		int /* reg24 */accumulator_prev = accumulator;
+		final int /* reg24 */accumulator_prev = accumulator;
 
 		// Calculate new accumulator value;
 		accumulator += freq;
@@ -305,7 +305,7 @@ public class WaveformGenerator {
 		// high.
 		if (!((accumulator_prev & 0x080000) != 0)
 				&& ((accumulator & 0x080000) != 0)) {
-			int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
+			final int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
 			shift_register <<= 1;
 			shift_register &= 0x7fffff;
 			shift_register |= bit0;
@@ -315,13 +315,13 @@ public class WaveformGenerator {
 	/**
 	 * SID clocking - delta_t cycles.
 	 */
-	public void clock(int/* cycle_count */delta_t) {
+	public void clock(final int/* cycle_count */delta_t) {
 		// No operation if test bit is set.
 		if (test != 0) {
 			return;
 		}
 
-		int /* reg24 */accumulator_prev = accumulator;
+		final int /* reg24 */accumulator_prev = accumulator;
 
 		// Calculate new accumulator value;
 		int /* reg24 */delta_accumulator = delta_t * freq;
@@ -361,7 +361,7 @@ public class WaveformGenerator {
 
 			// Shift the noise/random register.
 			// NB! The shift is actually delayed 2 cycles, this is not modeled.
-			int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
+			final int /* reg24 */bit0 = ((shift_register >> 22) ^ (shift_register >> 17)) & 0x1;
 			shift_register <<= 1;
 			shift_register &= 0x7fffff;
 			shift_register |= bit0;
@@ -395,7 +395,7 @@ public class WaveformGenerator {
 
 	/**
 	 * No waveform: Zero output.
-	 * 
+	 *
 	 * @return zero
 	 */
 	protected int /* reg12 */output____() {
@@ -408,11 +408,11 @@ public class WaveformGenerator {
 	 * bits. The MSB is thrown away and the lower 11 bits are left-shifted (half
 	 * the resolution, full amplitude). Ring modulation substitutes the MSB with
 	 * MSB EOR sync_source MSB.
-	 * 
+	 *
 	 * @return triangle
 	 */
 	protected int /* reg12 */output___T() {
-		int /* reg24 */msb = ((ring_mod != 0) ? accumulator
+		final int /* reg24 */msb = ((ring_mod != 0) ? accumulator
 				^ sync_source.accumulator : accumulator) & 0x800000;
 		return (((msb != 0) ? ~accumulator : accumulator) >> 11) & 0xfff;
 	}
@@ -420,7 +420,7 @@ public class WaveformGenerator {
 	/**
 	 * Sawtooth: The output is identical to the upper 12 bits of the
 	 * accumulator.
-	 * 
+	 *
 	 * @return sawtooth
 	 */
 	protected int /* reg12 */output__S_() {
@@ -437,7 +437,7 @@ public class WaveformGenerator {
 	 * <P>
 	 * The test bit, when set to one, holds the pulse waveform output at 0xfff
 	 * regardless of the pulse width setting.
-	 * 
+	 *
 	 * @return
 	 */
 	protected int /* reg12 */output_P__() {
@@ -450,7 +450,7 @@ public class WaveformGenerator {
 	 * actually delayed 2 cycles after bit 19 is set high. This is not modeled.
 	 * <P>
 	 * Operation: Calculate EOR result, shift register, set bit 0 = result.
-	 * 
+	 *
 	 * <pre>
 	 *                         ------------------------&gt;--------------------
 	 *                         |                                            |
@@ -461,7 +461,7 @@ public class WaveformGenerator {
 	 *                    |   |       |     |   |       |     |   |
 	 *  OSC3 bits  :      7   6       5     4   3       2     1   0
 	 * </pre>
-	 * 
+	 *
 	 * Since waveform output is 12 bits the output is left-shifted 4 times.
 	 */
 	protected int /* reg12 */outputN___() {
@@ -483,21 +483,21 @@ public class WaveformGenerator {
 	 * in the output. The reason for this has not been determined.
 	 * <P>
 	 * Example:
-	 * 
+	 *
 	 * <pre>
-	 *  
+	 *
 	 *              1 1
 	 *  Bit #       1 0 9 8 7 6 5 4 3 2 1 0
 	 *              -----------------------
 	 *  Sawtooth    0 0 0 1 1 1 1 1 1 0 0 0
-	 * 
+	 *
 	 *  Triangle    0 0 1 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  AND         0 0 0 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  Output      0 0 0 0 1 1 1 0 0 0 0 0
 	 * </pre>
-	 * 
+	 *
 	 * This behavior would be quite difficult to model exactly, since the SID in
 	 * this case does not act as a digital state machine. Tests show that minor
 	 * (1 bit) differences can actually occur in the output from otherwise
@@ -543,21 +543,21 @@ public class WaveformGenerator {
 	 * in the output. The reason for this has not been determined.
 	 * <P>
 	 * Example:
-	 * 
+	 *
 	 * <pre>
-	 *  
+	 *
 	 *              1 1
 	 *  Bit #       1 0 9 8 7 6 5 4 3 2 1 0
 	 *              -----------------------
 	 *  Sawtooth    0 0 0 1 1 1 1 1 1 0 0 0
-	 * 
+	 *
 	 *  Triangle    0 0 1 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  AND         0 0 0 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  Output      0 0 0 0 1 1 1 0 0 0 0 0
 	 * </pre>
-	 * 
+	 *
 	 * This behavior would be quite difficult to model exactly, since the SID in
 	 * this case does not act as a digital state machine. Tests show that minor
 	 * (1 bit) differences can actually occur in the output from otherwise
@@ -603,21 +603,21 @@ public class WaveformGenerator {
 	 * in the output. The reason for this has not been determined.
 	 * <P>
 	 * Example:
-	 * 
+	 *
 	 * <pre>
-	 *  
+	 *
 	 *              1 1
 	 *  Bit #       1 0 9 8 7 6 5 4 3 2 1 0
 	 *              -----------------------
 	 *  Sawtooth    0 0 0 1 1 1 1 1 1 0 0 0
-	 * 
+	 *
 	 *  Triangle    0 0 1 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  AND         0 0 0 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  Output      0 0 0 0 1 1 1 0 0 0 0 0
 	 * </pre>
-	 * 
+	 *
 	 * This behavior would be quite difficult to model exactly, since the SID in
 	 * this case does not act as a digital state machine. Tests show that minor
 	 * (1 bit) differences can actually occur in the output from otherwise
@@ -663,21 +663,21 @@ public class WaveformGenerator {
 	 * in the output. The reason for this has not been determined.
 	 * <P>
 	 * Example:
-	 * 
+	 *
 	 * <pre>
-	 *  
+	 *
 	 *              1 1
 	 *  Bit #       1 0 9 8 7 6 5 4 3 2 1 0
 	 *              -----------------------
 	 *  Sawtooth    0 0 0 1 1 1 1 1 1 0 0 0
-	 * 
+	 *
 	 *  Triangle    0 0 1 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  AND         0 0 0 1 1 1 1 1 0 0 0 0
-	 * 
+	 *
 	 *  Output      0 0 0 0 1 1 1 0 0 0 0 0
 	 * </pre>
-	 * 
+	 *
 	 * This behavior would be quite difficult to model exactly, since the SID in
 	 * this case does not act as a digital state machine. Tests show that minor
 	 * (1 bit) differences can actually occur in the output from otherwise
@@ -830,7 +830,7 @@ public class WaveformGenerator {
 	/**
 	 * 12-bit waveform output. Select one of 16 possible combinations of
 	 * waveforms.
-	 * 
+	 *
 	 * @return
 	 */
 	public int /* reg12 */output() {

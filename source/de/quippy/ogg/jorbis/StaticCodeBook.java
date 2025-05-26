@@ -1,24 +1,24 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /* JOrbis
  * Copyright (C) 2000 ymnk, JCraft,Inc.
- *  
+ *
  * Written by: 2000 ymnk<ymnk@jcraft.com>
- *   
- * Many thanks to 
- *   Monty <monty@xiph.org> and 
+ *
+ * Many thanks to
+ *   Monty <monty@xiph.org> and
  *   The XIPHOPHORUS Company http://www.xiph.org/ .
  * JOrbis has been based on their awesome works, Vorbis codec.
- *   
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public License
  * as published by the Free Software Foundation; either version 2 of
  * the License, or (at your option) any later version.
-   
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -35,7 +35,7 @@ class StaticCodeBook{
 
   // mapping
   int maptype; // 0=none
-  // 1=implicitly populated values from map column 
+  // 1=implicitly populated values from map column
   // 2=listed arbitrary values
 
   // The below does a linear, single monotonic sequence mapping.
@@ -57,7 +57,7 @@ class StaticCodeBook{
   StaticCodeBook(){
   }
 
-  int pack(Buffer opb){
+  int pack(final Buffer opb){
     int i;
     boolean ordered=false;
 
@@ -85,8 +85,8 @@ class StaticCodeBook{
       opb.write(lengthlist[0]-1, 5); // 1 to 32
 
       for(i=1; i<entries; i++){
-        int _this=lengthlist[i];
-        int _last=lengthlist[i-1];
+        final int _this=lengthlist[i];
+        final int _last=lengthlist[i-1];
         if(_this>_last){
           for(int j=_last; j<_this; j++){
             opb.write(i-count, Util.ilog(entries-count));
@@ -180,7 +180,7 @@ class StaticCodeBook{
 
   // unpacks a codebook from the packet buffer into the codebook struct,
   // readies the codebook auxiliary structures for decode
-  int unpack(Buffer opb){
+  int unpack(final Buffer opb){
     int i;
     //memset(s,0,sizeof(static_codebook));
 
@@ -212,7 +212,7 @@ class StaticCodeBook{
 
           for(i=0; i<entries; i++){
             if(opb.read(1)!=0){
-              int num=opb.read(5);
+              final int num=opb.read(5);
               if(num==-1){
                 //            goto _eofout;
                 clear();
@@ -228,7 +228,7 @@ class StaticCodeBook{
         else{
           // all entries used; no tagging
           for(i=0; i<entries; i++){
-            int num=opb.read(5);
+            final int num=opb.read(5);
             if(num==-1){
               //          goto _eofout;
               clear();
@@ -245,7 +245,7 @@ class StaticCodeBook{
         lengthlist=new int[entries];
 
         for(i=0; i<entries;){
-          int num=opb.read(Util.ilog(entries-i));
+          final int num=opb.read(Util.ilog(entries-i));
           if(num==-1){
             //          goto _eofout;
             clear();
@@ -310,7 +310,7 @@ class StaticCodeBook{
     //    _errout:
     //    _eofout:
     //    vorbis_staticbook_clear(s);
-    //    return(-1); 
+    //    return(-1);
   }
 
   // there might be a straightforward one-line way to do the below
@@ -357,9 +357,9 @@ class StaticCodeBook{
 
     if(maptype==1||maptype==2){
       int quantvals;
-      float mindel=float32_unpack(q_min);
-      float delta=float32_unpack(q_delta);
-      float[] r=new float[entries*dim];
+      final float mindel=float32_unpack(q_min);
+      final float delta=float32_unpack(q_delta);
+      final float[] r=new float[entries*dim];
 
       // maptype 1 and 2 both use a quantized value vector, but
       // different sizes
@@ -376,7 +376,7 @@ class StaticCodeBook{
             float last=0.f;
             int indexdiv=1;
             for(int k=0; k<dim; k++){
-              int index=(j/indexdiv)%quantvals;
+              final int index=(j/indexdiv)%quantvals;
               float val=quantlist[index];
               val=Math.abs(val)*delta+mindel+last;
               if(q_sequencep!=0)
@@ -407,14 +407,14 @@ class StaticCodeBook{
   }
 
   // 32 bit float (not IEEE; nonnormalized mantissa +
-  // biased exponent) : neeeeeee eeemmmmm mmmmmmmm mmmmmmmm 
+  // biased exponent) : neeeeeee eeemmmmm mmmmmmmm mmmmmmmm
   // Why not IEEE?  It's just not that important here.
 
   static final int VQ_FEXP=10;
   static final int VQ_FMAN=21;
   static final int VQ_FEXP_BIAS=768; // bias toward values smaller than 1.
 
-  // doesn't currently guard under/overflow 
+  // doesn't currently guard under/overflow
   static long float32_pack(float val){
     int sign=0;
     int exp;
@@ -429,15 +429,15 @@ class StaticCodeBook{
     return (sign|exp|mant);
   }
 
-  static float float32_unpack(int val){
+  static float float32_unpack(final int val){
     float mant=val&0x1fffff;
-    float exp=(val&0x7fe00000)>>>VQ_FMAN;
+    final float exp=(val&0x7fe00000)>>>VQ_FMAN;
     if((val&0x80000000)!=0)
       mant=-mant;
     return (ldexp(mant, ((int)exp)-(VQ_FMAN-1)-VQ_FEXP_BIAS));
   }
 
-  static float ldexp(float foo, int e){
+  static float ldexp(final float foo, final int e){
     return (float)(foo*Math.pow(2, e));
   }
 }

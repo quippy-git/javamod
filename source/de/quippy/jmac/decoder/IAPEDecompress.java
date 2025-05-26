@@ -141,7 +141,7 @@ public abstract class IAPEDecompress {
 
     public abstract APEFileInfo getApeInfoInternalInfo();
 
-    public static IAPEDecompress CreateIAPEDecompressCore(APEInfo pAPEInfo, int nStartBlock, int nFinishBlock) {
+    public static IAPEDecompress CreateIAPEDecompressCore(final APEInfo pAPEInfo, final int nStartBlock, final int nFinishBlock) {
         IAPEDecompress pAPEDecompress = null;
         if (pAPEInfo != null) {
             if (pAPEInfo.getApeInfoFileVersion() >= 3930) {
@@ -153,7 +153,7 @@ public abstract class IAPEDecompress {
         return pAPEDecompress;
     }
 
-    public static APEInfo CreateAPEInfo(File in) throws IOException {
+    public static APEInfo CreateAPEInfo(final File in) throws IOException {
         // variables
         APEInfo pAPEInfo = null;
 
@@ -174,7 +174,7 @@ public abstract class IAPEDecompress {
         return pAPEInfo;
     }
 
-    public static IAPEDecompress CreateIAPEDecompress(File in) throws IOException {
+    public static IAPEDecompress CreateIAPEDecompress(final File in) throws IOException {
         // variables
         APEInfo pAPEInfo = null;
         int nStartBlock = -1;
@@ -188,13 +188,13 @@ public abstract class IAPEDecompress {
             // take the appropriate action (based on the extension)
             if (pExtension.toLowerCase().equals(".apl")) {
                 // "link" file (.apl linked large APE file)
-                APELink APELink = new APELink(pFilename);
+                final APELink APELink = new APELink(pFilename);
                 if (APELink.GetIsLinkFile()) {
                     URL url = null;
                     try {
                         url = (new URI(APELink.GetImageFilename())).toURL();
                         pAPEInfo = new APEInfo(url);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                         pAPEInfo = new APEInfo(new java.io.File(APELink.GetImageFilename()));
                     }
                     nStartBlock = APELink.GetStartBlock();
@@ -211,11 +211,11 @@ public abstract class IAPEDecompress {
             throw new JMACException("Invalid Input File");
 
         // create and return
-        IAPEDecompress pAPEDecompress = CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock);
+        final IAPEDecompress pAPEDecompress = CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock);
         return pAPEDecompress;
     }
 
-    public static IAPEDecompress CreateIAPEDecompressEx(APEInfo pAPEInfo, int nStartBlock, int nFinishBlock) {
+    public static IAPEDecompress CreateIAPEDecompressEx(final APEInfo pAPEInfo, final int nStartBlock, final int nFinishBlock) {
         return CreateIAPEDecompressCore(pAPEInfo, nStartBlock, nFinishBlock);
     }
 

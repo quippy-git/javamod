@@ -1,8 +1,8 @@
 /*
  * @(#) PatternRow.java
- * 
+ *
  * Created on 28.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public class PatternRow
 	protected Pattern parentPattern;
 	protected PatternElement [] patternElements;
 	protected boolean rowPlayed;
-	
+
 	/**
 	 * Constructor for PatternRow
 	 */
@@ -64,9 +64,9 @@ public class PatternRow
 	 */
 	public void addToStringBuilder(final StringBuilder sb)
 	{
-		for (int channel=0; channel<patternElements.length; channel++)
+		for (final PatternElement patternElement : patternElements)
 		{
-			if (patternElements[channel]!=null) patternElements[channel].addToStringBuilder(sb);
+			if (patternElement!=null) patternElement.addToStringBuilder(sb);
 			sb.append("|");
 		}
 	}
@@ -141,21 +141,21 @@ public class PatternRow
 	/**
 	 * @return Returns the patternElements.
 	 */
-	public PatternElement getPatternElement(int channel)
+	public PatternElement getPatternElement(final int channel)
 	{
 		return patternElements[channel];
 	}
 	/**
 	 * @param patternElements The patternElements to set.
 	 */
-	public void setPatternElement(PatternElement[] patternElement)
+	public void setPatternElement(final PatternElement[] patternElement)
 	{
 		this.patternElements = patternElement;
 	}
 	/**
 	 * @param patternElements The patternElements to set.
 	 */
-	public void setPatternElement(int channel, PatternElement patternElement)
+	public void setPatternElement(final int channel, final PatternElement patternElement)
 	{
 		this.patternElements[channel] = patternElement;
 	}

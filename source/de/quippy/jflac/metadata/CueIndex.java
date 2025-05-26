@@ -36,13 +36,13 @@ public class CueIndex {
 
     protected long offset; // Offset in samples, relative to the track offset, of the index point.
     protected byte number; // The index point number.
-    
+
     /**
      * The constructor.
      * @param is                The InputBitStream
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public CueIndex(BitInputStream is) throws IOException {
+    public CueIndex(final BitInputStream is) throws IOException {
         offset = is.readRawULong(CUESHEET_INDEX_OFFSET_LEN);
         number = (byte) is.readRawUInt(CUESHEET_INDEX_NUMBER_LEN);
         is.skipBitsNoCRC(CUESHEET_INDEX_RESERVED_LEN);

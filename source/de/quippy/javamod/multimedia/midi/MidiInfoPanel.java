@@ -2,7 +2,7 @@
  * @(#) MidiInfoPanel.java
  *
  * Created on 29.10.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import javax.sound.midi.Track;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import de.quippy.javamod.system.Helpers;
 
@@ -51,7 +52,7 @@ public class MidiInfoPanel extends JPanel
 	private javax.swing.JTextArea midiInfo = null;
 
 	private MidiContainer parentContainer = null;
-	
+
 	/**
 	 * Constructor for MidiInfoPanel
 	 */
@@ -64,7 +65,7 @@ public class MidiInfoPanel extends JPanel
 	 * Constructor for MidiInfoPanel
 	 * @param layout
 	 */
-	public MidiInfoPanel(LayoutManager layout)
+	public MidiInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -73,7 +74,7 @@ public class MidiInfoPanel extends JPanel
 	 * Constructor for MidiInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public MidiInfoPanel(boolean isDoubleBuffered)
+	public MidiInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -83,7 +84,7 @@ public class MidiInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public MidiInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public MidiInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -98,7 +99,7 @@ public class MidiInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(MidiContainer parent)
+	public void setParentContainer(final MidiContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -147,7 +148,7 @@ public class MidiInfoPanel extends JPanel
 		{
 			midiDuration = new javax.swing.JTextField();
 			midiDuration.setEditable(false);
-			midiDuration.setHorizontalAlignment(JTextField.LEADING);
+			midiDuration.setHorizontalAlignment(SwingConstants.LEADING);
 			midiDuration.setFont(Helpers.getDialogFont());
 			midiDuration.setColumns(5);
 		}
@@ -188,23 +189,23 @@ public class MidiInfoPanel extends JPanel
 //	private static final int TEXT = 0x01;
 //	private static final int COPYRIGHT_EVENT = 0x02;
 //	private static final int TRACKNAME = 0x03;
-//	private static final int INSTRUMENTNAME = 0x04; 
-	public void fillInfoPanelWith(Sequence currentSequence, String songName)
+//	private static final int INSTRUMENTNAME = 0x04;
+	public void fillInfoPanelWith(final Sequence currentSequence, final String songName)
 	{
 		getMidiDuration().setText(Helpers.getTimeStringFromMilliseconds(currentSequence.getMicrosecondLength() / 1000L));
 		getMidiName().setText(songName);
-		Track[] tracks = currentSequence.getTracks();
-		StringBuilder fullText = new StringBuilder();
-		for (int t=0; t<tracks.length; t++)
+		final Track[] tracks = currentSequence.getTracks();
+		final StringBuilder fullText = new StringBuilder();
+		for (final Track track : tracks)
 		{
-			int size = tracks[t].size();
+			final int size = track.size();
 			for (int ticks=0; ticks<size; ticks++)
 			{
-				MidiEvent event = tracks[t].get(ticks);
-				MidiMessage message = event.getMessage();
+				final MidiEvent event = track.get(ticks);
+				final MidiMessage message = event.getMessage();
 				if (message instanceof MetaMessage)
 				{
-					int type = ((MetaMessage)message).getType();
+					final int type = ((MetaMessage)message).getType();
 					if (type <= 0x04)
 					{
 						fullText.append(new String(((MetaMessage)message).getData())).append('\n');

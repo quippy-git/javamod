@@ -47,7 +47,7 @@ public class APEHeaderOld {
 
     public static APEHeaderOld read(final File file) throws IOException {
         try {
-            APEHeaderOld header = new APEHeaderOld();
+            final APEHeaderOld header = new APEHeaderOld();
             final ByteArrayReader reader = new ByteArrayReader(file, APE_HEADER_OLD_BYTES);
             header.cID = reader.readString(4, "US-ASCII");
             header.nVersion = reader.readUnsignedShort();
@@ -60,7 +60,7 @@ public class APEHeaderOld {
             header.nTotalFrames = reader.readUnsignedInt();
             header.nFinalFrameBlocks = reader.readUnsignedInt();
             return header;
-        } catch (EOFException e) {
+        } catch (final EOFException e) {
             throw new JMACException("Unsupported Format");
         }
     }

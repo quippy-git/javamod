@@ -19,7 +19,7 @@ import de.quippy.sidplay.libsidplay.common.ISID2Types.sid2_model_t;
 
 /**
  * @author Ken H�ndel
- * 
+ *
  * Inherit this class to create a new SID emulations for libsidplay2.
  */
 public abstract class SIDBuilder {
@@ -34,7 +34,7 @@ public abstract class SIDBuilder {
 		m_name = (name);
 		m_status = (true);
 	}
-	
+
 	public abstract SIDEmu lock(C64Env env, sid2_model_t model);
 
 	public abstract void unlock(SIDEmu device);
@@ -46,7 +46,7 @@ public abstract class SIDBuilder {
 	public abstract String error();
 
 	public abstract String credits();
-	
+
 	public final boolean bool() {
 		return m_status;
 	}

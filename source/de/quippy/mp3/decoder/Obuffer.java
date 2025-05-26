@@ -1,11 +1,11 @@
-/* 
+/*
  * 11/19/04  1.0 moved to LGPL.
  * 12/12/99  Added appendSamples() method for efficiency. MDM.
  * 15/02/99 ,Java Conversion by E.B ,ebsp@iname.com, JavaLayer
  *
  *   Declarations for output buffer, includes operating system
  *   implementation of the virtual Obuffer. Optional routines
- *   enabling seeks and stops added by Jeff Tsay. 
+ *   enabling seeks and stops added by Jeff Tsay.
  *
  *  @(#) obuffer.h 1.8, last edit: 6/15/94 16:51:56
  *  @(#) Copyright (C) 1993, 1994 Tobias Bading (bading@cs.tu-berlin.de)
@@ -50,7 +50,7 @@ public abstract class Obuffer
 	/**
 	 * Accepts 32 new PCM samples.
 	 */
-	public void appendSamples(int channel, float[] f)
+	public void appendSamples(final int channel, final float[] f)
 	{
 		for (int i = 0; i < 32;)
 		{

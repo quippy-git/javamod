@@ -2,7 +2,7 @@
  * @(#) SoundOutputStream.java
  *
  * Created on 02.10.2010 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

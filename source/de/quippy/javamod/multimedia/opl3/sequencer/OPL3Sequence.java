@@ -2,7 +2,7 @@
  * @(#) OPL3Sequence.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public abstract class OPL3Sequence
 	 */
 	public static OPL3Sequence createOPL3Sequence(final URL url, final URL bnkURL) throws IOException
 	{
-		OPL3Sequence newSequence = getOPL3SequenceInstanceFor(url);
+		final OPL3Sequence newSequence = getOPL3SequenceInstanceFor(url);
 		if (newSequence!=null)
 		{
 			if (newSequence instanceof ROLSequence)
@@ -83,14 +83,14 @@ public abstract class OPL3Sequence
 			}
 			finally
 			{
-				if (inputStream!=null) try { inputStream.close(); } catch (Exception ex) { /* Log.error("IGNORED", ex); */ }
+				if (inputStream!=null) try { inputStream.close(); } catch (final Exception ex) { /* Log.error("IGNORED", ex); */ }
 			}
 		}
 		else
 			throw new IOException("Unsupported OPL3 Sequence");
 		return newSequence;
 	}
-	
+
 	/**
 	 * This central method will know of all available sequence-types - hardcoded
 	 * We do not use a factory like we did with the mods. Highly flexible,
@@ -99,9 +99,9 @@ public abstract class OPL3Sequence
 	 * @param url
 	 * @return
 	 */
-	private static OPL3Sequence getOPL3SequenceInstanceFor(URL url)
+	private static OPL3Sequence getOPL3SequenceInstanceFor(final URL url)
 	{
-		String extension = Helpers.getExtensionFromURL(url).toUpperCase();
+		final String extension = Helpers.getExtensionFromURL(url).toUpperCase();
 		if (extension.equals("DRO"))
 			return new DROSequence();
 		else
@@ -130,7 +130,7 @@ public abstract class OPL3Sequence
 		double ms = 0d;
 		final EmuOPL measureOPL = EmuOPL.createInstance(EmuOPL.version.OPL3, 49712, getOPLType());
 		initialize(measureOPL);
-		while (updateToOPL(measureOPL) && ms<60d*60d*1000d) 
+		while (updateToOPL(measureOPL) && ms<60d*60d*1000d)
 			ms += 1000d / getRefresh();
 		return (long)(ms+2000.5d);
 	}

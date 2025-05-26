@@ -50,17 +50,17 @@ public class FastMath
 			return angle;
 	}
 
-	public static double fastSin(double theta)
+	public static double fastSin(final double theta)
 	{
 		return fastSin0(wrap(theta));
 	}
 
-	public static double fastCos(double theta)
+	public static double fastCos(final double theta)
 	{
 		return fastSin0(wrap(theta + hPI));
 	}
 
-	public static double fastSin0(double theta)
+	public static double fastSin0(final double theta)
 	{
 		double y = B * theta + C * theta * Math.abs(theta);
 		y = P * (y * Math.abs(y) - y) + y;
@@ -76,70 +76,70 @@ public class FastMath
 		return fastSin0(theta);
 	}
 
-	public static double exp(double val)
+	public static double exp(final double val)
 	{
-		long tmp = (long) (1512775D * val + 1072632447D);
+		final long tmp = (long) (1512775D * val + 1072632447D);
 		return Double.longBitsToDouble(tmp << 32);
 	}
 
-	public static double log(double x)
+	public static double log(final double x)
 	{
 		return (6D * (x - 1.0D)) / (x + 1.0D + 4D * Math.sqrt(x));
 	}
 
-	public static double pow(double a, double b)
+	public static double pow(final double a, final double b)
 	{
-		long x = (long) (Double.doubleToLongBits(a) >> 32);
-		long y = (long) (b * (double) (x - 1072632447) + 1072632447D);
-		return Double.longBitsToDouble((long) y << 32);
+		final long x = Double.doubleToLongBits(a) >> 32;
+		final long y = (long) (b * (x - 1072632447) + 1072632447D);
+		return Double.longBitsToDouble(y << 32);
 	}
 
-	public static float floor(float value)
+	public static float floor(final float value)
 	{
 		if (value < 0.0F)
 			throw new IllegalArgumentException("Wrong value : " + value);
 		else
-			return (float) (int) value;
+			return (int) value;
 	}
 
-	public static double floor(double value)
+	public static double floor(final double value)
 	{
 		if (value < 0.0D)
 			throw new IllegalArgumentException("Wrong value : " + value);
 		else
-			return (double) (long) value;
+			return (long) value;
 	}
 
-	public static double atan2(double y, double x)
+	public static double atan2(final double y, final double x)
 	{
         if (y == 0.0D) return 0.0D;
         if (x == 0.0D) return (y>0.0D)?hPI:-hPI;
 
-		double abs_y = Math.abs(y);
+		final double abs_y = Math.abs(y);
 		double angle;
 		if (x > 0.0D)
 		{
-			double r = (x - abs_y) / (x + abs_y);
+			final double r = (x - abs_y) / (x + abs_y);
 			angle = atan2_coeff_1 - atan2_coeff_1 * r;
 		}
 		else
 		{
-			double r = (x + abs_y) / (abs_y - x);
+			final double r = (x + abs_y) / (abs_y - x);
 			angle = atan2_coeff_2 - atan2_coeff_1 * r;
 		}
 		return y >= 0.0D ? angle : -angle;
 	}
 
-	public static double fastSqrt(double a)
+	public static double fastSqrt(final double a)
 	{
-		long x = Double.doubleToLongBits(a) >> 32;
-		double y = Double.longBitsToDouble(x + 0x3FEF1280L << 31);
+		final long x = Double.doubleToLongBits(a) >> 32;
+		final double y = Double.longBitsToDouble(x + 0x3FEF1280L << 31);
 		return y;
 	}
 
-	public static double sqrt(double a)
+	public static double sqrt(final double a)
 	{
-		long x = Double.doubleToLongBits(a) >> 32;
+		final long x = Double.doubleToLongBits(a) >> 32;
 		double y = Double.longBitsToDouble(x + 0x3FEF1280L << 31);
 		y = (y + a / y) * 0.5D;
 		return y;

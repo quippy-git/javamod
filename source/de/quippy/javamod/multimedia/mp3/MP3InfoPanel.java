@@ -2,7 +2,7 @@
  * @(#) MP3InfoPanel.java
  *
  * Created on 26.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ public class MP3InfoPanel extends JPanel
 	private JTextField mp3Info_Channels = null;
 	private JLabel mp3Info_EncodingLabel = null;
 	private JTextField mp3Info_Encoding = null;
-	
+
 	private JTabbedPane tabbedPane = null;
 	private JPanel ID3v1Panel = null;
 	private JLabel v1_L_Track = null;
@@ -111,7 +111,7 @@ public class MP3InfoPanel extends JPanel
 	private JTextField v2_Encoded = null;
 	private JLabel v2_L_BPM = null;
 	private JTextField v2_BPM = null;
-	
+
 	private MP3Container parentContainer = null;
 
 	/**
@@ -126,7 +126,7 @@ public class MP3InfoPanel extends JPanel
 	 * Constructor for MP3InfoPanel
 	 * @param layout
 	 */
-	public MP3InfoPanel(LayoutManager layout)
+	public MP3InfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -135,7 +135,7 @@ public class MP3InfoPanel extends JPanel
 	 * Constructor for MP3InfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public MP3InfoPanel(boolean isDoubleBuffered)
+	public MP3InfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -145,7 +145,7 @@ public class MP3InfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public MP3InfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public MP3InfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -160,7 +160,7 @@ public class MP3InfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(MP3Container parent)
+	public void setParentContainer(final MP3Container parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -168,7 +168,7 @@ public class MP3InfoPanel extends JPanel
 	{
 		this.setName("MP3InfoPane");
 		this.setLayout(new java.awt.GridBagLayout());
-		
+
 		this.add(getMP3Info_L_Filename(),			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getMP3Info_Filename(),				Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getMP3Info_L_ShortDescription(),	Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -340,7 +340,7 @@ public class MP3InfoPanel extends JPanel
 		{
 			ID3v1Panel = new JPanel();
 			ID3v1Panel.setLayout(new java.awt.GridBagLayout());
-			
+
 			ID3v1Panel.add(getV1_L_Track(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
 			ID3v1Panel.add(getV1_Track(),		Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.NORTHWEST, 1.0, 0.0));
 			ID3v1Panel.add(getV1_L_Title(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
@@ -484,7 +484,7 @@ public class MP3InfoPanel extends JPanel
 	{
 		if (v1_Genre==null)
 		{
-			v1_Genre = new javax.swing.JComboBox<String>(NullsoftID3GenreTable.getGenres());
+			v1_Genre = new javax.swing.JComboBox<>(NullsoftID3GenreTable.getGenres());
 			v1_Genre.setName("v1_Genre");
 			v1_Genre.setFont(Helpers.getDialogFont());
 			v1_Genre.setEditable(true);
@@ -531,7 +531,7 @@ public class MP3InfoPanel extends JPanel
 		{
 			ID3v2Panel = new JPanel();
 			ID3v2Panel.setLayout(new java.awt.GridBagLayout());
-			
+
 			ID3v2Panel.add(getV2_L_Track(),				Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
 			ID3v2Panel.add(getV2_Track(),				Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.NORTHWEST, 1.0, 0.0));
 			ID3v2Panel.add(getV2_L_Disc(),				Helpers.getGridBagConstraint(2, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
@@ -714,7 +714,7 @@ public class MP3InfoPanel extends JPanel
 	{
 		if (v2_Genre==null)
 		{
-			v2_Genre = new javax.swing.JComboBox<String>(NullsoftID3GenreTable.getGenres());
+			v2_Genre = new javax.swing.JComboBox<>(NullsoftID3GenreTable.getGenres());
 			v2_Genre.setName("v2_Genre");
 			v2_Genre.setFont(Helpers.getDialogFont());
 			v2_Genre.setEditable(true);
@@ -931,17 +931,17 @@ public class MP3InfoPanel extends JPanel
 		}
 		return v2_BPM;
 	}
-	public void fillInfoPanelWith(Header h, MP3FileID3Controller currentID)
+	public void fillInfoPanelWith(final Header h, final MP3FileID3Controller currentID)
 	{
 		getMP3Info_Filename().setText(currentID.getFileName());
 		getMP3Info_ShortDescription().setText(currentID.getShortDescription());
-		
+
 		getmp3Info_Frequency().setText(h.sample_frequency_string());
 		getmp3Info_SampleSizeInBits().setText("16");
 		getmp3Info_Channels().setText(h.mode_string());
 		getmp3Info_Encoding().setText(h.version_string()+" Layer "+h.layer_string());
 		getmp3Info_BitRate().setText(h.bitrate_string());
-		
+
 		if (currentID.id3v1Exists())
 		{
 			getV1_Track().setEnabled(true);

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
  * @author Ken H�ndel
  *
  */
@@ -30,22 +30,22 @@ public class SID {
 	 * This is a patch against ReSID
 	 *         engine in libsidplay2-2.1.1 to make its sound closer to 6581R4
 	 *         chip.<BR>
-	 * 
+	 *
 	 * http://bel.fi/~alankila/c64-sw/
-	 * 
+	 *
 	 * <P>
 	 * <B>Good simulation of strong lead and bass distortion.</B> Tel's leads,
 	 * Jeff's bass, Mechanicus's extreme distortion: it all seems to reproduce
 	 * quite nicely.
-	 * 
+	 *
 	 * <P>
 	 * <B>Good simulation of advanced effects peculiar to 6581</B>, especially
 	 * on Jeff's songs that target 6581R4.
-	 * 
+	 *
 	 * <P>
 	 * <B>Parameters are now in sidplay2.ini file.</B> No recompile is
 	 * necessary when testing alternative parameters.
-	 * 
+	 *
 	 * <P>
 	 * <B>Bugs in some songs, especially related to lowpass filter output.</B>
 	 * The middle part of Spaceman Salutes Commodore and intro for Snake Disco
@@ -69,7 +69,7 @@ public class SID {
 	 * Meanwhile The Planet doesn't work.
 	 * <LI> vhp must be small or the distortion loses its "edge".
 	 * </OL>
-	 * 
+	 *
 	 * The new model has one important property above the previous one: it only
 	 * distorts the other half-wave, the same which can be seen distorted in SID
 	 * samplings, too. Therefore it makes for more complicated distorted sounds,
@@ -86,11 +86,11 @@ public class SID {
 	 * feel that this reinstates some of my LEADDIST effects and should be
 	 * closer to correct model. I'm reasonably happy about how it turned out.
 	 * This is definitely the best all-around emulation to date.
-	 * 
+	 *
 	 * I also made the distortion tunable via config file, so the thing is sane
 	 * and doesn't trash 8580 any more.
 	 * <LI> 18.4.2007 Oops, a few months passed as I was busy at work.
-	 * 
+	 *
 	 * I've got rid of the LEADDIST effect, simply accepted that things will not
 	 * work with it. I hope to be able to replace it with another trick up my
 	 * sleeve, but so far the new songs and patch probably constitute a step
@@ -101,13 +101,13 @@ public class SID {
 	 * while mine are filtered by a static ad-hoc estimate. So, the snapping
 	 * here comes from the LEADDIST term and it doesn't make the right kind of
 	 * effect.
-	 * 
+	 *
 	 * Meanwhile The Planet makes masterfully precise use of the filter, and
 	 * there isn't enough distortion for ReSID rendition to be palatable. Thanks
 	 * to Grue for digging these songs up. Also fixed invalid sidplay2.ini
 	 * configuration file (was not using 6581R4 curve). This, too, was spotted
 	 * by Grue.
-	 * 
+	 *
 	 * I suspect Snake Disco might be fixed by accounting for the loss of
 	 * intensity of sound with the vbp op-amp distortion. I made some
 	 * measurements last night and discovered that level of lp and hp outputs
@@ -123,7 +123,7 @@ public class SID {
 	 * distortion back to later time. Other changes in frequency drift
 	 * implementation however helped a lot even with RoboCop 3, although I do
 	 * think it still distorts too much. I think overall I'm now better off.
-	 * 
+	 *
 	 * I also moved the distortion term computation into the filter clocking
 	 * function, so that if output is being requested at some different rate
 	 * than the filter is clocked, the lowpass filtering would still be computed
@@ -144,9 +144,9 @@ public class SID {
 
 	/**
 	 * Read/Write State.
-	 * 
+	 *
 	 * @author Ken H�ndel
-	 * 
+	 *
 	 */
 	public static class State {
 		public char sid_register[] = new char[0x20];
@@ -346,10 +346,10 @@ public class SID {
 
 	/**
 	 * Set chip model.
-	 * 
+	 *
 	 * @param model
 	 */
-	public void set_chip_model(chip_model model) {
+	public void set_chip_model(final chip_model model) {
 		for (int i = 0; i < 3; i++) {
 			voice[i].set_chip_model(model);
 		}
@@ -358,8 +358,8 @@ public class SID {
 		extfilt.set_chip_model(model);
 	}
 
-	public void set_distortion_properties(int Lt, int Ls, int Ll, int Lb,
-			int Lh, int Ht, int Hs, int Hl, int Hb, int Hh) {
+	public void set_distortion_properties(final int Lt, final int Ls, final int Ll, final int Lb,
+			final int Lh, final int Ht, final int Hs, final int Hl, final int Hb, final int Hh) {
 		filter
 				.set_distortion_properties(Lt, Ls, Ll, Lb, Lh, Ht, Hs, Hl, Hb,
 						Hh);
@@ -384,10 +384,10 @@ public class SID {
 	 * is responsible for keeping the value within 16 bits. Note that to mix in
 	 * an external audio signal, the signal should be resampled to 1MHz first to
 	 * avoid sampling noise.
-	 * 
+	 *
 	 * @param sample
 	 */
-	public void input(int sample) {
+	public void input(final int sample) {
 		// Voice outputs are 20 bits. Scale up to match three voices in order
 		// to facilitate simulation of the MOS8580 "digi boost" hardware hack.
 		ext_in = (sample << 4) * 3;
@@ -396,13 +396,13 @@ public class SID {
 	/**
 	 * 16-bit output (AUDIO OUT). Read sample from audio output. Both 16-bit and
 	 * n-bit output is provided.
-	 * 
+	 *
 	 * @return
 	 */
 	public int output() {
 		final int range = 1 << 16;
 		final int half = range >> 1;
-		int sample = extfilt.output()
+		final int sample = extfilt.output()
 				/ ((4095 * 255 >> 7) * 3 * 15 * 2 / range);
 		if (sample >= half) {
 			return half - 1;
@@ -415,14 +415,14 @@ public class SID {
 
 	/**
 	 * n-bit output.
-	 * 
+	 *
 	 * @param bits
 	 * @return
 	 */
-	public int output(int bits) {
+	public int output(final int bits) {
 		final int range = 1 << bits;
 		final int half = range >> 1;
-		int sample = extfilt.output()
+		final int sample = extfilt.output()
 				/ ((4095 * 255 >> 7) * 3 * 15 * 2 / range);
 		if (sample >= half) {
 			return half - 1;
@@ -448,11 +448,11 @@ public class SID {
 	 * intermediate write to another register would yield that value instead).
 	 * With this in mind we return the last value written to any SID register
 	 * for $2000 cycles without modeling the bit fading.
-	 * 
+	 *
 	 * @param offset
 	 * @return
 	 */
-	public int /* reg8 */read(int /* reg8 */offset) {
+	public int /* reg8 */read(final int /* reg8 */offset) {
 		switch (offset) {
 		case 0x19:
 			return potx.readPOT();
@@ -469,11 +469,11 @@ public class SID {
 
 	/**
 	 * Write registers.
-	 * 
+	 *
 	 * @param offset
 	 * @param value
 	 */
-	public void write(int /* reg8 */offset, int /* reg8 */value) {
+	public void write(final int /* reg8 */offset, final int /* reg8 */value) {
 		bus_value = value;
 		bus_value_ttl = 0x2000;
 
@@ -560,11 +560,11 @@ public class SID {
 
 	/**
 	 * SID voice muting.
-	 * 
+	 *
 	 * @param channel
 	 * @param enable
 	 */
-	public void mute(int /* reg8 */channel, boolean enable) {
+	public void mute(final int /* reg8 */channel, final boolean enable) {
 		// Only have 3 voices!
 		if (channel >= 3)
 			return;
@@ -574,16 +574,16 @@ public class SID {
 
 	/**
 	 * Read state.
-	 * 
+	 *
 	 * @return
 	 */
 	public State read_state() {
-		State state = new State();
+		final State state = new State();
 		int i, j;
 
 		for (i = 0, j = 0; i < 3; i++, j += 7) {
-			WaveformGenerator wave = voice[i].wave;
-			EnvelopeGenerator envelope = voice[i].envelope;
+			final WaveformGenerator wave = voice[i].wave;
+			final EnvelopeGenerator envelope = voice[i].envelope;
 			state.sid_register[j + 0] = (char) (wave.freq & 0xff);
 			state.sid_register[j + 1] = (char) (wave.freq >> 8);
 			state.sid_register[j + 2] = (char) (wave.pw & 0xff);
@@ -631,7 +631,7 @@ public class SID {
 
 	/**
 	 * Write state.
-	 * 
+	 *
 	 * @param state
 	 */
 	public void write_state(final State state) {
@@ -659,30 +659,30 @@ public class SID {
 
 	/**
 	 * Enable filter.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void enable_filter(boolean enable) {
+	public void enable_filter(final boolean enable) {
 		filter.enable_filter(enable);
 	}
 
 	/**
 	 * Enable external filter.
-	 * 
+	 *
 	 * @param enable
 	 */
-	public void enable_external_filter(boolean enable) {
+	public void enable_external_filter(final boolean enable) {
 		extfilt.enable_filter(enable);
 	}
 
 	/**
 	 * I0() computes the 0th order modified Bessel function of the first kind.
 	 * This function is originally from resample-1.5/filterkit.c by J. O. Smith.
-	 * 
+	 *
 	 * @param x
 	 * @return
 	 */
-	protected double I0(double x) {
+	protected double I0(final double x) {
 		// Max error acceptable in I0.
 		final double I0e = 1e-6;
 
@@ -721,7 +721,7 @@ public class SID {
 	 * E.g. for a 44.1kHz sampling rate the end of passband frequency is limited
 	 * to slightly below 20kHz. This constraint ensures that the FIR table is
 	 * not overfilled.
-	 * 
+	 *
 	 * @param clock_freq
 	 * @param method
 	 * @param sample_freq
@@ -729,16 +729,14 @@ public class SID {
 	 * @param filter_scale
 	 * @return
 	 */
-	public boolean set_sampling_parameters(double clock_freq,
-			sampling_method method, double sample_freq, double pass_freq,
-			double filter_scale) {
+	public boolean set_sampling_parameters(final double clock_freq,
+			final sampling_method method, final double sample_freq, double pass_freq,
+			final double filter_scale) {
 		// Check resampling constraints.
-		if (method == sampling_method.SAMPLE_RESAMPLE_INTERPOLATE
-				|| method == sampling_method.SAMPLE_RESAMPLE_FAST) {
-			// Check whether the sample ring buffer would overfill.
-			if (FIR_N * clock_freq / sample_freq >= RINGSIZE) {
-				return false;
-			}
+		// Check whether the sample ring buffer would overfill.
+		if ((method == sampling_method.SAMPLE_RESAMPLE_INTERPOLATE
+				|| method == sampling_method.SAMPLE_RESAMPLE_FAST) && (FIR_N * clock_freq / sample_freq >= RINGSIZE)) {
+			return false;
 		}
 		// The default passband limit is 0.9*sample_freq/2 for sample
 		// frequencies below ~ 44.1kHz, and 20kHz for higher sample
@@ -784,9 +782,9 @@ public class SID {
 		// 16 bits -> -96dB stopband attenuation.
 		final double A = -20 * Math.log10(1.0 / (1 << 16));
 		// A fraction of the bandwidth is allocated to the transition band,
-		double dw = (1 - 2 * pass_freq / sample_freq) * pi;
+		final double dw = (1 - 2 * pass_freq / sample_freq) * pi;
 		// The cutoff frequency is midway through the transition band.
-		double wc = (2 * pass_freq / sample_freq + 1) * pi / 2;
+		final double wc = (2 * pass_freq / sample_freq + 1) * pi / 2;
 
 		// For calculation of beta and N see the reference for the kaiserord
 		// function in the MATLAB Signal Processing Toolbox:
@@ -801,8 +799,8 @@ public class SID {
 		int N = (int) ((A - 7.95) / (2.285 * dw) + 0.5);
 		N += N & 1;
 
-		double f_samples_per_cycle = sample_freq / clock_freq;
-		double f_cycles_per_sample = clock_freq / sample_freq;
+		final double f_samples_per_cycle = sample_freq / clock_freq;
+		final double f_cycles_per_sample = clock_freq / sample_freq;
 
 		// The filter length is equal to the filter order + 1.
 		// The filter length must be an odd number (sinc is symmetric about x =
@@ -812,10 +810,10 @@ public class SID {
 
 		// We clamp the filter table resolution to 2^n, making the fixpoint
 		// sample_offset a whole multiple of the filter table resolution.
-		int res = method == sampling_method.SAMPLE_RESAMPLE_INTERPOLATE ? FIR_RES_INTERPOLATE
+		final int res = method == sampling_method.SAMPLE_RESAMPLE_INTERPOLATE ? FIR_RES_INTERPOLATE
 				: FIR_RES_FAST;
-		int n = (int) Math.ceil(Math.log(res / f_cycles_per_sample)
-				/ Math.log((double) 2));
+		final int n = (int) Math.ceil(Math.log(res / f_cycles_per_sample)
+				/ Math.log(2));
 		fir_RES = 1 << n;
 
 		// Allocate memory for FIR tables.
@@ -824,19 +822,19 @@ public class SID {
 
 		// Calculate fir_RES FIR tables for linear interpolation.
 		for (int i = 0; i < fir_RES; i++) {
-			int fir_offset = i * fir_N + fir_N / 2;
-			double j_offset = (double) (i) / fir_RES;
+			final int fir_offset = i * fir_N + fir_N / 2;
+			final double j_offset = (double) (i) / fir_RES;
 			// Calculate FIR table. This is the sinc function, weighted by the
 			// Kaiser window.
 			for (int j = -fir_N / 2; j <= fir_N / 2; j++) {
-				double jx = j - j_offset;
-				double wt = wc * jx / f_cycles_per_sample;
-				double temp = jx / ((double)fir_N / 2d);
-				double Kaiser = Math.abs(temp) <= 1 ? I0(beta
+				final double jx = j - j_offset;
+				final double wt = wc * jx / f_cycles_per_sample;
+				final double temp = jx / (fir_N / 2d);
+				final double Kaiser = Math.abs(temp) <= 1 ? I0(beta
 						* Math.sqrt(1 - temp * temp))
 						/ I0beta : 0;
-				double sincwt = Math.abs(wt) >= 1e-6 ? Math.sin(wt) / wt : 1;
-				double val = (1 << FIR_SHIFT) * filter_scale
+				final double sincwt = Math.abs(wt) >= 1e-6 ? Math.sin(wt) / wt : 1;
+				final double val = (1 << FIR_SHIFT) * filter_scale
 						* f_samples_per_cycle * wc / pi * sincwt * Kaiser;
 				fir[fir_offset + j] = (short) (val + 0.5);
 			}
@@ -867,10 +865,10 @@ public class SID {
 	 * also that any adjustment of the sampling frequency will change the
 	 * characteristics of the resampling filter, since the filter is not
 	 * rebuilt.
-	 * 
+	 *
 	 * @param sample_freq
 	 */
-	public void adjust_sampling_frequency(double sample_freq) {
+	public void adjust_sampling_frequency(final double sample_freq) {
 		cycles_per_sample = (int /* cycle_count */) (clock_frequency
 				/ sample_freq * (1 << FIXP_SHIFT) + 0.5);
 	}
@@ -888,13 +886,13 @@ public class SID {
 		}
 	}
 
-	public void fc_default(FCPoints fcp) {
+	public void fc_default(final FCPoints fcp) {
 		filter.fc_default(fcp);
 	}
 
 	/**
 	 * Return FC spline plotter object.
-	 * 
+	 *
 	 * @return
 	 */
 	public PointPlotter fc_plotter() {
@@ -938,10 +936,10 @@ public class SID {
 
 	/**
 	 * SID clocking - delta_t cycles.
-	 * 
+	 *
 	 * @param delta_t
 	 */
-	public void clock(int /* cycle_count */delta_t) {
+	public void clock(final int /* cycle_count */delta_t) {
 		int i;
 
 		if (delta_t <= 0) {
@@ -972,7 +970,7 @@ public class SID {
 			// operate
 			// correctly.
 			for (i = 0; i < 3; i++) {
-				WaveformGenerator wave = voice[i].wave;
+				final WaveformGenerator wave = voice[i].wave;
 
 				// It is only necessary to clock on the MSB of an oscillator
 				// that is
@@ -981,11 +979,11 @@ public class SID {
 					continue;
 				}
 
-				int /* reg16 */freq = wave.freq;
-				int /* reg24 */accumulator = wave.accumulator;
+				final int /* reg16 */freq = wave.freq;
+				final int /* reg24 */accumulator = wave.accumulator;
 
 				// Clock on MSB off if MSB is on, clock on MSB on if MSB is off.
-				int /* reg24 */delta_accumulator = ((accumulator & 0x800000) != 0 ? 0x1000000
+				final int /* reg24 */delta_accumulator = ((accumulator & 0x800000) != 0 ? 0x1000000
 						: 0x800000)
 						- accumulator;
 
@@ -1021,7 +1019,7 @@ public class SID {
 	}
 
 	public static class CycleCount {
-		public CycleCount(int delta_t2) {
+		public CycleCount(final int delta_t2) {
 			delta_t = delta_t2;
 		}
 
@@ -1033,7 +1031,7 @@ public class SID {
 	 * <P>
 	 * The example below shows how to clock the SID a specified amount of cycles
 	 * while producing audio output:
-	 * 
+	 *
 	 * <pre>
 	 * while (delta_t) {
 	 * 	bufindex += sid.clock(delta_t, buf + bufindex, buflength - bufindex);
@@ -1041,10 +1039,10 @@ public class SID {
 	 * 	bufindex = 0;
 	 * }
 	 * </pre>
-	 * 
+	 *
 	 * @return
 	 */
-	public int clock(CycleCount delta_t, short buf[], int n, int interleave) {
+	public int clock(final CycleCount delta_t, final short buf[], final int n, final int interleave) {
 		switch (sampling) {
 		default:
 		case SAMPLE_FAST:
@@ -1060,17 +1058,17 @@ public class SID {
 
 	/**
 	 * SID clocking with audio sampling - delta clocking picking nearest sample.
-	 * 
+	 *
 	 * @return
 	 */
-	protected int clock_fast(CycleCount delta_t, short buf[], int n,
-			int interleave) {
+	protected int clock_fast(final CycleCount delta_t, final short buf[], final int n,
+			final int interleave) {
 		int s = 0;
 
 		for (;;) {
-			int /* cycle_count */next_sample_offset = sample_offset
+			final int /* cycle_count */next_sample_offset = sample_offset
 					+ cycles_per_sample + (1 << (FIXP_SHIFT - 1));
-			int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
+			final int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
 			if (delta_t_sample > delta_t.delta_t) {
 				break;
 			}
@@ -1097,18 +1095,18 @@ public class SID {
 	 * Here the chip is clocked every cycle. This yields higher quality sound
 	 * since the samples are linearly interpolated, and since the external
 	 * filter attenuates frequencies above 16kHz, thus reducing sampling noise.
-	 * 
+	 *
 	 * @return
 	 */
-	protected int clock_interpolate(CycleCount delta_t, short buf[], int n,
-			int interleave) {
+	protected int clock_interpolate(final CycleCount delta_t, final short buf[], final int n,
+			final int interleave) {
 		int s = 0;
 		int i;
 
 		for (;;) {
-			int /* cycle_count */next_sample_offset = sample_offset
+			final int /* cycle_count */next_sample_offset = sample_offset
 					+ cycles_per_sample;
-			int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
+			final int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
 			if (delta_t_sample > delta_t.delta_t) {
 				break;
 			}
@@ -1126,7 +1124,7 @@ public class SID {
 			delta_t.delta_t -= delta_t_sample;
 			sample_offset = next_sample_offset & FIXP_MASK;
 
-			short sample_now = (short) output();
+			final short sample_now = (short) output();
 			buf[s++ * interleave] = (short) (sample_prev + (sample_offset
 					* (sample_now - sample_prev) >> FIXP_SHIFT));
 			sample_prev = sample_now;
@@ -1175,17 +1173,17 @@ public class SID {
 	 * pass_freq + sqrt [ 2 * pass_freq * orig_sample_freq * (dest_sample_freq -
 	 * 2 * pass_freq) / dest_sample_freq ]
 	 * <P>
-	 * 
+	 *
 	 * @return
 	 */
-	protected int clock_resample_interpolate(CycleCount delta_t, short buf[],
-			int n, int interleave) {
+	protected int clock_resample_interpolate(final CycleCount delta_t, final short buf[],
+			final int n, final int interleave) {
 		int s = 0;
 
 		for (;;) {
-			int /* cycle_count */next_sample_offset = sample_offset
+			final int /* cycle_count */next_sample_offset = sample_offset
 					+ cycles_per_sample;
-			int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
+			final int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
 			if (delta_t_sample > delta_t.delta_t) {
 				break;
 			}
@@ -1202,7 +1200,7 @@ public class SID {
 			sample_offset = next_sample_offset & FIXP_MASK;
 
 			int fir_offset = sample_offset * fir_RES >> FIXP_SHIFT;
-			int fir_offset_rmd = sample_offset * fir_RES & FIXP_MASK;
+			final int fir_offset_rmd = sample_offset * fir_RES & FIXP_MASK;
 			int fir_start = (fir_offset * fir_N);
 			int sample_start = (sample_index - fir_N + RINGSIZE);
 
@@ -1258,17 +1256,17 @@ public class SID {
 
 	/**
 	 * SID clocking with audio sampling - cycle based with audio resampling.
-	 * 
+	 *
 	 * @return
 	 */
-	protected int clock_resample_fast(CycleCount delta_t, short buf[], int n,
-			int interleave) {
+	protected int clock_resample_fast(final CycleCount delta_t, final short buf[], final int n,
+			final int interleave) {
 		int s = 0;
 
 		for (;;) {
-			int /* cycle_count */next_sample_offset = sample_offset
+			final int /* cycle_count */next_sample_offset = sample_offset
 					+ cycles_per_sample;
-			int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
+			final int /* cycle_count */delta_t_sample = next_sample_offset >> FIXP_SHIFT;
 			if (delta_t_sample > delta_t.delta_t) {
 				break;
 			}
@@ -1284,9 +1282,9 @@ public class SID {
 			delta_t.delta_t -= delta_t_sample;
 			sample_offset = next_sample_offset & FIXP_MASK;
 
-			int fir_offset = sample_offset * fir_RES >> FIXP_SHIFT;
-			int fir_start = (fir_offset * fir_N);
-			int sample_start = (sample_index - fir_N + RINGSIZE);
+			final int fir_offset = sample_offset * fir_RES >> FIXP_SHIFT;
+			final int fir_start = (fir_offset * fir_N);
+			final int sample_start = (sample_index - fir_N + RINGSIZE);
 
 			// Convolution with filter impulse response.
 			int v = 0;

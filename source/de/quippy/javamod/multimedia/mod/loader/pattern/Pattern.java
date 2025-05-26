@@ -1,8 +1,8 @@
 /*
  * @(#) Pattern.java
- * 
+ *
  * Created on 28.04.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ public class Pattern
 	protected double [] tempoSwing = null;
 	protected int rowsPerBeat = -1;
 	protected int rowsPerMeasure = -1;
-	
+
 	/**
 	 * Constructor for Pattern
 	 */
@@ -125,9 +125,8 @@ public class Pattern
 	 */
 	public void resetRowsPlayed()
 	{
-		for (int i=0; i<patternRows.length; i++)
+		for (final PatternRow row : patternRows)
 		{
-			PatternRow row = patternRows[i];
 			if (row!=null) row.resetRowPlayed();
 		}
 	}
@@ -169,7 +168,7 @@ public class Pattern
 	/**
 	 * @param patternElement The patternElement to set.
 	 */
-	public void setPatternElement(final int row, int channel, final PatternElement patternElement)
+	public void setPatternElement(final int row, final int channel, final PatternElement patternElement)
 	{
 		this.patternRows[row].setPatternElement(channel, patternElement);
 	}

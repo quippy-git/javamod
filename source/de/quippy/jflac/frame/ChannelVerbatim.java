@@ -30,8 +30,8 @@ import de.quippy.jflac.io.BitInputStream;
  * @author kc7bfi
  */
 public class ChannelVerbatim extends Channel {
-    private int[] data; // A pointer to verbatim signal.
-    
+    private final int[] data; // A pointer to verbatim signal.
+
     /**
      * The constructor.
      * @param is            The InputBitStream
@@ -41,7 +41,7 @@ public class ChannelVerbatim extends Channel {
      * @param wastedBits    The bits waisted in the frame
      * @throws IOException  Thrown if error reading from the InputBitStream
      */
-    public ChannelVerbatim(BitInputStream is, Header header, ChannelData channelData, int bps, int wastedBits) throws IOException {
+    public ChannelVerbatim(final BitInputStream is, final Header header, final ChannelData channelData, final int bps, final int wastedBits) throws IOException {
         super(header, wastedBits);
 
         data = channelData.getResidual();
@@ -53,11 +53,12 @@ public class ChannelVerbatim extends Channel {
         // decode the subframe
         System.arraycopy(data, 0, channelData.getOutput(), 0, header.blockSize);
     }
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         return "ChannelVerbatim: WastedBits=" + wastedBits;
     }
 }

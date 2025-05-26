@@ -29,7 +29,7 @@ import de.quippy.jflac.io.BitInputStream;
  * @author kc7bfi
  */
 public class Padding extends Metadata {
-    private int length;
+    private final int length;
 
     /**
      * The constructor.
@@ -38,17 +38,18 @@ public class Padding extends Metadata {
      * @param isLast            True if this is the last Metadata block in the chain
      * @throws IOException      Thrown if error reading from InputBitStream
      */
-    public Padding(BitInputStream is, int length, boolean isLast) throws IOException {
+    public Padding(final BitInputStream is, final int length, final boolean isLast) throws IOException {
         super(isLast);
         this.length = length;
         is.readByteBlockAlignedNoCRC(null, length);
     }
-    
+
     /**
      * Convert to string.
      * @see java.lang.Object#toString()
      */
-    public String toString() {
+    @Override
+	public String toString() {
         return "Padding (Length=" + length + ")";
     }
 }

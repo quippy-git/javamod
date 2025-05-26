@@ -32,7 +32,7 @@ import de.quippy.jmac.tools.JMACException;
  * Time: 14:51:31
  */
 public class APEDecompressCore {
-    public APEDecompressCore(IAPEDecompress pAPEDecompress) {
+    public APEDecompressCore(final IAPEDecompress pAPEDecompress) {
         m_pAPEDecompress = pAPEDecompress;
 
         //initialize the bit array
@@ -51,7 +51,7 @@ public class APEDecompressCore {
         m_nBlocksProcessed = 0;
     }
 
-    public void GenerateDecodedArrays(int nBlocks, int nSpecialCodes, int nFrameIndex) throws IOException {
+    public void GenerateDecodedArrays(final int nBlocks, final int nSpecialCodes, final int nFrameIndex) throws IOException {
         if (m_pAPEDecompress.getApeInfoChannels() == 2) {
             if ((nSpecialCodes & SpecialFrame.SPECIAL_FRAME_LEFT_SILENCE) > 0 && (nSpecialCodes & SpecialFrame.SPECIAL_FRAME_RIGHT_SILENCE) > 0) {
                 Arrays.fill(m_pDataX, 0, nBlocks, 0);
@@ -71,7 +71,7 @@ public class APEDecompressCore {
         }
     }
 
-    public void GenerateDecodedArray(int[] Input_Array, int Number_of_Elements, int Frame_Index, AntiPredictor pAntiPredictor) throws IOException {
+    public void GenerateDecodedArray(final int[] Input_Array, final int Number_of_Elements, final int Frame_Index, final AntiPredictor pAntiPredictor) throws IOException {
         final int nFrameBytes = m_pAPEDecompress.getApeInfoFrameBytes(Frame_Index);
 
         //run the prediction sequence
@@ -150,8 +150,8 @@ public class APEDecompressCore {
         return m_pUnBitArray;
     }
 
-    private long[] aryCoefficientsA = new long[64];
-    private long[] aryCoefficientsB = new long[64];
+    private final long[] aryCoefficientsA = new long[64];
+    private final long[] aryCoefficientsB = new long[64];
 
     public int[] m_pTempData;
     public int[] m_pDataX;

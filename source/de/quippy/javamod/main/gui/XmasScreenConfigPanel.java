@@ -2,7 +2,7 @@
  * @(#) XmasScreenConfigPanel.java
  *
  * Created on 07.12.2023 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JWindow;
+import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -66,19 +67,19 @@ public class XmasScreenConfigPanel extends JPanel
 	private JLabel updateFPSLabel = null;
 	private JComboBox<String> flickerTypeSelector = null;
 	private JSlider updateFPSSelector = null;
-	
+
 	private JWindow transparentJFrame = null;
 	private XmasDecorationPanel xmasDecorationPanel = null;
 
-	private int screenFPS;
-	private ImageIcon[] bulbs;
-	private GraphicsDevice screen;
-	private int defaultScreenHeight;
+	private final int screenFPS;
+	private final ImageIcon[] bulbs;
+	private final GraphicsDevice screen;
+	private final int defaultScreenHeight;
 
 	/**
 	 * Constructor for XmasScreenConfigPanel
 	 */
-	public XmasScreenConfigPanel(final int myDesiredFPS, ImageIcon[] allBulbs, GraphicsDevice forScreen)
+	public XmasScreenConfigPanel(final int myDesiredFPS, final ImageIcon[] allBulbs, final GraphicsDevice forScreen)
 	{
 		super();
 		screenFPS = myDesiredFPS;
@@ -109,7 +110,8 @@ public class XmasScreenConfigPanel extends JPanel
 			xmasEnabledCheckBox.setSelected(isXmasEnabled());
 			xmasEnabledCheckBox.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
@@ -133,7 +135,8 @@ public class XmasScreenConfigPanel extends JPanel
 			withSpaceCheckBox.setSelected(isWithSpaceEnabled());
 			withSpaceCheckBox.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
 					{
@@ -158,16 +161,17 @@ public class XmasScreenConfigPanel extends JPanel
 	{
 		if (flickerTypeSelector==null)
 		{
-			flickerTypeSelector = new JComboBox<String>();
+			flickerTypeSelector = new JComboBox<>();
 			flickerTypeSelector.setName("flickerTypeSelector");
-			
-			DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(XmasDecorationPanel.FLICKER_TYPES);
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(XmasDecorationPanel.FLICKER_TYPES);
 			flickerTypeSelector.setModel(theModel);
 			flickerTypeSelector.setFont(Helpers.getDialogFont());
 			flickerTypeSelector.setEnabled(true);
 			flickerTypeSelector.addItemListener(new ItemListener()
 			{
-				public void itemStateChanged(ItemEvent e)
+				@Override
+				public void itemStateChanged(final ItemEvent e)
 				{
 					if (e.getStateChange()==ItemEvent.SELECTED)
 					{
@@ -192,7 +196,7 @@ public class XmasScreenConfigPanel extends JPanel
 	{
 		if (updateFPSSelector==null)
 		{
-			updateFPSSelector = new JSlider(JSlider.HORIZONTAL, 0, screenFPS, 1);
+			updateFPSSelector = new JSlider(SwingConstants.HORIZONTAL, 0, screenFPS, 1);
 			updateFPSSelector.setFont(Helpers.getDialogFont());
 			updateFPSSelector.setMinorTickSpacing(1);
 			updateFPSSelector.setMajorTickSpacing(10);
@@ -203,7 +207,8 @@ public class XmasScreenConfigPanel extends JPanel
 			updateFPSSelector.setToolTipText(Integer.toString(updateFPSSelector.getValue()));
 			updateFPSSelector.addMouseListener(new MouseAdapter()
 			{
-				public void mouseClicked(MouseEvent e)
+				@Override
+				public void mouseClicked(final MouseEvent e)
 				{
 					if (e.getClickCount()>1)
 					{
@@ -215,7 +220,7 @@ public class XmasScreenConfigPanel extends JPanel
 			updateFPSSelector.addChangeListener(new ChangeListener()
 			{
 				@Override
-				public void stateChanged(ChangeEvent e)
+				public void stateChanged(final ChangeEvent e)
 				{
 					getUpdateFPSSelector().setToolTipText(Integer.toString(getUpdateFPSSelector().getValue()));
 					getXmasDecorationPanel().setUpdateFPS(getUpdateFPSSelector().getValue());

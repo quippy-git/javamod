@@ -3,16 +3,16 @@
  *
  * This class will first of all convert the signal given via writeSampleData
  * into a float array containing values from 1.0<=x<=-1.0 (L/R or mono).
- * 
+ *
  * Next the writeSampleData is capable of directing all sample data to
- * signal processing call backs doing their things and will return a 
- * byte array of sampledata coresponding to the audio format provided 
+ * signal processing call backs doing their things and will return a
+ * byte array of sampledata coresponding to the audio format provided
  *
  * Depending on the frames per second this data is then send split into
  * left and right channel to all callbacks who whant to be informed.
- * 
+ *
  * Created on 29.09.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,20 +59,19 @@ public class AudioProcessor
 	private byte [] resultSampleBuffer;
 	private int currentWritePosition;
 	private ProcessorTask processorThread;
-	
+
 	private AudioFormat audioFormat;
 	private boolean isBigEndian;
 	private boolean isSigned;
-	private int sampleSizeInBits;
 	private int bytesPerChannel;
 	private long mask;
 	private long neg_Bit;
 	private long neg_mask;
 	private long minSample;
 	private long maxSample;
-	
+
 	private boolean dspEnabled;
-	
+
 	private final class ProcessorTask extends Thread
 	{
 		private final AudioProcessor me;
@@ -81,8 +80,8 @@ public class AudioProcessor
 		private final long nanoWait;
 		private volatile boolean process;
 		private volatile boolean process_alive;
-		
-		public ProcessorTask(AudioProcessor parent)
+
+		public ProcessorTask(final AudioProcessor parent)
 		{
 			this.me = parent;
 			this.leftBuffer = new float [me.desiredBufferSize];
@@ -101,25 +100,26 @@ public class AudioProcessor
 			process = false; // Signal endless loop to stop
 			while (process_alive) // wait till that happened
 			{
-				try { Thread.sleep(10L); } catch (InterruptedException ex) { /*NOOP*/ }
+				try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 			}
 			// Inform listeners that we stopped
 			me.fireCurrentSampleChanged(null, null);
 		}
 		/**
-		 * 
+		 *
 		 * @see java.lang.Runnable#run()
 		 */
+		@Override
 		public void run()
 		{
 			process_alive = true;
 			while (process)
 			{
 				final long now = System.nanoTime();
-				
+
 				synchronized (lock)
 				{
-					int channels = me.audioFormat.getChannels();
+					final int channels = me.audioFormat.getChannels();
 					int currentReadPosition = (int)((me.getFramePosition() * channels) % me.sampleBufferSize);
 					for (int i=0; i<me.desiredBufferSize; i++)
 					{
@@ -135,17 +135,17 @@ public class AudioProcessor
 						}
 					}
 				}
-				
+
 				me.fireCurrentSampleChanged(leftBuffer, rightBuffer);
-				
+
 				final long stillToWait = nanoWait - (System.nanoTime() - now);
 				if (stillToWait>0)
 				{
-					try { Thread.sleep(stillToWait/1000000L); } catch (InterruptedException ex) { /*noop*/ }
+					try { Thread.sleep(stillToWait/1000000L); } catch (final InterruptedException ex) { /*noop*/ }
 				}
 				else
 				{
-					try { Thread.sleep(1L); } catch (InterruptedException ex) { /*noop*/ }
+					try { Thread.sleep(1L); } catch (final InterruptedException ex) { /*noop*/ }
 				}
 			}
 			process_alive = false;
@@ -156,13 +156,13 @@ public class AudioProcessor
 	 * @param desiredBufferSize
 	 * @param desiredFPS
 	 */
-	public AudioProcessor(int desiredBufferSize, int desiredFPS)
+	public AudioProcessor(final int desiredBufferSize, final int desiredFPS)
 	{
 		super();
 		this.desiredBufferSize = desiredBufferSize;
-		this.waitForNanos = 1000000000L / (long)desiredFPS;
-		this.callBacks = new ArrayList<DspProcessorCallBack>();
-		this.effectCallBacks = new ArrayList<DSPEffekt>();
+		this.waitForNanos = 1000000000L / desiredFPS;
+		this.callBacks = new ArrayList<>();
+		this.effectCallBacks = new ArrayList<>();
 		dspEnabled = true;
 	}
 	/**
@@ -176,7 +176,7 @@ public class AudioProcessor
 	 * @since 29.09.2007
 	 * @param callBack
 	 */
-	public synchronized void addListener(DspProcessorCallBack callBack)
+	public synchronized void addListener(final DspProcessorCallBack callBack)
 	{
 		if (!callBacks.contains(callBack)) callBacks.add(callBack);
 	}
@@ -184,7 +184,7 @@ public class AudioProcessor
 	 * @since 29.09.2007
 	 * @param callBack
 	 */
-	public synchronized void removeListener(DspProcessorCallBack callBack)
+	public synchronized void removeListener(final DspProcessorCallBack callBack)
 	{
 		callBacks.remove(callBack);
 	}
@@ -193,7 +193,7 @@ public class AudioProcessor
 	 * @param rightBuffer
 	 * @since 06.01.2012
 	 */
-	private synchronized void fireCurrentSampleChanged(float[] leftBuffer, float[] rightBuffer)
+	private synchronized void fireCurrentSampleChanged(final float[] leftBuffer, final float[] rightBuffer)
 	{
 		final int size = callBacks.size();
 		for (int i=0; i<size; i++)
@@ -205,7 +205,7 @@ public class AudioProcessor
 	 * @since 15.01.2012
 	 * @param effectCallBack
 	 */
-	public synchronized void addEffectListener(DSPEffekt effectCallBack)
+	public synchronized void addEffectListener(final DSPEffekt effectCallBack)
 	{
 		if (!effectCallBacks.contains(effectCallBack)) effectCallBacks.add(effectCallBack);
 	}
@@ -213,7 +213,7 @@ public class AudioProcessor
 	 * @since 15.01.2012
 	 * @param effectCallBack
 	 */
-	public synchronized void removeEffectListener(DSPEffekt effectCallBack)
+	public synchronized void removeEffectListener(final DSPEffekt effectCallBack)
 	{
 		effectCallBacks.remove(effectCallBack);
 	}
@@ -238,7 +238,7 @@ public class AudioProcessor
 	/**
 	 * @param useInternalCounter the useInternalCounter to set
 	 */
-	public void setUseInternalCounter(boolean useInternalCounter)
+	public void setUseInternalCounter(final boolean useInternalCounter)
 	{
 		this.useInternalCounter = useInternalCounter;
 	}
@@ -246,7 +246,7 @@ public class AudioProcessor
 	 * @param internalFramePosition the internalFramePosition to set
 	 * This is the amount of samples written
 	 */
-	public void setInternalFramePosition(long internalFramePosition)
+	public void setInternalFramePosition(final long internalFramePosition)
 	{
 		this.internalFramePosition = internalFramePosition;
 	}
@@ -263,7 +263,7 @@ public class AudioProcessor
 	 * @since 29.09.2007
 	 * @param sourceDataLine
 	 */
-	public void initializeProcessor(SourceDataLine sourceDataLine)
+	public void initializeProcessor(final SourceDataLine sourceDataLine)
 	{
 		this.sourceDataLine = sourceDataLine;
 		initializeProcessor(sourceDataLine.getFormat());
@@ -271,16 +271,16 @@ public class AudioProcessor
 	/**
 	 * @since 29.09.2007
 	 */
-	public void initializeProcessor(AudioFormat audioFormat)
+	public void initializeProcessor(final AudioFormat audioFormat)
 	{
 		this.audioFormat = audioFormat;
 
 		isBigEndian = audioFormat.isBigEndian();
 		isSigned = audioFormat.getEncoding().equals(Encoding.PCM_SIGNED);
-		sampleSizeInBits = audioFormat.getSampleSizeInBits();
+		int sampleSizeInBits = audioFormat.getSampleSizeInBits();
 		bytesPerChannel = sampleSizeInBits>>3;
-		mask = (long)(1L<<sampleSizeInBits)-1;
-		neg_Bit = (long)(1L<<(sampleSizeInBits-1));
+		mask = (1L<<sampleSizeInBits)-1;
+		neg_Bit = 1L<<(sampleSizeInBits-1);
 		maxSample = neg_Bit - 1;
 		minSample = -neg_Bit;
 		neg_mask = 0xFFFFFFFF ^ mask;
@@ -291,9 +291,9 @@ public class AudioProcessor
 		currentWritePosition = 0;
 		internalFramePosition = 0;
 		useInternalCounter = false;
-		
+
 		initializeEffects(audioFormat, sampleBufferSize);
-		
+
 		processorThread = new ProcessorTask(this);
 		processorThread.start();
 	}
@@ -319,7 +319,7 @@ public class AudioProcessor
 	/**
 	 * @param dspEnabled the dspEnabled to set
 	 */
-	public void setDspEnabled(boolean dspEnabled)
+	public void setDspEnabled(final boolean dspEnabled)
 	{
 		this.dspEnabled = dspEnabled;
 	}
@@ -379,8 +379,8 @@ public class AudioProcessor
 		int ox = 0;
 		for (int i=0; i<anzSamples; i++, ox+=bytesPerChannel)
 		{
-			long sample = (long)((sampleBuffer[(rx++) % sampleBufferSize]*(float)neg_Bit));
-			
+			long sample = (long)((sampleBuffer[(rx++) % sampleBufferSize]*neg_Bit));
+
 			if (sample > maxSample) sample = maxSample;
 			else if (sample < minSample) sample = minSample;
 
@@ -406,7 +406,7 @@ public class AudioProcessor
 	 * @param offset
 	 * @param length
 	 */
-	public int writeSampleData(final byte [] newSampleData, final int offset, int length)
+	public int writeSampleData(final byte [] newSampleData, final int offset, final int length)
 	{
 		synchronized(lock)
 		{

@@ -1,8 +1,8 @@
 /*
  * @(#) CommandLine.java
- * 
+ *
  * Created on 20.05.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,7 +66,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	{
 		super(false);
 	}
-	
+
 	/**
 	 * Show a help screen...
 	 */
@@ -96,16 +96,16 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	 * Will parse the parameters and set the internal values
 	 * @param args
 	 */
-	private void parseParameters(String[] args)
+	private void parseParameters(final String[] args)
 	{
-		Properties props = new Properties();
+		final Properties props = new Properties();
 
-		for (int i=0; i<args.length; i++)
+		for (final String fileName : args)
 		{
-			if (args[i].startsWith("-")) // parameter:
+			if (fileName.startsWith("-")) // parameter:
 			{
-				String op = args[i].substring(2);
-				switch (args[i].toLowerCase().charAt(1))
+				final String op = fileName.substring(2);
+				switch (fileName.toLowerCase().charAt(1))
 				{
 					case 'i':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_ISP, Integer.toString(Integer.parseInt(op.substring(0,1))));
@@ -138,10 +138,10 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 						repeat = op.charAt(0)=='+';
 						break;
 					case 'b':
-						int sampleSizeInBits = Integer.parseInt(op);
+						final int sampleSizeInBits = Integer.parseInt(op);
 						if (sampleSizeInBits!=8 && sampleSizeInBits!=16 && sampleSizeInBits!=24 && sampleSizeInBits!=32)
 							throw new RuntimeException("samplesize of " + sampleSizeInBits + " is not supported");
-						props.setProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, Integer.toString(sampleSizeInBits));			
+						props.setProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, Integer.toString(sampleSizeInBits));
 						break;
 					case 'r':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, Integer.toString(Integer.parseInt(op)));
@@ -156,12 +156,11 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 						initialVolume = Float.parseFloat(op);
 						break;
 					default:
-						throw new RuntimeException("Unknown parameter: " + args[i].charAt(1));
+						throw new RuntimeException("Unknown parameter: " + fileName.charAt(1));
 				}
 			}
 			else
 			{
-				String fileName = args[i];
 				modFileName = Helpers.createURLfromString(fileName);
 				if (modFileName == null)
 				{
@@ -170,14 +169,15 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 				}
 			}
 		}
-		
+
 		MultimediaContainerManager.configureContainer(props);
 	}
 	/**
 	 * @param thread
 	 * @see de.quippy.javamod.main.gui.PlayThreadEventListener#playThreadEventOccured(de.quippy.javamod.main.gui.PlayThread)
 	 */
-	public void playThreadEventOccured(PlayThread thread)
+	@Override
+	public void playThreadEventOccured(final PlayThread thread)
 	{
 		if (!thread.isRunning() && thread.getHasFinishedNormaly())
 		{
@@ -200,7 +200,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 			{
 				System.out.println(((ModContainer) currentContainer).getCurrentMod().toString());
 			}
-			Mixer mixer = createNewMixer();
+			final Mixer mixer = createNewMixer();
 			mixer.setExportFile(wavFileName);
 			playerThread = new PlayThread(mixer, this);
 			playerThread.start();
@@ -224,7 +224,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	 */
 	private Mixer createNewMixer()
 	{
-		Mixer mixer = currentContainer.createNewMixer();
+		final Mixer mixer = currentContainer.createNewMixer();
 		if (mixer!=null)
 		{
 			mixer.setVolume(initialVolume);
@@ -248,10 +248,10 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
     				mediaPLSFileURL = currentPlayList.getCurrentEntry().getFile();
     			}
     		}
-    		
+
     		if (mediaPLSFileURL!=null) loadMultimediaFile(mediaPLSFileURL);
     	}
-    	catch (Throwable ex)
+    	catch (final Throwable ex)
     	{
 			Log.error("[MainForm::loadMultimediaOrPlayListFile]", ex);
 			currentPlayList = null;
@@ -262,17 +262,17 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	 * @since 01.07.2006
 	 * @param modFileName
 	 */
-	private void loadMultimediaFile(URL mediaFileURL)
+	private void loadMultimediaFile(final URL mediaFileURL)
 	{
     	try
     	{
     		if (mediaFileURL!=null)
     		{
-    			MultimediaContainer newContainer = MultimediaContainerManager.getMultimediaContainer(mediaFileURL);
+    			final MultimediaContainer newContainer = MultimediaContainerManager.getMultimediaContainer(mediaFileURL);
     			if (newContainer!=null) currentContainer = newContainer;
     		}
     	}
-    	catch (Throwable ex)
+    	catch (final Throwable ex)
     	{
 			Log.error("[MainForm::loadMultimediaFile] Loading of " + mediaFileURL + " failed!", ex);
 			currentContainer = null;
@@ -286,7 +286,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args)
+	public static void main(final String[] args)
 	{
 		Log.info(Helpers.FULLVERSION + " " + Helpers.COPYRIGHT + "\n");
 		try
@@ -297,7 +297,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 			}
 			else
 			{
-				CommandLine me = new CommandLine();
+				final CommandLine me = new CommandLine();
 				me.parseParameters(args);
 				me.loadMultimediaOrPlayListFile(me.modFileName);
 				me.doStartPlaying();
@@ -308,7 +308,7 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 				}
 			}
 		}
-		catch (Exception ex)
+		catch (final Exception ex)
 		{
 			Log.error("Error occured:", ex);
 			showHelp();

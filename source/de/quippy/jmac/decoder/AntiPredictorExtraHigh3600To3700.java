@@ -26,7 +26,7 @@ package de.quippy.jmac.decoder;
  * Time: 14:51:31
  */
 public class AntiPredictorExtraHigh3600To3700 extends AntiPredictor {
-    public void AntiPredict(int[] pInputArray, int[] pOutputArray, int NumberOfElements, int Iterations, long[] pOffsetValueArrayA, long[] pOffsetValueArrayB) {
+    public void AntiPredict(final int[] pInputArray, final int[] pOutputArray, final int NumberOfElements, final int Iterations, final long[] pOffsetValueArrayA, final long[] pOffsetValueArrayB) {
         for (int z = Iterations; z >= 0;) {
 
             AntiPredictorOffset(pInputArray, pOutputArray, NumberOfElements, (int) pOffsetValueArrayA[z], (int) pOffsetValueArrayB[z], 64);
@@ -44,9 +44,9 @@ public class AntiPredictorExtraHigh3600To3700 extends AntiPredictor {
         AntiPredictor.antiPredict(pInputArray, pOutputArray, NumberOfElements);
     }
 
-    private AntiPredictorHigh3600To3700 AntiPredictor = new AntiPredictorHigh3600To3700();
+    private final AntiPredictorHigh3600To3700 AntiPredictor = new AntiPredictorHigh3600To3700();
 
-    protected void AntiPredictorOffset(int[] Input_Array, int[] Output_Array, int Number_of_Elements, int g1, int g2, int Max_Order) {
+    protected void AntiPredictorOffset(final int[] Input_Array, final int[] Output_Array, final int Number_of_Elements, final int g1, final int g2, final int Max_Order) {
         int q;
 
         if ((g1 == 0) || (g2 == 0) || (Number_of_Elements <= Max_Order)) {

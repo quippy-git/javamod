@@ -16,19 +16,19 @@ import de.quippy.jflac.metadata.Metadata;
  * @author kc7bfi
  */
 public interface FrameListener {
-    
+
     /**
      * Called for each Metadata frame read.
      * @param metadata The metadata frame read
      */
     public void processMetadata(Metadata metadata);
-    
+
     /**
      * Called for each data frame read.
      * @param frame The data frame read
      */
     public void processFrame(Frame frame);
-    
+
     /**
      * Called for each frame error detected.
      * @param msg   The error message

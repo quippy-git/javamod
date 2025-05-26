@@ -45,57 +45,57 @@ public final class Crc32 {
     /**
      * Feed a bitstring to the crc calculation.
      */
-    public void append(byte bits) {
+    public void append(final byte bits) {
         long l;
-        crc = ((l = crc) >> 8L) ^ CRC32_TABLE[(int) ((l & 0xFF) ^ (long) (bits & 0xff))];
+        crc = ((l = crc) >> 8L) ^ CRC32_TABLE[(int) ((l & 0xFF) ^ bits & 0xff)];
     }
 
-    public void append(byte bits1, byte bits2) {
+    public void append(final byte bits1, final byte bits2) {
         long l;
         long[] a1;
-        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ (long) (bits1 & 0xFF))];
-        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) (bits2 & 0xFF))];
-    }
-
-    /**
-     * Feed a bitstring to the crc calculation.
-     */
-    public void append(short bits) {
-        long l;
-        long[] a1;
-        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ (long) (bits & 0xFF))];
-        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits & 0xffff) >> 8))];
-    }
-
-    public void append(short bits1, short bits2) {
-        long l;
-        long[] a1;
-        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ (long) (bits1 & 0xFF))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits1 & 0xffff) >> 8))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) (bits2 & 0xFF))];
-        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits2 & 0xffff) >> 8))];
+        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ bits1 & 0xFF)];
+        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ bits2 & 0xFF)];
     }
 
     /**
      * Feed a bitstring to the crc calculation.
      */
-    public void append24(int bits) {
+    public void append(final short bits) {
         long l;
         long[] a1;
-        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ (long) (bits & 0xFF))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits & 0xff00) >> 8))];
-        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits & 0xff0000) >> 16))];
+        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ bits & 0xFF)];
+        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits & 0xffff) >> 8)];
     }
 
-    public void append24(int bits1, int bits2) {
+    public void append(final short bits1, final short bits2) {
         long l;
         long[] a1;
-        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ (long) (bits1 & 0xFF))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits1 & 0xff00) >> 8))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits1 & 0xff0000) >> 16))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) (bits2 & 0xFF))];
-        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits2 & 0xff00) >> 8))];
-        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (long) ((bits2 & 0xff0000) >> 16))];
+        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ bits1 & 0xFF)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits1 & 0xffff) >> 8)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ bits2 & 0xFF)];
+        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits2 & 0xffff) >> 8)];
+    }
+
+    /**
+     * Feed a bitstring to the crc calculation.
+     */
+    public void append24(final int bits) {
+        long l;
+        long[] a1;
+        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ bits & 0xFF)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits & 0xff00) >> 8)];
+        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits & 0xff0000) >> 16)];
+    }
+
+    public void append24(final int bits1, final int bits2) {
+        long l;
+        long[] a1;
+        l = ((l = crc) >> 8L) ^ (a1 = CRC32_TABLE)[(int) ((l & 0xFF) ^ bits1 & 0xFF)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits1 & 0xff00) >> 8)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits1 & 0xff0000) >> 16)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ bits2 & 0xFF)];
+        l = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits2 & 0xff00) >> 8)];
+        crc = (l >> 8L) ^ a1[(int) ((l & 0xFF) ^ (bits2 & 0xff0000) >> 16)];
     }
 
     public void prefinalizeCrc() {

@@ -2,7 +2,7 @@
  * @(#) MP3Container.java
  *
  * Created on 17.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ import de.quippy.mp3.decoder.Header;
  */
 public class MP3Container extends MultimediaContainer implements TagParseListener
 {
-	private static final String[] MP3FILEEXTENSION = new String [] 
+	private static final String[] MP3FILEEXTENSION = new String []
   	{
   		"mp1", "mp2", "mp3"
   	};
@@ -57,9 +57,9 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	private MP3InfoPanel mp3InfoPanel;
 	private MP3StreamInfoPanel mp3StreamInfoPanel;
 	private MP3FileID3Controller mp3FileIDTags = null;
-	
+
 	private boolean isStreaming;
-	
+
 	/**
 	 * Will be executed during class load
 	 */
@@ -80,13 +80,13 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInstance(java.net.URL)
 	 */
 	@Override
-	public MultimediaContainer getInstance(URL mp3FileUrl)
+	public MultimediaContainer getInstance(final URL mp3FileUrl)
 	{
-		MultimediaContainer result = super.getInstance(mp3FileUrl);
-		isStreaming = !Helpers.isFile(mp3FileUrl); 
+		final MultimediaContainer result = super.getInstance(mp3FileUrl);
+		isStreaming = !Helpers.isFile(mp3FileUrl);
 		if (!isStreaming)
 		{
-			Header h = getHeaderFrom(mp3FileUrl);
+			final Header h = getHeaderFrom(mp3FileUrl);
 			mp3FileIDTags = new MP3FileID3Controller(mp3FileUrl);
 			if (!MultimediaContainerManager.isHeadlessMode()) ((MP3InfoPanel)getInfoPanel()).fillInfoPanelWith(h, mp3FileIDTags);
 		}
@@ -108,7 +108,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 		else
 			return super.getSongName();
 	}
-	private Header getHeaderFrom(URL url)
+	private Header getHeaderFrom(final URL url)
 	{
 		Header result = null;
 		RandomAccessInputStreamImpl inputStream = null;
@@ -122,13 +122,13 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 				result = bitStream.readFrame();
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		finally
 		{
-			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
-			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (bitStream != null) try { bitStream.close();  } catch (final BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream != null) try { inputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return result;
 	}
@@ -138,7 +138,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getSongInfosFor(java.net.URL)
 	 */
 	@Override
-	public Object[] getSongInfosFor(URL url)
+	public Object[] getSongInfosFor(final URL url)
 	{
 		String songName = MultimediaContainerManager.getSongNameFromURL(url);
 		Long duration = Long.valueOf(-1);
@@ -150,19 +150,19 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 			{
 				inputStream = new RandomAccessInputStreamImpl(url);
 				bitStream = new Bitstream(inputStream);
-				Header h = bitStream.readFrame();
+				final Header h = bitStream.readFrame();
 				if (h!=null) duration = Long.valueOf((long)(h.total_ms(inputStream.available()) + 0.5));
 				mp3FileIDTags = new MP3FileID3Controller(inputStream);
 				if (mp3FileIDTags!=null) songName = mp3FileIDTags.getShortDescription();
 			}
 		}
-		catch (Throwable ex)
+		catch (final Throwable ex)
 		{
 		}
 		finally
 		{
-			if (bitStream != null) try { bitStream.close();  } catch (BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
-			if (inputStream != null) try { inputStream.close(); } catch (IOException ex) { /* Log.error("IGNORED", ex); */ }
+			if (bitStream != null) try { bitStream.close();  } catch (final BitstreamException ex) { /* Log.error("IGNORED", ex); */ }
+			if (inputStream != null) try { inputStream.close(); } catch (final IOException ex) { /* Log.error("IGNORED", ex); */ }
 		}
 		return new Object[] { songName, duration };
 	}
@@ -233,7 +233,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationChanged(java.util.Properties)
 	 */
 	@Override
-	public void configurationChanged(Properties newProps)
+	public void configurationChanged(final Properties newProps)
 	{
 	}
 	/**
@@ -241,7 +241,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#configurationSave(java.util.Properties)
 	 */
 	@Override
-	public void configurationSave(Properties props)
+	public void configurationSave(final Properties props)
 	{
 	}
 	/**
@@ -259,6 +259,7 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 * @param tpe
 	 * @see de.quippy.javamod.multimedia.mp3.streaming.TagParseListener#tagParsed(de.quippy.javamod.multimedia.mp3.streaming.TagParseEvent)
 	 */
+	@Override
 	public void tagParsed(final TagParseEvent tpe)
 	{
 		final IcyTag tag = tpe.getIcyTag();
@@ -270,9 +271,15 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 			if (tag.getName().equalsIgnoreCase(MP3StreamInfoPanel.SONGNAME))
 			{
 				final String currentSongName = tag.getValue();
-				if (currentSongName!=null && currentSongName.length()!=0)
+				if (currentSongName!=null && !currentSongName.isEmpty())
 					fireMultimediaContainerEvent(new MultimediaContainerEvent(this, MultimediaContainerEvent.SONG_NAME_CHANGED, currentSongName.trim()));
 			}
+
+//			if (tag.getName().equalsIgnoreCase(MP3StreamInfoPanel.LOUDNESS))
+//			{
+//				final String loudness = tag.getValue();
+//				if (currentMixer!=null && loudness!=null) currentMixer.setLoudness(Double.parseDouble(loudness));
+//			}
 		}
 	}
 	/**

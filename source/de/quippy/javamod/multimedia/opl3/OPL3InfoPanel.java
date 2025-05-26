@@ -2,7 +2,7 @@
  * @(#) OPL3InfoPanel.java
  *
  * Created on 03.08.2020 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ import de.quippy.javamod.system.Helpers;
 public class OPL3InfoPanel extends JPanel
 {
 	private static final long serialVersionUID = 6059322698770106687L;
-	
+
 	private JLabel opl3NameLabel = null;
 	private JTextField opl3Name = null;
 	private JLabel opl3FileTypeLabel = null;
@@ -51,7 +51,7 @@ public class OPL3InfoPanel extends JPanel
 	private JTextArea opl3Description = null;
 
 	OPL3Container parentContainer = null;
-	
+
 	/**
 	 * Constructor for OPL3InfoPanel
 	 */
@@ -64,7 +64,7 @@ public class OPL3InfoPanel extends JPanel
 	 * Constructor for OPL3InfoPanel
 	 * @param layout
 	 */
-	public OPL3InfoPanel(LayoutManager layout)
+	public OPL3InfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -73,7 +73,7 @@ public class OPL3InfoPanel extends JPanel
 	 * Constructor for OPL3InfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public OPL3InfoPanel(boolean isDoubleBuffered)
+	public OPL3InfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -83,7 +83,7 @@ public class OPL3InfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public OPL3InfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public OPL3InfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -98,7 +98,7 @@ public class OPL3InfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(OPL3Container parent)
+	public void setParentContainer(final OPL3Container parent)
 	{
 		parentContainer = parent;
 	}
@@ -106,7 +106,7 @@ public class OPL3InfoPanel extends JPanel
 	{
 		setName("OPL3InfoPane");
 		setLayout(new java.awt.GridBagLayout());
-		
+
 		this.add(getOP3NameLabel(), 			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getOPL3Name(), 				Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getOP3FileTypeLabel(),			Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
@@ -122,7 +122,7 @@ public class OPL3InfoPanel extends JPanel
 		{
 			opl3NameLabel = new JLabel();
 			opl3NameLabel.setName("opl3NameLabel");
-			opl3NameLabel.setText("OPL file name:");			
+			opl3NameLabel.setText("OPL file name:");
 			opl3NameLabel.setFont(Helpers.getDialogFont());
 		}
 		return opl3NameLabel;
@@ -214,7 +214,7 @@ public class OPL3InfoPanel extends JPanel
 		}
 		return opl3Description;
 	}
-	public void fillInfoPanelWith(OPL3Sequence opl3Sequence)
+	public void fillInfoPanelWith(final OPL3Sequence opl3Sequence)
 	{
 		getOPL3Name().setText(opl3Sequence.getSongName());
 		getOPL3FileType().setText(opl3Sequence.getTypeName());

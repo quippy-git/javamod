@@ -22,23 +22,23 @@
 package de.quippy.mp3.decoder;
 
 /**
- * This interface describes all error codes that can be thrown 
+ * This interface describes all error codes that can be thrown
  * in <code>BistreamException</code>s.
- * 
+ *
  * @see BitstreamException
- * 
+ *
  * @author	MDM		12/12/99
  * @since	0.0.6
  */
 
 public interface BitstreamErrors extends JavaLayerErrors
 {
-	
+
 	/**
-	 * An undeterminable error occurred. 
+	 * An undeterminable error occurred.
 	 */
 	static public final int UNKNOWN_ERROR = BITSTREAM_ERROR + 0;
-	
+
 	/**
 	 * The header describes an unknown sample rate.
 	 */
@@ -48,25 +48,30 @@ public interface BitstreamErrors extends JavaLayerErrors
 	 * A problem occurred reading from the stream.
 	 */
 	static public final int STREAM_ERROR = BITSTREAM_ERROR + 2;
-	
+
 	/**
-	 * The end of the stream was reached prematurely. 
+	 * A problem occurred reading from the stream.
+	 */
+	static public final int STREAM_UNREAD_ERROR = BITSTREAM_ERROR + 0x12;
+
+	/**
+	 * The end of the stream was reached prematurely.
 	 */
 	static public final int UNEXPECTED_EOF = BITSTREAM_ERROR + 3;
-	
+
 	/**
-	 * The end of the stream was reached. 
+	 * The end of the stream was reached.
 	 */
 	static public final int STREAM_EOF = BITSTREAM_ERROR + 4;
-	
+
 	/**
-	 * Frame data are missing. 
+	 * Frame data are missing.
 	 */
 	static public final int INVALIDFRAME = BITSTREAM_ERROR + 5;
 
 	/**
-	 * 
+	 *
 	 */
 	static public final int BITSTREAM_LAST = 0x1ff;
-	
+
 }

@@ -2,7 +2,7 @@
  * @(#) FLACInfoPanel.java
  *
  * Created on 17.02.2011 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ public class FLACInfoPanel extends JPanel
 	 * Constructor for FLACInfoPanel
 	 * @param layout
 	 */
-	public FLACInfoPanel(LayoutManager layout)
+	public FLACInfoPanel(final LayoutManager layout)
 	{
 		super(layout);
 		initialize();
@@ -98,7 +98,7 @@ public class FLACInfoPanel extends JPanel
 	 * Constructor for FLACInfoPanel
 	 * @param isDoubleBuffered
 	 */
-	public FLACInfoPanel(boolean isDoubleBuffered)
+	public FLACInfoPanel(final boolean isDoubleBuffered)
 	{
 		super(isDoubleBuffered);
 		initialize();
@@ -108,7 +108,7 @@ public class FLACInfoPanel extends JPanel
 	 * @param layout
 	 * @param isDoubleBuffered
 	 */
-	public FLACInfoPanel(LayoutManager layout, boolean isDoubleBuffered)
+	public FLACInfoPanel(final LayoutManager layout, final boolean isDoubleBuffered)
 	{
 		super(layout, isDoubleBuffered);
 		initialize();
@@ -123,7 +123,7 @@ public class FLACInfoPanel extends JPanel
 	/**
 	 * @param parent the parent to set
 	 */
-	public void setParentContainer(FLACContainer parent)
+	public void setParentContainer(final FLACContainer parent)
 	{
 		this.parentContainer = parent;
 	}
@@ -289,7 +289,7 @@ public class FLACInfoPanel extends JPanel
 		{
 			flacIDPanel = new JPanel();
 			flacIDPanel.setLayout(new java.awt.GridBagLayout());
-			
+
 			flacIDPanel.add(getV1_L_Track(),		Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
 			flacIDPanel.add(getV1_Track(),			Helpers.getGridBagConstraint(1, 0, 1, 0, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.NORTHWEST, 1.0, 0.0));
 			flacIDPanel.add(getV1_L_Title(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.NORTHEAST, 0.0, 0.0));
@@ -433,7 +433,7 @@ public class FLACInfoPanel extends JPanel
 	{
 		if (v1_Genre==null)
 		{
-			v1_Genre = new javax.swing.JComboBox<String>(NullsoftID3GenreTable.getGenres());
+			v1_Genre = new javax.swing.JComboBox<>(NullsoftID3GenreTable.getGenres());
 			v1_Genre.setName("v1_Genre");
 			v1_Genre.setFont(Helpers.getDialogFont());
 			v1_Genre.setEditable(true);
@@ -483,19 +483,19 @@ public class FLACInfoPanel extends JPanel
 		getFlacChannels().setText(Integer.toString(audioFormat.getChannels()));
 		getFlacEncoding().setText(audioFormat.getEncoding().toString());
 		getFlacDuration().setText(Helpers.getTimeStringFromMilliseconds(lengthInMilliseconds));
-		
+
 		if (vorbisComment!=null)
 		{
 			// BAND, ALBUMARTIST, COMPOSER
-			StringBuilder sb = new StringBuilder();
-			String track = vorbisComment.getTrackNumber();
-			if (track.length()>0) sb.append("Track ").append(track);
-			String totalTracks = vorbisComment.getTotalTracks();
-			if (totalTracks.length()>0) sb.append(" of ").append(totalTracks);
-			String disc = vorbisComment.getDiscNumber();
-			if (disc.length()>0) sb.append(" Disc ").append(disc);
-			String totalDiscs = vorbisComment.getTotalDiscs();
-			if (totalDiscs.length()>0) sb.append(" of ").append(totalDiscs);
+			final StringBuilder sb = new StringBuilder();
+			final String track = vorbisComment.getTrackNumber();
+			if (!track.isEmpty()) sb.append("Track ").append(track);
+			final String totalTracks = vorbisComment.getTotalTracks();
+			if (!totalTracks.isEmpty()) sb.append(" of ").append(totalTracks);
+			final String disc = vorbisComment.getDiscNumber();
+			if (!disc.isEmpty()) sb.append(" Disc ").append(disc);
+			final String totalDiscs = vorbisComment.getTotalDiscs();
+			if (!totalDiscs.isEmpty()) sb.append(" of ").append(totalDiscs);
 			getV1_Track().setText(sb.toString());
 
 			getV1_Title().setText(vorbisComment.getTitle());

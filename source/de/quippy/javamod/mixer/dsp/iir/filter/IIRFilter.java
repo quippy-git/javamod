@@ -2,7 +2,7 @@
  * @(#) IIRFilter.java
  *
  * Created on 12.01.2012 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,21 +36,21 @@ public class IIRFilter
     private int jIndex;
     private int kIndex;
     private int sampleBufferSize;
-    private int filterLength;
-	private IIRFilterBase[] filters;
+    private final int filterLength;
+	private final IIRFilterBase[] filters;
 	private float preAmp;
 
 	/**
 	 * @since 12.01.2012
 	 */
-	public IIRFilter(IIRFilterBase[] theFilters)
+	public IIRFilter(final IIRFilterBase[] theFilters)
 	{
 		super();
 		this.filters = theFilters;
 		filterLength = theFilters.length;
 		preAmp = 1.0f;
 	}
-	public void initialize(int channels, int sampleBufferSize)
+	public void initialize(final int channels, final int sampleBufferSize)
 	{
 		this.channels = channels;
 		this.sampleBufferSize = sampleBufferSize;
@@ -69,11 +69,11 @@ public class IIRFilter
 		jIndex = 1; // iIndex - 2
 		kIndex = 2; // iIndex - 1
 	}
-	public float getBand(int index)
+	public float getBand(final int index)
 	{
 		return filters[index].getGain();
 	}
-	public void setBand(int index, float newGain)
+	public void setBand(final int index, final float newGain)
 	{
 		filters[index].setGain(newGain);
 	}
@@ -87,7 +87,7 @@ public class IIRFilter
 	/**
 	 * @param preAmp the preAmp to set
 	 */
-	public void setPreAmp(float newPreAmpDB)
+	public void setPreAmp(final float newPreAmpDB)
 	{
 		preAmp = (float)Helpers.getDecimalValueFrom(newPreAmpDB);
 	}
@@ -118,13 +118,13 @@ public class IIRFilter
 			for (int c=0; c<channels; c++)
 			{
 				final int sampleIndex = (index++) % sampleBufferSize;
-				
+
 				float sample = 0;
 				// Run the difference equation
-				final float preAmpedSample = ringBuffer[sampleIndex] * preAmp * internalPreAmp; 
+				final float preAmpedSample = ringBuffer[sampleIndex] * preAmp * internalPreAmp;
 				for (int f=0; f<useBands; f++)
 				{
-					IIRFilterBase filter = filters[f];
+					final IIRFilterBase filter = filters[f];
 					sample += filter.performFilterCalculation(preAmpedSample, c, iIndex, jIndex, kIndex) * filter.amplitudeAdj;
 				}
 				sample += (ringBuffer[sampleIndex] * rest);

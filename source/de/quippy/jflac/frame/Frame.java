@@ -29,28 +29,29 @@ import de.quippy.jflac.Constants;
 public class Frame {
     /** The frame header. */
     public Header header;
-    
+
     /** The subframes - One per channel. */
     public Channel[] subframes = new Channel[Constants.MAX_CHANNELS];
-    
+
     /** The frame footer. */
     private short crc;
-    
+
     /**
      * @see java.lang.Object#toString()
      */
-    public String toString() {
-        StringBuffer sb = new StringBuffer();
+    @Override
+	public String toString() {
+        final StringBuilder sb = new StringBuilder();
         sb.append("Frame Header: " + header + "\n");
         for (int i = 0; i < header.channels; i++) {
             sb.append("\tFrame Data " + subframes[i].toString() + "\n");
         }
         sb.append("\tFrame Footer: " + crc);
-        
+
         return sb.toString();
-        
+
     }
-    
+
     /**
      * Return the maximum Rice partition order based on the block size.
      * @param blocksize The block size
@@ -64,7 +65,7 @@ public class Frame {
         }
         return Math.min(Constants.MAX_RICE_PARTITION_ORDER, maxRicePartitionOrder);
     }
-    
+
     /**
      * return the frame's CRC.
      * @return Returns the crc.
@@ -72,15 +73,15 @@ public class Frame {
     public short getCRC() {
         return crc;
     }
-    
+
     /**
      * Set the frame's CRC.
      * @param crc The crc to set.
      */
-    public void setCRC(short crc) {
+    public void setCRC(final short crc) {
         this.crc = crc;
     }
-    
+
     /**
      * return the frame's Header.
      * @return Returns the header.

@@ -36,7 +36,7 @@ public class PredictorDecompressNormal3930to3950 extends IPredictorDecompress {
     private final static int BUFFER_COUNT = 1;
     private final static int M_COUNT = 8;
 
-    public PredictorDecompressNormal3930to3950(int nCompressionLevel, int nVersion) {
+    public PredictorDecompressNormal3930to3950(final int nCompressionLevel, final int nVersion) {
         super(nCompressionLevel, nVersion);
         m_pBuffer[0] = new int[HISTORY_ELEMENTS + WINDOW_BLOCKS];
 
@@ -57,7 +57,8 @@ public class PredictorDecompressNormal3930to3950 extends IPredictorDecompress {
         }
     }
 
-    public int DecompressValue(int nInput, int notneeded) {
+    @Override
+	public int DecompressValue(int nInput, final int notneeded) {
         if (m_nCurrentIndex == WINDOW_BLOCKS) {
             // copy forward and adjust pointers
             System.arraycopy(m_pBuffer[0], WINDOW_BLOCKS, m_pBuffer[0], 0, HISTORY_ELEMENTS);
@@ -72,10 +73,10 @@ public class PredictorDecompressNormal3930to3950 extends IPredictorDecompress {
         if (m_pNNFilter != null) nInput = m_pNNFilter.Decompress(nInput);
 
         // stage 1: multiple predictors (order 2 and offset 1)
-        int p1 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 1];
-        int p2 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 1] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 2];
-        int p3 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 2] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 3];
-        int p4 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 3] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 4];
+        final int p1 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 1];
+        final int p2 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 1] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 2];
+        final int p3 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 2] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 3];
+        final int p4 = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 3] - m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j - 4];
 
         m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j] = nInput + (((p1 * m_aryM[0]) + (p2 * m_aryM[1]) + (p3 * m_aryM[2]) + (p4 * m_aryM[3])) >> 9);
 
@@ -91,7 +92,7 @@ public class PredictorDecompressNormal3930to3950 extends IPredictorDecompress {
             m_aryM[3] += ((p4 >> 30) & 2) - 1;
         }
 
-        int nRetVal = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j] + ((m_nLastValue * 31) >> 5);
+        final int nRetVal = m_pBuffer[m_pInputBuffer_i][m_pInputBuffer_j] + ((m_nLastValue * 31) >> 5);
         m_nLastValue = nRetVal;
 
         m_nCurrentIndex++;
@@ -100,7 +101,8 @@ public class PredictorDecompressNormal3930to3950 extends IPredictorDecompress {
         return nRetVal;
     }
 
-    public void Flush() {
+    @Override
+	public void Flush() {
         if (m_pNNFilter != null) m_pNNFilter.Flush();
         if (m_pNNFilter1 != null) m_pNNFilter1.Flush();
 

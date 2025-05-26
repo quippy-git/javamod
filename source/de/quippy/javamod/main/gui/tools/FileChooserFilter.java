@@ -1,8 +1,8 @@
 /*
  * @(#) FileChooserFilter.java
- * 
+ *
  * Created on 22.06.2006 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ import de.quippy.javamod.system.Helpers;
  */
 public class FileChooserFilter extends FileFilter
 {
-	private ArrayList<String> extensions = new java.util.ArrayList<String>();
+	private final ArrayList<String> extensions = new java.util.ArrayList<>();
 	private String description;
 
 	/**
@@ -45,32 +45,32 @@ public class FileChooserFilter extends FileFilter
 	{
 		super();
 	}
-	/** 
+	/**
 	 * FileChooserFilter - Konstruktorkommentar.
 	 * @param extension java.lang.String
 	 * @param description java.lang.String
 	 */
-	public FileChooserFilter(String extension, String description)
+	public FileChooserFilter(final String extension, final String description)
 	{
 		this();
 		extensions.add(extension.toLowerCase());
 		this.description = (description == null ? extension + " files" : description);
 	}
-	/** 
+	/**
 	 * FileChooserFilter - Konstruktorkommentar.
 	 * @param extension java.lang.String
 	 * @param description java.lang.String
 	 */
-	public FileChooserFilter(String extension)
+	public FileChooserFilter(final String extension)
 	{
 		this(extension, null);
 	}
-	/** 
+	/**
 	 * FileChooserFilter - Konstruktorkommentar.
 	 * @param extension java.lang.String
 	 * @param description java.lang.String
 	 */
-	public FileChooserFilter(String[] extensions, String description)
+	public FileChooserFilter(final String[] extensions, final String description)
 	{
 		this();
 		if (description != null)
@@ -78,23 +78,23 @@ public class FileChooserFilter extends FileFilter
 		else
 			this.description = Helpers.EMPTY_STING;
 
-		for (int i = 0; i < extensions.length; i++)
+		for (final String extension : extensions)
 		{
-			String suffix = extensions[i].toLowerCase();
+			final String suffix = extension.toLowerCase();
 			if (description == null) this.description += "*." + suffix + " ";
-			this.extensions.add(extensions[i].toLowerCase());
+			this.extensions.add(extension.toLowerCase());
 		}
 	}
-	/** 
+	/**
 	 * FileChooserFilter
 	 * @param extension java.lang.String
 	 * @param description java.lang.String
 	 */
-	public FileChooserFilter(String[] extensions)
+	public FileChooserFilter(final String[] extensions)
 	{
 		this(extensions, null);
 	}
-	/** 
+	/**
 	 * Whether the given file is accepted by this filter.
 	 * @param f java.io.File
 	 * @return boolean
@@ -103,14 +103,12 @@ public class FileChooserFilter extends FileFilter
 	public boolean accept(final File f)
 	{
 		if (f.isDirectory()) return true;
-		int len = extensions.size();
+		final int len = extensions.size();
 		if (len == 0) return true;
 		for (int i=0; i<len; i++)
 		{
-			String suffix = extensions.get(i);
-			if (suffix.equals("*")) return true;
-			if (f.getName().toLowerCase().endsWith('.' + suffix)) return true;
-			if (f.getName().toLowerCase().startsWith(suffix + '.')) return true; // Amiga Mods *start* with suffix, e.g. "mod.songname"
+			final String suffix = extensions.get(i);
+			if (suffix.equals("*") || f.getName().toLowerCase().endsWith('.' + suffix) || f.getName().toLowerCase().startsWith(suffix + '.')) return true; // Amiga Mods *start* with suffix, e.g. "mod.songname"
 		}
 		return false;
 	}

@@ -2,7 +2,7 @@
  * @(#) OggMetaData.java
  *
  * Created on 23.12.2008 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------
  */
- 
+
 package de.quippy.javamod.multimedia.mp3.id3;
 
 import java.io.FileNotFoundException;
@@ -35,7 +35,7 @@ import de.quippy.javamod.system.Helpers;
  *  This class reads and writes id3v1 tags from/to files.
  *
  * @author:  Jonathan Hilliker modified by Daniel Becker
- * 
+ *
  * ID3v1: 128 bytes
  * Field 		Length 		Description
  * header 		3 			"TAG"
@@ -84,14 +84,14 @@ public class ID3v1Tag
 	private int track;
 
 	/**
-	 * Create an id3v1tag from the file specified.  If the file contains a 
+	 * Create an id3v1tag from the file specified.  If the file contains a
 	 * tag, the information is automatically extracted.
 	 *
 	 * @param mp3 the file to read/write the tag to
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public ID3v1Tag(RandomAccessInputStream raf) throws FileNotFoundException, IOException
+	public ID3v1Tag(final RandomAccessInputStream raf) throws FileNotFoundException, IOException
 	{
 		this.headerExists = checkHeader(raf);
 		if (headerExists) readTag(raf);
@@ -104,14 +104,14 @@ public class ID3v1Tag
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private boolean checkHeader(RandomAccessInputStream raf) throws FileNotFoundException, IOException
+	private boolean checkHeader(final RandomAccessInputStream raf) throws FileNotFoundException, IOException
 	{
 		boolean retval = false;
 
 		if (raf.length() > TAG_SIZE)
 		{
 			raf.seek(raf.length() - TAG_SIZE);
-			byte[] buf = new byte[3];
+			final byte[] buf = new byte[3];
 
 			if (raf.read(buf) != 3)
 			{
@@ -119,7 +119,7 @@ public class ID3v1Tag
 			}
 			else
 			{
-				String result = new String(buf, 0, 3, ENC_TYPE);
+				final String result = new String(buf, 0, 3, ENC_TYPE);
 				retval = result.equals(TAG_START);
 			}
 		}
@@ -133,37 +133,37 @@ public class ID3v1Tag
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	private void readTag(RandomAccessInputStream raf) throws FileNotFoundException, IOException
+	private void readTag(final RandomAccessInputStream raf) throws FileNotFoundException, IOException
 	{
 		raf.seek(raf.length() - TAG_SIZE);
-		byte[] buf = new byte[TAG_SIZE];
+		final byte[] buf = new byte[TAG_SIZE];
 		raf.read(buf, 0, TAG_SIZE);
-		String tag = new String(buf, 0, TAG_SIZE, ENC_TYPE);
+		final String tag = new String(buf, 0, TAG_SIZE, ENC_TYPE);
 		int start = TAG_START.length();
 		title = tag.substring(start, start += TITLE_SIZE);
 		artist = tag.substring(start, start += ARTIST_SIZE);
 		album = tag.substring(start, start += ALBUM_SIZE);
 		year = tag.substring(start, start += YEAR_SIZE);
 		comment = tag.substring(start, start += COMMENT_SIZE);
-		track = (int) tag.charAt(TRACK_LOCATION);
-		genre = (int) tag.charAt(GENRE_LOCATION);
+		track = tag.charAt(TRACK_LOCATION);
+		genre = tag.charAt(GENRE_LOCATION);
 	}
 
 	/**
-	 * Writes the information in this tag to the file specified in the 
+	 * Writes the information in this tag to the file specified in the
 	 * constructor.  If a tag does not exist, one will be created.  If a tag
 	 * already exists, it will be overwritten.
 	 *
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public void writeTag(RandomAccessFile raf) throws FileNotFoundException, IOException
+	public void writeTag(final RandomAccessFile raf) throws FileNotFoundException, IOException
 	{
 		if (headerExists)
 			raf.seek(raf.length() - TAG_SIZE);
 		else
 			raf.seek(raf.length());
-	
+
 		raf.write(Helpers.getBytesFromString(TAG_START, TAG_START.length(), ENC_TYPE));
 		raf.write(Helpers.getBytesFromString(title, TITLE_SIZE, ENC_TYPE));
 		raf.write(Helpers.getBytesFromString(artist, ARTIST_SIZE, ENC_TYPE));
@@ -183,7 +183,7 @@ public class ID3v1Tag
 	 * @exception FileNotFoundException if an error occurs
 	 * @exception IOException if an error occurs
 	 */
-	public void removeTag(RandomAccessFile raf) throws FileNotFoundException, IOException
+	public void removeTag(final RandomAccessFile raf) throws FileNotFoundException, IOException
 	{
 		if (headerExists)
 		{
@@ -204,16 +204,16 @@ public class ID3v1Tag
 	}
 
 	/**
-	 * Attempt to set the genre value of this tag from the string specified.  
-	 * The value returned is based on the ID3/Nullsoft standards.  Returns 
+	 * Attempt to set the genre value of this tag from the string specified.
+	 * The value returned is based on the ID3/Nullsoft standards.  Returns
 	 * true if a match is found in the table and false otherwise.
 	 *
 	 * @param str the string value of the genre to attempt to set
 	 * @return true if a match is found, false otherwise
 	 */
-	public boolean setGenreString(String str)
+	public boolean setGenreString(final String str)
 	{
-		int result = NullsoftID3GenreTable.getGenre(str);
+		final int result = NullsoftID3GenreTable.getGenre(str);
 		boolean retval = false;
 
 		if (result != -1)
@@ -251,7 +251,7 @@ public class ID3v1Tag
 	 *
 	 * @param newTitle the title for the tag
 	 */
-	public void setTitle(String newTitle)
+	public void setTitle(final String newTitle)
 	{
 		if (newTitle.length() > TITLE_SIZE)
 		{
@@ -279,7 +279,7 @@ public class ID3v1Tag
 	 *
 	 * @param newArtist the artist for the tag
 	 */
-	public void setArtist(String newArtist)
+	public void setArtist(final String newArtist)
 	{
 		if (newArtist.length() > ARTIST_SIZE)
 		{
@@ -307,7 +307,7 @@ public class ID3v1Tag
 	 *
 	 * @param newAlbum the album for the tag
 	 */
-	public void setAlbum(String newAlbum)
+	public void setAlbum(final String newAlbum)
 	{
 		if (newAlbum.length() > ALBUM_SIZE)
 		{
@@ -335,7 +335,7 @@ public class ID3v1Tag
 	 *
 	 * @param newYear the year for the tag
 	 */
-	public void setYear(String newYear)
+	public void setYear(final String newYear)
 	{
 		if (newYear.length() > YEAR_SIZE)
 		{
@@ -363,7 +363,7 @@ public class ID3v1Tag
 	 *
 	 * @param newComment the comment of the tag
 	 */
-	public void setComment(String newComment)
+	public void setComment(final String newComment)
 	{
 		if (comment.length() > COMMENT_SIZE)
 		{
@@ -391,7 +391,7 @@ public class ID3v1Tag
 	 *
 	 * @param newTrack the track of the tag
 	 */
-	public void setTrack(int newTrack)
+	public void setTrack(final int newTrack)
 	{
 		if ((newTrack <= MAX_TRACK) && (newTrack >= 0))
 		{
@@ -416,7 +416,7 @@ public class ID3v1Tag
 	 * @param newGenre the genre of the tag
 	 * @exception ID3FieldDataException if the value supplie is invalid
 	 */
-	public void setGenre(int newGenre) throws ID3FieldDataException
+	public void setGenre(final int newGenre) throws ID3FieldDataException
 	{
 		if ((newGenre <= MAX_GENRE) && (newGenre >= 0))
 		{
@@ -446,6 +446,7 @@ public class ID3v1Tag
 		return retval;
 	}
 
+	@Override
 	public String toString()
 	{
 		return "ID3v1.0\nTagSize:\t\t\t" + getSize() + " bytes\nTitle:\t\t\t\t" + getTitle() + "\nArtist:\t\t\t\t" + getArtist() + "\nAlbum:\t\t\t\t" + getAlbum() + "\nYear:\t\t\t\t" + getYear() + "\nComment:\t\t\t" + getComment() + "\nTrack:\t\t\t\t" + getTrack() + "\nGenre:\t\t\t\t" + getGenreString();

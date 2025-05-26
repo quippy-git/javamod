@@ -2,7 +2,7 @@
  * @(#) Mixer.java
  *
  * Created on 14.10.2007 by Daniel Becker
- * 
+ *
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,10 +40,10 @@ public abstract class Mixer
 	private AudioFormat audioFormat;
 	private boolean keepSilent;
 	private int sourceLineBufferSize;
-	
+
 	private float currentVolume;
 	private float currentBalance;
-	
+
 	protected boolean playDuringExport;
 	protected File exportFile;
 
@@ -160,7 +160,7 @@ public abstract class Mixer
 	 * @param start
 	 * @param length
 	 */
-	protected void writeSampleDataToLine(byte[] samples, int start, int length)
+	protected void writeSampleDataToLine(final byte[] samples, final int start, final int length)
 	{
 		if (outputStream!=null) outputStream.writeSampleData(samples, start, length);
 	}
@@ -168,7 +168,7 @@ public abstract class Mixer
 	 * @since 27.11.2010
 	 * @param newPosition
 	 */
-	protected void setInternalFramePosition(long newPosition)
+	protected void setInternalFramePosition(final long newPosition)
 	{
 		if (outputStream!=null) outputStream.setInternalFramePosition(newPosition);
 	}
