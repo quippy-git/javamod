@@ -720,6 +720,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			if (panning>256) panning=256;
 			currentSample.setDefaultPanning(panning);
 			currentSample.setLength(inputStream.readIntelDWord());
+			currentSample.setByteLength(currentSample.length);
 
 			final int repeatStart = inputStream.readIntelDWord();
 			final int repeatStop = inputStream.readIntelDWord();

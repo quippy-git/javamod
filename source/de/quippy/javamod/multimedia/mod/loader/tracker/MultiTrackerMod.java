@@ -269,6 +269,7 @@ public class MultiTrackerMod extends ProTrackerMod
 
 			current.setName(sampleName);
 			current.setLength(length);
+			current.setByteLength(current.length);
 
 			current.setLoopStart(repeatStart);
 			current.setLoopStop(repeatStop);

@@ -35,7 +35,8 @@ import de.quippy.javamod.system.Helpers;
 public class Sample
 {
 	public String name;			// Name of the sample
-	public int length;			// full length (already *2 --> Mod-Format)
+	public int byteLength;		// typically equal to length
+	public int length;			// full length in samples (already *2 --> Mod-Format)
 	public int sampleType;		// normalized loading flags (signed, unsigned, 8-Bit, compressed, ...)
 	public int fineTune;		// Finetuning -8..+8
 	public int volume;			// Basisvolume
@@ -606,6 +607,13 @@ public class Sample
 	public void setFlags(final int newFlags)
 	{
 		flags = newFlags;
+	}
+	/**
+	 * @param byteLength the byteLength to set
+	 */
+	public void setByteLength(int byteLength)
+	{
+		this.byteLength = byteLength;
 	}
 	/**
 	 * @param length The length to set.

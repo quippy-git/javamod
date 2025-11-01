@@ -56,6 +56,7 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import de.quippy.javamod.main.gui.components.PeekMeterComponent;
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.ModInfoPanel;
@@ -80,6 +81,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	private static final JLabel EMPTY_LABEL_CHANNEL = new JLabel(" ");
 	private static final GridBagConstraints EMPTY_LABEL_CONSTRAINT_CHANNEL = Helpers.getGridBagConstraint(0, 0, ANZ_BUTTONS, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0, Helpers.NULL_INSETS);
 
+	// Mute types
 	private static final int SOLOCHANNEL = 1;
 	private static final int TOGGLEMUTE = 2;
 	private static final int RESET = 3;
@@ -100,7 +102,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 
 	private JPanel channelHeadlinePanel = null;
 	private JButton [] channelButtons = null;
-	private JButton [] peakMeterButtons = null;
+	private PeekMeterComponent [] peakMeterButtons = null;
 	private JButton [] effectButtons = null;
 	private JButton [] volEffectButtons = null;
     private JPopupMenu channelPopUp = null;
@@ -121,8 +123,6 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	private int currentIndex;
 	private int selectedChannelNumber = -1; // Popup on which channel?
 
-	private String peekMeterColorStrings[];
-
 	private final ModInfoPanel myModInfoPanel;
 	private Mixer currentMixer;
 	private BasicModMixer currentModMixer;
@@ -142,18 +142,6 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	}
 	private void initialize()
 	{
-		// Let's first create the normal and darker color for the meters
-		peekMeterColorStrings = new String[16];
-		for (int i=0; i<8; i++)
-		{
-			final int r = i*255/8;
-			final int g = 255-r;
-			final int b = 0;
-			peekMeterColorStrings[i]="#"+ModConstants.getAsHex(r, 2)+ModConstants.getAsHex(g, 2)+ModConstants.getAsHex(b, 2);
-			final Color buttonColor = PatternImagePanel.getButtonColor();
-			peekMeterColorStrings[i+8]="#"+ModConstants.getAsHex(buttonColor.getRed(), 2)+ModConstants.getAsHex(buttonColor.getGreen(), 2)+ModConstants.getAsHex(buttonColor.getBlue(), 2);
-		}
-
 		CHANNELBUTTON_SIZE = new Dimension(getPatternImagePanel().getRowElementPixelWidth(), getPatternImagePanel().getRowElementPixelHeight());
 		CHANNELPATTERNINDEX_SIZE = new Dimension(getPatternImagePanel().getButtonPixelWidth(), getPatternImagePanel().getButtonPixelHeight() * ANZ_BUTTONS); // three buttons stacked on top of each other
 
@@ -694,30 +682,6 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 		}
 		return patternNumberLabel;
 	}
-	/**
-	 * @since 28.11.2023
-	 * @param channel
-	 * @param highLeft
-	 * @param highRight
-	 * @return
-	 */
-	private String createPeakMeter(final int channel, final int highLeft, final int highRight, final boolean isSurround)
-	{
-		final StringBuilder sb = new StringBuilder("<html>");
-		if (isSurround)
-		{
-			for (int i=7; i>0; i--) sb.append("<font color=").append(peekMeterColorStrings[(i>highLeft)?i+8:i]).append(">)</font>");
-			sb.append(' ');
-			for (int i=0; i<8; i++) sb.append("<font color=").append(peekMeterColorStrings[(i<highRight)?i:i+8]).append(">(</font>");
-		}
-		else
-		{
-			for (int i=7; i>0; i--) sb.append("<font color=").append(peekMeterColorStrings[(i>highLeft)?i+8:i]).append(">(</font>");
-			sb.append(' ');
-			for (int i=0; i<8; i++) sb.append("<font color=").append(peekMeterColorStrings[(i<highRight)?i:i+8]).append(">)</font>");
-		}
-		return sb.append("</html>").toString();
-	}
 	private String getChannelName(final int channel)
 	{
 		final StringBuilder sb = new StringBuilder();
@@ -783,30 +747,18 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 		});
 		return channelButton;
 	}
-	private JButton createPeakMeterButton(final int channelNumber)
+	private PeekMeterComponent createPeakMeterButton(final int channelNumber)
 	{
-		final JButton channelButton = new JButton();
+		final PeekMeterComponent channelButton = new PeekMeterComponent();
 		channelButton.setName("Channel_"+Integer.toString(channelNumber));
-		channelButton.setText(createPeakMeter(channelNumber, 0, 0, false));
-		channelButton.setHorizontalAlignment(SwingConstants.CENTER);
 		channelButton.setFont(Helpers.getDialogFont());
 		channelButton.setToolTipText("Channel " + Integer.toString(channelNumber + 1) + " mute/unmute");
 		channelButton.setBackground(PatternImagePanel.getButtonColor());
 		channelButton.setBorder(null);
-		channelButton.setBorderPainted(false);
-		channelButton.setMargin(Helpers.NULL_INSETS);
 		channelButton.setSize(CHANNELBUTTON_SIZE);
 		channelButton.setMinimumSize(CHANNELBUTTON_SIZE);
 		channelButton.setMaximumSize(CHANNELBUTTON_SIZE);
 		channelButton.setPreferredSize(CHANNELBUTTON_SIZE);
-		channelButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(final ActionEvent e)
-			{
-				doMute(TOGGLEMUTE, channelNumber);
-			}
-		});
 		channelButton.addMouseListener(new MouseAdapter()
 		{
 			@Override
@@ -817,6 +769,12 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 		        {
 					selectedChannelNumber = channelNumber;
 					getPopup().show(channelButton, e.getX(), e.getY());
+					e.consume();
+		        }
+				else
+				if (SwingUtilities.isLeftMouseButton(e))
+		        {
+					doMute(TOGGLEMUTE, channelNumber);
 					e.consume();
 		        }
 			}
@@ -911,7 +869,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	private void createChannelButtons(final int channels)
 	{
 		channelButtons = new JButton[channels];
-		peakMeterButtons = new JButton[channels];
+		peakMeterButtons = new PeekMeterComponent[channels];
 		effectButtons = new JButton[channels];
 		volEffectButtons = new JButton[channels];
 
@@ -967,8 +925,8 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	{
 		// because of possible race conditions (EventQueue.invokeLater) a new mod can already be loaded while the old updater is still updating for an old mod
 		// this should not happen, but occasional it does
-		if (channelButtons!=null && channel<channelButtons.length)
-			peakMeterButtons[channel].setText(createPeakMeter(channel, peekVolumeLeft, peekVolumeRight, isSurround));
+		if (channelButtons!=null && channel<channelButtons.length && peakMeterButtons[channel]!=null)
+			peakMeterButtons[channel].setMeterValues(peekVolumeLeft, peekVolumeRight, isSurround);
 	}
 	/**
 	 * @since 28.11.2023
