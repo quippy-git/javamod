@@ -22,7 +22,6 @@
 package de.quippy.javamod.main.gui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
@@ -58,17 +57,19 @@ public class XmasScreenConfigPanel extends JPanel
 
 	private static final String PROPERTY_XMAS_ENABLED = "javamod.xmas.enabled.";
 	private static final String PROPERTY_XMAS_WITHSPACE = "javamod.xmas.withspace.";
+	private static final String PROPERTY_XMAS_ALWAYSONTOP = "javamod.xmas.alwaysontop.";
 	private static final String PROPERTY_XMAS_FLICKERTYPE = "javamod.xmas.flickertype.";
 	private static final String PROPERTY_XMAS_UPDATEFPS = "javamod.xmas.updatefps.";
 
 	private JCheckBox xmasEnabledCheckBox = null;
+	private JCheckBox alwaysOnTopCheckBox = null;
 	private JCheckBox withSpaceCheckBox = null;
 	private JLabel flickerTypeLabel = null;
 	private JLabel updateFPSLabel = null;
 	private JComboBox<String> flickerTypeSelector = null;
 	private JSlider updateFPSSelector = null;
 
-	private JWindow transparentJFrame = null;
+	private JWindow transparentWindow = null;
 	private XmasDecorationPanel xmasDecorationPanel = null;
 
 	private final int screenFPS;
@@ -93,11 +94,12 @@ public class XmasScreenConfigPanel extends JPanel
     	setName("Xmas Screen Config for Screen");
 		setLayout(new java.awt.GridBagLayout());
 		add(getXmasEnabledCheckBox(),	Helpers.getGridBagConstraint(0, 0, 1, 3, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getWithSpaceCheckBox(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getFlickerTypeLabel(),		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getFlickerTypeSelector(),	Helpers.getGridBagConstraint(2, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getUpdateFPSLabel(),		Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		add(getUpdateFPSSelector(),		Helpers.getGridBagConstraint(1, 2, 1, 2, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		add(getAlwaysOnTopBox(),		Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getWithSpaceCheckBox(),		Helpers.getGridBagConstraint(0, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getFlickerTypeLabel(),		Helpers.getGridBagConstraint(1, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getFlickerTypeSelector(),	Helpers.getGridBagConstraint(2, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getUpdateFPSLabel(),		Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		add(getUpdateFPSSelector(),		Helpers.getGridBagConstraint(1, 3, 1, 2, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
     }
 	private JCheckBox getXmasEnabledCheckBox()
 	{
@@ -124,13 +126,38 @@ public class XmasScreenConfigPanel extends JPanel
 		}
 		return xmasEnabledCheckBox;
 	}
+	private JCheckBox getAlwaysOnTopBox()
+	{
+		if (alwaysOnTopCheckBox == null)
+		{
+			alwaysOnTopCheckBox = new javax.swing.JCheckBox();
+			alwaysOnTopCheckBox.setName("alwaysOnTopCheckBox");
+			alwaysOnTopCheckBox.setText("always on top");
+			alwaysOnTopCheckBox.setFont(Helpers.getDialogFont());
+			alwaysOnTopCheckBox.setSelected(isWithSpaceEnabled());
+			alwaysOnTopCheckBox.addItemListener(new ItemListener()
+			{
+				@Override
+				public void itemStateChanged(final ItemEvent e)
+				{
+					if (e.getStateChange()==ItemEvent.SELECTED || e.getStateChange()==ItemEvent.DESELECTED)
+					{
+						final boolean isOnTop = getAlwaysOnTopBox().isSelected();
+						getTransparentJWindow().setAlwaysOnTop(isOnTop);
+						if (isOnTop) getTransparentJWindow().toFront();
+					}
+				}
+			});
+		}
+		return alwaysOnTopCheckBox;
+	}
 	private JCheckBox getWithSpaceCheckBox()
 	{
 		if (withSpaceCheckBox == null)
 		{
 			withSpaceCheckBox = new javax.swing.JCheckBox();
 			withSpaceCheckBox.setName("withSpaceCheckBox");
-			withSpaceCheckBox.setText("with Space");
+			withSpaceCheckBox.setText("with space");
 			withSpaceCheckBox.setFont(Helpers.getDialogFont());
 			withSpaceCheckBox.setSelected(isWithSpaceEnabled());
 			withSpaceCheckBox.addItemListener(new ItemListener()
@@ -235,23 +262,29 @@ public class XmasScreenConfigPanel extends JPanel
 		// But whatever the difference of a JWindow to a Window is, a Window
 		// does not work with the OpenGL render pipeline.
 		// On Linux / KDE the OpenGL pipeline reduces flicker, however the
-		// Window inherits the alpha value of the underlying window...
-		if (transparentJFrame == null)
+		// Window inherits the alpha value of the underlying window..
+		// A JFrame is possibly like using a sledgehammer to crack a nut - and
+		// will create an icon in the taskbar at Linux
+		if (transparentWindow == null)
 		{
-			transparentJFrame = new JWindow();
-			transparentJFrame.setAlwaysOnTop(true);
+			transparentWindow = new JWindow();
 
 			final GraphicsConfiguration gc = screen.getDefaultConfiguration();
 			final Rectangle bounds = gc.getBounds();
 			bounds.height = defaultScreenHeight;
-			transparentJFrame.setBounds(bounds);
+			transparentWindow.setBounds(bounds);
+			transparentWindow.setAlwaysOnTop(true);
+			transparentWindow.toFront(); // just in case...
+			//transparentWindow.setUndecorated(true); - JFrame needs this
+			transparentWindow.setFocusable(false);
+			transparentWindow.setFocusableWindowState(false);
+			transparentWindow.setBackground(new Color(0, true));
 
-			transparentJFrame.setBackground(new Color(0, true));
-			transparentJFrame.setContentPane(getXmasDecorationPanel());
-			transparentJFrame.setFocusable(false);
-			transparentJFrame.setFocusableWindowState(false);
+			final XmasDecorationPanel xmasDecorationPanel = getXmasDecorationPanel();
+			xmasDecorationPanel.setSize(transparentWindow.getSize());
+			transparentWindow.setContentPane(xmasDecorationPanel);
 		}
-		return transparentJFrame;
+		return transparentWindow;
 	}
 	private XmasDecorationPanel getXmasDecorationPanel()
 	{
@@ -261,8 +294,6 @@ public class XmasScreenConfigPanel extends JPanel
 			xmasDecorationPanel.setBorder(BorderFactory.createEmptyBorder());
 			xmasDecorationPanel.setOpaque(false);
 			xmasDecorationPanel.setBackground(new Color(0, true));
-			final Dimension d = getTransparentJWindow().getSize();
-			xmasDecorationPanel.setSize(d);
 		}
 		return xmasDecorationPanel;
 	}
@@ -273,6 +304,14 @@ public class XmasScreenConfigPanel extends JPanel
 	private void setXmasEnabled(final boolean xmasEnabled)
 	{
 		getXmasEnabledCheckBox().setSelected(xmasEnabled);
+	}
+	private boolean isAlwaysOnTopEnabled()
+	{
+		return getAlwaysOnTopBox().isSelected();
+	}
+	private void setAlwaysOnTopEnabled(final boolean alwaysOnTopEnabled)
+	{
+		getAlwaysOnTopBox().setSelected(alwaysOnTopEnabled);
 	}
 	private boolean isWithSpaceEnabled()
 	{
@@ -309,12 +348,14 @@ public class XmasScreenConfigPanel extends JPanel
 		setFlickerType(Integer.parseInt(props.getProperty(PROPERTY_XMAS_FLICKERTYPE+index, "4")));
 		setUpdateFPS(Integer.parseInt(props.getProperty(PROPERTY_XMAS_UPDATEFPS+index, "2")));
 		setWithSpaceEnabled(Boolean.parseBoolean(props.getProperty(PROPERTY_XMAS_WITHSPACE+index, "FALSE")));
+		setAlwaysOnTopEnabled(Boolean.parseBoolean(props.getProperty(PROPERTY_XMAS_ALWAYSONTOP+index, "TRUE")));
 		setXmasEnabled(Boolean.parseBoolean(props.getProperty(PROPERTY_XMAS_ENABLED+index, "FALSE")));
 	}
 	public void writeProperties(final Properties props, final int forScreen)
 	{
 		final String index = Integer.toString(forScreen);
 		props.setProperty(PROPERTY_XMAS_ENABLED+index, Boolean.toString(isXmasEnabled()));
+		props.setProperty(PROPERTY_XMAS_ALWAYSONTOP+index, Boolean.toString(isAlwaysOnTopEnabled()));
 		props.setProperty(PROPERTY_XMAS_WITHSPACE+index, Boolean.toString(isWithSpaceEnabled()));
 		props.setProperty(PROPERTY_XMAS_FLICKERTYPE+index, Integer.toString(getFlickerType()));
 		props.setProperty(PROPERTY_XMAS_UPDATEFPS+index, Integer.toString(getUpdateFPS()));

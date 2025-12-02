@@ -1,4 +1,4 @@
-# JavaMod V3.9.4.1
+# JavaMod V3.9.5
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -64,6 +64,8 @@ JavaMod incorporates modified versions of the following libraries:
 * With KDE:
   * JDialogs, when set visible, will not come to front
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
+  because of Java TrayIcon using xembed instead of SNI, TrayIcon events like
+  mouse clicks are not reaching the application. There is no suitable workaround 
 
 ## Planned:
 * finish loading of OMPT extended instrument / song data / mixer data
@@ -77,6 +79,46 @@ JavaMod incorporates modified versions of the following libraries:
   * WavPack and MusePack support
   * MO3 support
   * read from 7z archives
+
+## New in Version 3.9.5
+* NEW: Audio CD rips with CloneCD create an image file ending with IMG. That is
+       in fact a wave file without riff header. So now we support IMG-files as
+       such: 44.100 16Bit Stereo. You can now play IMG files or CloneCD CUE
+       sheets directly with JavaMod
+* NEW: One PT2 quirk is that with arpeggios the base note is not recalculated
+       which leads to finetune not being considered if the instrument changed.
+       That must be a bug as note 2 and 3 consider the current finetune set
+* NEW: for the pattern display I used JButtons and was setting a text with
+       brackets and used HTML styling for the coloring. That way I could not use
+       solid blocks like '\u2588'. Furthermore using HTML styles is very slow,
+       because of needed interpretation. Now we draw those meters by hand. 
+* FIX: massive code cleanup
+* FIX: Midiplayback: set correct "end of track" messages and delete incorrect
+       ones
+* FIX: if clicking on the tray icon, javamod should come to front
+* FIX: X-MAS decoration: setting spaces while already enabled drawing did not
+       work. Semaphore "inDraw" was never reset to false.
+* FIX: X_MAS decoration: possible race condition while creating window and
+       content fixed.
+* FIX: Icy-Streams use upper and lower case for tags - so normalize to lower
+       case for all tags. Otherwise tags are not found (like Icy-MetaInt)
+* FIX: Encoding for HTTP headers in ICY-Streams is ISO-8859-1 - but headers need
+       re-encoding to UTF-8 afterwards
+* FIX: setTempo (F00) with protracker means "stop the mod"
+* FIX: Multichannel ProTracker generics use XM_AMIGA_TABLE. However, must on the
+       other hand behave like ProTracker - so according finetune check what
+       table is used
+* FIX: Loading of ProTracker mods being too short, sample position calculation
+       included sample header bytes (30 bytes per sample) - which is too much.
+       Furthermore, we should not read that last pattern reaching into the
+       sample data.
+* FIX: if a ProTracker mod contains notes exceeding the ProTracker limits we
+       now switch to XM_AMIGA_TABLE but stay in ProTracker effect interpretation
+* FIX: URLs of windows net drives are no URIs (file:////servername/folder/) and
+       normalizing those leads to a wrong path (file:/servername/folder/)
+* FIX: With XMs it is possible to have 16 bit samples with one additional byte
+       saved. As we are loading an amount of samples and not bytes, we read one
+       byte less. We now seek to the end of bytes after each sample read.
 
 ## New in Version 3.9.4.1 HotFix
 * FIX: IT MidiMacros are dismissed as of version recognition. However, that was
