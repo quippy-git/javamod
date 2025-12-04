@@ -599,33 +599,24 @@ public class Helpers
 		return false;
 	}
 	/**
+	 * Will try to create an URL based on the given File. This File does not
+	 * need to exist.
+	 * That is why with "nio.Path" we encounter severe problems when working
+	 * with relative files. Path.for("") will add the home dir - which we
+	 * do not want. Path.getRealPath will throw an Exception if the file does
+	 * not exist. So we stay on File for now!
 	 * @param file
 	 * @return
 	 * @since 14.02.2012
 	 */
 	public static URL createURLfromFile(final File file)
 	{
-		if (!file.exists())
-		{
-			try
-			{
-				final String path = file.getPath();
-				final StringBuilder b = new StringBuilder((File.separatorChar != '/') ? path.replace(File.separatorChar, '/') : path);
-				if (file.isDirectory() && b.charAt(b.length() - 1) != '/') b.append('/');
-				if (b.length()>2 && b.charAt(0)=='/' && b.charAt(1)=='/') b.insert(0, "//");
-				if (b.charAt(0)!='/') b.insert(0, "/");
-				final URI uri = new URI("file", null, b.toString(), null);
-				return uri.toURL();
-			}
-			catch (final URISyntaxException e)
-			{
-				// cannot happen...
-			}
-			catch (final MalformedURLException ex)
-			{
-				// should not happen ;)
-			}
-		}
+//		if (!file.exists())
+//		{
+//			final URL url = createURLfromFileString(file.getPath());
+//			if (url!=null) return url;
+//		}
+		// fall through - so let's try this...
 		try
 		{
 			return file.toURI().toURL();
@@ -636,6 +627,37 @@ public class Helpers
 		return null;
 	}
 	/**
+	 * We assume that the fileString parameter represents a local file location
+	 * However, it is not said, that this fileString is existing. This is
+	 * relevant for creating an absolute path for relative files.
+	 * @since 03.12.2025 - was extracted from above
+	 * @param fileString
+	 * @return
+	 */
+	public static URL createURLfromFileString(final String fileString)
+	{
+		try
+		{
+			final StringBuilder b = new StringBuilder(fileString.replace('\\', '/'));
+			if (b.length()>2 && b.charAt(0)=='/' && b.charAt(1)=='/') b.insert(0, "//");
+			if (b.charAt(0)!='/') b.insert(0, "/");
+			final URI uri = new URI("file", null, b.toString(), null);
+			return uri.toURL();
+		}
+		catch (final URISyntaxException e)
+		{
+			// cannot happen...
+		}
+		catch (final MalformedURLException ex)
+		{
+			// should not happen ;)
+		}
+		return null;
+	}
+	/**
+	 * We assume that urlLine is a valid URL and convert that into an URL
+	 * object. If that does not work we will try to convert by assuming that
+	 * it is a file location.
 	 * @since 01.05.2011
 	 * @param urlLine
 	 * @return a URL in correct form
@@ -645,11 +667,11 @@ public class Helpers
 		try
 		{
 			if (urlLine == null || urlLine.isEmpty()) return null;
-			return (new URI(urlLine)).toURL();
+			return URI.create(urlLine).toURL();
 		}
 		catch (final Exception ex)
 		{
-			return createURLfromFile(new File(urlLine));
+			return createURLfromFileString(urlLine);
 		}
 	}
 	/**
@@ -913,17 +935,19 @@ public class Helpers
 	 */
 	public static URL createAbsolutePathForFile(final URL baseURL, final String inputFileName)
 	{
-		String fileName = inputFileName;
+		// If fileName is from a Windows/DOS System, replace separator plus create an URL from the path to encode URL specific (e.g. %20 for spaces)
 		final URL fileURL = createURLfromString(inputFileName);
+		// if this URL is not a type "file" URL, we cannot do anything and return that URL
 		if (!isFile(fileURL)) return fileURL;
 		try
 		{
-			if (Helpers.urlExists(fileName))
+			// if the URL is already pointing at our file, we are finished
+			if (Helpers.urlExists(fileURL))
 				return fileURL;
 			else
 			{
-				// If fileName is from a Windows/DOS System, replace separator plus create an URL from the path to encode URL specific (e.g. %20 for spaces)
-				fileName = createURLfromFile(new File(fileName.replace('\\', '/'))).toURI().getPath();
+				// get the path portion of the URL - this might lead to the same value of inputFileName (mostly it should)
+				String fileName = fileURL.toURI().getPath();
 				// and remove a possible trailing slash
 				if (fileName.charAt(0) == '/') fileName = fileName.substring(1);
 

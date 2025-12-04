@@ -35,7 +35,7 @@ public class Pattern
 	protected PatternRow [] patternRows;
 
 	protected String patternName;
-	protected double [] tempoSwing = null;
+	protected int [] tempoSwing = null;
 	protected int rowsPerBeat = -1;
 	protected int rowsPerMeasure = -1;
 
@@ -182,7 +182,7 @@ public class Pattern
 		if (rowsPerMeasure<=0) return parentMod.getRowsPerMeasure();
 		return rowsPerMeasure;
 	}
-	public double [] getTempoSwing()
+	public int [] getTempoSwing()
 	{
 		if (tempoSwing==null) return parentMod.getTempoSwing();
 		return tempoSwing;

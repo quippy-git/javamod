@@ -76,7 +76,7 @@ public abstract class Module
 	protected int tempoMode;
 	protected int rowsPerBeat;
 	protected int rowsPerMeasure;
-	protected double [] tempoSwing;
+	protected int [] tempoSwing;
 	protected int createdWithVersion;
 	protected int lastSavedWithVersion;
 	protected String author;
@@ -616,18 +616,12 @@ public abstract class Module
 				{
 					short delta = 0;
 					for (int s=0; s<current.length; s++)
-					{
-						final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += sample);
-					}
+						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord());
 					if (isStereo)
 					{
 						delta = 0;
 						for (int s=0; s<current.length; s++)
-						{
-							final int sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += sample);
-						}
+							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord());
 					}
 				}
 				else
@@ -1146,7 +1140,7 @@ public abstract class Module
 	{
 		return rowsPerMeasure;
 	}
-	public double [] getTempoSwing()
+	public int [] getTempoSwing()
 	{
 		return tempoSwing;
 	}
@@ -1567,7 +1561,7 @@ public abstract class Module
 					if (size>2)
 					{
 						final int anzNums = inputStream.readIntelWord();
-						tempoSwing = new double[anzNums];
+						tempoSwing = new int[anzNums];
 						for (int i=0; i<anzNums; i++) tempoSwing[i] = inputStream.readIntelDWord();
 					}
 					else
@@ -1575,7 +1569,7 @@ public abstract class Module
 					break;
 				case 0x504D4D2E: //"PMM." - MixLevels - this is OMPT specific to let old MPTs sound equally - we ignore that for now
 				case 0x4D53462E: //"MSF." - Playback Compatibility Flags - OMPT specific - we ignore that
-				case 0x4D494D41: //"MIMA" - MidiMapper - guess we cannot use this - especially when running on linux
+				case 0x4D494D41: //"MIMA" - MidiMapper - guess we cannot use this - especially when running on Linux
 				default: // if it is not implemented, skip it!
 					inputStream.skip(size);
 					break;

@@ -347,6 +347,12 @@ public class MIDSequence extends OPL3Sequence
 			for (int y=0; y<16; y++)
 				smyinsbank[x][y] = myinsbank[x][y];
 	}
+	private void copyInsBanksBack()
+	{
+		for (int x=0; x<128; x++)
+			for (int y=0; y<16; y++)
+				myinsbank[x][y] = smyinsbank[x][y];
+	}
 	/**
 	 * We are looking for a patch.003 here. This is adplug specific,
 	 * as sci and patch.003 need to have the same 3 char prefix, so
@@ -1147,7 +1153,7 @@ public class MIDSequence extends OPL3Sequence
 				track[0].spos = 0x98; // jump to midi music
 				break;
 			case FILE_ADVSIERRA:
-				copyInsBanks();
+				copyInsBanksBack();
 				tins = stins;
 				deltas = 0x20;
 				getnext(11); // worthless empty space and "stuff" :)
@@ -1174,7 +1180,7 @@ public class MIDSequence extends OPL3Sequence
 				adlib_style = SIERRA_STYLE | MIDI_STYLE; // advanced sierra tunes use volume
 				break;
 			case FILE_SIERRA:
-				copyInsBanks();
+				copyInsBanksBack();
 				tins = stins;
 				getnext(2);
 				deltas = 0x20;

@@ -93,6 +93,8 @@ JavaMod incorporates modified versions of the following libraries:
        solid blocks like '\u2588'. Furthermore using HTML styles is very slow,
        because of needed interpretation. Now we draw those meters by hand. 
 * FIX: massive code cleanup
+* FIX: Modern Tempo Mode (MPT) had a severe error: bufferDiff must be a double!
+       Furthermore, the defaut tempo mode array was missing
 * FIX: Midiplayback: set correct "end of track" messages and delete incorrect
        ones
 * FIX: if clicking on the tray icon, javamod should come to front
