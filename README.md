@@ -93,15 +93,16 @@ JavaMod incorporates modified versions of the following libraries:
        solid blocks like '\u2588'. Furthermore using HTML styles is very slow,
        because of needed interpretation. Now we draw those meters by hand. 
 * FIX: massive code cleanup
-* FIX: Modern Tempo Mode (MPT) had a severe error: bufferDiff must be a double!
-       Furthermore, the defaut tempo mode array was missing
-* FIX: Midiplayback: set correct "end of track" messages and delete incorrect
-       ones
-* FIX: if clicking on the tray icon, javamod should come to front
 * FIX: X-MAS decoration: setting spaces while already enabled drawing did not
        work. Semaphore "inDraw" was never reset to false.
 * FIX: X_MAS decoration: possible race condition while creating window and
-       content fixed.
+       content fixed
+* FIX: X_MAS decoration: AlwaysOnTop now configrable
+* FIX: if clicking on the tray icon, javamod should come to front
+* FIX: Midiplayback: set correct "end of track" messages and delete incorrect
+       ones
+* FIX: Modern Tempo Mode (MPT) had a severe error: bufferDiff must be a double!
+       Furthermore, the defaut tempo mode array was missing
 * FIX: Icy-Streams use upper and lower case for tags - so normalize to lower
        case for all tags. Otherwise tags are not found (like Icy-MetaInt)
 * FIX: Encoding for HTTP headers in ICY-Streams is ISO-8859-1 - but headers need

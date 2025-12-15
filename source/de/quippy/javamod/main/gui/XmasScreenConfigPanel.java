@@ -273,7 +273,7 @@ public class XmasScreenConfigPanel extends JPanel
 			final Rectangle bounds = gc.getBounds();
 			bounds.height = defaultScreenHeight;
 			transparentWindow.setBounds(bounds);
-			transparentWindow.setAlwaysOnTop(true);
+			transparentWindow.setAlwaysOnTop(isAlwaysOnTopEnabled());
 			transparentWindow.toFront(); // just in case...
 			//transparentWindow.setUndecorated(true); - JFrame needs this
 			transparentWindow.setFocusable(false);
