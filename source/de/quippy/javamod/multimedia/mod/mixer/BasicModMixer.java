@@ -340,6 +340,9 @@ public abstract class BasicModMixer
 	private final ArrayList<ModUpdateListener> listeners;
 	private boolean fireUpdates = false;
 
+	// LUT for resonance
+	public double[] cutoffToFreq;
+
 	// What type of Mod is it?
 	protected boolean isFastTrackerFamily, isScreamTrackerFamily, isMOD, isXM, isSTM, isS3M, isIT, isModPlug;
 
@@ -535,7 +538,13 @@ public abstract class BasicModMixer
 			useSoftPanning = false;
 		}
 
-		// Reset all rows played to false
+		// Init the LUT for cutoffFrequency
+		final double fac = (((mod.getSongFlags()&ModConstants.SONG_EXFILTERRANGE)!=0)? (128.0d / (20.0d * 256.0d)) : (128.0d / (24.0d * 256.0d)));
+		cutoffToFreq = new double[256];
+		for (int cutOff = 0; cutOff<256; cutOff++)
+	        cutoffToFreq[cutOff] = 110.0d * Math.pow(2.0d, cutOff * fac + 0.25d);
+
+	    // Reset all rows played to false
 		mod.resetLoopRecognition();
 
 		// Reset FadeOut
@@ -942,12 +951,14 @@ public abstract class BasicModMixer
 			int resonance = (aktMemo.resonance & 0x7F) + aktMemo.swingResonance;
 			if (resonance<0) resonance=0; else if (resonance>0xFF) resonance=0xFF;
 
-			final double fac = (((mod.getSongFlags()&ModConstants.SONG_EXFILTERRANGE)!=0)? (128.0d / (20.0d * 256.0d)) : (128.0d / (24.0d * 256.0d)));
-			double frequency = 110.0d * Math.pow(2.0d, cutOff * fac + 0.25d);
+//			// Do this in a LUT - calculated once with each mod.
+//			final double fac = (((mod.getSongFlags()&ModConstants.SONG_EXFILTERRANGE)!=0)? (128.0d / (20.0d * 256.0d)) : (128.0d / (24.0d * 256.0d)));
+//			double frequency = 110.0d * Math.pow(2.0d, cutOff * fac + 0.25d);
+			double frequency = cutoffToFreq[cutOff];
 			if (frequency < 120d) frequency = 120d;
 			if (frequency > 20000d) frequency = 20000d;
 			if (frequency > sampleRate>>1) frequency = sampleRate>>1;
-			frequency *= 2.0d * Math.PI;
+			frequency *= ModConstants.TWO_PI; // 2.0d*Math.PI is possibly not precalculated at compile time
 
 			final double dmpFac = ModConstants.ResonanceTable[resonance];
 			double e, d;
@@ -968,8 +979,8 @@ public abstract class BasicModMixer
 			}
 
 			final double fg = 1.0d / (1.0d + d + e);
-			final double fb0 = (d + e + e) / (1.0d + d + e);
-			final double fb1 = -e / (1.0d + d + e);
+			final double fb0 = (d + e + e) * fg;
+			final double fb1 = -e * fg;
 
 			switch(aktMemo.filterMode)
 			{
@@ -1001,18 +1012,24 @@ public abstract class BasicModMixer
 	 */
 	private void doResonance(final ChannelMemory aktMemo, final long buffer[])
 	{
+		// Speeds up things a bit
+		final long A0 = aktMemo.filter_A0;
+		final long B0 = aktMemo.filter_B0;
+		final long B1 = aktMemo.filter_B1;
+		final long HP = aktMemo.filter_HP;
+		
 		long sampleAmp = buffer[0]<<ModConstants.FILTER_PREAMP_BITS; // with preAmp
-		long fy = ((sampleAmp * aktMemo.filter_A0) + (aktMemo.filter_Y1 * aktMemo.filter_B0) + (aktMemo.filter_Y2 * aktMemo.filter_B1) + ModConstants.HALF_FILTER_PRECISION) >> ModConstants.FILTER_SHIFT_BITS;
+		long fy = ((sampleAmp * A0) + (aktMemo.filter_Y1 * B0) + (aktMemo.filter_Y2 * B1) + ModConstants.HALF_FILTER_PRECISION) >> ModConstants.FILTER_SHIFT_BITS;
 		aktMemo.filter_Y2 = aktMemo.filter_Y1;
-		aktMemo.filter_Y1 = fy - (sampleAmp & aktMemo.filter_HP);
+		aktMemo.filter_Y1 = fy - (sampleAmp & HP);
 		if (aktMemo.filter_Y1 < ModConstants.FILTER_CLIP_MIN) aktMemo.filter_Y1 = ModConstants.FILTER_CLIP_MIN;
 		else if (aktMemo.filter_Y1 > ModConstants.FILTER_CLIP_MAX) aktMemo.filter_Y1 = ModConstants.FILTER_CLIP_MAX;
 		buffer[0] = (fy + (1<<(ModConstants.FILTER_PREAMP_BITS-1))) >> ModConstants.FILTER_PREAMP_BITS;
 
 		sampleAmp = buffer[1]<<ModConstants.FILTER_PREAMP_BITS; // with preAmp
-		fy = ((sampleAmp * aktMemo.filter_A0) + (aktMemo.filter_Y3 * aktMemo.filter_B0) + (aktMemo.filter_Y4 * aktMemo.filter_B1) + ModConstants.HALF_FILTER_PRECISION) >> ModConstants.FILTER_SHIFT_BITS;
+		fy = ((sampleAmp * A0) + (aktMemo.filter_Y3 * B0) + (aktMemo.filter_Y4 * B1) + ModConstants.HALF_FILTER_PRECISION) >> ModConstants.FILTER_SHIFT_BITS;
 		aktMemo.filter_Y4 = aktMemo.filter_Y3;
-		aktMemo.filter_Y3 = fy - (sampleAmp & aktMemo.filter_HP);
+		aktMemo.filter_Y3 = fy - (sampleAmp & HP);
 		if (aktMemo.filter_Y3 < ModConstants.FILTER_CLIP_MIN) aktMemo.filter_Y3 = ModConstants.FILTER_CLIP_MIN;
 		else if (aktMemo.filter_Y3 > ModConstants.FILTER_CLIP_MAX) aktMemo.filter_Y3 = ModConstants.FILTER_CLIP_MAX;
 		buffer[1] = (fy + (1<<(ModConstants.FILTER_PREAMP_BITS-1))) >> ModConstants.FILTER_PREAMP_BITS;

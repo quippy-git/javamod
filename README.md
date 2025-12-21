@@ -122,6 +122,7 @@ JavaMod incorporates modified versions of the following libraries:
 * FIX: With XMs it is possible to have 16 bit samples with one additional byte
        saved. As we are loading an amount of samples and not bytes, we read one
        byte less. We now seek to the end of bytes after each sample read.
+* FIX: A bit of speed up with Resonance Filters
 
 ## New in Version 3.9.4.1 HotFix
 * FIX: IT MidiMacros are dismissed as of version recognition. However, that was
