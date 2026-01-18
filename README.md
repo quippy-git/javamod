@@ -63,6 +63,9 @@ JavaMod incorporates modified versions of the following libraries:
   * scrambled sound (especially with PipeWire)
 * With KDE:
   * JDialogs, when set visible, will not come to front
+  * and Wayland: TrayIcon technology not implemented in JAVA. Please deactivate
+    TrayIcons with KDE or Wayland - if others (like ICEWM) have the same topic
+    is not tested
 * Tray Icon: mouse wheel (volume control) & keyboard shortcuts do not work
   because of Java TrayIcon using xembed instead of SNI, TrayIcon events like
   mouse clicks are not reaching the application. There is no suitable workaround 
@@ -97,7 +100,7 @@ JavaMod incorporates modified versions of the following libraries:
        work. Semaphore "inDraw" was never reset to false.
 * FIX: X_MAS decoration: possible race condition while creating window and
        content fixed
-* FIX: X_MAS decoration: AlwaysOnTop now configrable
+* FIX: X_MAS decoration: AlwaysOnTop now configurable
 * FIX: if clicking on the tray icon, javamod should come to front
 * FIX: Midiplayback: set correct "end of track" messages and delete incorrect
        ones
@@ -117,16 +120,17 @@ JavaMod incorporates modified versions of the following libraries:
        sample data.
 * FIX: if a ProTracker mod contains notes exceeding the ProTracker limits we
        now switch to XM_AMIGA_TABLE but stay in ProTracker effect interpretation
-* FIX: URLs of windows net drives are no URIs (file:////servername/folder/) and
-       normalizing those leads to a wrong path (file:/servername/folder/)
+* FIX: URLs of windows net drives are (now) URIs (file:////servername/folder/)
+       and normalizing those leads to a wrong path (file:/servername/folder/).
+       Did this come with Win11 or with JDK25 - nevermind...
 * FIX: With XMs it is possible to have 16 bit samples with one additional byte
        saved. As we are loading an amount of samples and not bytes, we read one
-       byte less. We now seek to the end of bytes after each sample read.
+       byte too short. We now seek to the end of bytes after each sample read.
 * FIX: A bit of speed up with Resonance Filters
 
 ## New in Version 3.9.4.1 HotFix
 * FIX: IT MidiMacros are dismissed as of version recognition. However, that was
-       wrongly implemented and now MidiMacros are mostly always deleted. 
+       wrongly implemented and MidiMacros were mostly always deleted 
 
 ## New in Version 3.9.4
 * NEW: Supporting STX (ScreamTracker Music Interface Kit)

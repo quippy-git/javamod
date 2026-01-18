@@ -466,11 +466,6 @@ public abstract class BasicModMixer
 		// for whatever this is good...
 		if (mod.getResampling()>-1) doISP = mod.getResampling();
 
-		// again OMPT specific - the default modern tempo swing
-		defaultTempoSwing = new int [mod.getRowsPerBeat()];
-		for (int i=0; i<defaultTempoSwing.length; i++) defaultTempoSwing[i] = ModConstants.TEMPOSWING_UNITY;
-		//normalizeSwing(defaultTempoSwing); //no need to normalize the default, that is already normalized
-		
 		if (isIT) pingPongDiffIT = 1; else pingPongDiffIT = 0;
 
 		// get Mod specific values
@@ -489,6 +484,10 @@ public abstract class BasicModMixer
 
 		modSpeedSet = 0;
 		bufferDiff = 0;
+		// again OMPT specific - the default modern tempo swing
+		defaultTempoSwing = new int [mod.getRowsPerBeat()];
+		for (int i=0; i<defaultTempoSwing.length; i++) defaultTempoSwing[i] = ModConstants.TEMPOSWING_UNITY;
+		//normalizeSwing(defaultTempoSwing); //no need to normalize the default, that is already normalized
 		calculateSamplesPerTick();
 		leftOverSamplesPerTick = 0;
 		samplesMixed = 0;
