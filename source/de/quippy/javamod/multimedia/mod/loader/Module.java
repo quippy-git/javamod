@@ -1166,6 +1166,15 @@ public abstract class Module
 		return ((songFlags&ModConstants.SONG_ISSTEREO)!=0);
 	}
 	/**
+	 * Default return value - only needed for Protracker Mods
+	 * @since 23.03.2026
+	 * @return
+	 */
+	public boolean isAmigaLike()
+	{
+		return false;
+	}
+	/**
 	 * @since 29.03.2010
 	 * @return
 	 */

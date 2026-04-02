@@ -83,6 +83,14 @@ JavaMod incorporates modified versions of the following libraries:
   * MO3 support
   * read from 7z archives
 
+## New in Version 3.9.6
+* FIX: Playlists are now saved in ANSI cp1252 - not ISO-8859-1.
+* FIX: Multichannel Mods considered too many ProTracker Quirks. Ignore illegal
+       note delay, tempo changes handled on first tick, no on the fly sample
+       swap
+* FIX: ProTracker-Mods with non-ProTracker-periods should be played as XMs. The
+       change during loading was however not considered properly
+
 ## New in Version 3.9.5
 * NEW: Audio CD rips with CloneCD create an image file ending with IMG. That is
        in fact a wave file without riff header. So now we support IMG-files as

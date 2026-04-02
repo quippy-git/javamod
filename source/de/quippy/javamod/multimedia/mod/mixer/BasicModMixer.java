@@ -2164,7 +2164,7 @@ public abstract class BasicModMixer
 		// on each occurrence.
 		// That however leads to speed changes on second Tick, not on first Tick. But if current
 		// speed is 1, the BPM change is automatically a row later.
-		if (isMOD && modSpeedSet>0)
+		if (isMOD && modSpeedSet>0 && mod.isAmigaLike()) // However, if we are a multichannel mod, don't
 		{
 			currentBPM = modSpeedSet;
 			modSpeedSet = 0;
@@ -2238,7 +2238,8 @@ public abstract class BasicModMixer
 		// if not ProTracker, recalculate samplesPerTick here.
 		// do this every(!) Tick with tempoMode "Modern" or on Tick zero for all others
 		// currentPattern is null, if end was reached
-		if (!isMOD && currentPattern!=null && (mod.getTempoMode()==ModConstants.TEMPOMODE_MODERN || currentTick==currentTempo))
+		// However, if we are a multichannel mod, don't (
+		if (!(isMOD && mod.isAmigaLike()) && currentPattern!=null && (mod.getTempoMode()==ModConstants.TEMPOMODE_MODERN || currentTick==currentTempo))
 			calculateSamplesPerTick();
 
 		return (currentPatternIndex==-1 && currentTick<=0);

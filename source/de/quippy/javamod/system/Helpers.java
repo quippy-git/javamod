@@ -89,7 +89,7 @@ public class Helpers
 	}
 
 	/** Version Information */
-	public static final String VERSION = "V3.9.5";
+	public static final String VERSION = "V3.9.6";
 	public static final String PROGRAM = "Java Mod Player";
 	public static final String FULLVERSION = PROGRAM+' '+VERSION;
 	public static final String COPYRIGHT = "© by Daniel Becker since 2006";
@@ -105,7 +105,7 @@ public class Helpers
 	/** Default value - changes whether SWING or command line */
 	public static String currentCoding = CODING_GUI;
 	/** Codepages used when reading playlist files */
-	public static final String CODING_M3U = "ISO-8859-1";
+	public static final String CODING_M3U = "cp1252"; // ISO-8859-15 is not the same as cp1252 - 0x80> is only defined in cp1252
 	/** Codepage used when reading from the web */
 	public static final String CODING_UTF8 = "UTF-8";
 	/** Codepage used when reading from ICY Input-Streams*/
