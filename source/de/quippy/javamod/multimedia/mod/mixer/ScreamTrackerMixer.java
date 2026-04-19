@@ -137,7 +137,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		switch (frequencyTableType)
 		{
 			case ModConstants.IT_LINEAR_TABLE:
-				final long itTuning = (((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * aktMemo.currentFinetuneFrequency)<<ModConstants.SHIFT) / sampleRate;
+				final long itTuning = ((((long)ModConstants.BASEPERIOD)<<(ModConstants.PERIOD_SHIFT + ModConstants.SHIFT)) * (long)aktMemo.currentFinetuneFrequency) / (long)sampleRate;
 				aktMemo.currentTuning = (int)(itTuning / newPeriod);
 				return;
 			case ModConstants.STM_S3M_TABLE:
@@ -159,6 +159,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.currentTuning = globalTuning / ((newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod);
 				return;
 			default:
+				// if we end up here, something went terribly wrong!
 				super.setNewPlayerTuningFor(aktMemo, newPeriod);
 				return;
 		}

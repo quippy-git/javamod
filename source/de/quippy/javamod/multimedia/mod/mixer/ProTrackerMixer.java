@@ -43,6 +43,17 @@ public class ProTrackerMixer extends BasicModMixer
 	// check all the time
 	private int [] note2Period;
 
+	//main crystal oscillator for PAL Amiga systems
+	private static final double AMIGA_PAL_XTAL_HZ 		= 28375160;
+	private static final double AMIGA_PAL_CCK_HZ 		= (AMIGA_PAL_XTAL_HZ / 8.0);
+//	private static final double CIA_PAL_CLK 			= (AMIGA_PAL_CCK_HZ / 5.0);
+	private static final long PAULA_PAL_CLK				= (long)(AMIGA_PAL_CCK_HZ * (double)(1<<(ModConstants.PERIOD_SHIFT + ModConstants.SHIFT)));
+	private static final int PAL_PAULA_MIN_PERIOD		= 113;
+	private static final int PAL_PAULA_MAX_PERIOD		= 856;
+//	private static final int PAL_PAULA_MIN_SAFE_PERIOD	= 124;
+//	private static final double PAL_PAULA_MAX_HZ		= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_PERIOD);
+//	private static final double PAL_PAULA_MAX_SAFE_HZ	= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_SAFE_PERIOD);
+
 	/**
 	 * Constructor for ProTrackerMixer
 	 */
@@ -77,14 +88,27 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		if (frequencyTableType == ModConstants.AMIGA_TABLE)
 		{
-			aktMemo.portaStepUpEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(113)+1);
-			aktMemo.portaStepDownEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(856)+1);
+			aktMemo.portaStepUpEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(PAL_PAULA_MIN_PERIOD)+1);
+			aktMemo.portaStepDownEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(PAL_PAULA_MAX_PERIOD)+1);
 		}
 		else
 		{
 			aktMemo.portaStepUpEnd = getFineTunePeriod(aktMemo, 119); // 118 + 1
 			aktMemo.portaStepDownEnd = getFineTunePeriod(aktMemo, 1); // 0 + 1
 		}
+	}
+	/**
+	 * For faster tuning calculations, this is pre-calculated
+	 */
+	@Override
+	protected void calculateGlobalTuning()
+	{
+		if (frequencyTableType == ModConstants.AMIGA_TABLE)
+			this.globalTuning = (int)(PAULA_PAL_CLK / (long)sampleRate);
+		else
+			// FastTrackers way for Amiga Table - basically same as (8363L * 1712L), except that 1712 is 428<<2.
+			// We will stick to our precision and use <<4
+			this.globalTuning = (int)((((((long)ModConstants.BASEPERIOD)<<ModConstants.PERIOD_SHIFT) * (ModConstants.BASEFREQUENCY))<<ModConstants.SHIFT) / (sampleRate));
 	}
 	/**
 	 * @param aktMemo
@@ -122,31 +146,44 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void setNewPlayerTuningFor(final ChannelMemory aktMemo, final int newPeriod)
 	{
 		aktMemo.currentNotePeriodSet = newPeriod;
-
-		if (newPeriod<=0)
-		{
-			aktMemo.currentTuning = 0;
-			return;
-		}
-
+		
 		switch (frequencyTableType)
 		{
-			case ModConstants.XM_AMIGA_TABLE:
 			case ModConstants.AMIGA_TABLE:
-				final int clampedPeriod = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
+				int clampedPeriod = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
+				if (clampedPeriod==0) clampedPeriod = 65536; // On Amiga: period 0 = period 65536 (1+65535)
+				else
+				if (clampedPeriod<PAL_PAULA_MIN_PERIOD) clampedPeriod = PAL_PAULA_MIN_PERIOD; // close to what happens on real Amiga
 				aktMemo.currentTuning = globalTuning / (aktMemo.currentNotePeriodSet = clampedPeriod);
 				return;
+
+			case ModConstants.XM_AMIGA_TABLE:
 			case ModConstants.XM_LINEAR_TABLE:
-				// We have a different LUT table as original FT2 - to avoid the doubles used there
-				// So we need some adoption to the algorithm used in FT2 but stay as close as possible to the coding there:
 				final int period = (newPeriod>>(ModConstants.PERIOD_SHIFT-2)) & 0xFFFF;
-				final int invPeriod = ((12 * 192 * 4) + 767 - period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
-				final int quotient  = invPeriod / (12 * 16 * 4);
-				final int remainder = period % (12 * 16 * 4);
-				final int newFrequency = ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
-				aktMemo.currentTuning = (int)(((long)newFrequency<<ModConstants.SHIFT) / sampleRate);
+				if (period==0)
+				{
+					aktMemo.currentTuning = 0;
+					return;
+				}
+				
+				if (frequencyTableType==ModConstants.XM_AMIGA_TABLE)
+				{
+					aktMemo.currentTuning = (globalTuning / period)>>2;
+				}
+				else
+				{
+					// We have a different LUT table as original FT2 - to avoid the doubles used there
+					// So we need some adoption to the algorithm used in FT2 but stay as close as possible to the coding there:
+					final int invPeriod = ((12 * 192 * 4) + 767 - period) & 0xFFFF; // 12 octaves * (12 * 16 * 4) LUT entries = 9216, add 767 for rounding
+					final int quotient  = invPeriod / (12 * 16 * 4);
+					final int remainder = period % (12 * 16 * 4);
+					final int newFrequency = ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
+					aktMemo.currentTuning = (int)(((long)newFrequency<<ModConstants.SHIFT) / sampleRate);
+				}
 				return;
+
 			default:
+				// if we end up here, something went terribly wrong!
 				super.setNewPlayerTuningFor(aktMemo, newPeriod);
 				return;
 		}
