@@ -30,6 +30,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
+import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory;
 
 /**
  * This is the protracker mixing routine with all special mixing
@@ -150,11 +151,11 @@ public class ProTrackerMixer extends BasicModMixer
 		switch (frequencyTableType)
 		{
 			case ModConstants.AMIGA_TABLE:
-				int clampedPeriod = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
+				int clampedPeriod = aktMemo.currentNotePeriodSet = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
 				if (clampedPeriod==0) clampedPeriod = 65536; // On Amiga: period 0 = period 65536 (1+65535)
 				else
 				if (clampedPeriod<PAL_PAULA_MIN_PERIOD) clampedPeriod = PAL_PAULA_MIN_PERIOD; // close to what happens on real Amiga
-				aktMemo.currentTuning = globalTuning / (aktMemo.currentNotePeriodSet = clampedPeriod);
+				aktMemo.currentTuning = globalTuning / clampedPeriod;
 				return;
 
 			case ModConstants.XM_AMIGA_TABLE:
