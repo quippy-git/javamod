@@ -234,7 +234,7 @@ public class IcyInputStream extends BufferedInputStream
 			if (nextIndex>-1) // there is meta-data in the Stream
 			{
 				// now read till the first block of Meta-Data occurs
-				final byte [] primaryBuffer = new byte[nextIndex];
+				final byte[] primaryBuffer = new byte[nextIndex];
 				int pos = 0;
 				while (pos<nextIndex) pos += super.read(primaryBuffer, pos, nextIndex-pos);
 
@@ -242,7 +242,7 @@ public class IcyInputStream extends BufferedInputStream
 				if (pos>0)
 				{
 					final int size = (primaryBuffer[pos-1])<<4;
-					final byte [] metaData = new byte[size];
+					final byte[] metaData = new byte[size];
 					System.arraycopy(primaryBuffer, pos, metaData, 0, size);
 					parseInlineIcyTags(metaData);
 					// we already read a portion of mp3 data - skip this

@@ -521,7 +521,7 @@ public class SIDInfoPanel extends JPanel
 			getSIDSongComment().setText(sb.toString());
 		}
 		final int sidModel = sidTuneInfo.sidModel;
-		final String [] sidModels = SIDContainer.SIDMODELS;
+		final String[] sidModels = SIDContainer.SIDMODELS;
 		if (sidModel>0 && sidModel<sidModels.length)
 			getSIDSIDModel().setText(sidModels[sidModel]);
 		getSIDLoadAddr().setText('$'+ModConstants.getAsHex(sidTuneInfo.loadAddr, 4));

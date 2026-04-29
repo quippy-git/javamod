@@ -42,7 +42,7 @@ import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
  */
 public class XMMod extends ProTrackerMod
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
    	{
    		"xm"
    	};
@@ -82,7 +82,7 @@ public class XMMod extends ProTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -152,6 +152,15 @@ public class XMMod extends ProTrackerMod
 	protected Module getNewInstance(final String fileName)
 	{
 		return new XMMod(fileName);
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#supportsAmigaFilter()
+	 */
+	@Override
+	public boolean supportsAmigaFilter()
+	{
+		return false;
 	}
 	/**
 	 * @since 26.05.2006
@@ -474,8 +483,8 @@ public class XMMod extends ProTrackerMod
 			/*final int insType = */inputStream.read();
 			final int anzSamples = inputStream.readIntelWord();
 
-			final int [] sampleIndex = new int[96];
-			final int [] noteIndex = new int[96];
+			final int[] sampleIndex = new int[96];
+			final int[] noteIndex = new int[96];
 			currentIns.setIndexArray(sampleIndex);
 			currentIns.setNoteArray(noteIndex);
 			if (anzSamples<=0) // if no samples, at least set to defaults
@@ -498,8 +507,8 @@ public class XMMod extends ProTrackerMod
 					noteIndex[i] = i;
 				}
 
-				final int [] volumeEnvelopePosition = new int[12];
-				final int [] volumeEnvelopeValue = new int[12];
+				final int[] volumeEnvelopePosition = new int[12];
+				final int[] volumeEnvelopeValue = new int[12];
 				for (int i=0; i<12; i++)
 				{
 					volumeEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
@@ -510,8 +519,8 @@ public class XMMod extends ProTrackerMod
 				volumeEnvelope.setValue(volumeEnvelopeValue);
 				currentIns.setVolumeEnvelope(volumeEnvelope);
 
-				final int [] panningEnvelopePosition = new int[12];
-				final int [] panningEnvelopeValue = new int[12];
+				final int[] panningEnvelopePosition = new int[12];
+				final int[] panningEnvelopeValue = new int[12];
 				for (int i=0; i<12; i++)
 				{
 					panningEnvelopePosition[i] = inputStream.readIntelUnsignedWord();

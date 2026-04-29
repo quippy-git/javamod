@@ -31,8 +31,10 @@ public class MultimediaContainerEvent extends EventObject
 {
 	private static final long serialVersionUID = 5125318726800658845L;
 
-	public static int SONG_NAME_CHANGED = 1;
-	public static int SONG_NAME_CHANGED_OLD_INVALID = 3;
+	public static int PLAYBACK_STARTED				= 1;
+	public static int PLAYBACK_STOPPED				= 2;
+	public static int SONG_NAME_CHANGED				= 3;
+	public static int SONG_NAME_CHANGED_OLD_INVALID	= 4;
 
 	private final int type;
 	private final Object event;

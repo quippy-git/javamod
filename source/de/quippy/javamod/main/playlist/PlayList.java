@@ -50,10 +50,10 @@ import de.quippy.javamod.system.Log;
  */
 public class PlayList
 {
-	public static String [] SUPPORTEDPLAYLISTS = { "pls", "m3u", "m3u8", "cue", "zip" };
+	public static String[] SUPPORTEDPLAYLISTS = { "pls", "m3u", "m3u8", "cue", "zip" };
 	public static FileChooserFilter PLAYLIST_FILE_FILTER = new FileChooserFilter(PlayList.SUPPORTEDPLAYLISTS, PlayList.getFileChooserDescription());
 
-	public static String [] SUPPORTEDSAVELISTS = { "pls", "m3u", "m3u8" };
+	public static String[] SUPPORTEDSAVELISTS = { "pls", "m3u", "m3u8" };
 	public static FileChooserFilter PLAYLIST_SAVE_FILE_FILTER = new FileChooserFilter(PlayList.SUPPORTEDSAVELISTS, PlayList.getFileChooserDescription());
 
 	private static String INDEX_STRING = "  index ";
@@ -92,21 +92,21 @@ public class PlayList
 	/**
 	 * Constructor for PlayList
 	 */
-	public PlayList(final File [] files, final boolean shuffle, final boolean repeat)
+	public PlayList(final File[] files, final boolean shuffle, final boolean repeat)
 	{
 		this(generateURLListFromFiles(files), shuffle, repeat);
 	}
 	/**
 	 * Constructor for PlayList
 	 */
-	public PlayList(final String [] fileNames, final boolean shuffle, final boolean repeat)
+	public PlayList(final String[] fileNames, final boolean shuffle, final boolean repeat)
 	{
 		this(generateURLListFromFileNames(fileNames), shuffle, repeat);
 	}
 	/**
 	 * Constructor for PlayList
 	 */
-	public PlayList(final URL [] urls, final boolean shuffle, final boolean repeat)
+	public PlayList(final URL[] urls, final boolean shuffle, final boolean repeat)
 	{
 		this.entries = new ArrayList<>(urls.length);
 		for (final URL url : urls)
@@ -317,7 +317,7 @@ public class PlayList
 	 * @since 03.04.2011
 	 * @return
 	 */
-	public synchronized PlayListEntry [] getSelectedEntries()
+	public synchronized PlayListEntry[] getSelectedEntries()
 	{
 		if (entries.size()>0)
 		{
@@ -661,7 +661,7 @@ public class PlayList
 	 * @return
 	 * @since 23.03.2011
 	 */
-	private static URL[] generateURLListFromFileNames(final String [] fileNames)
+	private static URL[] generateURLListFromFileNames(final String[] fileNames)
 	{
 		final ArrayList<File> files = new ArrayList<>(fileNames.length);
 		for (final String fileName : fileNames)
@@ -675,7 +675,7 @@ public class PlayList
 	 * @return
 	 * @since 23.03.2011
 	 */
-	private static URL[] generateURLListFromFiles(final File [] files)
+	private static URL[] generateURLListFromFiles(final File[] files)
 	{
 		final ArrayList<URL> urls = new ArrayList<>(files.length);
 		for (final File file : files)
@@ -901,7 +901,7 @@ public class PlayList
 			for (int i=0; i<filesSize; i++)
 			{
 				final CueFile cueFile = cueFiles.get(i);
-				final Object [] infos = MultimediaContainerManager.getSongInfosFor(cueFile.getFile());
+				final Object[] infos = MultimediaContainerManager.getSongInfosFor(cueFile.getFile());
 				long fullDuration = (infos[1]!=null)?((Long)infos[1]).longValue():-1;
 
 				final ArrayList<CueTrack> cueTracks = cueFile.getTracks();

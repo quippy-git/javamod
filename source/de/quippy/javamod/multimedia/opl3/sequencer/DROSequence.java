@@ -43,7 +43,7 @@ import de.quippy.javamod.system.Helpers;
 public class DROSequence extends OPL3Sequence
 {
 	private URL url;
-	private int [] data = null;
+	private int[] data = null;
 
 	private int version;
 	private boolean isOldVersion;
@@ -53,7 +53,7 @@ public class DROSequence extends OPL3Sequence
 	private EmuOPL.oplType oplType;
 	private int cmdDelayL;
 	private int cmdDelayH;
-	private int [] conversionTable;
+	private int[] conversionTable;
 
 	private String title;
 	private String author;
@@ -80,7 +80,7 @@ public class DROSequence extends OPL3Sequence
 	{
 		if (inputStream==null || inputStream.available()<=0) return;
 
-		final byte [] magicBytes = new byte[8];
+		final byte[] magicBytes = new byte[8];
 		inputStream.read(magicBytes, 0, 8);
 		magic = Helpers.retrieveAsString(magicBytes, 0, 8);
 		if (!magic.equals("DBRAWOPL")) throw new IOException("Unsupported file type (unknown magic bytes)");
@@ -122,7 +122,7 @@ public class DROSequence extends OPL3Sequence
 			cmdDelayL = 0x00;
 			cmdDelayH = 0x01;
 			// let's see if the next three bytes are zero...
-			final byte [] zero = new byte[3];
+			final byte[] zero = new byte[3];
 			inputStream.read(zero, 0, 3);
 			if (zero[0]!=0 || zero[1]!=0 || zero[2]!=0)
 			{
@@ -137,7 +137,7 @@ public class DROSequence extends OPL3Sequence
 		final int tagSize = inputStream.available();
 		if (tagSize>=3)
 		{
-			final byte [] tagMagic = new byte[2];
+			final byte[] tagMagic = new byte[2];
 			inputStream.read(tagMagic, 0, 2);
 			if (tagMagic[0]==0xFF && tagMagic[1]==0xFF)
 			{

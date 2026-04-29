@@ -66,7 +66,7 @@ public class Wave
 		readArrayFromStream(RESSOURCE_PATH_8580 + "_PST", wave8580__ST);
 	}
 
-//	private static void writeArrayToStream(final String ressourcePath, final int [] array)
+//	private static void writeArrayToStream(final String ressourcePath, final int[] array)
 //	{
 //		File f = new File(ressourcePath);
 //		BufferedOutputStream oStream = null;
@@ -88,13 +88,13 @@ public class Wave
 //			if (oStream!=null) try { oStream.close(); } catch (IOException e) { /*NOOP*/ }
 //		}
 //	}
-	private static void readArrayFromStream(final String ressourcePath, final int [] array)
+	private static void readArrayFromStream(final String ressourcePath, final int[] array)
 	{
 		BufferedInputStream iStream = null;
 		try
 		{
 			iStream = new BufferedInputStream(Wave.class.getResourceAsStream(ressourcePath));
-			final byte [] buf = new byte[array.length];
+			final byte[] buf = new byte[array.length];
 			int len;
 			int writePos = 0;
 			while ((len = iStream.read(buf))>0)

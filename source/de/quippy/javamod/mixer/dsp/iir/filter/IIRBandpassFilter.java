@@ -109,8 +109,8 @@ public class IIRBandpassFilter extends IIRFilterBase
 	@Override
 	protected float performFilterCalculation(final float sample, final int channel, final int iIndex, final int jIndex, final int kIndex)
 	{
-		final float [] x = inArray[channel];
-		final float [] y = outArray[channel];
+		final float[] x = inArray[channel];
+		final float[] y = outArray[channel];
 
 		y[iIndex] = (alpha * ((x[iIndex] = sample) - x[jIndex])) +
 					(gamma * y[kIndex]) -

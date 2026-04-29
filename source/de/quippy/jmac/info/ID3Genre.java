@@ -94,7 +94,7 @@ public class ID3Genre {
         this.genre = genre;
     }
 
-    public static String [] getGenres()
+    public static String[] getGenres()
     {
     	return genres;
     }

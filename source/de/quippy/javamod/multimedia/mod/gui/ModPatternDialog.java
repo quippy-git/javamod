@@ -95,16 +95,16 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	private JPanel arrangementPanel = null;
 	private JScrollPane scrollPane_ArrangementData = null;
 	private ButtonGroup buttonGroup = null;
-	private JToggleButton [] buttonArrangement;
+	private JToggleButton[] buttonArrangement;
 
 	private PatternImagePanel patternImagePanel = null;
 	private JScrollPane scrollPane_PatternData = null;
 
 	private JPanel channelHeadlinePanel = null;
-	private JButton [] channelButtons = null;
-	private PeekMeterComponent [] peakMeterButtons = null;
-	private JButton [] effectButtons = null;
-	private JButton [] volEffectButtons = null;
+	private JButton[] channelButtons = null;
+	private PeekMeterComponent[] peakMeterButtons = null;
+	private JButton[] effectButtons = null;
+	private JButton[] volEffectButtons = null;
     private JPopupMenu channelPopUp = null;
  	private JMenuItem popUpEntrySoloChannel = null;
  	private JMenuItem popUpEntryMuteChannel = null;
@@ -116,8 +116,8 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	private Dimension CHANNELPATTERNINDEX_SIZE = null;
 	private Dimension CHANNELBUTTON_SIZE = null;
 
- 	private int [] arrangement = null;
- 	private boolean [] internalMuteStatus = null;
+ 	private int[] arrangement = null;
+ 	private boolean[] internalMuteStatus = null;
 
 	private PatternContainer patternContainer = null;
 	private int currentIndex;
@@ -949,7 +949,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	{
 		if (patternContainer!=null) // if we do not display anything, there is nothing to update
 		{
-			final boolean muteStatus [] = (currentModMixer!=null)?currentModMixer.getMuteStatus():null;
+			final boolean muteStatus[] = (currentModMixer!=null)?currentModMixer.getMuteStatus():null;
 			final int channels = patternContainer.getChannels();
 			for (int i=0; i<channels; i++)
 			{
@@ -984,7 +984,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	{
 		if (currentMixer!=null)
 		{
-			final boolean muteStatus [] = currentModMixer.getMuteStatus();
+			final boolean muteStatus[] = currentModMixer.getMuteStatus();
 			for (int i=0; i<internalMuteStatus.length; i++)
 			{
 				if (muteStatus!=null && i<muteStatus.length)
@@ -1131,6 +1131,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 			{
 				try
 				{
+					if (index==-1) return;
 					if (index!=currentIndex) selectArrangementButton(currentIndex = index);
 					getPatternImagePanel().setActiveEditingRow(getPrevPattern(index), patternContainer.getPattern(arrangement[index]), getNextPattern(index), position);
 					if (position!=null)
@@ -1267,7 +1268,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	 * @param newArrangement
 	 * @param newPatternContainer
 	 */
-	public void fillWithPatternArray(final int modID, final int songLength, final int [] newArrangement, final PatternContainer newPatternContainer)
+	public void fillWithPatternArray(final int modID, final int songLength, final int[] newArrangement, final PatternContainer newPatternContainer)
 	{
 		patternContainer = newPatternContainer;
 		currentIndex = -1;

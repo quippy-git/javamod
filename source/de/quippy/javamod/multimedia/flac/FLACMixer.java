@@ -223,7 +223,7 @@ public class FLACMixer extends BasicMixer
 			    	final ByteData bd = decode();
 			    	if (bd!=null)
 			    	{
-				    	final byte [] b = bd.getData();
+				    	final byte[] b = bd.getData();
 				    	int byteCount = bd.getLen();
 						// find out, if all decoded samples are to write
 						if (bytesToWrite>0 && (byteCount)>bytesToWrite) byteCount = (int)bytesToWrite;

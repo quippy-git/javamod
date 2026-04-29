@@ -37,9 +37,9 @@ public class Kaiser
 	public  static final int SINC_QUANTSHIFT	= 15;
 	public  static final int SINC_FRACSHIFT		= ModConstants.SHIFT - SINC_PHASES_BITS;
 
-	public  static final int [] gKaiserSinc = new int [SINC_PHASES_ALL];
-	public  static final int [] gDownsample13x = new int [SINC_PHASES_ALL];
-	public  static final int [] gDownsample2x = new int [SINC_PHASES_ALL];
+	public  static final int[] gKaiserSinc = new int [SINC_PHASES_ALL];
+	public  static final int[] gDownsample13x = new int [SINC_PHASES_ALL];
+	public  static final int[] gDownsample2x = new int [SINC_PHASES_ALL];
 
 	public  static final int gDownsample2x_Limit	= 0x13 << (ModConstants.SHIFT-4);
 	public  static final int gDownsample13x_Limit	= 0x18 << (ModConstants.SHIFT-4);
@@ -70,7 +70,7 @@ public class Kaiser
 
 		return s;
 	}
-	private static void getSinc(final int [] lut, final double beta, double cutoff)
+	private static void getSinc(final int[] lut, final double beta, double cutoff)
 	{
 		if(cutoff>0.999)
 		{

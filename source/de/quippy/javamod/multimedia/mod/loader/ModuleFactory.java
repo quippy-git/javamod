@@ -74,18 +74,18 @@ public class ModuleFactory
 	public static void registerModule(final Module mod)
 	{
 		getModulesArray().add(mod);
-		final String [] extensions = mod.getFileExtensionList();
+		final String[] extensions = mod.getFileExtensionList();
 		for (final String extension : extensions)
 			getFileExtensionMap().put(extension, mod);
 	}
 	public static void deregisterModule(final Module mod)
 	{
 		getModulesArray().remove(mod);
-		final String [] extensions = mod.getFileExtensionList();
+		final String[] extensions = mod.getFileExtensionList();
 		for (final String extension : extensions)
 			getFileExtensionMap().remove(extension);
 	}
-	public static String [] getSupportedFileExtensions()
+	public static String[] getSupportedFileExtensions()
 	{
 		final Set<String> keys = getFileExtensionMap().keySet();
 		final String[] result = new String[keys.size()];

@@ -29,8 +29,8 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
  */
 public class Instrument
 {
-	public int [] sampleIndex;
-	public int [] noteIndex;
+	public int[] sampleIndex;
+	public int[] noteIndex;
 
 	public String name;
 
@@ -85,11 +85,11 @@ public class Instrument
 	 * @since 19.06.2006
 	 * @param sampleIndexArray
 	 */
-	public void setIndexArray(final int [] sampleIndexArray)
+	public void setIndexArray(final int[] sampleIndexArray)
 	{
 		this.sampleIndex = sampleIndexArray;
 	}
-	public void setNoteArray(final int [] noteIndexArray)
+	public void setNoteArray(final int[] noteIndexArray)
 	{
 		this.noteIndex = noteIndexArray;
 	}

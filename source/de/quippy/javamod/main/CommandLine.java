@@ -78,7 +78,8 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 		Log.info("                               anything your soundhardware supports)");
 		Log.info("-b8/16/24  : #Bits per sample");
 		Log.info("-s+/-      : Stereo/Mono");
-		Log.info("-i0/1/2/3  : interpolation: 0:none; 1:linear; 2:cubic spline; 3:fir interpolation");
+		Log.info("-i0/1/2/3  : interpolation: 0:none; 1:linear; 2:cubic spline; 3: kaiser; 4:fir interpolation");
+		Log.info("-p0/1/2    : amiga / paula filter emulation: 0:none; 1:Amiga 500; 2:Amiga 1200");
 		Log.info("-tms       : ms of buffer size (30 is minimum)");
 		Log.info("-w+/-      : do/don't wide stereo mix");
 		Log.info("-n+/-      : do/don't noise reduction");
@@ -109,6 +110,9 @@ public class CommandLine extends JavaModMainBase implements PlayThreadEventListe
 				{
 					case 'i':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_ISP, Integer.toString(Integer.parseInt(op.substring(0,1))));
+						break;
+					case 'p':
+						props.setProperty(ModContainer.PROPERTY_PLAYER_AMIGAEMULATION, Integer.toString(Integer.parseInt(op.substring(0,1))));
 						break;
 					case 's':
 						props.setProperty(ModContainer.PROPERTY_PLAYER_STEREO, (op.charAt(0)=='+')?"2":"1");

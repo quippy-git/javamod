@@ -55,7 +55,7 @@ import de.quippy.javamod.system.Helpers;
  */
 public class MidiContainer extends MultimediaContainer
 {
-	private static final String[] MIDIFILEEXTENSION = new String []
+	private static final String[] MIDIFILEEXTENSION = new String[]
   	{
   		"mid", "rmf", "rmi"
   	};
@@ -205,7 +205,7 @@ public class MidiContainer extends MultimediaContainer
 				// this check would be much easier!
 				if (midiMessage!=null && midiMessage instanceof MetaMessage)
 				{
-					byte [] message = ((MetaMessage)midiMessage).getMessage();
+					byte[] message = ((MetaMessage)midiMessage).getMessage();
 					if (message!=null && message.length>2 && message[0]==-1 && message[1]==0x2F)
 					{
 						track.remove(lastTrackEvent);
@@ -428,6 +428,24 @@ public class MidiContainer extends MultimediaContainer
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

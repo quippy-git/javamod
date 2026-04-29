@@ -1,12 +1,12 @@
 /*
- * @(#) DspProcessorCallBack.java
+ * @(#) SampleFrame.java
  *
- * Created on 28.09.2007 by Daniel Becker
- *
+ * Created on 29.04.2026 by Daniel Becker
+ * 
  *-----------------------------------------------------------------------
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 3 of the License, or
+ *  the Free Software Foundation; either version 2 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -19,16 +19,11 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *----------------------------------------------------------------------
  */
-package de.quippy.javamod.mixer.dsp;
+package de.quippy.javamod.multimedia.mod;
 
-import java.util.EventListener;
-
-/**
- * @author Daniel Becker
- * @since 28.09.2007
- */
-public interface DspProcessorCallBack extends EventListener
+public class SampleFrame
 {
-	/** This method will communicate new samples 1.0<=x<=-1.0 for left and right channel */
-	public void currentSampleChanged(float[] leftSample, float[] rightSample);
+	public long left, right;
+	public long middle, subwoofer;
+	public long rearLeft, rearRight;
 }

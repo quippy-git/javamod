@@ -49,19 +49,19 @@ public class SAMeterPanel extends MeterPanelBase
     private static final Color WAVEMETER_WAVE_COLOR = Color.green;
 
 	private final FFT fftCalc;
-	private Color [] color;
-	private Color [] SKcolor;
+	private Color[] color;
+	private Color[] SKcolor;
 	private int SKMax;
-	private final float [] fftLevels;
-	private final float [] maxFFTLevels;
+	private final float[] fftLevels;
+	private final float[] maxFFTLevels;
 
-	private float [] floatSamples;
+	private float[] floatSamples;
 	private int anzSamples;
 
 	private final int bands;
 	private final int multiplier;
 	private float rampDownValue;
-	private final float [] maxPeakLevelRampDownValue;
+	private final float[] maxPeakLevelRampDownValue;
 	private float maxPeakLevelRampDownDelay;
 
 	private int myBottom;
@@ -171,14 +171,14 @@ public class SAMeterPanel extends MeterPanelBase
 	 * @since 06.10.2007
 	 * @param newSamples
 	 */
-	public void setMeter(final float [] newSamples)
+	public void setMeter(final float[] newSamples)
 	{
 		if (newSamples!=null)
 		{
 			anzSamples = newSamples.length;
 			if (floatSamples==null || floatSamples.length != anzSamples) floatSamples = new float[anzSamples];
 			System.arraycopy(newSamples, 0, floatSamples, 0, anzSamples);
-			final float [] resultFFTSamples = fftCalc.calculate(floatSamples);
+			final float[] resultFFTSamples = fftCalc.calculate(floatSamples);
 
 			for (int a=0, bd=0; bd<bands; a+=multiplier, bd++)
 	        {

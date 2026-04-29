@@ -56,8 +56,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -263,7 +266,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private Dimension xmasConfigDialogSize = null;
 	private boolean xmasConfigDialogVisable = false;
 
-
 	private SimpleProgressDialog downloadDialog = null;
 	private DoubleProgressDialog exportDialog = null;
 
@@ -301,7 +303,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	private JMenuItem menu_Help_ShowSoundHardware = null;
 	private JMenuItem menu_Help_ShowVersionHistory = null;
 	private JMenuItem menu_Help_About = null;
-	private JCheckBoxMenuItem [] menu_LookAndFeel_Items = null;
+	private JCheckBoxMenuItem[] menu_LookAndFeel_Items = null;
 
 	private MenuItem aboutItem = null;
 	private MenuItem playItem = null;
@@ -433,7 +435,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	 */
 	private void readPropertyFile()
 	{
-		final java.util.Properties props = new java.util.Properties();
+		final Properties props = new Properties();
 	    try
 	    {
 	        final File propertyFile = new File(propertyFilePath + File.separator + PROPERTYFILENAME);
@@ -528,6 +530,27 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	    }
 	}
 	/**
+	 * Non-guaranteed workaround to force sorted output from Properties.store().
+	 * Relies on current JDK implementation using entrySet() iteration.
+	 * May break in future Java versions.
+	 * 
+	 * For now we accept that risk.
+	 * @author Daniel Becker
+	 * @since 20.04.2026
+	 */
+	private class SortedProps extends Properties
+	{
+		private static final long serialVersionUID = 7883930320829117735L;
+
+		@Override
+		public Set<Map.Entry<Object, Object>> entrySet()
+		{
+			TreeSet<Map.Entry<Object, Object>> sorted = new TreeSet<>(Comparator.comparing((Map.Entry<Object, Object> e) -> String.valueOf(e.getKey())).thenComparing(System::identityHashCode));
+			sorted.addAll(SortedProps.super.entrySet());
+			return sorted;
+		}
+	}
+	/**
 	 * Write back to a File
 	 * @since 01.07.2006
 	 */
@@ -535,9 +558,10 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 	    try
 	    {
-	    	final java.util.Properties props = new java.util.Properties();
+//			final Properties props = new Properties();
+			final Properties props = new SortedProps();
 
-	    	MultimediaContainerManager.getContainerConfigs(props);
+			MultimediaContainerManager.getContainerConfigs(props);
 	    	getXmasConfigPanel().writeProperties(props);
 
 			props.setProperty(PROPERTY_SEARCHPATH, searchPath);
@@ -617,14 +641,14 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			Log.error("MainForm]", ex);
 	    }
 	}
-	private UIManager.LookAndFeelInfo [] getInstalledLookAndFeels()
+	private UIManager.LookAndFeelInfo[] getInstalledLookAndFeels()
 	{
-//		java.util.ArrayList<UIManager.LookAndFeelInfo> allLAFs = new java.util.ArrayList<UIManager.LookAndFeelInfo>();
+//		ArrayList<UIManager.LookAndFeelInfo> allLAFs = new ArrayList<UIManager.LookAndFeelInfo>();
 //		allLAFs.add(new UIManager.LookAndFeelInfo("Kunststoff", "com.incors.plaf.kunststoff.KunststoffLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("Oyoaha", "com.oyoaha.swing.plaf.oyoaha.OyoahaLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("MacOS", "it.unitn.ing.swing.plaf.macos.MacOSLookAndFeel"));
 //		allLAFs.add(new UIManager.LookAndFeelInfo("GTK", "org.gtk.java.swing.plaf.gtk.GtkLookAndFeel"));
-//		UIManager.LookAndFeelInfo [] installedLAFs = UIManager.getInstalledLookAndFeels();
+//		UIManager.LookAndFeelInfo[] installedLAFs = UIManager.getInstalledLookAndFeels();
 //		for (int i=0; i<installedLAFs.length; i++)
 //		{
 //			allLAFs.add(installedLAFs[i]);
@@ -647,7 +671,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		final Set<String> containerNameSet = extensionMap.keySet();
 		for (final String containerName : containerNameSet)
 		{
-			final String [] extensions = extensionMap.get(containerName);
+			final String[] extensions = extensionMap.get(containerName);
 			final StringBuilder fileText = new StringBuilder(containerName);
 			fileText.append(" (");
 			final int ende = extensions.length-1;
@@ -663,8 +687,8 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		chooserFilterArray.add(PlayList.PLAYLIST_FILE_FILTER);
 
 		// now add all playable files at the last step (container extensions and playlist files)
-		final String [] containerExtensions = MultimediaContainerManager.getSupportedFileExtensions();
-		final String [] fullSupportedExtensions = new String[containerExtensions.length + PlayList.SUPPORTEDPLAYLISTS.length];
+		final String[] containerExtensions = MultimediaContainerManager.getSupportedFileExtensions();
+		final String[] fullSupportedExtensions = new String[containerExtensions.length + PlayList.SUPPORTEDPLAYLISTS.length];
 		System.arraycopy(PlayList.SUPPORTEDPLAYLISTS, 0, fullSupportedExtensions, 0, PlayList.SUPPORTEDPLAYLISTS.length);
 		System.arraycopy(containerExtensions, 0, fullSupportedExtensions, PlayList.SUPPORTEDPLAYLISTS.length, containerExtensions.length);
 		chooserFilterArray.add(new FileChooserFilter(fullSupportedExtensions, "All playable files"));
@@ -991,7 +1015,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			menu_LookAndFeel.setFont(Helpers.getDialogFont());
 
 			final String currentUIClassName = UIManager.getLookAndFeel().getClass().getName();
-			final UIManager.LookAndFeelInfo [] lookAndFeels = getInstalledLookAndFeels();
+			final UIManager.LookAndFeelInfo[] lookAndFeels = getInstalledLookAndFeels();
 			menu_LookAndFeel_Items = new JCheckBoxMenuItem[lookAndFeels.length];
 			for (int i=0; i<lookAndFeels.length; i++)
 			{
@@ -1720,16 +1744,17 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 			if (iconURL!=null)
 			{
 				final Image tempImage = Toolkit.getDefaultToolkit().getImage(iconURL);
+
+				// Create some typical dimensions of our Icon for Java to use.
 				// The icon is not quadratic so to keep aspect ratio, the smaller width is set to -1
 				windowIcons = new ArrayList<>();
-				// Create some typical dimensions of our Icon for Java to use.
 				windowIcons.add(tempImage.getScaledInstance(-1,  16, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  20, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  32, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  40, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1,  64, Image.SCALE_SMOOTH));
 				windowIcons.add(tempImage.getScaledInstance(-1, 128, Image.SCALE_SMOOTH));
-				// create all sizes from 16 - 128
+//				// create all sizes from 16 - 128
 //				for (int size=16; size<=128; size+=2)
 //					windowIcons.add(tempImage.getScaledInstance(-1,  size, Image.SCALE_SMOOTH));
 			}
@@ -1954,7 +1979,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	{
 		if (effectGUI==null)
 		{
-			final JPanel [] effectPanels =
+			final JPanel[] effectPanels =
 			{
 			 	getEqualizerGui(),
 			 	getPitchShiftGui()
@@ -2409,7 +2434,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	}
 	/* DspAudioProcessor CallBack -------------------------------------------*/
 	@Override
-	public void currentSampleChanged(final float [] leftSample, final float [] rightSample)
+	public void currentSampleChanged(final float[] leftSample, final float[] rightSample)
 	{
 		getVULMeterPanel().setVUMeter(leftSample);
 		getVURMeterPanel().setVUMeter(rightSample);
@@ -2437,10 +2462,12 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		if (thread.isRunning())
 		{
 			getButton_Play().setIcon(buttonPlay_Active);
+			getCurrentContainer().playBackStarted();
 		}
 		else // Signaling: not running-->Piece finished...
 		{
 			getButton_Play().setIcon(buttonPlay_normal);
+			getCurrentContainer().playBackStopped();
 			if (thread.getHasFinishedNormaly())
 			{
 				final boolean ok = doNextPlayListEntry();
@@ -2662,7 +2689,7 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 				@Override
 				public void run()
 				{
-					PlayListEntry [] entries = playList.getSelectedEntries();
+					PlayListEntry[] entries = playList.getSelectedEntries();
 					if (entries==null) entries = playList.getAllEntries();
 				    final FileChooserResult chooserResult = Helpers.selectFileNameFor(MainForm.this, exportPath, "Export here", fileFilterExport, false, 0, false, true);
 				    if (chooserResult!=null)

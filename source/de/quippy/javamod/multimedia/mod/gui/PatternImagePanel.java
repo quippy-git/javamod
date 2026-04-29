@@ -80,7 +80,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	private Color playSelectionColor = PLAY_SELECTION_COLOR;
 
 	private Pattern prevPattern, currentPattern, nextPattern;
-	private final int [] columnPositionsX = new int[14]; // positions of pattern elements
+	private final int[] columnPositionsX = new int[14]; // positions of pattern elements
 	private int buttonLength;			// length in pixel of the buttons
 	private int patternElementLength;	// length of a pattern element
 	private int patternRowLength;		// length of a row without button

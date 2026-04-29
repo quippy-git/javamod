@@ -766,7 +766,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	 */
 	public String readString(final int strLength) throws IOException
 	{
-		final byte [] buffer = new byte[strLength];
+		final byte[] buffer = new byte[strLength];
 		final int read = read(buffer, 0, strLength);
 		return Helpers.retrieveAsString(buffer, 0, read);
 	}

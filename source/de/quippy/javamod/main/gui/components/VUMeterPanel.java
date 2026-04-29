@@ -34,8 +34,8 @@ public class VUMeterPanel extends MeterPanelBase
 
 	private float currentLevel;
 	private float currentMaxPeakLevel;
-	private Color [] color;
-	private Color [] colorLow;
+	private Color[] color;
+	private Color[] colorLow;
 
 	private float rampDownValue;
 	private float maxPeakLevelRampDownValue;
@@ -81,7 +81,7 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @since 29.09.2007
 	 * @param samples
 	 */
-	public void setVUMeter(final float [] samples)
+	public void setVUMeter(final float[] samples)
 	{
 		if (samples!=null) setVUMeter(samples, samples.length);
 	}
@@ -90,7 +90,7 @@ public class VUMeterPanel extends MeterPanelBase
 	 * @param samples
 	 * @param length
 	 */
-	public void setVUMeter(final float [] samples, final int length)
+	public void setVUMeter(final float[] samples, final int length)
 	{
 		float newLevel = 0;
 		for (int i=0; i<length; i++)

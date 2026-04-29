@@ -208,7 +208,7 @@ public class Helpers
 	 * @param length
 	 * @return
 	 */
-	public static String retrieveAsString(final byte [] input, final int start, final int length)
+	public static String retrieveAsString(final byte[] input, final int start, final int length)
 	{
 		return retrieveAsString(input, start, length, currentCoding);
 	}
@@ -223,7 +223,7 @@ public class Helpers
 	 * @param coding
 	 * @return
 	 */
-	public static String retrieveAsString(final byte [] input, final int start, final int len, final String coding)
+	public static String retrieveAsString(final byte[] input, final int start, final int len, final String coding)
 	{
 		int length = len;
 		if (length<=0) return EMPTY_STING;
@@ -274,7 +274,7 @@ public class Helpers
 	 */
 	public static byte[] getBytesFromString(final String str, final int length, final String coding)
 	{
-		final byte [] result = new byte [length];
+		final byte[] result = new byte [length];
 		int len = str.length();
 		if (len>length) len = length;
 		try
@@ -1051,7 +1051,7 @@ public class Helpers
 
 	    if (result==javax.swing.JFileChooser.APPROVE_OPTION)
 	    {
-	    	final File [] selectedFiles = (multiFileSelection)?chooser.getSelectedFiles(): new File[] { chooser.getSelectedFile() };
+	    	final File[] selectedFiles = (multiFileSelection)?chooser.getSelectedFiles(): new File[] { chooser.getSelectedFile() };
 	    	return new FileChooserResult(chooser.getFileFilter(), selectedFiles);
 	    }
 	    else

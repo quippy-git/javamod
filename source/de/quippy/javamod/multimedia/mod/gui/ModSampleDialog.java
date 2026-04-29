@@ -67,8 +67,8 @@ public class ModSampleDialog extends JDialog
 {
 	private static final long serialVersionUID = -9058637708283713743L;
 
-	private static String [] AUTOVIBRATO_TYPES		= new String [] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
-	private static String [] ZOOM_TYPES				= new String [] { "Auto", "1:1", "2:1", "4:1", "8:1", "16:1", "32:1" };
+	private static String[] AUTOVIBRATO_TYPES		= new String[] { "Sine", "Square", "Ramp Up", "Ramp Down", "Random" };
+	private static String[] ZOOM_TYPES				= new String[] { "Auto", "1:1", "2:1", "4:1", "8:1", "16:1", "32:1" };
 
 	public static final String BUTTONPLAY_INACTIVE	= "/de/quippy/javamod/main/gui/ressources/play.gif";
 	public static final String BUTTONPLAY_ACTIVE 	= "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
@@ -87,7 +87,7 @@ public class ModSampleDialog extends JDialog
 	private static final int WAVEFORM_POS		= 17;
 	private static final int VIBRATO_POS		= 18;
 	private static final int TREMOLO_POS		= 19;
-	private static final String [] LABELS =
+	private static final String[] LABELS =
 	{
 		"Attack rate:", "Decay rate:", "Sustain level:", "Release level:",
 		"Sustain sound",
@@ -164,12 +164,12 @@ public class ModSampleDialog extends JDialog
 	private JLabel modulationFeedBackLabel = null;
 	private JTextField modulationFeedBack = null;
 	private JPanel adlibCarrierPanel = null;
-	private JComponent [] adlibCarrierComponents = null;
+	private JComponent[] adlibCarrierComponents = null;
 	private JPanel adlibModulatorPanel = null;
-	private JComponent [] adlibModulatorComponents = null;
+	private JComponent[] adlibModulatorComponents = null;
 
 	private SampleInstrumentPlayer player = null;
-	private Sample [] samples;
+	private Sample[] samples;
 	private ArrayList<String> spinnerModelData = null;
 
 	private final ModInfoPanel myModInfoPanel;
@@ -1274,7 +1274,7 @@ public class ModSampleDialog extends JDialog
 	{
 		if (samples!=null) getSelectSample().setValue(spinnerModelData.get(sampleIndex));
 	}
-	public void fillWithSamples(final Sample [] samples)
+	public void fillWithSamples(final Sample[] samples)
 	{
 		this.samples = samples;
 		if (samples!=null)

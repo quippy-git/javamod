@@ -40,7 +40,7 @@ import de.quippy.javamod.system.Log;
 public class WavMixer extends BasicMixer
 {
 	private int bufferSize;
-	private byte [] output;
+	private byte[] output;
 
 	private int sampleSizeInBits;
 	private int sampleSizeInBytes;

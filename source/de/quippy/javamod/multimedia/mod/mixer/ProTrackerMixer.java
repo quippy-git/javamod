@@ -41,25 +41,14 @@ public class ProTrackerMixer extends BasicModMixer
 {
 	// Pointer to the correct mapping table - like FT2 does it to not
 	// check all the time
-	private int [] note2Period;
-
-	//main crystal oscillator for PAL Amiga systems
-	private static final double AMIGA_PAL_XTAL_HZ 		= 28375160;
-	private static final double AMIGA_PAL_CCK_HZ 		= (AMIGA_PAL_XTAL_HZ / 8.0);
-//	private static final double CIA_PAL_CLK 			= (AMIGA_PAL_CCK_HZ / 5.0);
-	private static final long PAULA_PAL_CLK				= (long)(AMIGA_PAL_CCK_HZ * (double)(1<<(ModConstants.PERIOD_SHIFT + ModConstants.SHIFT)));
-	private static final int PAL_PAULA_MIN_PERIOD		= 113;
-	private static final int PAL_PAULA_MAX_PERIOD		= 856;
-//	private static final int PAL_PAULA_MIN_SAFE_PERIOD	= 124;
-//	private static final double PAL_PAULA_MAX_HZ		= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_PERIOD);
-//	private static final double PAL_PAULA_MAX_SAFE_HZ	= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_SAFE_PERIOD);
+	private int[] note2Period;
 
 	/**
 	 * Constructor for ProTrackerMixer
 	 */
-	public ProTrackerMixer(final Module mod, final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public ProTrackerMixer(final Module mod, final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		super(mod, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		super(mod, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 
 	/**
@@ -88,8 +77,8 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		if (frequencyTableType == ModConstants.AMIGA_TABLE)
 		{
-			aktMemo.portaStepUpEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(PAL_PAULA_MIN_PERIOD)+1);
-			aktMemo.portaStepDownEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(PAL_PAULA_MAX_PERIOD)+1);
+			aktMemo.portaStepUpEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(ModConstants.PAL_PAULA_MIN_PERIOD)+1);
+			aktMemo.portaStepDownEnd = getFineTunePeriod(aktMemo, ModConstants.getNoteIndexForPeriod(ModConstants.PAL_PAULA_MAX_PERIOD)+1);
 		}
 		else
 		{
@@ -104,7 +93,7 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void calculateGlobalTuning()
 	{
 		if (frequencyTableType == ModConstants.AMIGA_TABLE)
-			this.globalTuning = (int)(PAULA_PAL_CLK / (long)sampleRate);
+			this.globalTuning = (int)(ModConstants.PAULA_PAL_CLK / (long)sampleRate);
 		else
 			// FastTrackers way for Amiga Table - basically same as (8363L * 1712L), except that 1712 is 428<<2.
 			// We will stick to our precision and use <<4
@@ -153,7 +142,7 @@ public class ProTrackerMixer extends BasicModMixer
 				int clampedPeriod = aktMemo.currentNotePeriodSet = (newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod;
 				if (clampedPeriod==0) clampedPeriod = 65536; // On Amiga: period 0 = period 65536 (1+65535)
 				else
-				if (clampedPeriod<PAL_PAULA_MIN_PERIOD) clampedPeriod = PAL_PAULA_MIN_PERIOD; // close to what happens on real Amiga
+				if (clampedPeriod<ModConstants.PAL_PAULA_MIN_PERIOD) clampedPeriod = ModConstants.PAL_PAULA_MIN_PERIOD; // close to what happens on real Amiga
 				aktMemo.currentTuning = globalTuning / clampedPeriod;
 				return;
 
@@ -616,13 +605,19 @@ public class ProTrackerMixer extends BasicModMixer
 				final int effektOp = aktMemo.assignedEffektParam&0x0F;
 				switch (aktMemo.assignedEffektParam>>4)
 				{
-					case 0x0:	// Set filter (MODs and XMs!) - simulate with IT resonance filter
+					case 0x0:	// Set filter (MODs and XMs!)
 						// 0: on, 1: off (yes, really!)
-						aktMemo.cutOff = ((effektOp&0x01)==0)?0x50:0x7F; // an educated guess on the value, that sounds reasonable...
-						// other standard values for the simulation...
-						aktMemo.filterMode = ModConstants.FLTMODE_LOWPASS;
-						aktMemo.resonance = 0x00;
-						setupChannelFilter(aktMemo, !aktMemo.filterOn, 256);
+						if (paulaFilter!=null)
+							paulaFilter.setLEDFilter((effektOp&0x01)==0);
+						else
+						{
+							// Simulate with IT resonance filter
+							aktMemo.cutOff = ((effektOp&0x01)==0)?0x30:0x7F; // an educated guess on the value, that sounds reasonable...
+							// other standard values for the simulation...
+							aktMemo.filterMode = ModConstants.FLTMODE_LOWPASS;
+							aktMemo.resonance = 0x00;
+							setupChannelFilter(aktMemo, !aktMemo.filterOn, 256);
+						}
 						break;
 					case 0x1:	// Fine Porta Up
 						if (isMOD && effektOp==0)

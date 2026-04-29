@@ -79,7 +79,7 @@ public class MIDSequence extends OPL3Sequence
 
 	private URL url = null;
 	private int type = 0;
-	private byte [] data = null;
+	private byte[] data = null;
 
 	private String author = null;
 	private String title = null;
@@ -385,7 +385,7 @@ public class MIDSequence extends OPL3Sequence
 			if (inputStream.available()==0) return false;
 
 			stins = 0;
-			final int [] ins = new int[28];
+			final int[] ins = new int[28];
 			for (int i=0; i<2; i++)
 			{
 				inputStream.skip(2);
@@ -466,7 +466,7 @@ public class MIDSequence extends OPL3Sequence
 
 		final long lengthOfStream = inputStream.getLength();
 
-		final int [] magicBytes = new int[6];
+		final int[] magicBytes = new int[6];
 		for (int i=0; i<magicBytes.length; i++)
 			magicBytes[i] = inputStream.readByte()&0xFF;
 

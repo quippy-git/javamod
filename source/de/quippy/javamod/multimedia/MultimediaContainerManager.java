@@ -95,7 +95,7 @@ public class MultimediaContainerManager
 		if (container!=null)
 		{
 			getContainerArray().add(container);
-			final String [] extensions = container.getFileExtensionList();
+			final String[] extensions = container.getFileExtensionList();
 			for (final String extension : extensions)
 				getFileExtensionMap().put(extension, container);
 		}
@@ -235,7 +235,7 @@ public class MultimediaContainerManager
 	 * @return
 	 * @since 12.02.2011
 	 */
-	public static Object [] getSongInfosFor(final URL url)
+	public static Object[] getSongInfosFor(final URL url)
 	{
 		try
 		{

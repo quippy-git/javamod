@@ -33,12 +33,12 @@ import de.quippy.javamod.multimedia.mod.loader.Module;
 public class PatternContainer
 {
 	protected Module parentMod;
-	protected Pattern [] patterns;
+	protected Pattern[] patterns;
 
 	// MPTP specific information
-	protected String [] channelNames;
-	protected Color [] channelColors;
-	protected boolean [] channelIsActive;
+	protected String[] channelNames;
+	protected Color[] channelColors;
+	protected boolean[] channelIsActive;
 
 	/**
 	 * Constructor for PatternContainer
@@ -200,7 +200,7 @@ public class PatternContainer
 	 * @since 06.02.2024
 	 * @param chnNames
 	 */
-	public void setChannelNames(final String [] chnNames)
+	public void setChannelNames(final String[] chnNames)
 	{
 		if (chnNames==null) return;
 
@@ -235,7 +235,7 @@ public class PatternContainer
 	 * @since 19.07.2024
 	 * @param panningValues
 	 */
-	public void setChannelActiveStatus(final int [] panningValues)
+	public void setChannelActiveStatus(final int[] panningValues)
 	{
 		if (panningValues==null) return;
 
@@ -269,7 +269,7 @@ public class PatternContainer
 	 * @since 07.02.2024
 	 * @param chnNames
 	 */
-	public void setChannelColor(final Color [] chnColors)
+	public void setChannelColor(final Color[] chnColors)
 	{
 		final int anzChannels = (patterns!=null && patterns[0]!=null)?patterns[0].getChannels():chnColors.length;
 		channelColors = new Color[anzChannels];

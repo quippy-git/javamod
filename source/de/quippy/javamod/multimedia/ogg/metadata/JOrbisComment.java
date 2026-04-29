@@ -83,7 +83,7 @@ class State
 		while (oy.pageout(og) <= 0)
 		{
 			final int index = oy.buffer(JOrbisComment.CHUNKSIZE);
-			final byte [] buffer = oy.data;
+			final byte[] buffer = oy.data;
 			try
 			{
 				final int bytes = in.read(buffer, index, JOrbisComment.CHUNKSIZE);

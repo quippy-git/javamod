@@ -52,7 +52,7 @@ public class SampleImagePanel extends JComponent
 		super();
 		setDoubleBuffered(true);
 	}
-	private void drawSample(final Graphics g, final int top, final int left, final int width, final int height, final int loopStart, final int loopEnd, final int sustainStart, final int sustainEnd, final long [] buffer)
+	private void drawSample(final Graphics g, final int top, final int left, final int width, final int height, final int loopStart, final int loopEnd, final int sustainStart, final int sustainEnd, final long[] buffer)
 	{
 		final int halfHeight = height>>1;
 		g.setColor(LINE_COLOR);

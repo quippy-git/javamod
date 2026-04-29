@@ -62,7 +62,7 @@ public class FileChooserResult
 	/**
 	 * @return the selectedFile
 	 */
-	public File [] getSelectedFiles()
+	public File[] getSelectedFiles()
 	{
 		return selectedFiles;
 	}

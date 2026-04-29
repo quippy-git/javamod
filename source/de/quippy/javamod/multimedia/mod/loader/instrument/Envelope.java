@@ -32,8 +32,8 @@ public class Envelope
 {
 	public enum EnvelopeType { volume, panning, pitch }
 
-	public int [] positions;
-	public int [] value;
+	public int[] positions;
+	public int[] value;
 	public int nPoints;
 	public int sustainStartPoint;
 	public int sustainEndPoint;

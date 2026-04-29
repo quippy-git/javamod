@@ -663,7 +663,7 @@ public class LEDScrollPanel extends MeterPanelBase
 				}
 
 				final Character c = Character.valueOf(scrollText.charAt(scrollTextIndex));
-				byte [] newChar = ledCharSet.get(c);
+				byte[] newChar = ledCharSet.get(c);
 				if (newChar==null)
 				{
 					Log.debug("Charachter unknown: " + c.toString() + "[\\u"+ Integer.toHexString(c.charValue()) +"]");

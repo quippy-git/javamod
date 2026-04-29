@@ -76,7 +76,7 @@ public class VorbisComment extends Metadata {
 
     }
 
-    public String [] getCommentByName( final String key )  {
+    public String[] getCommentByName( final String key )  {
         if (key == null ) return null;
         final java.util.ArrayList<String> sbuff = new java.util.ArrayList<>();
         for (final VorbisString comment2 : comments)
@@ -91,7 +91,7 @@ public class VorbisComment extends Metadata {
     }
     public String getComment()
     {
-		final String [] v = getCommentByName("COMMENT");
+		final String[] v = getCommentByName("COMMENT");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -99,7 +99,7 @@ public class VorbisComment extends Metadata {
     }
     public String getGenre()
     {
-		final String [] v = getCommentByName("GENRE");
+		final String[] v = getCommentByName("GENRE");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -107,7 +107,7 @@ public class VorbisComment extends Metadata {
     }
     public String getDate()
     {
-		final String [] v = getCommentByName("DATE");
+		final String[] v = getCommentByName("DATE");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -115,7 +115,7 @@ public class VorbisComment extends Metadata {
     }
     public String getAlbum()
     {
-		final String [] v = getCommentByName("ALBUM");
+		final String[] v = getCommentByName("ALBUM");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -123,7 +123,7 @@ public class VorbisComment extends Metadata {
     }
     public String getTotalDiscs()
     {
-		final String [] v = getCommentByName("TOTALDISCS");
+		final String[] v = getCommentByName("TOTALDISCS");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -131,7 +131,7 @@ public class VorbisComment extends Metadata {
     }
     public String getDiscNumber()
     {
-		final String [] v = getCommentByName("DISCNUMBER");
+		final String[] v = getCommentByName("DISCNUMBER");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -139,7 +139,7 @@ public class VorbisComment extends Metadata {
     }
     public String getTotalTracks()
     {
-		final String [] v = getCommentByName("TOTALTRACKS");
+		final String[] v = getCommentByName("TOTALTRACKS");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -147,7 +147,7 @@ public class VorbisComment extends Metadata {
     }
     public String getTrackNumber()
     {
-		final String [] v = getCommentByName("TRACKNUMBER");
+		final String[] v = getCommentByName("TRACKNUMBER");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -155,7 +155,7 @@ public class VorbisComment extends Metadata {
     }
     public String getTitle()
     {
-		final String [] v = getCommentByName("TITLE");
+		final String[] v = getCommentByName("TITLE");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else
@@ -163,7 +163,7 @@ public class VorbisComment extends Metadata {
     }
     public String getArtist()
     {
-		final String [] v = getCommentByName("ARTIST");
+		final String[] v = getCommentByName("ARTIST");
 		if (v!=null && v.length>0 && v[0]!=null)
 			return v[0];
 		else

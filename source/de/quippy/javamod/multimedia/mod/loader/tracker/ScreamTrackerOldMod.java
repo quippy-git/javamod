@@ -41,7 +41,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class ScreamTrackerOldMod extends Module
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
 	{
 		"stm", "sts"
 	};
@@ -75,7 +75,7 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -86,9 +86,9 @@ public class ScreamTrackerOldMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int, boolean)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ScreamTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ScreamTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return
@@ -180,7 +180,7 @@ public class ScreamTrackerOldMod extends Module
 		// According to ModPlug: Magic bytes that have been found in the wild are !Scream!, BMOD2STM, WUZAMOD! and SWavePro.
 		// But simply accepting any printable ASCII as ID leads to false positives - would need to check more
 		// of the header
-		final byte [] header = new byte[32];
+		final byte[] header = new byte[32];
 		inputStream.read(header);
 		if (//header[28]!=0x1A ||	// EOF - there seem to be exceptions to this rule
 			header[29]!=2	||		// FileType == 2 (1: we do not load, but is valid STM!)
@@ -209,6 +209,15 @@ public class ScreamTrackerOldMod extends Module
 	protected Module getNewInstance(final String fileName)
 	{
 		return new ScreamTrackerOldMod(fileName);
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#supportsAmigaFilter()
+	 */
+	@Override
+	public boolean supportsAmigaFilter()
+	{
+		return false;
 	}
 	/**
 	 * Read the STM pattern data

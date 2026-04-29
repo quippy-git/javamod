@@ -224,4 +224,22 @@ public class WavContainer extends MultimediaContainer
 	public void cleanUp()
 	{
 	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
+	{
+	}
 }

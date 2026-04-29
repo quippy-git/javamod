@@ -41,7 +41,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ProTrackerMixer;
  */
 public class MultiTrackerMod extends ProTrackerMod
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
    	{
    		"mtm"
    	};
@@ -53,7 +53,7 @@ public class MultiTrackerMod extends ProTrackerMod
 		ModuleFactory.registerModule(new MultiTrackerMod());
 	}
 
-	protected int [] panningValue;
+	protected int[] panningValue;
 	private String songMessage;
 
 	/**
@@ -77,7 +77,7 @@ public class MultiTrackerMod extends ProTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -87,9 +87,9 @@ public class MultiTrackerMod extends ProTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ProTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ProTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return

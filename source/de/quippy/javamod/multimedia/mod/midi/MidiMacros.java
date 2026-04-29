@@ -64,9 +64,9 @@ public class MidiMacros
 	private static final int MACRO_LEN = 32;
 	public static final int SIZE_OF_SCTUCT = (ANZ_GLB+ANZ_SFX+ANZ_ZXX)*MACRO_LEN;
 
-	private final String [] midiGlobal;
-	private final String [] midiSFXExt;
-	private final String [] midiZXXExt;
+	private final String[] midiGlobal;
+	private final String[] midiSFXExt;
+	private final String[] midiZXXExt;
 
 	/**
 	 * Constructor for MidiMacros
@@ -206,7 +206,7 @@ public class MidiMacros
 	 */
 	public static int getMacroPlugCommand(final String macroString)
 	{
-	    final char [] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
+	    final char[] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
 	    return	(Character.digit(macro[0], 16)<<16) |
 	    		(Character.digit(macro[1], 16)<< 8) |
 	    		(Character.digit(macro[2], 16)<< 5) |
@@ -230,7 +230,7 @@ public class MidiMacros
 	 */
 	public static int getMacroPlugParam(final String macroString)
 	{
-	    final char [] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
+	    final char[] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
 	    final int code = Character.digit(macro[4], 16)<<4 | Character.digit(macro[5], 16);
 	    if (macro.length >= 4 && macro[3] == '0')
 	        return (code - 128);
@@ -256,7 +256,7 @@ public class MidiMacros
 	 */
 	public static int getMacroMidiCC(final String macroString)
 	{
-	    final char [] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
+	    final char[] macro = MidiMacros.getSafeMacro(macroString).toCharArray();
 	    final int code = Character.digit(macro[2], 16)<<4 | Character.digit(macro[3], 16);
 	    return code;
 	}

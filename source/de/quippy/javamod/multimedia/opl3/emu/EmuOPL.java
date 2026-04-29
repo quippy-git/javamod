@@ -28,7 +28,7 @@ package de.quippy.javamod.multimedia.opl3.emu;
 public abstract class EmuOPL
 {
 	public enum version { FMOPL_072_YM3526, FMOPL_072_YM3812, OPL3 }
-	public static final String [] versionNames =
+	public static final String[] versionNames =
 	{
 		 "YM3526 (OPL2) V0.72  by Jarek Burczynski",
 		 "YM3812 (OPL2) V0.72  by Jarek Burczynski",

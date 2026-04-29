@@ -72,7 +72,7 @@ public class RMIFile extends RiffFile
 			final int dataSize = ((br[7] << 24) & 0xFF000000) | ((br[6] << 16) & 0x00FF0000) | ((br[5] << 8) & 0x0000FF00) | (br[4] & 0x000000FF);
 			if (dataID != fourCC("data")) throw new UnsupportedAudioFileException("File is not a RMI RIFF file");
 
-			final byte [] buffer = new byte[dataSize];
+			final byte[] buffer = new byte[dataSize];
 			int fullSize = 0;
 			while (fullSize<dataSize)
 			{

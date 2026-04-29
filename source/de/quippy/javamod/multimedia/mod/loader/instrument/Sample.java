@@ -22,6 +22,7 @@
 package de.quippy.javamod.multimedia.mod.loader.instrument;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.SampleFrame;
 import de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline;
 import de.quippy.javamod.multimedia.mod.mixer.interpolation.Kaiser;
 import de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR;
@@ -79,15 +80,15 @@ public class Sample
 	public byte[] adLib_Instrument;
 
 	// MPT specific cue points
-	private int [] cues;
+	private int[] cues;
 	public static final int MAX_CUES = 9;
 
 	public static final int INTERPOLATION_LOOK_AHEAD = 16;
 
 	// The sample data, already converted to signed 32 bit (always)
 	// 8Bit: 0..127,128-255; 16Bit: -32768..0..+32767
-	public long [] sampleL;
-	public long [] sampleR;
+	public long[] sampleL;
+	public long[] sampleR;
 
 	/**
 	 * Constructor for Sample
@@ -344,7 +345,7 @@ public class Sample
 	 * @param currentTuningPos
 	 * @param isBackwards
 	 */
-	private void getLinearInterpolated(final long result[], final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
+	private void getLinearInterpolated(final SampleFrame result, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
 	{
 		long s1 = (sampleL[currentSamplePos  ])<<ModConstants.SAMPLE_SHIFT;
 		long s2 =
@@ -352,7 +353,7 @@ public class Sample
 			    (sampleL[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
 			:
 				(sampleL[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
-		result[0] = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
+		result.left = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
 
 		if (sampleR!=null)
 		{
@@ -362,10 +363,10 @@ public class Sample
 				    (sampleR[currentSamplePos-1])<<ModConstants.SAMPLE_SHIFT
 				:
 					(sampleR[currentSamplePos+1])<<ModConstants.SAMPLE_SHIFT;
-			result[1] = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
+			result.right = (s1 + (((s2-s1)*(currentTuningPos))>>ModConstants.SHIFT))>>ModConstants.SAMPLE_SHIFT;
 		}
 		else
-			result[1] = result[0];
+			result.right = result.left;
 	}
 	/**
 	 * does cubic interpolation with the next sample
@@ -375,7 +376,7 @@ public class Sample
 	 * @param currentTuningPos
 	 * @param isBackwards
 	 */
-	private void getCubicInterpolated(final long result [], final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
+	private void getCubicInterpolated(final SampleFrame result, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
 	{
 		final int poslo = (currentTuningPos >> CubicSpline.SPLINE_FRACSHIFT) & CubicSpline.SPLINE_FRACMASK;
 
@@ -390,7 +391,7 @@ public class Sample
 				(CubicSpline.lut[poslo+1]*sampleL[currentSamplePos  ]) +
 				(CubicSpline.lut[poslo+2]*sampleL[currentSamplePos+1]) +
 				(CubicSpline.lut[poslo+3]*sampleL[currentSamplePos+2]);
-		result[0] =  v1 >> CubicSpline.SPLINE_QUANTBITS;
+		result.left =  v1 >> CubicSpline.SPLINE_QUANTBITS;
 
 		if (sampleR!=null)
 		{
@@ -405,10 +406,10 @@ public class Sample
 					(CubicSpline.lut[poslo+1]*sampleR[currentSamplePos  ]) +
 					(CubicSpline.lut[poslo+2]*sampleR[currentSamplePos+1]) +
 					(CubicSpline.lut[poslo+3]*sampleR[currentSamplePos+2]);
-			result[1] = v1 >> CubicSpline.SPLINE_QUANTBITS;
+			result.right = v1 >> CubicSpline.SPLINE_QUANTBITS;
 		}
 		else
-			result[1] = result[0];
+			result.right = result.left;
 	}
 	/**
 	 * does a Kaiser Window interpolation with the next sample
@@ -418,12 +419,12 @@ public class Sample
 	 * @param currentTuningPos
 	 * @param isBackwards
 	 */
-	private void getKaiserInterpolated(final long result[], final int currentIncrement, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards)
+	private void getKaiserInterpolated(final SampleFrame result, final int currentSamplePos, final int currentTuning, final int currentTuningPos, final boolean isBackwards)
 	{
 		final int poslo = ((currentTuningPos>>Kaiser.SINC_FRACSHIFT) & Kaiser.SINC_MASK) * Kaiser.SINC_WIDTH;
 		// Why MPT does this and where this specific borders come from - beyond my knowledge - but, well...
-		final int [] sinc = (currentIncrement>Kaiser.gDownsample2x_Limit )?Kaiser.gDownsample2x:
-							(currentIncrement>Kaiser.gDownsample13x_Limit)?Kaiser.gDownsample13x:
+		final int[] sinc = (currentTuning>Kaiser.gDownsample2x_Limit )?Kaiser.gDownsample2x:
+							(currentTuning>Kaiser.gDownsample13x_Limit)?Kaiser.gDownsample13x:
 							Kaiser.gKaiserSinc;
 
 		long v1 =
@@ -445,7 +446,7 @@ public class Sample
 				(sinc[poslo+5]*sampleL[currentSamplePos+2]) +
 				(sinc[poslo+6]*sampleL[currentSamplePos+3]) +
 				(sinc[poslo+7]*sampleL[currentSamplePos+4]);
-		result[0] = v1 >> Kaiser.SINC_QUANTSHIFT;
+		result.left = v1 >> Kaiser.SINC_QUANTSHIFT;
 
 		if (sampleR!=null)
 		{
@@ -468,10 +469,10 @@ public class Sample
 					(sinc[poslo+5]*sampleR[currentSamplePos+2]) +
 					(sinc[poslo+6]*sampleR[currentSamplePos+3]) +
 					(sinc[poslo+7]*sampleR[currentSamplePos+4]);
-			result[1] = v1 >> Kaiser.SINC_QUANTSHIFT;
+			result.right = v1 >> Kaiser.SINC_QUANTSHIFT;
 		}
 		else
-			result[1] = result[0];
+			result.right = result.left;
 	}
 	/**
 	 * does a windowed fir interpolation with the next sample
@@ -479,7 +480,7 @@ public class Sample
 	 * @param currentTuningPos
 	 * @return
 	 */
-	private void getFIRInterpolated(final long result[], final int currentSamplePos, final int  currentTuningPos, final boolean isBackwards)
+	private void getFIRInterpolated(final SampleFrame result, final int currentSamplePos, final int  currentTuningPos, final boolean isBackwards)
 	{
 		final int poslo = ((currentTuningPos+WindowedFIR.WFIR_FRACHALVE)>>WindowedFIR.WFIR_FRACSHIFT) & WindowedFIR.WFIR_FRACMASK;
 
@@ -505,7 +506,7 @@ public class Sample
 				(WindowedFIR.lut[poslo+5]*sampleL[currentSamplePos+2]) +
 				(WindowedFIR.lut[poslo+6]*sampleL[currentSamplePos+3]) +
 				(WindowedFIR.lut[poslo+7]*sampleL[currentSamplePos+4]);
-		result[0] = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
+		result.left = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
 
 		if (sampleR!=null)
 		{
@@ -531,10 +532,10 @@ public class Sample
 					(WindowedFIR.lut[poslo+5]*sampleR[currentSamplePos+2]) +
 					(WindowedFIR.lut[poslo+6]*sampleR[currentSamplePos+3]) +
 					(WindowedFIR.lut[poslo+7]*sampleR[currentSamplePos+4]);
-			result[1] = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
+			result.right = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
 		}
 		else
-			result[1] = result[0];
+			result.right = result.left;
 	}
 	/**
 	 * Update 14.06.2020 (too late): with bidi Loops, interpolation direction
@@ -542,18 +543,18 @@ public class Sample
 	 * @since 15.06.2006
 	 * @return Returns the sample using desired interpolation.
 	 */
-	public void getInterpolatedSample(final long result[], final int doISP, final int currentIncrement, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards, final int interpolationMagic)
+	public void getInterpolatedSample(final SampleFrame result, final int doISP, final int currentTuning, final int currentSamplePos, final int currentTuningPos, final boolean isBackwards, final int interpolationMagic)
 	{
 		// Shit happens... indeed! Test is <=length because for XM PingPong we run into our added sample data (ridiculous, but that's how it is...)
-		if (currentIncrement>0 && hasSampleData()/* && currentSamplePos<=length*/)
+		if (currentTuning>0 && hasSampleData()/* && currentSamplePos<=length*/)
 		{
 			final int sampleIndex = currentSamplePos + ((interpolationMagic==0)?INTERPOLATION_LOOK_AHEAD:interpolationMagic);
 			// Now return correct sample
 			switch (doISP)
 			{
 				case ModConstants.INTERPOLATION_NONE:
-					result[0] = sampleL[sampleIndex];
-					result[1] = (sampleR!=null)? sampleR[sampleIndex] : result[0];
+					result.left = sampleL[sampleIndex];
+					result.right = (sampleR!=null)? sampleR[sampleIndex] : result.left;
 					break;
 				case ModConstants.INTERPOLATION_LINEAR:
 					getLinearInterpolated(result, sampleIndex, currentTuningPos, isBackwards);
@@ -562,7 +563,7 @@ public class Sample
 					getCubicInterpolated(result, sampleIndex, currentTuningPos, isBackwards);
 					break;
 				case ModConstants.INTERPOLATION_KAISER:
-					getKaiserInterpolated(result, currentIncrement, sampleIndex, currentTuningPos, isBackwards);
+					getKaiserInterpolated(result, sampleIndex, currentTuning, currentTuningPos, isBackwards);
 					break;
 				default:
 				case ModConstants.INTERPOLATION_WINDOWSFIR:
@@ -571,7 +572,7 @@ public class Sample
 			}
 		}
 		else
-			result[0] = result[1] = 0;
+			result.left = result.right = 0;
 	}
 	/**
 	 * @param baseFrequency The baseFrequency to set.

@@ -43,7 +43,7 @@ import de.quippy.jflac.metadata.VorbisComment;
  */
 public class FLACContainer extends MultimediaContainer
 {
-	private static final String[] FLACFILEEXTENSION = new String []
+	private static final String[] FLACFILEEXTENSION = new String[]
  	{
  		"flac"
  	};
@@ -246,6 +246,24 @@ public class FLACContainer extends MultimediaContainer
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

@@ -53,7 +53,7 @@ public class PlaylistDropListener extends DropTargetAdapter
 
 	private void fillWithPlayableFiles(final ArrayList<URL> urls, final File startDir)
 	{
-		final String [] files = startDir.list(new FilenameFilter()
+		final String[] files = startDir.list(new FilenameFilter()
 		{
 			@Override
 			public boolean accept(final File dir, final String name)

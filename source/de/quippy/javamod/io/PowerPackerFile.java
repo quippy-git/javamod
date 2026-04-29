@@ -139,7 +139,7 @@ import java.io.IOException;
  */
 public class PowerPackerFile
 {
-	private final byte [] buffer;
+	private final byte[] buffer;
 	/**
 	 * Will read n bits from a file
 	 * @author Daniel Becker
@@ -191,7 +191,7 @@ public class PowerPackerFile
 	 * @since 04.01.2011
 	 * @return
 	 */
-	public byte [] getBuffer()
+	public byte[] getBuffer()
 	{
 		return buffer;
 	}
@@ -218,7 +218,7 @@ public class PowerPackerFile
 	 * @param buffer
 	 * @throws IOException
 	 */
-	private void pp20DoUnpack(final RandomAccessInputStream source, final int srcLen, final byte [] buffer, final int dstLen) throws IOException
+	private void pp20DoUnpack(final RandomAccessInputStream source, final int srcLen, final byte[] buffer, final int dstLen) throws IOException
 	{
 		final BitBuffer bitBuffer = new BitBuffer(source, srcLen-4);
 		source.seek(srcLen-1);
@@ -282,7 +282,7 @@ public class PowerPackerFile
 		source.seek(srcLen - 4);
 		final int destLen = source.read()<<16 | source.read() << 8 | source.read();
 		if (destLen < 512 || destLen > 0x400000 || destLen > (srcLen<<3)) throw new IOException("Length of " + srcLen + " is not supported!");
-		final byte [] dstBuffer = new byte[destLen];
+		final byte[] dstBuffer = new byte[destLen];
 		pp20DoUnpack(source, srcLen, dstBuffer, destLen);
 //		// Debug - write buffer to disc
 //		try

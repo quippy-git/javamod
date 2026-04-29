@@ -43,7 +43,7 @@ import de.quippy.sidplay.libsidplay.components.sidtune.SidTuneInfo;
 public class SIDContainer extends MultimediaContainer
 {
 	/** these are copied from libsidplay.components.sidtune.defaultFileNameExt */
-	private static final String[] SIDFILEEXTENSION = new String []
+	private static final String[] SIDFILEEXTENSION = new String[]
    	{
 	 	// Preferred default file extension for single-file sidtunes
 		// or sidtune description files in SIDPLAY INFOFILE format.
@@ -172,7 +172,7 @@ public class SIDContainer extends MultimediaContainer
 			in = new FileOrPackedInputStream(sidFileURL);
 			int size = in.available();
 			if (size<1024) size = 1024;
-			short [] sidTuneData = new short[size];
+			short[] sidTuneData = new short[size];
 			int b;
 			int index = 0;
 			while ((b = in.read())!=-1)
@@ -180,7 +180,7 @@ public class SIDContainer extends MultimediaContainer
 				sidTuneData[index++] = (short)(b&0xFF);
 				if (index>=sidTuneData.length)
 				{
-					final short [] newBuffer = new short[sidTuneData.length + size];
+					final short[] newBuffer = new short[sidTuneData.length + size];
 					System.arraycopy(sidTuneData, 0, newBuffer, 0, sidTuneData.length);
 					sidTuneData = newBuffer;
 				}
@@ -204,7 +204,7 @@ public class SIDContainer extends MultimediaContainer
 	private String getShortDescriptionFrom(final SidTune sidTune)
 	{
 		final SidTuneInfo info = sidTune.getInfo();
-		final String [] infoString = info.infoString;
+		final String[] infoString = info.infoString;
 		return infoString[0] + " [" + infoString[1] + "] " + Integer.toString(info.currentSong) + '/' + Integer.toString(info.songs) + " (" + infoString[2] + ')';
 	}
 	/**
@@ -321,6 +321,24 @@ public class SIDContainer extends MultimediaContainer
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

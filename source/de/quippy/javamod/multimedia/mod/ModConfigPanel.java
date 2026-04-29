@@ -21,19 +21,28 @@
  */
 package de.quippy.javamod.multimedia.mod;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.LayoutManager;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Properties;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import de.quippy.javamod.mixer.dsp.iir.filter.Dither;
 import de.quippy.javamod.system.Helpers;
+import de.quippy.javamod.multimedia.mod.loader.Module;
 
 /**
  * @author Daniel Becker
@@ -60,16 +69,87 @@ public class ModConfigPanel extends JPanel
 	private JComboBox<String> playerSetUp_BufferSize = null;
 	private JLabel playerSetUp_L_Interpolation = null;
 	private JComboBox<String> playerSetUp_Interpolation = null;
+	private JLabel playerSetUp_L_AmigaEmulation = null;
+	private JComboBox<String> playerSetUp_AmigaEmulation = null;
 	private JLabel playerSetUp_L_MaxNNAChannels = null;
 	private JComboBox<String> playerSetUp_MaxNNAChannels = null;
+
+	private JButton modConfig_openDitherConfigDialog = null;
 	private JLabel playerSetUp_L_DitherFilterType = null;
 	private JComboBox<String> playerSetUp_DitherFilterType = null;
 	private JLabel playerSetUp_L_DitherType = null;
 	private JComboBox<String> playerSetUp_DitherType = null;
 	private JCheckBox playerSetUp_ByPassDither = null;
+	private JButton buttonClose = null;
 
 	private ModContainer parentContainer = null;
+	private Window parentConfigDialog = null;
+	private DitherConfigDialog ditherConfigDialog = null;
+	
+	private Color defaultColor;
+    public static final Color DARKGREEN = new Color(0,128,0);
 
+    private class DitherConfigDialog extends JDialog
+	{
+		private static final long serialVersionUID = -4952488362300379473L;
+		
+		public DitherConfigDialog(final Window owner, final boolean modal)
+		{
+			super(owner, modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
+			initialize();
+		}
+		private void initialize()
+		{
+			this.setLayout(new java.awt.GridBagLayout());
+
+			this.add(getPlayerSetUp_L_DitherType(),			Helpers.getGridBagConstraint(0, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			this.add(getPlayerSetUp_L_DitherFilterType(),	Helpers.getGridBagConstraint(1, 0, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+			this.add(getPlayerSetUp_ByPassDither(),			Helpers.getGridBagConstraint(2, 0, 2, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			this.add(getPlayerSetUp_DitherType(),			Helpers.getGridBagConstraint(0, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			this.add(getPlayerSetUp_DitherFilterType(),		Helpers.getGridBagConstraint(1, 1, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+			this.add(getButtonClose(),						Helpers.getGridBagConstraint(0, 2, 1, 3, java.awt.GridBagConstraints.CENTER, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
+
+			setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+			addWindowListener(new java.awt.event.WindowAdapter()
+			{
+				@Override
+				public void windowClosing(final java.awt.event.WindowEvent e)
+				{
+					doClose();
+				}
+			});
+
+			this.setName("Configure Dither");
+			this.setTitle("Configure Dither");
+			pack();
+			setLocation(Helpers.getFrameCenteredLocation(this, this.getOwner()));
+		}
+		public void doClose()
+		{
+			setVisible(false);
+			dispose();
+		}
+		private JButton getButtonClose()
+		{
+			if (buttonClose == null)
+			{
+				buttonClose = new JButton();
+				buttonClose.setName("button_close");
+				buttonClose.setMnemonic('c');
+				buttonClose.setText("Close");
+				buttonClose.setActionCommand("Ende");
+				buttonClose.addActionListener(new ActionListener()
+				{
+					@Override
+					public void actionPerformed(final ActionEvent e)
+					{
+						doClose();
+					}
+				});
+			}
+			return buttonClose;
+		}
+	}
 	/**
 	 * Constructor for ModConfigPanel
 	 */
@@ -120,6 +200,74 @@ public class ModConfigPanel extends JPanel
 	{
 		this.parentContainer = parent;
 	}
+	/**
+	 * Look out for the parent dialog when added to a Window / Frame
+	 * Basically needed to make the Dialog modal and center it
+	 * @see javax.swing.JComponent#addNotify()
+	 */
+	@Override
+	public void addNotify()
+	{
+		super.addNotify();
+
+		if (parentConfigDialog == null)
+		{
+			// As we got added somewhere without a MultimediaContainer being
+			// called, we do not know our parent dialog yet - which we need
+			// to know for our sub dialogs
+			// So lets find the parent window to which we were added
+			Component p = getParent();
+			while (p!=null)
+			{
+				if (p instanceof Window)
+				{
+					parentConfigDialog = (Window)p;
+					break;
+				}
+				p = p.getParent();
+			}
+		}
+	}
+	/**
+	 * We have dialogs in own responsibility nobody knows of, so do update...
+	 * @see javax.swing.JPanel#updateUI()
+	 */
+	@Override
+	public void updateUI()
+	{
+		super.updateUI();
+		// do not use the getter Methods here. When this is initially called,
+		// this panel does not have a parent container yet.
+		if (ditherConfigDialog!=null) SwingUtilities.updateComponentTreeUI(ditherConfigDialog);
+	}
+	/**
+	 * Some eye candy: highlight which filter is used
+	 * @since 28.04.2026
+	 * @param amigaFilterUsed
+	 */
+	public void showFilterUsed(final boolean amigaFilterUsed)
+	{
+		if (!amigaFilterUsed || getPlayerSetUp_AmigaEmulation().getSelectedIndex()==0)
+		{
+			getPlayerSetUp_L_AmigaEmulation().setForeground(defaultColor);
+			getPlayerSetUp_L_Interpolation().setForeground(DARKGREEN);
+		}
+		else
+		{
+			getPlayerSetUp_L_AmigaEmulation().setForeground(DARKGREEN);
+			getPlayerSetUp_L_Interpolation().setForeground(defaultColor);
+		}
+	}
+	/**
+	 * "unshow" which filter is used
+	 * @since 28.04.2026
+	 * @param amigaFilterUsed
+	 */
+	public void clearFilterUsed(final boolean amigaFilterUsed)
+	{
+		getPlayerSetUp_L_AmigaEmulation().setForeground(defaultColor);
+		getPlayerSetUp_L_Interpolation().setForeground(defaultColor);
+	}
 	private void initialize()
 	{
 		this.setName("ModConfigPane");
@@ -143,15 +291,13 @@ public class ModConfigPanel extends JPanel
 		this.add(getPlayerSetUp_BufferSize(),			Helpers.getGridBagConstraint(3, 2, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_loopSong(),				Helpers.getGridBagConstraint(4, 2, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
-		this.add(getPlayerSetUp_L_DitherType(),			Helpers.getGridBagConstraint(0, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_L_DitherFilterType(),	Helpers.getGridBagConstraint(1, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
-		this.add(getPlayerSetUp_ByPassDither(),			Helpers.getGridBagConstraint(2, 3, 2, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_L_MaxNNAChannels(),		Helpers.getGridBagConstraint(3, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_DitherConfigDialog(),	Helpers.getGridBagConstraint(0, 3, 2, 1, java.awt.GridBagConstraints.CENTER, java.awt.GridBagConstraints.CENTER, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_MaxNNAChannels(),		Helpers.getGridBagConstraint(2, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
+		this.add(getPlayerSetUp_L_AmigaEmulation(),		Helpers.getGridBagConstraint(3, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 		this.add(getPlayerSetUp_L_Interpolation(),		Helpers.getGridBagConstraint(4, 3, 1, 1, java.awt.GridBagConstraints.NONE, java.awt.GridBagConstraints.WEST, 0.0, 0.0));
 
-		this.add(getPlayerSetUp_DitherType(),			Helpers.getGridBagConstraint(0, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_DitherFilterType(),		Helpers.getGridBagConstraint(1, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
-		this.add(getPlayerSetUp_MaxNNAChannels(),		Helpers.getGridBagConstraint(3, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_MaxNNAChannels(),		Helpers.getGridBagConstraint(2, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
+		this.add(getPlayerSetUp_AmigaEmulation(),		Helpers.getGridBagConstraint(3, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 		this.add(getPlayerSetUp_Interpolation(),		Helpers.getGridBagConstraint(4, 4, 1, 1, java.awt.GridBagConstraints.HORIZONTAL, java.awt.GridBagConstraints.WEST, 1.0, 0.0));
 	}
 	private JCheckBox getPlayerSetUp_WideStereoMix()
@@ -598,6 +744,52 @@ public class ModConfigPanel extends JPanel
 		}
 		return playerSetUp_Interpolation;
 	}
+	private JLabel getPlayerSetUp_L_AmigaEmulation()
+	{
+		if (playerSetUp_L_AmigaEmulation==null)
+		{
+			playerSetUp_L_AmigaEmulation = new JLabel();
+			playerSetUp_L_AmigaEmulation.setName("playerSetUp_L_AmigaEmulation");
+			playerSetUp_L_AmigaEmulation.setText("Amiga Filter");
+			playerSetUp_L_AmigaEmulation.setFont(Helpers.getDialogFont());
+		}
+		return playerSetUp_L_AmigaEmulation;
+	}
+	private JComboBox<String> getPlayerSetUp_AmigaEmulation()
+	{
+		if (playerSetUp_AmigaEmulation==null)
+		{
+			playerSetUp_AmigaEmulation = new JComboBox<>();
+			playerSetUp_AmigaEmulation.setName("playerSetUp_AmigaEmulation");
+
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.AMIGA_EMULATION);
+			playerSetUp_AmigaEmulation.setModel(theModel);
+			playerSetUp_AmigaEmulation.setFont(Helpers.getDialogFont());
+			playerSetUp_AmigaEmulation.setEnabled(true);
+			playerSetUp_AmigaEmulation.addItemListener(new ItemListener()
+			{
+				@Override
+				public void itemStateChanged(final ItemEvent e)
+				{
+					if (e.getStateChange()==ItemEvent.SELECTED)
+					{
+						final ModContainer parent = getParentContainer();
+						if (parent!=null)
+						{
+							final ModMixer currentMixer = parent.getCurrentMixer();
+							if (currentMixer!=null)
+							{
+								currentMixer.setDoAmigaEmulation(getPlayerSetUp_AmigaEmulation().getSelectedIndex());
+								Module mod = currentMixer.getMod();
+								if (mod!=null) showFilterUsed(mod.supportsAmigaFilter());
+							}
+						}
+					}
+				}
+			});
+		}
+		return playerSetUp_AmigaEmulation;
+	}
 	private JLabel getPlayerSetUp_L_MaxNNAChannels()
 	{
 		if (playerSetUp_L_MaxNNAChannels==null)
@@ -639,6 +831,34 @@ public class ModConfigPanel extends JPanel
 			});
 		}
 		return playerSetUp_MaxNNAChannels;
+	}
+	private JButton getPlayerSetUp_DitherConfigDialog()
+	{
+		if (modConfig_openDitherConfigDialog==null)
+		{
+			modConfig_openDitherConfigDialog = new JButton();
+			modConfig_openDitherConfigDialog.setName("modConfig_openDitherConfigDialog");
+			modConfig_openDitherConfigDialog.setText("set Dithering");
+			modConfig_openDitherConfigDialog.setMnemonic('D');
+			modConfig_openDitherConfigDialog.setFont(Helpers.getDialogFont());
+			modConfig_openDitherConfigDialog.setToolTipText("Configure the dithering");
+			modConfig_openDitherConfigDialog.addActionListener(new ActionListener()
+	        {
+	            @Override
+				public void actionPerformed(final ActionEvent evt)
+	            {
+	            	getDitherConfigDialog().setLocation(Helpers.getFrameCenteredLocation(ditherConfigDialog, parentConfigDialog));
+	            	getDitherConfigDialog().setVisible(!getDitherConfigDialog().isVisible());
+	            }
+	        });
+		}
+		return modConfig_openDitherConfigDialog;
+	}
+	protected DitherConfigDialog getDitherConfigDialog()
+	{
+		if (ditherConfigDialog==null)
+			ditherConfigDialog = new DitherConfigDialog(parentConfigDialog, true);
+		return ditherConfigDialog;
 	}
 	private JLabel getPlayerSetUp_L_DitherType()
 	{
@@ -754,11 +974,13 @@ public class ModConfigPanel extends JPanel
 	}
 	public void configurationChanged(final Properties props)
 	{
+		// IF ANYTHING IS CHANGED HERE, WE HAVE TO CHANGE IN ModContainer (config methods plus createNewMixer0) AS WELL
 		getPlayerSetUp_SampleRate().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, ModContainer.DEFAULT_SAMPLERATE));
 		getPlayerSetUp_BufferSize().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, ModContainer.DEFAULT_MSBUFFERSIZE));
 		getPlayerSetUp_BitsPerSample().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, ModContainer.DEFAULT_BITSPERSAMPLE));
 		getPlayerSetUp_Channels().setSelectedItem(props.getProperty(ModContainer.PROPERTY_PLAYER_STEREO, ModContainer.DEFAULT_CHANNEL));
 		getPlayerSetUp_Interpolation().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_ISP, ModContainer.DEFAULT_INTERPOLATION_INDEX)));
+		getPlayerSetUp_AmigaEmulation().setSelectedIndex(Integer.parseInt(props.getProperty(ModContainer.PROPERTY_PLAYER_AMIGAEMULATION, ModContainer.DEFAULT_AMIGAEMULATION_INDEX)));
 		getPlayerSetUp_WideStereoMix().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_WIDESTEREOMIX, ModContainer.DEFAULT_WIDESTEREOMIX)));
 		getPlayerSetUp_NoiseReduction().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_NOISEREDUCTION, ModContainer.DEFAULT_NOISEREDUCTION)));
 		getPlayerSetUp_MegaBass().setSelected(Boolean.parseBoolean(props.getProperty(ModContainer.PROPERTY_PLAYER_MEGABASS, ModContainer.DEFAULT_MEGABASS)));
@@ -771,11 +993,13 @@ public class ModConfigPanel extends JPanel
 	}
 	public void configurationSave(final Properties props)
 	{
+		// IF ANYTHING IS CHANGED HERE, WE HAVE TO CHANGE IN ModContainer (config methods plus createNewMixer0) AS WELL
 		props.setProperty(ModContainer.PROPERTY_PLAYER_FREQUENCY, getPlayerSetUp_SampleRate().getSelectedItem().toString());
 		props.setProperty(ModContainer.PROPERTY_PLAYER_MSBUFFERSIZE, getPlayerSetUp_BufferSize().getSelectedItem().toString());
 		props.setProperty(ModContainer.PROPERTY_PLAYER_BITSPERSAMPLE, getPlayerSetUp_BitsPerSample().getSelectedItem().toString());
 		props.setProperty(ModContainer.PROPERTY_PLAYER_STEREO, getPlayerSetUp_Channels().getSelectedItem().toString());
 		props.setProperty(ModContainer.PROPERTY_PLAYER_ISP, Integer.toString(getPlayerSetUp_Interpolation().getSelectedIndex()));
+		props.setProperty(ModContainer.PROPERTY_PLAYER_AMIGAEMULATION, Integer.toString(getPlayerSetUp_AmigaEmulation().getSelectedIndex()));
 		props.setProperty(ModContainer.PROPERTY_PLAYER_WIDESTEREOMIX, Boolean.toString(getPlayerSetUp_WideStereoMix().isSelected()));
 		props.setProperty(ModContainer.PROPERTY_PLAYER_NOISEREDUCTION, Boolean.toString(getPlayerSetUp_NoiseReduction().isSelected()));
 		props.setProperty(ModContainer.PROPERTY_PLAYER_MEGABASS, Boolean.toString(getPlayerSetUp_MegaBass().isSelected()));

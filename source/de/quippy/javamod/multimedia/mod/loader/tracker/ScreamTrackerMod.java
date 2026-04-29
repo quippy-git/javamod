@@ -42,7 +42,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class ScreamTrackerMod extends Module
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
 	{
 		"s3m"
 	};
@@ -128,7 +128,7 @@ public class ScreamTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -139,9 +139,9 @@ public class ScreamTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int, boolean)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ScreamTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ScreamTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return
@@ -239,6 +239,15 @@ public class ScreamTrackerMod extends Module
 	protected Module getNewInstance(final String fileName)
 	{
 		return new ScreamTrackerMod(fileName);
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#supportsAmigaFilter()
+	 */
+	@Override
+	public boolean supportsAmigaFilter()
+	{
+		return false;
 	}
 	/**
 	 * Set a Pattern by interpreting
@@ -418,7 +427,7 @@ public class ScreamTrackerMod extends Module
 		inputStream.read(channelStatus);
 
 		// prepare panningValue array with panning and mute status
-		final int [] tmpPanning = new int[32];
+		final int[] tmpPanning = new int[32];
 		for (int c=0; c<32; c++)
 		{
 			int status = channelStatus[c] & 0xFF;
@@ -461,7 +470,7 @@ public class ScreamTrackerMod extends Module
 		}
 
 		final int anzPointers = getNSamples() + getNPattern();
-		final long [] paraPointers = new long[anzPointers];
+		final long[] paraPointers = new long[anzPointers];
 		inputStream.seek(startSeek);
 		for (int i=0; i<anzPointers; i++) paraPointers[i] = (inputStream.readIntelUnsignedWord()<<4);
 

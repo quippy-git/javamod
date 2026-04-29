@@ -42,7 +42,7 @@ import de.quippy.javamod.system.Helpers;
  */
 public class ProTrackerMod extends Module
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
   	{
   		"stk", "nst", "mod", "wow"
   	};
@@ -92,7 +92,7 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -102,9 +102,9 @@ public class ProTrackerMod extends Module
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ProTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ProTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return
@@ -209,6 +209,15 @@ public class ProTrackerMod extends Module
 				modID.equals(".M.K") ||
 				modID.equals("WARD") ||
 				modID.equals("!PM!");
+	}
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#supportsAmigaFilter()
+	 */
+	@Override
+	public boolean supportsAmigaFilter()
+	{
+		return isAmigaLike;
 	}
 	/**
 	 * @since 21.04.2006
@@ -353,7 +362,7 @@ public class ProTrackerMod extends Module
 				if (sampleLength>0) // we can agree, that zero length samples are never ADPCM packed...
 				{
 					inputStream.seek(seek - ADPCMLength);
-					final byte [] magic = new byte[5];
+					final byte[] magic = new byte[5];
 					inputStream.read(magic, 0, 5);
 					final String ADPCMMagic = Helpers.retrieveAsString(magic, 0, 5);
 					if (ADPCMMagic.equals("ADPCM")) isADPCM = true;

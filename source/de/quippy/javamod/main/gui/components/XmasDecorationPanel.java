@@ -53,7 +53,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	private static final int FLICKERTYPE_SOME_FLICKER = 6;
 	private static final int FLICKERTYPE_ALL_FLASH = 7;
 
-	public static String [] FLICKER_TYPES =
+	public static String[] FLICKER_TYPES =
 	{
 	 	"All off", "All on", "Alternating", "Chase bulbs", "Random on/off", "Some on/off", "Some flash", "All flash"
 	};
@@ -75,7 +75,7 @@ public class XmasDecorationPanel extends MeterPanelBase
 	 * Constructor for XmasDecorationPanel
 	 * @param desiredFPS
 	 */
-	public XmasDecorationPanel(final int desiredFPS, final ImageIcon [] useBulbs)
+	public XmasDecorationPanel(final int desiredFPS, final ImageIcon[] useBulbs)
 	{
 		super(desiredFPS);
 

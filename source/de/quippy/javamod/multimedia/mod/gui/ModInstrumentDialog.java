@@ -166,7 +166,7 @@ public class ModInstrumentDialog extends JDialog
 	private EnvelopePanel pitchEnvelopePanel = null;
 
 	private SampleInstrumentPlayer player = null;
-	private Instrument [] instruments = null;
+	private Instrument[] instruments = null;
 	private ArrayList<String> spinnerModelData = null;
 	private int noteIndexRow = ModConstants.BASENOTEINDEX;
 
@@ -1224,7 +1224,7 @@ public class ModInstrumentDialog extends JDialog
 				return "Channel default";
 		}
 	}
-	private String getSampleMapString(final int [] noteIndex, final int [] sampleIndex)
+	private String getSampleMapString(final int[] noteIndex, final int[] sampleIndex)
 	{
 		final StringBuilder sb = new StringBuilder();
 		for (int i=0; i<noteIndex.length; i++)
@@ -1377,7 +1377,7 @@ public class ModInstrumentDialog extends JDialog
 	{
 		if (instruments!=null) getSelectInstrument().setValue(spinnerModelData.get(instrumentIndex));
 	}
-	public void fillWithInstrumentArray(final Instrument [] instruments)
+	public void fillWithInstrumentArray(final Instrument[] instruments)
 	{
 		this.instruments = instruments;
 		if (instruments!=null)

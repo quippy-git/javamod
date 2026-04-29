@@ -163,7 +163,7 @@ public class ModDSP
 		//if (nXBassGain<2) nXBassGain=1; else if (nXBassGain>8) nXBassGain=8;
 		//if (nXBassCutOff<60) nXBassCutOff=60; else if (nXBassCutOff>600) nXBassCutOff=600;
 
-		final long [] result = new long[3];
+		final long[] result = new long[3];
 		shelfEQ(1024, result, nXBassCutOff, sampleFreq,
 				1.0d + (1.0d/16.0d) * (0x300 >> nXBassGain),
 				1.0d,
@@ -171,8 +171,8 @@ public class ModDSP
 
 		if (nXBassGain > 5)
 		{
-			result[1] >>= (nXBassGain-5);
-			result[2] >>= (nXBassGain-5);
+			result[1] /= 1<<(nXBassGain-5);
+			result[2] /= 1<<(nXBassGain-5);
 		}
 		nXBassFlt_A1 = result[0];
 		nXBassFlt_B0 = result[1];
@@ -182,17 +182,17 @@ public class ModDSP
 	 * @since 25.01.2022
 	 * @param sample
 	 */
-	public void processMegaBass(final long[] sample)
+	public void processMegaBass(final SampleFrame sample)
 	{
 		long x1 = nXBassFlt_X1;
 		long y1 = nXBassFlt_Y1;
 
-		final long x_m = (sample[0]+sample[1]+0x100)>>9;
+		final long x_m = (sample.left+sample.right+0x100) / (1<<9);
 		y1 = (nXBassFlt_B0 * x_m + nXBassFlt_B1 * x1 + nXBassFlt_A1 * y1) >> (10-8);
 		x1 = x_m;
-		sample[0] += y1;
-		sample[1] += y1;
-		y1 = (y1+0x80) >> 8;
+		sample.left += y1;
+		sample.right += y1;
+		y1 = (y1+0x80) / (1<<8);
 
 		nXBassFlt_X1 = x1;
 		nXBassFlt_Y1 = y1;
@@ -212,28 +212,27 @@ public class ModDSP
 	 * @since 25.01.2022
 	 * @param sample
 	 */
-	public void processDCRemoval(final long[] sample)
+	public void processDCRemoval(final SampleFrame sample)
 	{
-		long y1l = nDCRFlt_Y1l, x1l = nDCRFlt_X1l;
-		long y1r = nDCRFlt_Y1r, x1r = nDCRFlt_X1r;
+	    // filter calculation for left
+	    final long diffL = nDCRFlt_X1l - sample.left;
+	    final long outL = (diffL / (1L << (DCR_AMOUNT+1))) - diffL + nDCRFlt_Y1l;
+	    
+	    // filter calculation for right
+	    final long diffR = nDCRFlt_X1r - sample.right;
+	    final long outR = (diffR / (1L << (DCR_AMOUNT+1))) - diffR + nDCRFlt_Y1r;
 
-		final long inL = sample[0];
-		final long inR = sample[1];
-		final long diffL = x1l - inL;
-		final long diffR = x1r - inR;
-		x1l = inL;
-		x1r = inR;
-		final long outL = diffL / (1 << (DCR_AMOUNT + 1)) - diffL + y1l;
-		final long outR = diffR / (1 << (DCR_AMOUNT + 1)) - diffR + y1r;
-		sample[0] = outL;
-		sample[1] = outR;
-		y1l = outL - outL / (1 << DCR_AMOUNT);
-		y1r = outR - outR / (1 << DCR_AMOUNT);
+	    // State Update
+	    nDCRFlt_X1l = sample.left;
+	    nDCRFlt_X1r = sample.right;
+	    
+	    // set feedback part
+	    nDCRFlt_Y1l = outL - (outL / (1L << DCR_AMOUNT));
+	    nDCRFlt_Y1r = outR - (outR / (1L << DCR_AMOUNT));
 
-		nDCRFlt_Y1l = y1l;
-		nDCRFlt_X1l = x1l;
-		nDCRFlt_Y1r = y1r;
-		nDCRFlt_X1r = x1r;
+	    // Samples back
+	    sample.left = outL;
+	    sample.right = outR;
 	}
 	/**
 	 * @since 25.01.2022
@@ -247,14 +246,14 @@ public class ModDSP
 	 * @since 25.01.2022
 	 * @param sample
 	 */
-	public void processNoiseReduction(final long[] sample)
+	public void processNoiseReduction(final SampleFrame sample)
 	{
-		long vnr = sample[0]>>1;
-		sample[0] = vnr + leftNR;
+		long vnr = sample.left / 2;
+		sample.left = vnr + leftNR;
 		leftNR = vnr;
 
-		vnr = sample[1]>>1;
-		sample[1] = vnr + rightNR;
+		vnr = sample.right / 2;
+		sample.right = vnr + rightNR;
 		rightNR = vnr;
 	}
 ////////////////////////////////////////////////////////////////////////////////
@@ -282,8 +281,8 @@ public class ModDSP
 //		wideRBuffer[writePointer++]=sample[1];
 //		if (writePointer>=maxWideStereo) writePointer=0;
 //
-//		sample[1]+=(wideLBuffer[readPointer]>>1);
-//		sample[0]+=(wideRBuffer[readPointer++]>>1);
+//		sample[1]+=(wideLBuffer[readPointer] / 2);
+//		sample[0]+=(wideRBuffer[readPointer++] / 2);
 //		if (readPointer>=maxWideStereo) readPointer=0;
 //	}
 ////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +302,7 @@ public class ModDSP
 		nSurroundPos = 0;
 
 		// Setup biquad filters
-		final long [] result = new long[3];
+		final long[] result = new long[3];
 		shelfEQ(1024, result, 200, sampleFreq, 0, 0.5d, 1);
 		nDolbyHP_A1 = result[0];
 		nDolbyHP_B0 = result[1];
@@ -324,26 +323,26 @@ public class ModDSP
 	 * @since 05.02.2022
 	 * @param sample
 	 */
-	public void processStereoSurround(final long[] sample)
+	public void processStereoSurround(final SampleFrame sample)
 	{
 		// Delay
 		final long sEcho = surroundBuffer[nSurroundPos];
-		surroundBuffer[nSurroundPos++] = (sample[0]+sample[1]+256) >> 9;
+		surroundBuffer[nSurroundPos++] = (sample.left+sample.right+0x100) / (1<<9);
 		if (nSurroundPos >= nSurroundSize) nSurroundPos = 0;
 
 		// High-pass
-		final long v0 = (nDolbyHP_B0 * sEcho + nDolbyHP_B1 * nDolbyHP_X1 + nDolbyHP_A1 * nDolbyHP_Y1) >> 10;
+		final long v0 = (nDolbyHP_B0 * sEcho + nDolbyHP_B1 * nDolbyHP_X1 + nDolbyHP_A1 * nDolbyHP_Y1) / (1<<10);
 
 		// Low-pass
-		final long v = (nDolbyLP_B0 * v0 + nDolbyLP_B1 * nDolbyHP_Y1 + nDolbyLP_A1 * nDolbyLP_Y1) >> (10-8);
+		final long v = (nDolbyLP_B0 * v0 + nDolbyLP_B1 * nDolbyHP_Y1 + nDolbyLP_A1 * nDolbyLP_Y1) / (1<<(10-8));
 
 		// Add echo
-		sample[0] += v;
-		sample[1] -= v;
+		sample.left += v;
+		sample.right -= v;
 
 		// and remember
 		nDolbyHP_Y1 = v0;
 		nDolbyHP_X1 = sEcho;
-		nDolbyLP_Y1 = v >> 8;
+		nDolbyLP_Y1 = v / (1<<8);
 	}
 }

@@ -97,7 +97,7 @@ public class ID3v2Tag
 	 * @param offset
 	 * @return
 	 */
-	public static byte [] convertIntToDWord(final int value)
+	public static byte[] convertIntToDWord(final int value)
 	{
 		final byte[] buf = new byte[4];
 		buf[0] = (byte)((value>>24)&0xFF);
@@ -152,9 +152,9 @@ public class ID3v2Tag
 				final String id = new String(buf);
 				bytesRead += raf.read(buf);
 				final int curLength = ID3v2Tag.convertDWordToInt(buf, 0);
-				final byte [] flags = new byte[2];
+				final byte[] flags = new byte[2];
 				bytesRead += raf.read(flags);
-				final byte [] data = new byte[curLength];
+				final byte[] data = new byte[curLength];
 				bytesRead += raf.read(data);
 				final ID3v2Frame frame = new ID3v2Frame(id, flags, data);
 				frames.put(id, frame);

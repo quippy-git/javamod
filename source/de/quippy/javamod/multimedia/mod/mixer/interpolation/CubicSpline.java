@@ -82,7 +82,7 @@ public class CubicSpline
 	public  static final int SPLINE_FRACSHIFT	= (ModConstants.SHIFT-SPLINE_FRACBITS)-2;
 	public  static final int SPLINE_FRACMASK	= ((1<<(ModConstants.SHIFT-SPLINE_FRACSHIFT))-1) & ~3;
 
-	public static final int [] lut = new int [4*SPLINE_LUTLEN]; // prevent a 2 dimensional array...
+	public static final int[] lut = new int [4*SPLINE_LUTLEN]; // prevent a 2 dimensional array...
 
 	static
 	{
@@ -109,10 +109,10 @@ public class CubicSpline
 		{
 			final double	x		= (i)*len;
 			final int 		idx	= i<<2;
-			final double	cm1	= Math.floor(0.5 + scale * (-0.5*x*x*x + 1.0 * x*x - 0.5 * x      ));
-			final double	c0	= Math.floor(0.5 + scale * ( 1.5*x*x*x - 2.5 * x*x           + 1.0));
-			final double	c1	= Math.floor(0.5 + scale * (-1.5*x*x*x + 2.0 * x*x + 0.5 * x      ));
-			final double	c2	= Math.floor(0.5 + scale * ( 0.5*x*x*x - 0.5 * x*x                ));
+			final double	cm1	= Math.floor(0.5 + scale * (-0.5*x*x*x + 1.0*x*x - 0.5* x));
+			final double	c0	= Math.floor(0.5 + scale * ( 1.5*x*x*x - 2.5*x*x + 1.0   ));
+			final double	c1	= Math.floor(0.5 + scale * (-1.5*x*x*x + 2.0*x*x + 0.5* x));
+			final double	c2	= Math.floor(0.5 + scale * ( 0.5*x*x*x - 0.5*x*x         ));
 			lut[idx  ]		= (int)((cm1 < -scale) ? -scale : ((cm1 > scale) ? scale : cm1));
 			lut[idx+1]		= (int)((c0  < -scale) ? -scale : ((c0  > scale) ? scale : c0 ));
 			lut[idx+2]		= (int)((c1  < -scale) ? -scale : ((c1  > scale) ? scale : c1 ));

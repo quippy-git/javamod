@@ -32,10 +32,10 @@ public class Pattern
 {
 	protected Module parentMod;
 	protected PatternContainer parentPatternContainer;
-	protected PatternRow [] patternRows;
+	protected PatternRow[] patternRows;
 
 	protected String patternName;
-	protected int [] tempoSwing = null;
+	protected int[] tempoSwing = null;
 	protected int rowsPerBeat = -1;
 	protected int rowsPerMeasure = -1;
 
@@ -182,7 +182,7 @@ public class Pattern
 		if (rowsPerMeasure<=0) return parentMod.getRowsPerMeasure();
 		return rowsPerMeasure;
 	}
-	public int [] getTempoSwing()
+	public int[] getTempoSwing()
 	{
 		if (tempoSwing==null) return parentMod.getTempoSwing();
 		return tempoSwing;

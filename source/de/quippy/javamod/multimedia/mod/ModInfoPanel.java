@@ -167,7 +167,7 @@ public class ModInfoPanel extends JPanel
 		return parentContainer;
 	}
 	/**
-	 * @param parentInfoDialog the parentInfoDialog to set
+	 * @param parentContainer the parentContainer to set
 	 */
 	public void setParentContainer(final ModContainer parent)
 	{

@@ -41,7 +41,7 @@ import de.quippy.javamod.system.Log;
  */
 public class OPL3Container extends MultimediaContainer
 {
-	private static final String[] OPL3FILEEXTENSION = new String []
+	private static final String[] OPL3FILEEXTENSION = new String[]
   	{
   		"rol", "laa", "cmf", "dro", "sci"
   	};
@@ -262,6 +262,24 @@ public class OPL3Container extends MultimediaContainer
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

@@ -37,7 +37,7 @@ import de.quippy.javamod.mixer.dsp.iir.filter.IIRFilterBase;
 public class GraphicEQ implements DSPEffekt
 {
 	private static final float Q = 1.4f;
-	private static final int [] CENTER_FREQUENCIES =
+	private static final int[] CENTER_FREQUENCIES =
 	{
 	 	60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000
 	};
@@ -52,7 +52,7 @@ public class GraphicEQ implements DSPEffekt
 	public GraphicEQ()
 	{
 		super();
-		final IIRFilterBase [] filters = new IIRBandpassFilter[CENTER_FREQUENCIES.length];
+		final IIRFilterBase[] filters = new IIRBandpassFilter[CENTER_FREQUENCIES.length];
 		for (int i=0; i<CENTER_FREQUENCIES.length; i++)
 		{
 			filters[i] = new IIRBandpassFilter();
@@ -70,7 +70,7 @@ public class GraphicEQ implements DSPEffekt
 	{
 		final int currentSampleRate = (int)audioFormat.getSampleRate();
 		final int breakFreq = currentSampleRate>>1;
-		final IIRFilterBase [] filters = theFilter.getFilters();
+		final IIRFilterBase[] filters = theFilter.getFilters();
 		for (int i=0; i<CENTER_FREQUENCIES.length; i++)
 		{
 			filters[i].initialize(currentSampleRate, audioFormat.getChannels(), CENTER_FREQUENCIES[i], Q);

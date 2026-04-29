@@ -102,7 +102,7 @@ public final class OPL3
 	// read() returns "#frames" frames at a time, to be played at 49716 Hz,
 	// with each frame being four 16-bit samples,
 	// corresponding to the OPL3 four output channels CHA...CHD.
-	public void read(final int [] output, final int frames)
+	public void read(final int[] output, final int frames)
 	{
 		final int anzSamples = frames<<2;
 		for (int i=0; i<anzSamples; i+=4)

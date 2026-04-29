@@ -58,8 +58,8 @@ public class GraphicEqGUI extends JPanel
 	private JPanel selectionPanel = null;
 	private JPanel bandsPanel = null;
 	private JPanel preAmpPanel = null;
-	private JSlider [] sliders = null;
-	private JLabel  [] slidersLable = null;
+	private JSlider[] sliders = null;
+	private JLabel [] slidersLable = null;
 	private JSlider preAmpSlider = null;
 	private JLabel  preAmpSliderLable = null;
 	private JLabel minLabel = null;
@@ -306,7 +306,7 @@ public class GraphicEqGUI extends JPanel
 	}
 	private void setPreset(final int index)
 	{
-		final int [] preset = PRESET_DB[index];
+		final int[] preset = PRESET_DB[index];
 		for (int i=0; i<preset.length; i++)
 		{
 			sliders[i].setValue(preset[i] * SHIFT_DB);

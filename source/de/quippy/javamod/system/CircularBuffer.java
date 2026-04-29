@@ -43,7 +43,7 @@ public class CircularBuffer<E> implements Serializable
 {
 	private static final long serialVersionUID = 5285069332735206260L;
 
-	private volatile Object [] elements;
+	private volatile Object[] elements;
 	private volatile int popPointer;
 	private volatile int pushPointer;
 	private int size;
@@ -84,7 +84,7 @@ public class CircularBuffer<E> implements Serializable
 	 */
 	public void growBy(final int addSize)
 	{
-		final Object [] newBuffer = new Object[size + addSize];
+		final Object[] newBuffer = new Object[size + addSize];
 
 		if (pushPointer >= popPointer) // just add new space at the end
 		{

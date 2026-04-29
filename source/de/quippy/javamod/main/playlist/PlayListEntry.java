@@ -120,7 +120,7 @@ public class PlayListEntry
 	{
 		if (songName==null)
 		{
-			final Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
+			final Object[] infos = MultimediaContainerManager.getSongInfosFor(file);
 			songName = (String)infos[0];
 			if (duration==null) duration = (Long)infos[1];
 		}
@@ -130,7 +130,7 @@ public class PlayListEntry
 	{
 		if (duration==null)
 		{
-			final Object [] infos = MultimediaContainerManager.getSongInfosFor(file);
+			final Object[] infos = MultimediaContainerManager.getSongInfosFor(file);
 			duration = (Long)infos[1];
 			if (songName==null) songName = (String)infos[0];
 		}

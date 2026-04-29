@@ -41,7 +41,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class FarandoleTrackerMod extends ScreamTrackerMod
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
 	{
 		"far"
 	};
@@ -92,9 +92,9 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int, int, int, int)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ScreamTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ScreamTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return
@@ -394,7 +394,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		version = inputStream.read();
 
 		// onOff
-		final byte [] onOff = new byte[16];
+		final byte[] onOff = new byte[16];
 		inputStream.read(onOff, 0, 16);
 
 		// skip Editing State of Composer:
@@ -446,7 +446,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 		setNPattern(numPatterns);
 		final int numOrders = inputStream.read();
 		final int restartPos = inputStream.read();
-		final int [] patternSizes = new int[256];
+		final int[] patternSizes = new int[256];
 		for (int i=0; i<patternSizes.length; i++) patternSizes[i] = inputStream.readIntelUnsignedWord();
 		setSongRestart(restartPos);
 		setSongLength(numOrders);
@@ -468,7 +468,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 			setPattern(pattNum, patternSizes[pattNum], patternContainer, inputStream);
 		}
 
-		final byte [] sampleMap = new byte[8];
+		final byte[] sampleMap = new byte[8];
 		inputStream.read(sampleMap, 0, 8);
 		// 64 Instruments max (8 bytes) if a bit is set, the instrument is stored!
 		setNSamples(64);

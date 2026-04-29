@@ -118,7 +118,7 @@ public abstract class MultimediaContainer
 	{
 		listeners.remove(listener);
 	}
-	protected void fireMultimediaContainerEvent(final MultimediaContainerEvent event)
+	public void fireMultimediaContainerEvent(final MultimediaContainerEvent event)
 	{
 		for (final MultimediaContainerEventListener listener : listeners)
 			listener.multimediaContainerEventOccured(event);
@@ -137,9 +137,9 @@ public abstract class MultimediaContainer
 	 * the song name String at [0] and time in milliseconds as Long at [1]
 	 * @since 12.02.2011
 	 * @param url
-	 * @return Object [] { String SongName, Long duration }
+	 * @return Object[] { String SongName, Long duration }
 	 */
-	public abstract Object [] getSongInfosFor(final URL url);
+	public abstract Object[] getSongInfosFor(final URL url);
 	/**
 	 * Returns true if this mixers supports the export function
 	 * @since 26.10.2007
@@ -163,7 +163,7 @@ public abstract class MultimediaContainer
 	 * @since: 12.10.2007
 	 * @return
 	 */
-	public abstract String [] getFileExtensionList();
+	public abstract String[] getFileExtensionList();
 	/**
 	 * A descriptive Name for e.g. a FileChooser
 	 * @since 05.01.2008
@@ -185,6 +185,16 @@ public abstract class MultimediaContainer
 	 * @since 11.11.2023
 	 */
 	public abstract void cleanUp();
+	/**
+	 * Inform the container, that the playback started
+	 * @since 28.04.2026
+	 */
+	public abstract void playBackStarted();
+	/**
+	 * Inform the container, that the playback stopped
+	 * @since 28.04.2026
+	 */
+	public abstract void playBackStopped();
 	/**
 	 * Get the mixer of this container
 	 * @since: 12.10.2007

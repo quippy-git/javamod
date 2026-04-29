@@ -31,7 +31,7 @@ public class PatternRow
 {
 	protected Module parentMod;
 	protected Pattern parentPattern;
-	protected PatternElement [] patternElements;
+	protected PatternElement[] patternElements;
 	protected boolean rowPlayed;
 
 	/**

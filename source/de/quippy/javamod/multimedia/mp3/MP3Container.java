@@ -47,7 +47,7 @@ import de.quippy.mp3.decoder.Header;
  */
 public class MP3Container extends MultimediaContainer implements TagParseListener
 {
-	private static final String[] MP3FILEEXTENSION = new String []
+	private static final String[] MP3FILEEXTENSION = new String[]
   	{
   		"mp1", "mp2", "mp3"
   	};
@@ -287,6 +287,24 @@ public class MP3Container extends MultimediaContainer implements TagParseListene
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

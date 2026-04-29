@@ -59,7 +59,7 @@ public class MidiMixer extends BasicMixer
 	private long seekPosition;
 
 	private int bufferSize;
-	private byte [] output;
+	private byte[] output;
 
 	private int sampleSizeInBytes;
 	private int channels;

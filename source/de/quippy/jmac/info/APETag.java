@@ -369,7 +369,7 @@ public class APETag {
 //    private void SortFields() {
 //        // sort the tag fields by size (so that the smallest fields are at the front of the tag)
 //    	// this method by the way does nothing of value!!! DaBe, 22.12.2010
-//    	APETagField [] sortArray = new APETagField[m_aryFields.size()];
+//    	APETagField[] sortArray = new APETagField[m_aryFields.size()];
 //    	m_aryFields.toArray(sortArray);
 //        Arrays.sort(sortArray, this);
 //    }

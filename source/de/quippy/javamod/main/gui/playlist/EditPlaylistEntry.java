@@ -230,7 +230,7 @@ public class EditPlaylistEntry extends JDialog
     }
     private void doSearch()
     {
-		final FileFilter [] filter = new FileFilter[] { new FileChooserFilter(MultimediaContainerManager.getSupportedFileExtensions(), "All playable files") };
+		final FileFilter[] filter = new FileFilter[] { new FileChooserFilter(MultimediaContainerManager.getSupportedFileExtensions(), "All playable files") };
 		final FileChooserResult selectedFile = Helpers.selectFileNameFor(this, textField2.getText(), "Select file", filter, false, 0, false, false);
 		if (selectedFile!=null)
 		{

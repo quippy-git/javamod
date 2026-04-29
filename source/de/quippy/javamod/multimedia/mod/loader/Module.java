@@ -61,9 +61,9 @@ public abstract class Module
 	private int songLength;
 	private int songRestart;
 	private long lengthInMilliseconds;
-	private int [] arrangement;
-	private long [] msTimeIndex;
-	private boolean [] arrangementPositionPlayed;
+	private int[] arrangement;
+	private long[] msTimeIndex;
+	private boolean[] arrangementPositionPlayed;
 	private int baseVolume; // 0..128
 	private int mixingPreAmp; //0..256 (see ModConstants.MAX_MIXING_PREAMP)
 	private int synthMixingPreAmp; // 0..256 like mixingPreAmp but for synth Channels
@@ -71,12 +71,12 @@ public abstract class Module
 	protected int songFlags;
 
 	// OMPT specific (or S3M and IT), but manipulated in extended song messages
-	protected int [] panningValue;
-	protected int [] channelVolume;
+	protected int[] panningValue;
+	protected int[] channelVolume;
 	protected int tempoMode;
 	protected int rowsPerBeat;
 	protected int rowsPerMeasure;
-	protected int [] tempoSwing;
+	protected int[] tempoSwing;
 	protected int createdWithVersion;
 	protected int lastSavedWithVersion;
 	protected String author;
@@ -150,7 +150,7 @@ public abstract class Module
 	 * which indicate if this width would change. He implemented three different
 	 * methods for that, depending on the bit width we actually have (i'll write
 	 * it down for 8 bit samples, values which change for 16bit ones are in these
-	 * brackets [] ;):
+	 * brackets[] ;):
 	 *
 	 * * method 1: 1 to 6 bits
 	 *   there are two possibilities (example uses a width of 6)
@@ -219,7 +219,7 @@ public abstract class Module
 		// true, if we have IT Version >2.15 packed Data
 		private final boolean isIT215;
 
-		public ITDeCompressor(final long [] buffer, final int length, final boolean isIT215, final ModfileInputStream inputStream)
+		public ITDeCompressor(final long[] buffer, final int length, final boolean isIT215, final ModfileInputStream inputStream)
 		{
 			this.input = inputStream;
 			this.sourceBuffer = null;
@@ -593,7 +593,7 @@ public abstract class Module
 			else
 			if ((flags&ModConstants.SM_ADPCM)!=0)
 			{
-				final byte [] deltaLUT = new byte[16];
+				final byte[] deltaLUT = new byte[16];
 				inputStream.read(deltaLUT);
 
 				final int length = (current.length + 1)>>1;
@@ -687,6 +687,12 @@ public abstract class Module
 		}
 	}
 	/**
+	 * Return true, if this mod allows for Amiga Paula emulation
+	 * @since 28.04.2026
+	 * @return
+	 */
+	public abstract boolean supportsAmigaFilter();
+	/**
 	 * Returns true if the loader thinks this mod can be loaded by him
 	 * @since 10.01.2010
 	 * @param inputStream
@@ -710,11 +716,11 @@ public abstract class Module
 	/**
 	 * @return Returns the mixer.
 	 */
-	public abstract BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels);
+	public abstract BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels);
 	/**
 	 * Retrieve the file extension list this loader/player is used for
 	 */
-	public abstract String [] getFileExtensionList();
+	public abstract String[] getFileExtensionList();
 	/**
 	 * @since 22.07.2020
 	 * @return 0..128 (0-> results in mono, 128 is wide)
@@ -1140,7 +1146,7 @@ public abstract class Module
 	{
 		return rowsPerMeasure;
 	}
-	public int [] getTempoSwing()
+	public int[] getTempoSwing()
 	{
 		return tempoSwing;
 	}
@@ -1490,9 +1496,9 @@ public abstract class Module
 					if ((size % 4)==0)
 					{
 						final int numChannels = size>>2;
-						final Color [] chnColors = new Color[numChannels];
+						final Color[] chnColors = new Color[numChannels];
 
-						final byte [] rgb = new byte[4];
+						final byte[] rgb = new byte[4];
 						for (int c=0; c<numChannels; c++)
 						{
 							inputStream.read(rgb, 0, 4);
@@ -1512,8 +1518,8 @@ public abstract class Module
 					if ((getModType()&ModConstants.MODTYPE_XM)==0 && size<=64*2 && size%2==0) // Skip for XMs!
 					{
 						final int loopLimit = 64 + size>>1;
-						final int [] newPanningValues = new int[loopLimit];
-						final int [] newChannelVolume = new int[loopLimit];
+						final int[] newPanningValues = new int[loopLimit];
+						final int[] newChannelVolume = new int[loopLimit];
 						System.arraycopy(panningValue, 0, newPanningValues, 0, 64);
 						System.arraycopy(channelVolume, 0, newChannelVolume, 0, 64);
 
@@ -1553,7 +1559,7 @@ public abstract class Module
 						{
 							final Sample sample = getInstrumentContainer().getSample(sampleIndex);
 							// future versions of OMPT might have more than 9 cues...
-							final int [] theCues = new int[cues<Sample.MAX_CUES?Sample.MAX_CUES:cues];
+							final int[] theCues = new int[cues<Sample.MAX_CUES?Sample.MAX_CUES:cues];
 							int cue = 0;
 							for (; cue<cues; cue++) theCues[cue] = inputStream.readIntelDWord();
 							// if we had less than max_cues, fill up with default

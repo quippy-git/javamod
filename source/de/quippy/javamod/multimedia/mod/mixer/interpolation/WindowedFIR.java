@@ -74,7 +74,7 @@ public class WindowedFIR
 	public  static final int	WFIR_FRACMASK		=	(((1<<((ModConstants.SHIFT + 1) - WFIR_FRACSHIFT)) - 1) & ~((1<<WFIR_LOG2WIDTH)-1));
 	public  static final int	WFIR_FRACHALVE		=	1<<(ModConstants.SHIFT-(WFIR_FRACBITS+2));
 
-	public static final int [] lut = new int [WFIR_LUTLEN*WFIR_WIDTH];
+	public static final int[] lut = new int [WFIR_LUTLEN*WFIR_WIDTH];
 
 	static
 	{
@@ -163,7 +163,7 @@ public class WindowedFIR
 
 		for (int cl=0; cl<WFIR_LUTLEN; cl++)
 		{
-			final double [] coefs	= new double [WFIR_WIDTH];
+			final double[] coefs	= new double [WFIR_WIDTH];
 			final double ofs		= (cl-cllen)*norm;
 			final int idx			= cl<<WFIR_LOG2WIDTH;
 

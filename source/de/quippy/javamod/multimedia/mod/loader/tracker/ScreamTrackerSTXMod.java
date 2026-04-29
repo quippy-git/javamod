@@ -42,7 +42,7 @@ import de.quippy.javamod.multimedia.mod.mixer.ScreamTrackerMixer;
  */
 public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 {
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final String[] MODFILEEXTENSION = new String[]
 	{
 		"stx"
 	};
@@ -74,7 +74,7 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -85,9 +85,9 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getModMixer(int, boolean)
 	 */
 	@Override
-	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doNoLoops, final int maxNNAChannels)
+	public BasicModMixer getModMixer(final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
-		return new ScreamTrackerMixer(this, sampleRate, doISP, doNoLoops, maxNNAChannels);
+		return new ScreamTrackerMixer(this, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 	}
 	/**
 	 * @return
@@ -178,7 +178,7 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 		inputStream.seek(0x14);
 		// We should not be too picky about the !Scream!-Tag...
 		// so simply accept any printable ASCII as ID
-		final byte [] stmID = new byte[8];
+		final byte[] stmID = new byte[8];
 		inputStream.read(stmID);
 		for (int c=0; c<8; c++)
 		{
@@ -335,10 +335,10 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 		}
 
 		inputStream.seek(samplePointer<<4);
-		final long [] paraSamples = new long[nSamples];
+		final long[] paraSamples = new long[nSamples];
 		for (int i=0; i<nSamples; i++) paraSamples[i] = (inputStream.readIntelUnsignedWord()<<4);
 		inputStream.seek(patternPointer<<4);
-		final long [] paraPattern = new long[patternCount];
+		final long[] paraPattern = new long[patternCount];
 		for (int i=0; i<patternCount; i++) paraPattern[i] = (inputStream.readIntelUnsignedWord()<<4);
 
 		// Instruments

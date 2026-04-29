@@ -25,8 +25,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
-import javax.swing.JPanel;
-
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
@@ -50,6 +48,7 @@ public class ModContainer extends MultimediaContainer
 	public static final String PROPERTY_PLAYER_FREQUENCY = "javamod.player.frequency";
 	public static final String PROPERTY_PLAYER_MSBUFFERSIZE = "javamod.player.msbuffersize";
 	public static final String PROPERTY_PLAYER_ISP = "javamod.player.ISP";
+	public static final String PROPERTY_PLAYER_AMIGAEMULATION = "javamod.player.PAULA";
 	public static final String PROPERTY_PLAYER_WIDESTEREOMIX = "javamod.player.widestereomix";
 	public static final String PROPERTY_PLAYER_NOISEREDUCTION = "javamod.player.noisereduction";
 	public static final String PROPERTY_PLAYER_MEGABASS = "javamod.player.megabass";
@@ -82,6 +81,7 @@ public class ModContainer extends MultimediaContainer
 	public static final String DEFAULT_NOLOOPS = "1";
 	public static final String DEFAULT_MAXNNACHANNELS  = "200";
 	public static final String DEFAULT_INTERPOLATION_INDEX = "4"; // Integer.toString(ModConstants.INTERPOLATION_WINDOWSFIR);
+	public static final String DEFAULT_AMIGAEMULATION_INDEX = "0"; // NONE
 	public static final String DEFAULT_DITHERFILTER = "4";
 	public static final String DEFAULT_DITHERTYPE = "2";
 	public static final String DEFAULT_DITHERBYPASS = "false";
@@ -100,6 +100,10 @@ public class ModContainer extends MultimediaContainer
 	protected static final String[] INTERPOLATION = new String[]
   	{
   		"None", "Linear", "Cubic", "Kaiser", "Windowed FIR"
+  	};
+	protected static final String[] AMIGA_EMULATION = new String[]
+  	{
+  		"None", "Amiga 500", "Amiga 1200"
   	};
 	protected static final String[] BUFFERSIZE = new String[]
   	{
@@ -194,7 +198,7 @@ public class ModContainer extends MultimediaContainer
 			{
 				int loopValue = Integer.parseInt((currentProps!=null)?currentProps.getProperty(PROPERTY_PLAYER_NOLOOPS, DEFAULT_NOLOOPS):DEFAULT_NOLOOPS);
 				if (loopValue == ModConstants.PLAYER_LOOP_DEACTIVATED) loopValue = ModConstants.PLAYER_LOOP_IGNORE;
-				theMixer = new ModMixer(theMod, 8, 1, 22050, 0, false, false, false, false, loopValue, 0, 500, 0, 0, true);
+				theMixer = new ModMixer(theMod, 8, 1, 22050, 0, 0, false, false, false, false, loopValue, 0, 500, 0, 0, true);
 			}
 			duration = Long.valueOf(theMixer.getLengthInMilliseconds());
 		}
@@ -219,7 +223,7 @@ public class ModContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getInfoPanel()
 	 */
 	@Override
-	public JPanel getInfoPanel()
+	public ModInfoPanel getInfoPanel()
 	{
 		if (modInfoPanel==null)
 		{
@@ -233,7 +237,7 @@ public class ModContainer extends MultimediaContainer
 	 * @see de.quippy.javamod.multimedia.MultimediaContainer#getConfigPanel()
 	 */
 	@Override
-	public JPanel getConfigPanel()
+	public ModConfigPanel getConfigPanel()
 	{
 		if (modConfigPanel==null)
 		{
@@ -274,6 +278,7 @@ public class ModContainer extends MultimediaContainer
 		currentProps.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, newProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
 		currentProps.setProperty(PROPERTY_PLAYER_STEREO, newProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
 		currentProps.setProperty(PROPERTY_PLAYER_ISP, newProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
+		currentProps.setProperty(PROPERTY_PLAYER_AMIGAEMULATION, newProps.getProperty(PROPERTY_PLAYER_AMIGAEMULATION, DEFAULT_AMIGAEMULATION_INDEX));
 		currentProps.setProperty(PROPERTY_PLAYER_WIDESTEREOMIX, newProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 		currentProps.setProperty(PROPERTY_PLAYER_NOISEREDUCTION, newProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
 		currentProps.setProperty(PROPERTY_PLAYER_MEGABASS, newProps.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS));
@@ -286,7 +291,7 @@ public class ModContainer extends MultimediaContainer
 
 		if (!MultimediaContainerManager.isHeadlessMode())
 		{
-			final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
+			final ModConfigPanel configPanel = getConfigPanel();
 			configPanel.configurationChanged(newProps);
 
 			// Info Dialog sizes and locations
@@ -312,7 +317,7 @@ public class ModContainer extends MultimediaContainer
 		if (currentProps==null) currentProps = new Properties();
 		if (!MultimediaContainerManager.isHeadlessMode())
 		{
-			final ModConfigPanel configPanel = (ModConfigPanel)getConfigPanel();
+			final ModConfigPanel configPanel = getConfigPanel();
 			configPanel.configurationSave(currentProps);
 
 			// Info Dialog sizes and locations
@@ -337,6 +342,7 @@ public class ModContainer extends MultimediaContainer
 			props.setProperty(PROPERTY_PLAYER_BITSPERSAMPLE, currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
 			props.setProperty(PROPERTY_PLAYER_STEREO, currentProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
 			props.setProperty(PROPERTY_PLAYER_ISP, currentProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
+			props.setProperty(PROPERTY_PLAYER_AMIGAEMULATION, currentProps.getProperty(PROPERTY_PLAYER_AMIGAEMULATION, DEFAULT_AMIGAEMULATION_INDEX));
 			props.setProperty(PROPERTY_PLAYER_WIDESTEREOMIX, currentProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 			props.setProperty(PROPERTY_PLAYER_NOISEREDUCTION, currentProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
 			props.setProperty(PROPERTY_PLAYER_MEGABASS, currentProps.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS));
@@ -363,6 +369,7 @@ public class ModContainer extends MultimediaContainer
 		final int bitsPerSample = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_BITSPERSAMPLE, DEFAULT_BITSPERSAMPLE));
 		final int channels = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_STEREO, DEFAULT_CHANNEL));
 		final int isp = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_ISP, DEFAULT_INTERPOLATION_INDEX));
+		final int amigaEmulation = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_AMIGAEMULATION, DEFAULT_AMIGAEMULATION_INDEX));
 		final boolean wideStereoMix = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_WIDESTEREOMIX, DEFAULT_WIDESTEREOMIX));
 		final boolean noiseReduction = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_NOISEREDUCTION, DEFAULT_NOISEREDUCTION));
 		final boolean megaBass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_MEGABASS, DEFAULT_MEGABASS));
@@ -373,7 +380,8 @@ public class ModContainer extends MultimediaContainer
 		final int ditherFilter = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 		final int ditherType = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		final boolean ditherByPass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
-		return new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		
+		return new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, amigaEmulation, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
 	}
 	/**
 	 * Will create a new mixer for the currently loaded mod.
@@ -392,6 +400,26 @@ public class ModContainer extends MultimediaContainer
 		wireListeners();
 
 		return currentMixer;
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+		if (modConfigPanel!=null) modConfigPanel.showFilterUsed(currentMod.supportsAmigaFilter());
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
+	{
+		if (modConfigPanel!=null) modConfigPanel.clearFilterUsed(currentMod.supportsAmigaFilter());
 	}
 	/**
 	 * @since 11.11.2023

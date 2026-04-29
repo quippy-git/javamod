@@ -49,7 +49,7 @@ import de.quippy.mp3.decoder.SampleBuffer;
  */
 public class MP3Mixer extends BasicMixer
 {
-	private byte [] output;
+	private byte[] output;
 
 	private HttpResource httpResource;
 	private InputStream inputStream;

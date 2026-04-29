@@ -43,8 +43,8 @@ import de.quippy.javamod.system.Log;
  */
 public class ImpulseTrackerMod extends ScreamTrackerMod
 {
-	private static final int [] autovibit2xm = new int [] { 0, 3, 1, 4, 2, 0, 0, 0 };
-	private static final String[] MODFILEEXTENSION = new String []
+	private static final int[] autovibit2xm = new int[] { 0, 3, 1, 4, 2, 0, 0, 0 };
+	private static final String[] MODFILEEXTENSION = new String[]
  	{
  		"it", "mptm"
  	};
@@ -104,7 +104,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFileExtensionList()
 	 */
 	@Override
-	public String [] getFileExtensionList()
+	public String[] getFileExtensionList()
 	{
 		return MODFILEEXTENSION;
 	}
@@ -172,7 +172,15 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	{
 		return false;
 	}
-
+	/**
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#supportsAmigaFilter()
+	 */
+	@Override
+	public boolean supportsAmigaFilter()
+	{
+		return false;
+	}
 	/**
 	 * @param env
 	 * @param add
@@ -193,8 +201,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		env.setSustainStartPoint(inputStream.read());
 		env.setSustainEndPoint(inputStream.read());
 
-		final int [] values = new int[nPoints];
-		final int [] points = new int[nPoints];
+		final int[] values = new int[nPoints];
+		final int[] points = new int[nPoints];
 
 		for (int i=0; i<nPoints; i++)
 		{
@@ -211,7 +219,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	}
 	private String[] readNames(final ModfileInputStream inputStream, final int marker, final int stringSize) throws IOException
 	{
-		String [] result = null;
+		String[] result = null;
 		final long readMarker = inputStream.readIntelDWord();
 		if (readMarker==marker)
 		{
@@ -463,24 +471,24 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		//           254 = "+++", Skip to next order
 		// Song Arrangement
 		allocArrangement(getSongLength());
-		final int [] arrangement = getArrangement();
+		final int[] arrangement = getArrangement();
 		for (int i=0; i<getSongLength(); i++) arrangement[i]=inputStream.read();
 
 		// Now read the pointers
 		long minFilePointer = (hasSongMessage && msgLength>0)?msgPointer:inputStream.getLength(); // this is for sanity checks later
-		final int [] instrumentParaPointer = new int [getNInstruments()];
+		final int[] instrumentParaPointer = new int [getNInstruments()];
 		for (int i=0; i<getNInstruments(); i++)
 		{
 			instrumentParaPointer[i] = inputStream.readIntelDWord();
 			if (instrumentParaPointer[i]<minFilePointer) minFilePointer=instrumentParaPointer[i];
 		}
-		final int [] samplesParaPointer = new int [getNSamples()];
+		final int[] samplesParaPointer = new int [getNSamples()];
 		for (int i=0; i<getNSamples(); i++)
 		{
 			samplesParaPointer[i] = inputStream.readIntelDWord();
 			if (samplesParaPointer[i]<minFilePointer) minFilePointer=samplesParaPointer[i];
 		}
-		final int [] patternParaPointer = new int [getNPattern()];
+		final int[] patternParaPointer = new int [getNPattern()];
 		for (int i=0; i<getNPattern(); i++)
 		{
 			patternParaPointer[i] = inputStream.readIntelDWord();
@@ -526,9 +534,9 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		else if (((version & 0xF000)==0x6000) && ((version&0x0FFF)==0)) isBeRoTracker = true;
 
 		// read Pattern Names:
-		final String [] patNames = readNames(inputStream, 0x4D414E50, 32); // PNAM - LE saved
+		final String[] patNames = readNames(inputStream, 0x4D414E50, 32); // PNAM - LE saved
 		// Read Channel Names
-		final String [] chnNames = readNames(inputStream, 0x4D414E43, 20); // CNAM - LE saved
+		final String[] chnNames = readNames(inputStream, 0x4D414E43, 20); // CNAM - LE saved
 
 		hasModPlugExtensions = patNames!=null || chnNames!=null;
 
@@ -629,8 +637,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				inputStream.skip(4);
 			}
 
-			final int [] sampleIndex = new int[120];
-			final int [] noteIndex = new int[120];
+			final int[] sampleIndex = new int[120];
+			final int[] noteIndex = new int[120];
 			for (int j=0; j<120; j++)
 			{
 				noteIndex[j] = inputStream.read();
@@ -647,13 +655,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				// however, we read it, but do not use it (yet...)
 				// neither Schism nor ModPlug use it, do life calculations instead
 				// we are in good company :)
-				final byte [] volEnvelope = new byte[200];
+				final byte[] volEnvelope = new byte[200];
 				inputStream.read(volEnvelope);
 				volumeEnvelope.setOldITVolumeEnvelope(volEnvelope);
 
 				// now for the envelope data
-				final int [] volumeEnvelopePosition = new int[25];
-				final int [] volumeEnvelopeValue = new int[25];
+				final int[] volumeEnvelopePosition = new int[25];
+				final int[] volumeEnvelopeValue = new int[25];
 				int maxValues = 25;
 				for (int nPoints=0; nPoints<maxValues; nPoints++)
 				{
@@ -825,13 +833,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 
 			int row = 0;
 			// reserving 127 ints for all memories is easier than to resize the array afterwards...
-			final int [] lastMask= new int[MAX_CHANNELS];
-			final int [] lastNote= new int[MAX_CHANNELS];
-			final int [] lastIns= new int[MAX_CHANNELS];
-			final int [] lastVolCmd = new int[MAX_CHANNELS];
-			final int [] lastVolOp = new int[MAX_CHANNELS];
-			final int [] lastCmd= new int[MAX_CHANNELS];
-			final int [] lastData= new int[MAX_CHANNELS];
+			final int[] lastMask= new int[MAX_CHANNELS];
+			final int[] lastNote= new int[MAX_CHANNELS];
+			final int[] lastIns= new int[MAX_CHANNELS];
+			final int[] lastVolCmd = new int[MAX_CHANNELS];
+			final int[] lastVolOp = new int[MAX_CHANNELS];
+			final int[] lastCmd= new int[MAX_CHANNELS];
+			final int[] lastData= new int[MAX_CHANNELS];
 			patternContainer.createPatternRow(pattNum, row, MAX_CHANNELS);
 			while (patternDataLength>0)
 			{

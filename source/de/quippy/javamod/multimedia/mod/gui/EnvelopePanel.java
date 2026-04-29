@@ -45,7 +45,7 @@ import de.quippy.javamod.system.Helpers;
 public class EnvelopePanel extends JPanel
 {
 	private static final long serialVersionUID = 5511415780545189305L;
-	private static String [] ZOOM_TYPES = new String [] { "Auto", "2:1", "4:1", "8:1", "16:1", "32:1" };
+	private static String[] ZOOM_TYPES = new String[] { "Auto", "2:1", "4:1", "8:1", "16:1", "32:1" };
 
 	private EnvelopeImagePanel envelopeImagePanel = null;
 

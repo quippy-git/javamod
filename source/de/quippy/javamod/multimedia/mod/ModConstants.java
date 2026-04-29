@@ -79,7 +79,7 @@ public class ModConstants
 	public static final int MIN_MIXING_PREAMP	= (MAX_MIXING_PREAMP / 5) & 0xFFF0; // minimum value - used for e.g. ProTracker with more than 4 channels
 
 	// Log tables for pre-amp - legacy MPT
-	public static final int [] PreAmpTable = new int[]
+	public static final int[] PreAmpTable = new int[]
 	{
 		0x60, 0x60, 0x60, 0x70,	// 0-7
 		0x80, 0x88, 0x90, 0x98,	// 8-15
@@ -114,9 +114,9 @@ public class ModConstants
 	public static final int SHIFT_MAX	= 1<<SHIFT;
 	public static final int SHIFT_MASK	= SHIFT_MAX-1;
 
-	public static final int PERIOD_SHIFT = 4;
 	// Interpolation shift samples and clipping
-	public static final int  SAMPLE_SHIFT = 12;
+	public static final int  PERIOD_SHIFT   = 4;
+	public static final int  SAMPLE_SHIFT   = 12;
 	public static final long CLIPP32BIT_MAX = 0x000000007FFFFFFFL;
 	public static final long CLIPP32BIT_MIN = 0xFFFFFFFF80000000L;
 
@@ -126,6 +126,22 @@ public class ModConstants
 	public static final int INTERPOLATION_CUBIC			= 2;
 	public static final int INTERPOLATION_KAISER		= 3;
 	public static final int INTERPOLATION_WINDOWSFIR	= 4;
+	// AmigaEmulation
+	public static final int AMIGAEMULATION_NONE			= 0;
+	public static final int AMIGAEMULATION_AMIGA500		= 1;
+	public static final int AMIGAEMULATION_AMIGA1200	= 2;
+
+	//Paula: main crystal oscillator for PAL Amiga systems
+	public static final double	AMIGA_PAL_XTAL_HZ 			= 28375160;
+	public static final double	AMIGA_PAL_CCK_HZ 			= (AMIGA_PAL_XTAL_HZ / 8.0);
+//	public static final double	CIA_PAL_CLK 				= (AMIGA_PAL_CCK_HZ / 5.0);
+	public static final int		PAULA_PRECISION				= PERIOD_SHIFT + SHIFT;
+	public static final long	PAULA_PAL_CLK				= (long)(AMIGA_PAL_CCK_HZ * (double)(1L<<PAULA_PRECISION));
+	public static final int		PAL_PAULA_MIN_PERIOD		= 113;
+	public static final int		PAL_PAULA_MAX_PERIOD		= 856;
+//	public static final int		PAL_PAULA_MIN_SAFE_PERIOD	= 124;
+//	public static final double	PAL_PAULA_MAX_HZ			= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_PERIOD);
+//	public static final double	PAL_PAULA_MAX_SAFE_HZ		= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_SAFE_PERIOD);
 
 	public static final int INTERWEAVE_FRAC		= 4;
 	public static final int INTERWEAVE_LEN		= 1<<INTERWEAVE_FRAC;
@@ -224,7 +240,7 @@ public class ModConstants
 	public static final int TEMPOMODE_CLASSIC		= 0x00;
 	public static final int TEMPOMODE_ALTERNATIVE	= 0x01;
 	public static final int TEMPOMODE_MODERN		= 0x02;
-	public static final String [] TEMPOMODE_STRING	= { "Classic", "Alternative", "Modern" };
+	public static final String[] TEMPOMODE_STRING	= { "Classic", "Alternative", "Modern" };
 	// TempoSwing Unity
 	public static final int TEMPOSWING_UNITY		= 1<<24;
 
@@ -233,7 +249,7 @@ public class ModConstants
 	 * patternElement.toString() method, and for translating noteindex into
 	 * periods
 	 */
-	public static final int [] noteValues =
+	public static final int[] noteValues =
 	{
 		 6848, 6464, 6096, 5760, 5424, 5120, 4832, 4560, 4304, 4064, 3840, 3624,
 		 3424, 3232, 3048, 2880, 2712, 2560, 2416, 2280, 2152, 2032, 1920, 1812,
@@ -246,7 +262,7 @@ public class ModConstants
 		   26,   25,   23,   22,   21,   20,   18,   17,   16,   15,   15,   14
 	};
 	// plus the note names
-	private static final String [] noteStrings = { "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-" };
+	private static final String[] noteStrings = { "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "H-" };
 
 	/**
 	 * From the Protracker V2.1A Playroutine - plus added overflow values
@@ -616,7 +632,7 @@ public class ModConstants
 	/**
 	 * Triton's linear periods to frequency translation table (for XM modules)
 	 */
-	public static final int [] lintab =
+	public static final int[] lintab =
 	{
 		535232, 534749, 534266, 533784, 533303, 532822, 532341, 531861, 531381, 530902, 530423, 529944, 529466, 528988, 528511, 528034,
 		527558, 527082, 526607, 526131, 525657, 525183, 524709, 524236, 523763, 523290, 522818, 522346, 521875, 521404, 520934, 520464,
@@ -670,7 +686,7 @@ public class ModConstants
 	/**
 	 * PT2/FT2 sine table
 	 */
-	public static final int [] ModVibratoTable =
+	public static final int[] ModVibratoTable =
 	{
 		   0,   24,   49,   74,   97,  120,  141,  161,  180,  197,  212,  224,  235,  244,  250,  253,
 		 255,  253,  250,  244,  235,  224,  212,  197,  180,  161,  141,  120,   97,   74,   49,   24,
@@ -678,7 +694,7 @@ public class ModConstants
 //	/**
 //	 * OMPT Random table - is used with OPMT files only!
 //	 */
-//	public static final int [] ModRandomTable =
+//	public static final int[] ModRandomTable =
 //	{
 //		   98, -127,  -43,   88,  102,   41,  -65,  -94,  125,   20,  -71,  -86,  -70,  -32,  -16,  -96,
 //		   17,   72,  107,   -5,  116,  -69,  -62,  -40,   10,  -61,   65,  109,  -18,  -38,  -13,  -76,
@@ -688,7 +704,7 @@ public class ModConstants
 	/**
 	 * FT2 Auto Vibrato
 	 */
-	public static final int [] XMAutoVibSineTab =
+	public static final int[] XMAutoVibSineTab =
 	{
 		  0,  -2,  -3,  -5,  -6,  -8,  -9, -11, -12, -14, -16, -17, -19, -20, -22, -23,
 		-24, -26, -27, -29, -30, -32, -33, -34, -36, -37, -38, -39, -41, -42, -43, -44,
@@ -711,7 +727,7 @@ public class ModConstants
 	 * FT2's square root panning law LUT.
 	 * Formula to generate this table: round(65536 * sqrt(n / 256))
 	 */
-	public static final int [] XMPanningTable =
+	public static final int[] XMPanningTable =
 	{
 			0,  4096,  5793,  7094,  8192,  9159, 10033, 10837, 11585, 12288, 12953, 13585, 14189, 14768, 15326, 15864,
 		16384, 16888, 17378, 17854, 18318, 18770, 19212, 19644, 20066, 20480, 20886, 21283, 21674, 22058, 22435, 22806,
@@ -742,7 +758,7 @@ public class ModConstants
 	 * old "fineTune" effekt as they are downward compatible
 	 * calculated by 8363*2^((i-8)/(12*8))
 	 */
-	public static final int [] IT_fineTuneTable =
+	public static final int[] IT_fineTuneTable =
 	{
 		7895, 7941, 7985, 8046, 8107, 8169, 8232, 8280,
 		8363, 8413, 8463, 8529, 8581, 8651, 8723, 8757
@@ -756,7 +772,7 @@ public class ModConstants
 	 */
 	public static long HALFTONE_SHIFT = 16;
 	public static long HALFTONE_FAC = 1<<HALFTONE_SHIFT;
-	public static final int [] halfToneTab =
+	public static final int[] halfToneTab =
 	{
 		65536, 61858, 58386, 55109, 52016, 49097, 46341, 43740,
 		41285, 38968, 36781, 34716, 32768, 30929, 29193, 27554
@@ -768,7 +784,7 @@ public class ModConstants
 	/**
 	 * Used by IT Tracker Mods if linear frequencies enabled
 	 */
-	public static final int [] FineLinearSlideDownTable =
+	public static final int[] FineLinearSlideDownTable =
 	{
 		65536, 65595, 65654, 65714,	65773, 65832, 65892, 65951,
 		66011, 66071, 66130, 66190, 66250, 66309, 66369, 66429
@@ -776,7 +792,7 @@ public class ModConstants
 	/**
 	 * Used by IT Tracker Mods if linear frequencies enabled
 	 */
-	public static final int [] FineLinearSlideUpTable =
+	public static final int[] FineLinearSlideUpTable =
 	{
 		65535, 65477, 65418, 65359, 65300, 65241, 65182, 65123,
 		65065, 65006, 64947, 64889, 64830, 64772, 64713, 64655
@@ -784,7 +800,7 @@ public class ModConstants
 	/**
 	 * Pitch Envelope Slider Table
 	 */
-	public static final int [] LinearSlideDownTable =
+	public static final int[] LinearSlideDownTable =
 	{
 		 65536,  65773,  66011,  66250,  66489,  66730,  66971,  67213,
 		 67456,  67700,  67945,  68191,  68438,  68685,  68933,  69183,
@@ -822,7 +838,7 @@ public class ModConstants
 	/**
 	 * Pitch Envelope Slider Table
 	 */
-	public static final int [] LinearSlideUpTable =
+	public static final int[] LinearSlideUpTable =
 	{
 		65536, 65300, 65065, 64830, 64596, 64364, 64132, 63901,
 		63670, 63441, 63212, 62984, 62757, 62531, 62306, 62081,
@@ -860,7 +876,7 @@ public class ModConstants
 	/**
 	 * Impulse Tracker sine table (ITTECH.TXT)
 	 */
-	public static final int [] ITSinusTable =
+	public static final int[] ITSinusTable =
 	{
 		  0,  2,  3,  5,  6,  8,  9, 11, 12, 14, 16, 17, 19, 20, 22, 23,
 		 24, 26, 27, 29, 30, 32, 33, 34, 36, 37, 38, 39, 41, 42, 43, 44,
@@ -882,7 +898,7 @@ public class ModConstants
 	/**
 	 * Impulse Tracker ramp down table
 	 */
-	public static final int [] ITRampDownTable =
+	public static final int[] ITRampDownTable =
 	{
 		 64, 63, 63, 62, 62, 61, 61, 60, 60, 59, 59, 58, 58, 57, 57, 56,
 		 56, 55, 55, 54, 54, 53, 53, 52, 52, 51, 51, 50, 50, 49, 49, 48,
@@ -904,7 +920,7 @@ public class ModConstants
 	/**
 	 * Impulse Tracker Square table
 	 */
-	public static final int [] ITSquareTable =
+	public static final int[] ITSquareTable =
 	{
 		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
 		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
@@ -1088,6 +1104,7 @@ public class ModConstants
 		}
 		return String.format("0.%x", Integer.valueOf(cwtv));
 	}
+// This is HOW OMPT does it - however, that does not work. The below implementation does.
 //	private static final int ST2TempoFactor[] = { 140, 50, 25, 15, 10, 7, 6, 4, 3, 3, 2, 2, 2, 2, 1, 1 };
 //	private static final int st2MixingRate = 23863; // Highest possible setting in ST2
 //	public static int convertST2tempo(final int tempo)

@@ -483,7 +483,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 						final PlayListEntry entry = playList.getEntry(index);
 						if (e.isShiftDown()) // Select multiple (area)
 						{
-							final PlayListEntry [] alreadySelectedEntries = playList.getSelectedEntries();
+							final PlayListEntry[] alreadySelectedEntries = playList.getSelectedEntries();
 							if (alreadySelectedEntries == null)
 								playList.setSelectedElement(index);
 							else
@@ -556,7 +556,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	        playListPopUp.add(getPopUpEntryEditEntry());
     	}
     	final boolean noEmptyList = (playList!=null && playList.size()>0);
-    	final PlayListEntry [] selectedEntries = (noEmptyList)?playList.getSelectedEntries():null;
+    	final PlayListEntry[] selectedEntries = (noEmptyList)?playList.getSelectedEntries():null;
     	final boolean elementSpecificEntriesEnabled = (noEmptyList && selectedEntries!=null);
    		getPopUpEntryDeleteFromList().setEnabled(elementSpecificEntriesEnabled);
    		getPopUpEntryRefreshEntry().setEnabled(elementSpecificEntriesEnabled);
@@ -653,7 +653,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	}
     private void doDeleteSelectedEntryFromList()
     {
-		final PlayListEntry [] selectedEntries = playList.getSelectedEntries();
+		final PlayListEntry[] selectedEntries = playList.getSelectedEntries();
 		if (selectedEntries!=null)
 		{
 			final int lastIndex = selectedEntries.length - 1;
@@ -681,7 +681,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
     }
     private void doCropSelectedEntryFromList()
     {
-		final PlayListEntry [] allEntries = playList.getAllEntries();
+		final PlayListEntry[] allEntries = playList.getAllEntries();
 		if (allEntries!=null)
 		{
 			playlistUpdateThread.halt();
@@ -703,7 +703,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
     }
     private void doUpdateSelectedEntryFromList()
     {
-		final PlayListEntry [] selectedEntries = playList.getSelectedEntries();
+		final PlayListEntry[] selectedEntries = playList.getSelectedEntries();
 		if (selectedEntries!=null)
 		{
 			playlistUpdateThread.halt();
@@ -724,7 +724,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
     }
 	private void doEditSelectedEntry()
 	{
-		final PlayListEntry [] selectedEntries = playList.getSelectedEntries();
+		final PlayListEntry[] selectedEntries = playList.getSelectedEntries();
 		if (selectedEntries!=null)
 		{
 			playlistUpdateThread.halt();
@@ -853,7 +853,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	private void doChangeSelectionInList(final int moveBy)
 	{
-		final PlayListEntry [] selected = playList.getSelectedEntries();
+		final PlayListEntry[] selected = playList.getSelectedEntries();
 		if (selected==null || selected.length == 0)
 		{
 			playList.setSelectedElement(0);
@@ -884,7 +884,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	private void doMoveSelectionInList(final int moveBy)
 	{
-		final PlayListEntry [] selected = playList.getSelectedEntries();
+		final PlayListEntry[] selected = playList.getSelectedEntries();
 		if (selected==null || selected.length == 0)
 		{
 			playList.setSelectedElement(0);
@@ -909,7 +909,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	 */
 	private void doMoveSelectedEntriesInList(int moveBy)
 	{
-		final PlayListEntry [] selected = playList.getSelectedEntries();
+		final PlayListEntry[] selected = playList.getSelectedEntries();
 		if (selected!=null)
 		{
 			playlistUpdateThread.halt();
@@ -954,7 +954,7 @@ public class PlayListGUI extends JPanel implements PlaylistChangedListener, Play
 	}
 	private void doPlaySelectedPiece()
 	{
-		final PlayListEntry [] selected = playList.getSelectedEntries();
+		final PlayListEntry[] selected = playList.getSelectedEntries();
 		if (selected!=null)
 		{
 			final int index = selected[0].getIndexInPlaylist();

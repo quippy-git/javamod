@@ -55,8 +55,8 @@ public class AudioProcessor
 	private volatile long internalFramePosition;
 	private volatile boolean useInternalCounter;
 	private int sampleBufferSize;
-	private float [] sampleBuffer;
-	private byte [] resultSampleBuffer;
+	private float[] sampleBuffer;
+	private byte[] resultSampleBuffer;
 	private int currentWritePosition;
 	private ProcessorTask processorThread;
 
@@ -75,8 +75,8 @@ public class AudioProcessor
 	private final class ProcessorTask extends Thread
 	{
 		private final AudioProcessor me;
-		private final float [] leftBuffer;
-		private final float [] rightBuffer;
+		private final float[] leftBuffer;
+		private final float[] rightBuffer;
 		private final long nanoWait;
 		private volatile boolean process;
 		private volatile boolean process_alive;
@@ -406,7 +406,7 @@ public class AudioProcessor
 	 * @param offset
 	 * @param length
 	 */
-	public int writeSampleData(final byte [] newSampleData, final int offset, final int length)
+	public int writeSampleData(final byte[] newSampleData, final int offset, final int length)
 	{
 		synchronized(lock)
 		{
@@ -429,7 +429,7 @@ public class AudioProcessor
 	 * @since 23.12.2011
 	 * @param newSampleData
 	 */
-	public int writeSampleData(final byte [] newSampleData)
+	public int writeSampleData(final byte[] newSampleData)
 	{
 		return writeSampleData(newSampleData, 0, newSampleData.length);
 	}

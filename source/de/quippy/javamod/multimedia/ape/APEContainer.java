@@ -40,7 +40,7 @@ import de.quippy.jmac.tools.File;
  */
 public class APEContainer extends MultimediaContainer
 {
-	private static final String[] APEFILEEXTENSION = new String []
+	private static final String[] APEFILEEXTENSION = new String[]
  	{
  		"ape", "apl", "mac"
  	};
@@ -231,6 +231,24 @@ public class APEContainer extends MultimediaContainer
 	 */
 	@Override
 	public void cleanUp()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStarted()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStarted()
+	{
+	}
+	/**
+	 * 
+	 * @see de.quippy.javamod.multimedia.MultimediaContainer#playBackStopped()
+	 * @since: 28.04.2026
+	 */
+	@Override
+	public void playBackStopped()
 	{
 	}
 }

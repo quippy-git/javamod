@@ -46,7 +46,7 @@ public class XmasConfigPanel extends JPanel
 	private static final int ANZ_BULBS = 15;
 
 	private JTabbedPane screenSelectionPanel = null;
-	private XmasScreenConfigPanel [] xmasScreenConfigPanels = null;
+	private XmasScreenConfigPanel[] xmasScreenConfigPanels = null;
 
 	private final int screenFPS;
 	private ImageIcon[] bulbs;

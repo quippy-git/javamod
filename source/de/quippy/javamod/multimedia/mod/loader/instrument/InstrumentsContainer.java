@@ -30,8 +30,8 @@ import de.quippy.javamod.multimedia.mod.loader.Module;
 public class InstrumentsContainer
 {
 	private final Module parent;
-	private Instrument [] instruments;
-	private Sample [] samples;
+	private Instrument[] instruments;
+	private Sample[] samples;
 
 	/**
 	 * Constructor for InstrumentsContainer
@@ -59,7 +59,7 @@ public class InstrumentsContainer
 	 */
 	public void reallocSampleSpace(final int newAmount)
 	{
-		final Sample [] newSamples = new Sample[newAmount];
+		final Sample[] newSamples = new Sample[newAmount];
 		if (this.samples!=null)
 		{
 			//System.arraycopy(this.samples, 0, newSamples, this.samples.length);
@@ -96,7 +96,7 @@ public class InstrumentsContainer
 			return samples[sampleIndex];
 	}
 	/**
-	 * Add all sample length values to retrive the complete
+	 * Add all sample length values to retrieve the complete
 	 * amount. Is used only by the ProtrackerMods
 	 * @since 19.06.2006
 	 * @return

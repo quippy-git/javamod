@@ -185,7 +185,7 @@ public class SampleInstrumentPlayer
 		final long rightBuffer[] = new long[samplesPerTick];
 
 		final int bufferSize = ((250 * sampleRate) / 1000) * bytesPerSample * channels;
-		final byte [] output = new byte[bufferSize];
+		final byte[] output = new byte[bufferSize];
 
 		final SoundOutputStream outputStream = new SoundOutputStreamImpl(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false), null, null, false, false, bufferSize);
 		outputStream.open();
@@ -212,8 +212,8 @@ public class SampleInstrumentPlayer
 				// Dither
 				if (sampleSizeInBits<32) // our maximum - no dithering needed
 				{
-					sampleL = (long)((dither.process((double)sampleL/(double)(0x7FFFFFFFL), 0)*maximum) + 0.5d);
-					sampleR = (long)((dither.process((double)sampleR/(double)(0x7FFFFFFFL), 1)*maximum) + 0.5d);
+					sampleL = dither.process(sampleL, 0);
+					sampleR = dither.process(sampleR, 1);
 				}
 
 				// Clip the values to target:

@@ -57,7 +57,7 @@ public final class Header
 		{{ 384, 1152,  576}, // MPEG2_LSF
 		 { 384, 1152, 1152}, // MPEG1
 		 { 384, 1152,  576}};// MPEG25_LSF
-	private static float [] h_vbr_time_per_frame = {384, 1152, 1152};
+	private static float[] h_vbr_time_per_frame = {384, 1152, 1152};
 
 	private static final int bitrates[][][] = // h_version, h_layer - 1, h_bitrate_index
 	{

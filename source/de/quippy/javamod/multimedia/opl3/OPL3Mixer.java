@@ -52,7 +52,7 @@ public class OPL3Mixer extends BasicMixer
 	private final OPL3Sequence opl3Sequence;
 	private EmuOPL opl;
 
-	private byte [] buffer;
+	private byte[] buffer;
 	private int bufferSize;
 	private long samplesWritten = 0;
 	private int rampDownVolume;
@@ -176,7 +176,7 @@ public class OPL3Mixer extends BasicMixer
 	public void startPlayback()
 	{
 		initialize();
-		final int [] fromOPL3 = new int[2];
+		final int[] fromOPL3 = new int[2];
 		samplesWritten = 0;
 		int bufferIndex = 0;
 
@@ -215,16 +215,16 @@ public class OPL3Mixer extends BasicMixer
 						wideRBuffer[writePointer++]=sampler;
 						if (writePointer>=maxWideStereo) writePointer=0;
 
-						sampler+=(int)(wideLBuffer[readPointer]>>1);
-						samplel+=(int)(wideRBuffer[readPointer++]>>1);
+						sampler+=(int)(wideLBuffer[readPointer] / 2);
+						samplel+=(int)(wideRBuffer[readPointer++] / 2);
 						if (readPointer>=maxWideStereo) readPointer=0;
 					}
 
 					// let's do a fast ramp down at the end, to avoid clicking
 					if (!newData && samples-s<=RAMP_DOWN_START)
 					{
-						samplel = (samplel * rampDownVolume) >> RAMP_DOWN_SHIFT;
-						sampler = (sampler * rampDownVolume) >> RAMP_DOWN_SHIFT;
+						samplel = (samplel * rampDownVolume) / (1<<RAMP_DOWN_SHIFT);
+						sampler = (sampler * rampDownVolume) / (1<<RAMP_DOWN_SHIFT);
 						rampDownVolume--;
 						if (rampDownVolume<=0) rampDownVolume = 0;
 					}
