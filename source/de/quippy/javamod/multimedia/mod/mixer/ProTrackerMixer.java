@@ -298,8 +298,8 @@ public class ProTrackerMixer extends BasicModMixer
 	private void triggerPTPeriod(final ChannelMemory aktMemo)
 	{
 		aktMemo.currentSample = aktMemo.assignedSample;
-		resetInstrumentPointers(aktMemo, true);
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
+		resetInstrumentPointers(aktMemo, true);
 	}
 	/**
 	 * @since 26.07.2024
@@ -785,7 +785,7 @@ public class ProTrackerMixer extends BasicModMixer
 				if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
 				break;
 			case 0x11:			// Global volume slide
-				doGlobalVolumeSlideEffekt(aktMemo); //ONLY TICK ZERO!
+				//doGlobalVolumeSlideEffekt(aktMemo); //NOT ON TICK ZERO!
 				break;
 			case 0x14:			// Key off
 				aktMemo.keyOffCounter = aktMemo.assignedEffektParam;
@@ -1351,7 +1351,7 @@ public class ProTrackerMixer extends BasicModMixer
 	}
 	/**
 	 * Convenient Method for the Global VolumeSlide effect
-	 * Only on Tick Zero!
+	 * Not on Tick Zero!
 	 * @since 21.06.2006
 	 * @param aktMemo
 	 */
@@ -1766,7 +1766,7 @@ public class ProTrackerMixer extends BasicModMixer
 				}
 				break;
 			case 0x11 :			// Global volume slide
-				//doGlobalVolumeSlideEffekt(aktMemo); ONLY TICK ZERO!
+				doGlobalVolumeSlideEffekt(aktMemo); //NOT ON TICK ZERO!
 				break;
 			case 0x14 :			// Key off
 				if (aktMemo.keyOffCounter>0)

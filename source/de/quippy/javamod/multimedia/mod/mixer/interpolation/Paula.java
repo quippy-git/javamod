@@ -25,7 +25,7 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 
 /**
  * This is migrated from 8bitbubsy PT2 implementation
- * simulating that by switching on a low pass filter.
+ * using Aciddose LUT table
  * @author Daniel Becker
  * @since 24.04.2026
  */
@@ -169,7 +169,7 @@ public class Paula
 	public class BLEP
 	{
 		// this BLEP table was coded by aciddose
-		private static final double[] BUBSY_DATA = {
+		private static final double[] ACIDDOSE_LUT = {
            	 1.000047730261351741631870027, 1.000070326525919428561905988, 1.000026295486963423542192686, 0.999910424773336803383472216,
         	 0.999715744379055859525351480, 0.999433014919733908598686867, 0.999050085771328588712947294, 0.998551121919525108694415394,
         	 0.997915706233591937035498631, 0.997117832692634098457062919, 0.996124815495205595539118804, 0.994896148570364013963285288,
@@ -237,10 +237,8 @@ public class Paula
 
         	 0.000000000000000000000000000 // 8bitbubsy: one extra zero is required for interpolation look-up
 		};
-		
-		private static final int BLEP_SIZE			= BUBSY_DATA.length;
-		private static final int BLEP_SCALE			= 48;
-		private static final int BLEP_BACKSHIFT		= BLEP_SCALE - (ModConstants.SHIFT + ModConstants.SAMPLE_SHIFT);
+
+		private static final int BLEP_SIZE			= ACIDDOSE_LUT.length;
 		private static final int BLEP_ZC			= 16;
 		private static final int BLEP_OS			= 16;
 		private static final int BLEP_SP			= 16;
@@ -249,12 +247,22 @@ public class Paula
 		private static final int BLEP_BUFFER_SIZE	= BLEP_ZC + BLEP_OS;
 		private static final int BLEP_BUFFER_MASK	= BLEP_BUFFER_SIZE-1;
 		
+		// Scaling the bits - what a mess!
+		private static final int BLEP_SCALE			= 48; // Needed so the table keeps its values
+		private static final int SAMPLE_PRESHIFT	= 24; // we only have 8 Bit samples with Paula
+		private static final int BLEP_RESTSHIFT		= BLEP_SCALE - SAMPLE_PRESHIFT;
+
+		// Factors to use - so we do not miss the 1L (!)
+		private static final long BLEP_FACTOR		= 1L<<BLEP_SCALE;
+		private static final long SAMPLE_FACTOR		= 1L<<BLEP_RESTSHIFT;
+		private static final long BLEP_REST_FACTOR	= 1L<<BLEP_RESTSHIFT;
+
 		private static final long[] BLEP_TABLE = new long[BLEP_SIZE + 1];
 		private long[] blepBuffer = new long[BLEP_BUFFER_SIZE];
 
 		private int blepPos, blepSamplesLeft;
-		private int lastDelta, lastPhase;
-		private long blepPhase, lastSample;
+		private int lastDelta, lastPhase, blepPhase;
+		private long lastSample;
 		
 		static
 		{
@@ -266,10 +274,12 @@ public class Paula
 		 */
 		private static void initialize()
 		{
-			final double scale = (double)(1 << BLEP_SCALE);
-			for (int i = 0; i < BUBSY_DATA.length; i++)
-				BLEP_TABLE[i] = (long) (BUBSY_DATA[i] * scale);
+			// We use the original table from Aciddose and convert it on the fly
+			// at class loading.
+			for (int i=0; i<ACIDDOSE_LUT.length; i++)
+				BLEP_TABLE[i] = (long)(ACIDDOSE_LUT[i] * (double)BLEP_FACTOR);
 		}
+
 		public BLEP()
 		{
 			super();
@@ -278,8 +288,8 @@ public class Paula
 		public void resetBlep()
 		{
 			blepPos = 0;
-			lastDelta = lastPhase = 0;
-			blepPhase = lastSample = 0;
+			lastDelta = lastPhase = blepPhase = 0;
+			lastSample = 0;
 			blepSamplesLeft = 0;
 			for (int i=0, len=blepBuffer.length; i<len; i++) blepBuffer[i]=0;
 		}
@@ -306,10 +316,11 @@ public class Paula
 			{
 				// blepPhase is currentTuningPos(overshoot) / currentTuning aka phase / delta
 				// This is to be 0.0<=blepPhase<1.0 in Q16 fixed point
-				long factor = blepPhase * BLEP_SP;
+				int factor = blepPhase * BLEP_SP;
 
 				// Starting index into BLEP table (the phase index)
 				int blepPhaseIndex  = (int)(factor >> ModConstants.SHIFT);
+
 				// Factor for linear interpolation between blep points (subsample position)
 				factor &= ModConstants.SHIFT_MASK;
 
@@ -319,8 +330,13 @@ public class Paula
 				{
 					final long v1 = BLEP_TABLE[blepPhaseIndex];
 					final long v2 = BLEP_TABLE[blepPhaseIndex+1];
-					// A last >> is missing here on purpose. We add the big numbers and normalize in blepRun!
-					blepBuffer[blepBufferIndex] += delta * (v1 + (((v2 - v1) * factor) / (1<<ModConstants.SHIFT)));
+					final long interpolation = (v1 + (((v2 - v1) * (long)factor) / (1L<<ModConstants.SHIFT)));
+					// This is a kind of hack. We exceed the capacity of long when trying to multiply the BLEP-TABLE
+					// and the 32 bit signed delta sample. The good thing is: when Paula is active, we always(!)
+					// only talk about 8 bit signed samples (ProTracker) so we simply get rid of the whole zeros
+					// we have by reducing the delta, multiply with the interpolated BLEP value
+					// and finally shift back the rest 
+					blepBuffer[blepBufferIndex] += ((delta / SAMPLE_FACTOR) * interpolation) / BLEP_REST_FACTOR;
 
 					// advance
 					blepPhaseIndex+=BLEP_SP;
@@ -344,7 +360,7 @@ public class Paula
 			if (blepSamplesLeft<=0) return 0;
 			
 			// as we did not normalize in blepAdd, we *must* normalize here!
-			final long result = blepBuffer[blepPos] / (1<<BLEP_BACKSHIFT);
+			final long result = blepBuffer[blepPos];
 			blepBuffer[blepPos] = 0; // clear buffer!
 			
 			blepPos = (blepPos + 1) & BLEP_BUFFER_MASK; // and advance to next index

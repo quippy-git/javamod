@@ -1260,7 +1260,6 @@ public class Helpers
 	 * Registers all Classes that should not load during playback
 	 * This is also for registering all supported "plugin" loaders at the factory
 	 * @since 26.12.2007
-	 * @throws ClassNotFoundException
 	 */
 	public static void registerAllClasses()
 	{
@@ -1272,6 +1271,7 @@ public class Helpers
 		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.CubicSpline");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.Kaiser");  		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.WindowedFIR");	} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
+		try { Class.forName("de.quippy.javamod.multimedia.mod.mixer.interpolation.Paula");			} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }
 
 		// The following are essential for registration at the ModuleFactory
 		try { Class.forName("de.quippy.javamod.multimedia.mod.loader.tracker.ProTrackerMod");		} catch (final ClassNotFoundException ex) { Log.error("JavaModMainBase: a class moved!", ex); }

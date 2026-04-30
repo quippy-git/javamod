@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 GAMMA
+# JavaMod V3.9.6 DELTA
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -94,6 +94,8 @@ JavaMod incorporates modified versions of the following libraries:
        ProTracker MODs (AMIGA_TABLE), i.e. the amount of samples needed to reach
        the real note. 
        In that turn we cleaned up the code - also with ScreamTracker
+* FIX: GlobalVolumeSlides in FastTracker are "NOT ON TICK 0" - 
+       not "ONLY ON TICK 0"
 * NEW: Properties file is written in sorted order, for whatever that is good for
 * NEW: Amiga 500 and Amiga 1200 Filters added. We use Paula-emulation from
        8BitBubsy/Aciddose implementation. Is only used if Mod is an AMIGA MOD

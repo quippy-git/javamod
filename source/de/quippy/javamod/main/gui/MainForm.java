@@ -2622,6 +2622,51 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 	    }
 	}
 	/**
+	 * @since 09.11.2019
+	 * @param sourceFile
+	 * @param targetFile
+	 * @param fromMillisecondPosition
+	 * @param duration -1: no limit, else will stop playback after duration (in milliseconds) is reached
+	 * @param dowloadDialog
+	 */
+	private void exportFileToWave(final URL sourceFile, final File targetFile, final long fromMillisecondPosition, final long duration, final ProgressDialog progress)
+	{
+		Updater updater = null;
+		try
+		{
+			final MultimediaContainer newContainer = MultimediaContainerManager.getMultimediaContainer(sourceFile);
+			if (newContainer!=null)
+			{
+				final Mixer mixer = getCurrentContainer().createNewMixer();
+				if (mixer!=null)
+				{
+					mixer.setAudioProcessor(null);
+					mixer.setVolume(currentVolume);
+					mixer.setBalance(currentBalance);
+					mixer.setSoundOutputStream(getSoundOutputStream());
+			    	mixer.setPlayDuringExport(false);
+			    	mixer.setExportFile(targetFile);
+			    	mixer.setMillisecondPosition(fromMillisecondPosition);
+			    	if (duration>-1) mixer.setStopMillisecondPosition(fromMillisecondPosition + duration);
+		    		if (progress != null)
+		    		{
+			    		updater = new Updater(mixer, fromMillisecondPosition, duration, progress);
+		    			updater.start();
+		    		}
+		    		mixer.startPlayback();
+				}
+			}
+		}
+		catch (final Throwable ex)
+		{
+			Log.error("[MainForm::exportToWave]", ex);
+		}
+		finally
+		{
+	    	if (updater!=null) updater.stopMe();
+		}
+	}
+	/**
 	 * @since 08.11.2019
 	 * @param askPlayback
 	 */
@@ -2678,7 +2723,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 		    }
 	    }
 	}
-
 	private void doExportFromPlaylist(final boolean convert)
 	{
     	final PlayList playList = getPlaylistGUI().getPlayList();
@@ -2787,51 +2831,6 @@ public class MainForm extends JFrame implements DspProcessorCallBack, PlayThread
 				progress.setDetailValue((int)(mixer.getMillisecondPosition() - fromMillisecondPosition));
 				try { Thread.sleep(10L); } catch (final InterruptedException ex) { /*NOOP*/ }
 			}
-		}
-	}
-	/**
-	 * @since 09.11.2019
-	 * @param sourceFile
-	 * @param targetFile
-	 * @param fromMillisecondPosition
-	 * @param duration -1: no limit, else will stop playback after duration (in milliseconds) is reached
-	 * @param dowloadDialog
-	 */
-	private void exportFileToWave(final URL sourceFile, final File targetFile, final long fromMillisecondPosition, final long duration, final ProgressDialog progress)
-	{
-		Updater updater = null;
-		try
-		{
-			final MultimediaContainer newContainer = MultimediaContainerManager.getMultimediaContainer(sourceFile);
-			if (newContainer!=null)
-			{
-				final Mixer mixer = getCurrentContainer().createNewMixer();
-				if (mixer!=null)
-				{
-					mixer.setAudioProcessor(null);
-					mixer.setVolume(currentVolume);
-					mixer.setBalance(currentBalance);
-					mixer.setSoundOutputStream(getSoundOutputStream());
-			    	mixer.setPlayDuringExport(false);
-			    	mixer.setExportFile(targetFile);
-			    	mixer.setMillisecondPosition(fromMillisecondPosition);
-			    	if (duration>-1) mixer.setStopMillisecondPosition(fromMillisecondPosition + duration);
-		    		if (progress != null)
-		    		{
-			    		updater = new Updater(mixer, fromMillisecondPosition, duration, progress);
-		    			updater.start();
-		    		}
-		    		mixer.startPlayback();
-				}
-			}
-		}
-		catch (final Throwable ex)
-		{
-			Log.error("[MainForm::exportToWave]", ex);
-		}
-		finally
-		{
-	    	if (updater!=null) updater.stopMe();
 		}
 	}
 	private SimpleTextViewerDialog getSimpleTextViewerDialog()
