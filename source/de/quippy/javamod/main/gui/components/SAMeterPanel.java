@@ -185,7 +185,7 @@ public class SAMeterPanel extends MeterPanelBase
 	            float wFs = resultFFTSamples[a];
 
 	            for (int b=1; b<multiplier; b++) wFs+=resultFFTSamples[a+b];
-	            wFs *= (float)FastMath.log(bd + 2);
+	            wFs *= (float)FastMath.fastLog(bd + 2);
 
 	            if (wFs > 1.0F) wFs = 1.0F;
 	            if (wFs>fftLevels[bd])
