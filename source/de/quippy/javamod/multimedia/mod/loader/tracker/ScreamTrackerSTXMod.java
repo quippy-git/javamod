@@ -348,16 +348,16 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 		for (int i=0; i<getNSamples(); i++)
 		{
 			final Sample current = new Sample();
-			current.setStereo(false); // Default
-			current.setPanning(false);
-			current.setDefaultPanning(128);
-			current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
+			current.isStereo = false; // Default
+			current.setPanning = false;
+			current.defaultPanning = 128;
+			current.globalVolume = ModConstants.MAXSAMPLEVOLUME;
 
 			inputStream.seek(paraSamples[i]);
 			final int instrumentType = inputStream.read();
-			current.setType(instrumentType);
+			current.type = instrumentType;
 			// Sample name
-			current.setDosFileName(inputStream.readString(12));
+			current.dosFileName = inputStream.readString(12);
 
 			// Sample Para Pointer (useless for adlib...)
 			final int highByte= inputStream.read();
@@ -369,8 +369,7 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 			{
 				// Length
 				final int sampleLength = inputStream.readIntelDWord();
-				current.setLength(sampleLength);
-				current.setByteLength(current.length);
+				current.byteLength = current.sampleLength = sampleLength;
 
 				// Repeat start and stop
 				int repeatStart = inputStream.readIntelDWord();
@@ -382,54 +381,54 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 				if ((repeatStart>repeatStop) || repeateLength<8)
 					repeatStart = repeatStop = repeateLength = 0;
 
-				current.setLoopStart(repeatStart);
-				current.setLoopStop(repeatStop);
-				current.setLoopLength(repeateLength);
+				current.loopStart = repeatStart;
+				current.loopStop = repeatStop;
+				current.loopLength = repeateLength;
 
 				// Defaults for non-existent SustainLoop
-				current.setSustainLoopStart(0);
-				current.setSustainLoopStop(0);
-				current.setSustainLoopLength(0);
+				current.sustainLoopStart = 0;
+				current.sustainLoopStop = 0;
+				current.sustainLoopLength = 0;
 
 				// volume
 				final int volume = inputStream.read();
-				current.setVolume((volume>64)?64:volume);
+				current.volume = (volume>64)?64:volume;
 
 				// Reserved
 				inputStream.skip(2);
 
 				// Flags: 1:Loop
-				current.setFlags(inputStream.read());
-				current.setLoopType(((current.flags&0x01)==0x01) ? ModConstants.LOOP_ON : 0);
+				current.flags = inputStream.read();
+				current.loopType = ((current.flags&0x01)==0x01) ? ModConstants.LOOP_ON : 0;
 			}
 			else // Something we do not know
 			{
 				inputStream.skip(12);
 				// volume
 				final int volume = inputStream.read();
-				current.setVolume((volume>64)?64:volume);
+				current.volume = (volume>64)?64:volume;
 				inputStream.skip(3);
 			}
 
 			// C4SPD
-			current.setFineTune(0);
-			current.setTranspose(0);
+			current.fineTune = 0;
+			current.transpose = 0;
 			int baseFreq = inputStream.readIntelDWord();
 			if (baseFreq<=0) baseFreq = ModConstants.BASEFREQUENCY;
 			else
 			if (baseFreq<1024) baseFreq = 1024;
-			current.setBaseFrequency(baseFreq);
+			current.baseFrequency = baseFreq;
 
 			// Unused space - GUS Address also a point here?
 			inputStream.skip(12);
 
 			// SampleName
-			current.setName(inputStream.readString(28));
+			current.name = inputStream.readString(28);
 
 			if (instrumentType==1)
 			{
-				current.setSampleType(ModConstants.SM_PCMS);
-				current.setStereo(false);
+				current.sampleType = ModConstants.SM_PCMS;
+				current.isStereo = false;
 				inputStream.seek(sampleOffset);
 				readSampleData(current, inputStream);
 			}

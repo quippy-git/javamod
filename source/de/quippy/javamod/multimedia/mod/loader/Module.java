@@ -42,7 +42,24 @@ import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
  */
 public abstract class Module
 {
-	private String fileName;
+	// Flags for readExtendedFlags
+	private static final int dFdd_VOLUME 		= 0x0001;
+	private static final int dFdd_VOLSUSTAIN 	= 0x0002;
+	private static final int dFdd_VOLLOOP 		= 0x0004;
+	private static final int dFdd_PANNING 		= 0x0008;
+	private static final int dFdd_PANSUSTAIN 	= 0x0010;
+	private static final int dFdd_PANLOOP 		= 0x0020;
+	private static final int dFdd_PITCH 		= 0x0040;
+	private static final int dFdd_PITCHSUSTAIN 	= 0x0080;
+	private static final int dFdd_PITCHLOOP 	= 0x0100;
+	private static final int dFdd_SETPANNING 	= 0x0200;
+	private static final int dFdd_FILTER 		= 0x0400;
+	private static final int dFdd_VOLCARRY 		= 0x0800;
+	private static final int dFdd_PANCARRY 		= 0x1000;
+	private static final int dFdd_PITCHCARRY 	= 0x2000;
+	private static final int dFdd_MUTE 			= 0x4000;
+
+		private String fileName;
 	private String trackerName;
 	private String modID;
 
@@ -570,20 +587,20 @@ public abstract class Module
 		final boolean isBigEndian = (flags&ModConstants.SM_BigEndian)!=0;
 		//current.setStereo(isStereo); // just to be sure...
 
-		if (current.length>0)
+		if (current.sampleLength>0)
 		{
 			current.allocSampleData();
 			if ((flags & ModConstants.SM_IT214)!=0 || (flags & ModConstants.SM_IT215)!=0)
 			{
 				final boolean isIT215 = (flags & ModConstants.SM_IT215)!=0;
-				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.length, isIT215, inputStream);
+				final ITDeCompressor reader = new ITDeCompressor(current.sampleL, current.sampleLength, isIT215, inputStream);
 				if (is16Bit)
 					reader.decompress16();
 				else
 					reader.decompress8();
 				if (isStereo)
 				{
-					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.length, isIT215, inputStream);
+					final ITDeCompressor reader2 = new ITDeCompressor(current.sampleR, current.sampleLength, isIT215, inputStream);
 					if (is16Bit)
 						reader2.decompress16();
 					else
@@ -596,7 +613,7 @@ public abstract class Module
 				final byte[] deltaLUT = new byte[16];
 				inputStream.read(deltaLUT);
 
-				final int length = (current.length + 1)>>1;
+				final int length = (current.sampleLength + 1)>>1;
 				byte currentSample = 0;
 				for (int i=0,s=0; i<length; i++)
 				{
@@ -615,24 +632,24 @@ public abstract class Module
 				if (is16Bit && (flags&ModConstants.SM_PTM8Dto16)==0)
 				{
 					short delta = 0;
-					for (int s=0; s<current.length; s++)
+					for (int s=0; s<current.sampleLength; s++)
 						current.sampleL[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord());
 					if (isStereo)
 					{
 						delta = 0;
-						for (int s=0; s<current.length; s++)
+						for (int s=0; s<current.sampleLength; s++)
 							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord());
 					}
 				}
 				else
 				{
 					byte delta = 0;
-					for (int s=0; s<current.length; s++)
+					for (int s=0; s<current.sampleLength; s++)
 						current.sampleL[s] = ModConstants.promoteSigned8BitToSigned32Bit(delta += inputStream.readByte());
 					if (isStereo)
 					{
 						delta = 0;
-						for (int s=0; s<current.length; s++)
+						for (int s=0; s<current.sampleLength; s++)
 							current.sampleR[s] = ModConstants.promoteSigned8BitToSigned32Bit(delta += inputStream.readByte());
 					}
 				}
@@ -640,7 +657,7 @@ public abstract class Module
 			else
 			if ((flags&ModConstants.SM_16BIT)!=0) // 16 Bit PCM Samples
 			{
-				for (int s=0; s<current.length; s++)
+				for (int s=0; s<current.sampleLength; s++)
 				{
 					final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 					if (isUnsigned) // unsigned
@@ -650,7 +667,7 @@ public abstract class Module
 				}
 				if (isStereo)
 				{
-					for (int s=0; s<current.length; s++)
+					for (int s=0; s<current.sampleLength; s++)
 					{
 						final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
 						if (isUnsigned) // unsigned
@@ -662,7 +679,7 @@ public abstract class Module
 			}
 			else // 8 Bit Samples, singed or unsigned
 			{
-				for (int s=0; s<current.length; s++)
+				for (int s=0; s<current.sampleLength; s++)
 				{
 					final byte sample = inputStream.readByte();
 					if (isUnsigned) // unsigned
@@ -672,7 +689,7 @@ public abstract class Module
 				}
 				if (isStereo)
 				{
-					for (int s=0; s<current.length; s++)
+					for (int s=0; s<current.sampleLength; s++)
 					{
 						final byte sample = inputStream.readByte();
 						if (isUnsigned) // unsigned
@@ -1180,51 +1197,111 @@ public abstract class Module
 	{
 		return false;
 	}
-	/**
-	 * @since 29.03.2010
-	 * @return
-	 */
-	public String toShortInfoString()
+	protected String[] readNames(final ModfileInputStream inputStream, final int marker, final int stringSize) throws IOException
 	{
-		final StringBuilder modInfo = new StringBuilder(getTrackerName());
-		modInfo.append(isStereo()?" stereo":" mono").append(" mod with ");
-		if (instrumentContainer!=null && instrumentContainer.hasInstruments()) modInfo.append(getNInstruments()).append(" instruments mapping ");
-		modInfo.append(getNSamples()).append(" samples and ").append(getNChannels()).append(" channels using ")
-		.append(getFrequencyTableString()).append(" frequency table");
-		return modInfo.toString();
-	}
-	/**
-	 * @since 29.03.2010
-	 * @return
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString()
-	{
-		final StringBuilder modInfo = new StringBuilder(toShortInfoString());
-		modInfo.append("\n\nSong named: ")
-				.append(getSongName()).append('\n')
-				.append(getSongMessage()).append('\n')
-				.append(getInstrumentContainer().toString());
-		return modInfo.toString();
-	}
+		String[] result = null;
+		final long readMarker = inputStream.readIntelDWord();
+		if (readMarker==marker)
+		{
+			final int size = inputStream.readIntelDWord();
+			final int anzNames = size / stringSize;
+			result = new String[anzNames];
+			for (int c=0; c<anzNames; c++)
+				result[c] = inputStream.readString(stringSize);
+		}
+		else
+			inputStream.skipBack(4);
 
-	// Flags for readExtendedFlags
-	private static final int dFdd_VOLUME 		= 0x0001;
-	private static final int dFdd_VOLSUSTAIN 	= 0x0002;
-	private static final int dFdd_VOLLOOP 		= 0x0004;
-	private static final int dFdd_PANNING 		= 0x0008;
-	private static final int dFdd_PANSUSTAIN 	= 0x0010;
-	private static final int dFdd_PANLOOP 		= 0x0020;
-	private static final int dFdd_PITCH 		= 0x0040;
-	private static final int dFdd_PITCHSUSTAIN 	= 0x0080;
-	private static final int dFdd_PITCHLOOP 	= 0x0100;
-	private static final int dFdd_SETPANNING 	= 0x0200;
-	private static final int dFdd_FILTER 		= 0x0400;
-	private static final int dFdd_VOLCARRY 		= 0x0800;
-	private static final int dFdd_PANCARRY 		= 0x1000;
-	private static final int dFdd_PITCHCARRY 	= 0x2000;
-	private static final int dFdd_MUTE 			= 0x4000;
+		return result;
+	}
+	/**
+	 * Read MIX Plugins by running through the file till hitting one of the next section markers
+	 * @since 03.05.2026
+	 * @param inputStream
+	 * @return
+	 * @throws IOException
+	 */
+	protected int loadMixPlugins(final ModfileInputStream inputStream) throws IOException
+	{
+		boolean hasMixPlugins = false;
+		boolean isBeRo = false;
+		
+		while (inputStream.available()>=9)
+		{
+			final int marker = inputStream.readIntelDWord();
+			final int len = inputStream.readIntelDWord();
+			if (marker==ModConstants.getMagicLE("IMPI") || // 0x494D5049 IMPI: IT instrument, we definitely read too far
+				marker==ModConstants.getMagicLE("IMPS") || // 0x494D5053 IMPS: IT sample, ditto
+				marker==ModConstants.getMagicLE("XTPM") || // 0x4D505458 XTPM: Instrument extensions, ditto
+				marker==ModConstants.getMagicLE("STPM") || // 0x4D505453 STPM: Song extensions, ditto
+				inputStream.available()<len)
+			{
+				inputStream.skipBack(8);
+				return ((hasMixPlugins)?10:0) | ((isBeRo)?1:0);
+			}
+			
+			final char p1 = (char) (marker     &0xFF);
+			final char p2 = (char)((marker>> 8)&0xFF);
+			final char p3 = (char)((marker>>16)&0xFF);
+			final char p4 = (char)((marker>>24)&0xFF);
+
+			if (marker==ModConstants.getMagicLE("CHFX")) // 0x58464843 CHFX
+			{
+				int anzChannels = len>>2;
+				if (anzChannels > getNChannels()) anzChannels = getNChannels();
+				for (int chn=0; chn<anzChannels; chn++)
+				{
+					final int pluginIndex = inputStream.readIntelDWord();
+					getPatternContainer().setChannelMixplugin(chn, pluginIndex);
+				}
+				hasMixPlugins = true;
+			}
+			else
+			if (p1=='F' && (p2=='X' || (p2>='0' && p2<='9')) && (p3>='0' && p3<='9') && (p4>='0' && p4<='9'))
+			{
+				// TODO: Read the pluginChunk:
+				/*
+				struct SNDMIXPLUGININFO
+				{
+					// dwInputRouting flags
+					enum RoutingFlags
+					{
+						irApplyToMaster = 0x01,  // Apply to master mix
+						irBypass        = 0x02,  // Bypass effect
+						irDryMix        = 0x04,  // Wet Mix (dry added)
+						irExpandMix     = 0x08,  // [0%,100%] -> [-200%,200%]
+						irAutoSuspend   = 0x10,  // Plugin will automatically suspend on silence
+					};
+				
+					int32le dwPluginId1;   // Plugin type (kEffectMagic, kDmoMagic, kBuzzMagic)
+					int32le dwPluginId2;   // Plugin unique ID
+					uint8le routingFlags;  // See RoutingFlags
+					uint8le mixMode;
+					uint8le gain;  // Divide by 10 to get real gain
+					uint8le reserved;
+					uint32le dwOutputRouting;                                         // 0 = send to master 0x80 + x = send to plugin x
+					uint32le dwReserved[4];                                           // Reserved for routing info
+					mpt::modecharbuf<32, mpt::String::nullTerminated> szName;         // User-chosen plugin display name - this is locale ANSI!
+					mpt::modecharbuf<64, mpt::String::nullTerminated> szLibraryName;  // original DLL name - this is UTF-8!
+				
+					// Should only be called from SNDMIXPLUGIN::SetBypass() and IMixPlugin::Bypass()
+					void SetBypass(bool bypass = true) { if(bypass) routingFlags |= irBypass; else routingFlags &= uint8(~irBypass); }
+				};					
+				*/
+//				final int fxPlug = (p2!='X')?(int)(p2-'0')*100:0+(int)(p3-'0') * 10 + (int)(p4-'0');
+//				readPluginChunk(inputStream);
+				inputStream.skip(len);
+				hasMixPlugins = true;
+			}
+			else
+			if (marker==ModConstants.getMagicLE("MODU")) // 0x4D4F4455) MODU
+			{
+				isBeRo = true;
+			}
+		}
+		
+		return ((hasMixPlugins)?10:0) | ((isBeRo)?1:0);
+	}
 	/**
 	 * These flags are not written anymore - and I guess that OMPT reads them
 	 * wrongly now (reads only 8 bits instead of 16 bits).
@@ -1337,7 +1414,7 @@ public abstract class Module
 				ins.randomVolumeVariation = (int)inputStream.readIntelBytes(size);
 				break;
 			case 0x4D69502E: //"MiP." MixPlugIn
-				ins.plugin = (int)inputStream.readIntelBytes(size);
+				ins.mixPlugIn = (int)inputStream.readIntelBytes(size);
 				break;
 			case 0x50564548: //"PVEH" PluginVelocityHandling
 			case 0x50564F48: //"PVOH" PluginVolumeHandling
@@ -1373,7 +1450,7 @@ public abstract class Module
 			case 0x4145524E: //"AERN" PanEnv.nReleaseNode
 			case 0x5645524E: //"VERN" VolEnv.nReleaseNode
 			case 0x5054544C: //"PTTL" pitchToTempoLock
-			case 0x46545450: //"FTTP" pitchToTempoLock FracPart
+			case 0x46545450: //"PTTF" pitchToTempoLock FracPart - only one written in LittleEndian
 			default:
 				inputStream.skip(size);
 		}
@@ -1387,7 +1464,7 @@ public abstract class Module
 	protected boolean loadExtendedInstrumentProperties(final ModfileInputStream inputStream) throws IOException
 	{
 		final int marker = inputStream.readIntelDWord();
-		if (marker != 0x4D505458) // MPTX - ModPlugExtraInstrumentInfo
+		if (marker!=ModConstants.getMagicBE("MPTX")) // 0x4D505458 MPTX - ModPlugExtraInstrumentInfo
 		{
 			inputStream.skipBack(4);
 			return false;
@@ -1396,8 +1473,8 @@ public abstract class Module
 		while (inputStream.length()>=6)
 		{
 			final int code = inputStream.readIntelDWord();
-			if (code==0x4D505453 || // Start of MPTM extensions, non-ASCII ID or truncated field
-					(code&0x80808080)!=0 || (code&0x60606060)==0)
+			if (code==ModConstants.getMagicBE("MPTS") || // Start 0x4D505453 "MPTS" of MPTM extensions, non-ASCII ID or truncated field
+			   (code&0x80808080)!=0 || (code&0x60606060)==0)
 			{
 				inputStream.skipBack(4);
 				break;
@@ -1422,7 +1499,7 @@ public abstract class Module
 	protected boolean loadExtendedSongProperties(final ModfileInputStream inputStream, final boolean ignoreChannelCount) throws IOException
 	{
 		final int marker = inputStream.readIntelDWord();
-		if (marker != 0x4D505453) // MPTS - ModPlugExtraSongInfo
+		if (marker!=ModConstants.getMagicBE("MPTS")) // 0x4D505453 MPTS - ModPlugExtraSongInfo
 		{
 			inputStream.skipBack(4);
 			return false;
@@ -1434,7 +1511,7 @@ public abstract class Module
 //			System.out.println("case 0x"+ModConstants.getAsHex(code, 8) + ": //\"" + Helpers.retrieveAsString(new byte[] {(byte)((code>>24)&0xFF), (byte)((code>>16)&0xFF), (byte)((code>>8)&0xFF), (byte)(code&0xFF)}, 0, 4)+"\"");
 			final int size = inputStream.readIntelWord();
 
-			if (code==0x04383232) // Start of MPTM extensions, non-ASCII ID or truncated field
+			if (code==0x04383232) // "228\x04": Start of MPTM extensions, non-ASCII ID or truncated field
 			{
 				inputStream.skipBack(6);
 				break;
@@ -1563,7 +1640,7 @@ public abstract class Module
 							int cue = 0;
 							for (; cue<cues; cue++) theCues[cue] = inputStream.readIntelDWord();
 							// if we had less than max_cues, fill up with default
-							for (; cue<Sample.MAX_CUES; cue++) theCues[cue] = sample.length;
+							for (; cue<Sample.MAX_CUES; cue++) theCues[cue] = sample.sampleLength;
 							sample.setCues(theCues);
 						}
 						else
@@ -1591,5 +1668,33 @@ public abstract class Module
 			}
 		}
 		return true;
+	}
+	/**
+	 * @since 29.03.2010
+	 * @return
+	 */
+	public String toShortInfoString()
+	{
+		final StringBuilder modInfo = new StringBuilder(getTrackerName());
+		modInfo.append(isStereo()?" stereo":" mono").append(" mod with ");
+		if (instrumentContainer!=null && instrumentContainer.hasInstruments()) modInfo.append(getNInstruments()).append(" instruments mapping ");
+		modInfo.append(getNSamples()).append(" samples and ").append(getNChannels()).append(" channels using ")
+		.append(getFrequencyTableString()).append(" frequency table");
+		return modInfo.toString();
+	}
+	/**
+	 * @since 29.03.2010
+	 * @return
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString()
+	{
+		final StringBuilder modInfo = new StringBuilder(toShortInfoString());
+		modInfo.append("\n\nSong named: ")
+				.append(getSongName()).append('\n')
+				.append(getSongMessage()).append('\n')
+				.append(getInstrumentContainer().toString());
+		return modInfo.toString();
 	}
 }

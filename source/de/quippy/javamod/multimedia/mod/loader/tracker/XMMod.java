@@ -467,98 +467,96 @@ public class XMMod extends ProTrackerMod
 			final Instrument currentIns = new Instrument();
 
 			 // Default for values from IT
-			currentIns.setGlobalVolume(128);
-			currentIns.setPanning(false);
-			currentIns.setDefaultPan(128);
-			currentIns.setPitchPanSeparation(-1);
-			currentIns.setNNA(-1);
-			currentIns.setInitialFilterCutoff(-1);
-			currentIns.setInitialFilterResonance(-1);
-			currentIns.setRandomPanningVariation(-1);
+			currentIns.globalVolume = 128;
+			currentIns.setPanning = false;
+			currentIns.defaultPanning = 128;
+			currentIns.pitchPanSeparation = -1;
+			currentIns.NNA = -1;
+			currentIns.initialFilterCutoff = 0;
+			currentIns.initialFilterResonance = 0;
+			currentIns.randomPanningVariation = -1;
 
 			int instrumentHeaderSize = inputStream.readIntelDWord();
 			if (instrumentHeaderSize<=0 || instrumentHeaderSize>INSTR_HEADER_SIZE) instrumentHeaderSize = INSTR_HEADER_SIZE;
 			
-			currentIns.setName(inputStream.readString(22));
+			// Read the instrument header
+			// In C we would now read as many bytes into a struct, as are presented here
+			// and if it's less than the struct has place, the rest simply stays zero/uninitialized
+			currentIns.name = inputStream.readString(22);
 			/*final int insType = */inputStream.read();
 			final int anzSamples = inputStream.readIntelWord();
 
-			final int[] sampleIndex = new int[96];
-			final int[] noteIndex = new int[96];
-			currentIns.setIndexArray(sampleIndex);
-			currentIns.setNoteArray(noteIndex);
-			if (anzSamples<=0) // if no samples, at least set to defaults
+			setNSamples(getNSamples()+anzSamples);
+
+			sampleHeaderSize = inputStream.readIntelDWord();
+			if (sampleHeaderSize<=0 || sampleHeaderSize>SAMPLE_HEADER_SIZE) sampleHeaderSize = SAMPLE_HEADER_SIZE;
+
+			currentIns.sampleIndex = new int[96];
+			currentIns.noteIndex = new int[96];
+			for (int i=0; i<96; i++)
 			{
-				for (int i=0; i<96; i++)
-				{
-					sampleIndex[i] = 0;
-					noteIndex[i] = 0x80 | i;
-				}
-			}
-			else
-			{
-				setNSamples(getNSamples()+anzSamples);
-				sampleHeaderSize = inputStream.readIntelDWord();
-				if (sampleHeaderSize<=0 || sampleHeaderSize>SAMPLE_HEADER_SIZE) sampleHeaderSize = SAMPLE_HEADER_SIZE;
-
-				for (int i=0; i<96; i++)
-				{
-					sampleIndex[i] = inputStream.read() + sampleOffsetIndex + 1;
-					noteIndex[i] = i;
-				}
-
-				final int[] volumeEnvelopePosition = new int[12];
-				final int[] volumeEnvelopeValue = new int[12];
-				for (int i=0; i<12; i++)
-				{
-					volumeEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
-					volumeEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
-				}
-				final Envelope volumeEnvelope = new Envelope(EnvelopeType.volume);
-				volumeEnvelope.setPositions(volumeEnvelopePosition);
-				volumeEnvelope.setValue(volumeEnvelopeValue);
-				currentIns.setVolumeEnvelope(volumeEnvelope);
-
-				final int[] panningEnvelopePosition = new int[12];
-				final int[] panningEnvelopeValue = new int[12];
-				for (int i=0; i<12; i++)
-				{
-					panningEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
-					panningEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
-				}
-				final Envelope panningEnvelope = new Envelope(EnvelopeType.panning);
-				panningEnvelope.setPositions(panningEnvelopePosition);
-				panningEnvelope.setValue(panningEnvelopeValue);
-				currentIns.setPanningEnvelope(panningEnvelope);
-
-				volumeEnvelope.setNPoints(inputStream.read());
-				panningEnvelope.setNPoints(inputStream.read());
-
-				volumeEnvelope.setSustainPoint(inputStream.read());
-				volumeEnvelope.setLoopStartPoint(inputStream.read());
-				volumeEnvelope.setLoopEndPoint(inputStream.read());
-
-				panningEnvelope.setSustainPoint(inputStream.read());
-				panningEnvelope.setLoopStartPoint(inputStream.read());
-				panningEnvelope.setLoopEndPoint(inputStream.read());
-
-				volumeEnvelope.setXMType(inputStream.read());
-				panningEnvelope.setXMType(inputStream.read());
-
-				volumeEnvelope.sanitize(64);
-				panningEnvelope.sanitize(64);
-
-				vibratoType = inputStream.read();
-				vibratoSweep = inputStream.read();
-				vibratoDepth = inputStream.read();
-				vibratoRate = inputStream.read();
-
-				currentIns.setVolumeFadeOut(inputStream.readIntelUnsignedWord());
-
-				// Reserved TODO: read Midi Data instead
-				inputStream.skip(2);
+				currentIns.sampleIndex[i] = inputStream.read() + sampleOffsetIndex + 1;
+				currentIns.noteIndex[i] = i;
 			}
 
+			final int[] volumeEnvelopePosition = new int[12];
+			final int[] volumeEnvelopeValue = new int[12];
+			for (int i=0; i<12; i++)
+			{
+				volumeEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
+				volumeEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
+			}
+			final Envelope volumeEnvelope = new Envelope(EnvelopeType.volume);
+			volumeEnvelope.positions = volumeEnvelopePosition;
+			volumeEnvelope.value = volumeEnvelopeValue;
+			currentIns.volumeEnvelope= volumeEnvelope;
+
+			final int[] panningEnvelopePosition = new int[12];
+			final int[] panningEnvelopeValue = new int[12];
+			for (int i=0; i<12; i++)
+			{
+				panningEnvelopePosition[i] = inputStream.readIntelUnsignedWord();
+				panningEnvelopeValue[i] = inputStream.readIntelUnsignedWord();
+			}
+			final Envelope panningEnvelope = new Envelope(EnvelopeType.panning);
+			panningEnvelope.positions = panningEnvelopePosition;
+			panningEnvelope.value = panningEnvelopeValue;
+			currentIns.panningEnvelope = panningEnvelope;
+
+			volumeEnvelope.setNumberOfPoints(inputStream.read());
+			panningEnvelope.setNumberOfPoints(inputStream.read());
+
+			volumeEnvelope.setSustainPoints_XM(inputStream.read());
+			volumeEnvelope.loopStartPoint = inputStream.read();
+			volumeEnvelope.loopEndPoint = inputStream.read();
+
+			panningEnvelope.setSustainPoints_XM(inputStream.read());
+			panningEnvelope.loopStartPoint = inputStream.read();
+			panningEnvelope.loopEndPoint = inputStream.read();
+
+			volumeEnvelope.setXMType(inputStream.read());
+			panningEnvelope.setXMType(inputStream.read());
+
+			volumeEnvelope.sanitize(64);
+			panningEnvelope.sanitize(64);
+
+			vibratoType = inputStream.read();
+			vibratoSweep = inputStream.read();
+			vibratoDepth = inputStream.read();
+			vibratoRate = inputStream.read();
+
+			currentIns.volumeFadeOut = inputStream.readIntelUnsignedWord();
+			
+			// most of my doku says, 2 bytes follow. Only one says 22 bytes follow
+
+			// Read Midi Data
+			currentIns.xm_enableMidi = inputStream.read()>0;			// MIDI Out Enabled (0 / 1)
+			currentIns.midiChannel = inputStream.read();				// MIDI Channel (0...15)
+			currentIns.midiProgram = inputStream.readIntelWord();		// MIDI Program (0...127)
+			currentIns.pitchWheelDepth = inputStream.readIntelWord();	// MIDI Pitch Wheel Range (0...36 halftones)
+			currentIns.xm_muteComputer = inputStream.read()>0;			// Mute instrument if MIDI is enabled (0 / 1)
+			
+			// At this point 15 bytes of junk follows - we ignore that by
 			inputStream.seek(LSEEK+=instrumentHeaderSize);
 
 			if (anzSamples>0) // lets skip this, if nothing is to do!
@@ -568,14 +566,13 @@ public class XMMod extends ProTrackerMod
 				{
 					final Sample current = new Sample();
 	
-					current.setVibratoType(vibratoType);
-					current.setVibratoSweep(vibratoSweep);
-					current.setVibratoDepth(vibratoDepth);
-					current.setVibratoRate(vibratoRate);
+					current.vibratoType = vibratoType;
+					current.vibratoSweep = vibratoSweep;
+					current.vibratoDepth = vibratoDepth;
+					current.vibratoRate = vibratoRate;
 	
 					// Length
-					current.setLength(inputStream.readIntelDWord());
-					current.setByteLength(current.length);
+					current.byteLength = current.sampleLength = inputStream.readIntelDWord();
 	
 					// Repeat start and stop
 					int repeatStart  = inputStream.readIntelDWord();
@@ -584,58 +581,57 @@ public class XMMod extends ProTrackerMod
 	
 					// volume 64 is maximum
 					final int vol  = inputStream.read() & 0x7F;
-					current.setVolume((vol>64)?64:vol);
-					current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
+					current.volume = (vol>64)?64:vol;
+					current.globalVolume = ModConstants.MAXSAMPLEVOLUME;
 	
 					// finetune Value>0x7F means negative
-					int fine = inputStream.read();
-					fine = (fine>0x7F)?fine-0x100:fine;
-					current.setFineTune(fine);
+					final int fine = inputStream.read();
+					current.fineTune = (fine>0x7F)?fine-0x100:fine;
 	
-					current.setFlags(inputStream.read());
+					current.flags = inputStream.read();
 					int loopType = 0;
 					if ((current.flags&0x03)!=0) loopType |= ModConstants.LOOP_ON;
 					if ((current.flags&0x02)!=0) loopType |= ModConstants.LOOP_IS_PINGPONG;
-					current.setLoopType(loopType);
+					current.loopType = loopType;
 	
 					int sampleLoadingFlags = 0;
 					if ((current.flags&0x10)!=0)
 					{
 						sampleLoadingFlags |= ModConstants.SM_16BIT;
-						current.length>>=1;
+						current.sampleLength>>=1;
 						repeatStart>>=1;
 						repeatStop>>=1;
 					}
 					if ((current.flags&0x20)!=0)
 					{
 						sampleLoadingFlags |= ModConstants.SM_STEREO; // this is new, not standard. Support is easy, so why not!
-						current.length>>=1;
+						current.sampleLength>>=1;
 						repeatStart>>=1;
 						repeatStop>>=1;
 					}
-					current.setStereo((sampleLoadingFlags&ModConstants.SM_STEREO)!=0);
+					current.isStereo = (sampleLoadingFlags&ModConstants.SM_STEREO)!=0;
 	
-					current.setLoopStart(repeatStart);
-					current.setLoopStop(repeatStop);
-					current.setLoopLength(repeatStop-repeatStart);
+					current.loopStart = repeatStart;
+					current.loopStop = repeatStop;
+					current.loopLength = repeatStop-repeatStart;
 	
 					// Defaults for non-existent SustainLoop
-					current.setSustainLoopStart(0);
-					current.setSustainLoopStop(0);
-					current.setSustainLoopLength(0);
+					current.sustainLoopStart = 0;
+					current.sustainLoopStop = 0;
+					current.sustainLoopLength = 0;
 	
 					// Panning 0..255
-					current.setPanning(true);
-					current.setDefaultPanning(inputStream.read());
+					current.setPanning = true;
+					current.defaultPanning = inputStream.read();
 	
 					// Transpose -128..127
 					final int transpose = inputStream.read();
-					current.setTranspose((transpose>0x7F)?transpose-0x100:transpose);
+					current.transpose = (transpose>0x7F)?transpose-0x100:transpose;
 	
-					current.setBaseFrequency(getPeriod2Hz(current, getFrequencyTable()));
+					current.baseFrequency = getPeriod2Hz(current, getFrequencyTable());
 	
 					// Reserved
-					current.XM_reserved = inputStream.read();
+					current.XM_reserved = inputStream.read(); // Reserved (abused for ModPlug's ADPCM compression)
 	
 					// Interpreting the loaded flags
 					if (current.XM_reserved == 0xAD && (current.flags & (0x10 | 0x20))==0) // ModPlug ADPCM compression
@@ -646,10 +642,10 @@ public class XMMod extends ProTrackerMod
 					else
 						sampleLoadingFlags |= ModConstants.SM_PCMD; // XM save in deltas
 	
-					current.setSampleType(sampleLoadingFlags);
+					current.sampleType = sampleLoadingFlags;
 	
 					// Samplename
-					current.setName(inputStream.readString(22));
+					current.name = inputStream.readString(22);
 	
 					instrumentContainer.setSample(samIndex + sampleOffsetIndex, current);
 
@@ -676,57 +672,44 @@ public class XMMod extends ProTrackerMod
 		boolean hasMidiConfig = false;
 		boolean hasExtraInstrumentInfos = false;
 		boolean hasExtraSongProperties = false;
-		while (inputStream.getFilePointer() + 8 < inputStream.length())
+
+		if (inputStream.checkMagic(ModConstants.getMagicLE("text"))) // 0x74786574 'text'
 		{
-			final int marker = inputStream.readIntelDWord();
-			if (marker == 0x4D505458) // MPTX - ModPlugExtraInstrumentInfo
+			// read the song text
+			final int len = inputStream.readIntelDWord();
+			songMessage = inputStream.readString(len < inputStream.available()?len:inputStream.available());
+		}
+
+		if (inputStream.checkMagic(ModConstants.getMagicLE("MIDI"))) // 0x4944494D 'MIDI'
+		{
+			// read the MidiMacros
+			final int len = inputStream.readIntelDWord();
+			if (len==MidiMacros.SIZE_OF_SCTUCT && len < inputStream.getLength())
 			{
-				inputStream.skipBack(4);
-				hasExtraInstrumentInfos = loadExtendedInstrumentProperties(inputStream);
-			}
-			else
-			if (marker == 0x4D505453) // MPTS - ModPlugExtraSongInfo
-			{
-				inputStream.skipBack(4);
-				hasExtraSongProperties = loadExtendedSongProperties(inputStream, true);
-			}
-			else
-			{
-				final int len = inputStream.readIntelDWord();
-				if (marker == 0x74786574) // 'text'
-				{
-					if (len < inputStream.getLength()) songMessage = inputStream.readString(len);
-				}
-				else
-				if (marker == 0x4944494D) // 'MIDI'
-				{
-					// read the MidiMacros
-					if (len==MidiMacros.SIZE_OF_SCTUCT && len < inputStream.getLength())
-					{
-						midiMacros.loadFrom(inputStream);
-						hasMidiConfig = true;
-					}
-				}
-				else
-				{
-					// Skip it
-					if (len < inputStream.getLength())
-						inputStream.skip(len);
-					else
-						break; // somthing bad happend...
-				}
+				midiMacros.loadFrom(inputStream);
+				hasMidiConfig = true;
 			}
 		}
 
+		// OMPT extensions with FastTracker:
+		// read Pattern Names:
+		final String[] patNames = readNames(inputStream, ModConstants.getMagicLE("PNAM"), 32); // 0x4D414E50 PNAM - LE saved
+		if (patNames!=null) getPatternContainer().setPatternNames(patNames);
+		// Read Channel Names
+		final String[] chnNames = readNames(inputStream, ModConstants.getMagicLE("CNAM"), 20); // 0x4D414E43 CNAM - LE saved
+		if (chnNames!=null) getPatternContainer().setChannelNames(chnNames);
+
+		final int result = loadMixPlugins(inputStream);
+		final boolean hasMixPlugins = (result&0xF0)!=0; 
+
+		hasExtraInstrumentInfos = loadExtendedInstrumentProperties(inputStream);
+		hasExtraSongProperties = loadExtendedSongProperties(inputStream, true);
+
 		boolean isMPT = (getModType()&(ModConstants.MODTYPE_MPT|ModConstants.MODTYPE_OMPT))!=0;
-		if (hasExtraInstrumentInfos || hasExtraSongProperties)
+		if (!isMPT && (hasExtraInstrumentInfos || hasExtraSongProperties || hasMixPlugins))
 		{
-			if (!isMPT)
-			{
-				setModType(getModType() | ModConstants.MODTYPE_OMPT);
-				isMPT = true;
-			}
-			if (getPatternContainer().getChannelColors()==null) getPatternContainer().createMPTMDefaultRainbowColors();
+			setModType(getModType() | ModConstants.MODTYPE_OMPT);
+			isMPT = true;
 		}
 		if (isMPT && !hasExtraInstrumentInfos && !hasExtraSongProperties)
 		{

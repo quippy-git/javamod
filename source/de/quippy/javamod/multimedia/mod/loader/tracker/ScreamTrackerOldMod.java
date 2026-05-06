@@ -328,57 +328,56 @@ public class ScreamTrackerOldMod extends Module
 		{
 			final Sample current = new Sample();
 			// Samplename
-			current.setName(inputStream.readString(12));
-			current.setStereo(false); // Default
+			current.name = inputStream.readString(12);
+			current.isStereo = false; // Default
 
 			// reserved
 			inputStream.skip(1);
 
 			// instrument Disk number, if song (not yet supported)
 			final int diskNumber = inputStream.read();
-			if (STMType==0x01) current.setName(current.name+" #"+diskNumber);
+			if (STMType==0x01) current.name += " #"+diskNumber;
 
 			// Reserved (Sample Beginning Offset?!)
 			inputStream.skip(2);
 
 			// Length
-			current.setLength(inputStream.readIntelUnsignedWord());
-			current.setByteLength(current.length);
+			current.byteLength = current.sampleLength = inputStream.readIntelUnsignedWord();
 
 			// Repeat start and stop
 			final int repeatStart = inputStream.readIntelUnsignedWord();
 			final int repeatStop = inputStream.readIntelUnsignedWord();
 
 			if (repeatStart<repeatStop && repeatStop!=0xFFFF)
-				current.setLoopType(ModConstants.LOOP_ON);
+				current.loopType = ModConstants.LOOP_ON;
 			else
-				current.setLoopType(0);
+				current.loopType = 0;
 
-			current.setLoopStart(repeatStart);
-			current.setLoopStop(repeatStop);
-			current.setLoopLength(repeatStop-repeatStart);
+			current.loopStart = repeatStart;
+			current.loopStop = repeatStop;
+			current.loopLength = repeatStop-repeatStart;
 
 			// Defaults for non-existent SustainLoop
-			current.setSustainLoopStart(0);
-			current.setSustainLoopStop(0);
-			current.setSustainLoopLength(0);
+			current.sustainLoopStart = 0;
+			current.sustainLoopStop = 0;
+			current.sustainLoopLength = 0;
 
 			// volume 64 is maximum
 			final int vol  = inputStream.read() & 0x7F;
-			current.setVolume((vol>64)?64:vol);
-			current.setGlobalVolume(ModConstants.MAXSAMPLEVOLUME);
+			current.volume = (vol>64)?64:vol;
+			current.globalVolume = ModConstants.MAXSAMPLEVOLUME;
 
 			// reserved
 			inputStream.skip(1);
 
 			// Defaults!
-			current.setPanning(false);
-			current.setDefaultPanning(128);
+			current.setPanning = false;
+			current.defaultPanning = 128;
 
 			// Base Frequency
-			current.setFineTune(0);
-			current.setTranspose(0);
-			current.setBaseFrequency(inputStream.readIntelUnsignedWord());
+			current.fineTune = 0;
+			current.transpose = 0;
+			current.baseFrequency = inputStream.readIntelUnsignedWord();
 
 			// Reserved
 			inputStream.skip(4);
@@ -416,7 +415,7 @@ public class ScreamTrackerOldMod extends Module
 		for (int i=0; i<getNSamples(); i++)
 		{
 			final Sample current = getInstrumentContainer().getSample(i);
-			current.setSampleType(ModConstants.SM_PCMS);
+			current.sampleType = ModConstants.SM_PCMS;
 			readSampleData(current, inputStream);
 		}
 

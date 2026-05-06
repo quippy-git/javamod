@@ -1004,7 +1004,7 @@ public class ModSampleDialog extends JDialog
 				final int scrollBarHeight = getImageBufferScrollPane().getHorizontalScrollBar().getPreferredSize().height;
 				final Insets inset = getImageBufferScrollPane().getInsets();
 				d.height= getImageBufferScrollPane().getHeight() - inset.top - inset.bottom - (scrollBarHeight<<1);
-				d.width = theSample.length << (newZoom-1);
+				d.width = theSample.sampleLength << (newZoom-1);
 				getContentPane().remove(getImageBufferPanel());
 				getImageBufferScrollPane().setViewportView(getImageBufferPanel());
 				getContentPane().add(getImageBufferScrollPane(), Helpers.getGridBagConstraint(0, 3, 1, 0, GridBagConstraints.BOTH, GridBagConstraints.WEST, 1.0, 1.0));

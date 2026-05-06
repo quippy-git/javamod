@@ -549,10 +549,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_BitsPerSample == null)
 		{
-			playerSetUp_BitsPerSample = new JComboBox<>();
+			playerSetUp_BitsPerSample = new JComboBox<String>();
 			playerSetUp_BitsPerSample.setName("playerSetUp_BitsPerSample");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.BITSPERSAMPLE);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.BITSPERSAMPLE);
 			playerSetUp_BitsPerSample.setModel(theModel);
 			playerSetUp_BitsPerSample.setFont(Helpers.getDialogFont());
 			playerSetUp_BitsPerSample.setEnabled(true);
@@ -591,10 +591,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_Channels==null)
 		{
-			playerSetUp_Channels = new JComboBox<>();
+			playerSetUp_Channels = new JComboBox<String>();
 			playerSetUp_Channels.setName("playerSetUp_Channels");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.CHANNELS);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.CHANNELS);
 			playerSetUp_Channels.setModel(theModel);
 			playerSetUp_Channels.setFont(Helpers.getDialogFont());
 			playerSetUp_Channels.setEnabled(true);
@@ -633,10 +633,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_SampleRate==null)
 		{
-			playerSetUp_SampleRate = new JComboBox<>();
+			playerSetUp_SampleRate = new JComboBox<String>();
 			playerSetUp_SampleRate.setName("playerSetUp_SampleRate");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.SAMPLERATE);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.SAMPLERATE);
 			playerSetUp_SampleRate.setModel(theModel);
 			playerSetUp_SampleRate.setFont(Helpers.getDialogFont());
 			playerSetUp_SampleRate.setEnabled(true);
@@ -675,10 +675,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_BufferSize==null)
 		{
-			playerSetUp_BufferSize = new JComboBox<>();
+			playerSetUp_BufferSize = new JComboBox<String>();
 			playerSetUp_BufferSize.setName("playerSetUp_BufferSize");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.BUFFERSIZE);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.BUFFERSIZE);
 			playerSetUp_BufferSize.setModel(theModel);
 			playerSetUp_BufferSize.setFont(Helpers.getDialogFont());
 			playerSetUp_BufferSize.setEnabled(true);
@@ -717,10 +717,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_Interpolation==null)
 		{
-			playerSetUp_Interpolation = new JComboBox<>();
+			playerSetUp_Interpolation = new JComboBox<String>();
 			playerSetUp_Interpolation.setName("playerSetUp_Interpolation");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.INTERPOLATION);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModConstants.INTERPOLATION);
 			playerSetUp_Interpolation.setModel(theModel);
 			playerSetUp_Interpolation.setFont(Helpers.getDialogFont());
 			playerSetUp_Interpolation.setEnabled(true);
@@ -759,10 +759,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_AmigaEmulation==null)
 		{
-			playerSetUp_AmigaEmulation = new JComboBox<>();
+			playerSetUp_AmigaEmulation = new JComboBox<String>();
 			playerSetUp_AmigaEmulation.setName("playerSetUp_AmigaEmulation");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.AMIGA_EMULATION);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModConstants.AMIGA_EMULATION);
 			playerSetUp_AmigaEmulation.setModel(theModel);
 			playerSetUp_AmigaEmulation.setFont(Helpers.getDialogFont());
 			playerSetUp_AmigaEmulation.setEnabled(true);
@@ -805,10 +805,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_MaxNNAChannels==null)
 		{
-			playerSetUp_MaxNNAChannels = new JComboBox<>();
+			playerSetUp_MaxNNAChannels = new JComboBox<String>();
 			playerSetUp_MaxNNAChannels.setName("playerSetUp_MaxNNAChannels");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(ModContainer.MAX_NNA_CHANNELS);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(ModContainer.MAX_NNA_CHANNELS);
 			playerSetUp_MaxNNAChannels.setModel(theModel);
 			playerSetUp_MaxNNAChannels.setFont(Helpers.getDialogFont());
 			playerSetUp_MaxNNAChannels.setEnabled(true);
@@ -875,10 +875,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_DitherType==null)
 		{
-			playerSetUp_DitherType = new JComboBox<>();
+			playerSetUp_DitherType = new JComboBox<String>();
 			playerSetUp_DitherType.setName("playerSetUp_DitherType");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(Dither.DitherTypeNames);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(Dither.DitherTypeNames);
 			playerSetUp_DitherType.setModel(theModel);
 			playerSetUp_DitherType.setFont(Helpers.getDialogFont());
 			playerSetUp_DitherType.setEnabled(true);
@@ -917,10 +917,10 @@ public class ModConfigPanel extends JPanel
 	{
 		if (playerSetUp_DitherFilterType==null)
 		{
-			playerSetUp_DitherFilterType = new JComboBox<>();
+			playerSetUp_DitherFilterType = new JComboBox<String>();
 			playerSetUp_DitherFilterType.setName("playerSetUp_DitherFilterType");
 
-			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<>(Dither.FilterTypeNames);
+			final DefaultComboBoxModel<String> theModel = new DefaultComboBoxModel<String>(Dither.FilterTypeNames);
 			playerSetUp_DitherFilterType.setModel(theModel);
 			playerSetUp_DitherFilterType.setFont(Helpers.getDialogFont());
 			playerSetUp_DitherFilterType.setEnabled(true);

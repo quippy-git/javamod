@@ -239,7 +239,7 @@ public class EnvelopePanel extends JPanel
 			getIsEnabled().setFixedState(envelope.on);
 			getIsCarryEnabled().setFixedState(envelope.carry);
 			getIsFilterEnabled().setFixedState(envelope.filter);
-			getIsFilterEnabled().setEnabled(envelope.getEnvelopeType() == EnvelopeType.pitch);
+			getIsFilterEnabled().setEnabled(envelope.envelopeType == EnvelopeType.pitch);
 			getIsLoopEnabled().setFixedState(envelope.loop);
 			getIsSustainEnabled().setFixedState(envelope.sustain);
 		}

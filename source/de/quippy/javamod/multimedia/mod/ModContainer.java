@@ -97,14 +97,6 @@ public class ModContainer extends MultimediaContainer
 	{
 		"8", DEFAULT_BITSPERSAMPLE, "24", "32"
 	};
-	protected static final String[] INTERPOLATION = new String[]
-  	{
-  		"None", "Linear", "Cubic", "Kaiser", "Windowed FIR"
-  	};
-	protected static final String[] AMIGA_EMULATION = new String[]
-  	{
-  		"None", "Amiga 500", "Amiga 1200"
-  	};
 	protected static final String[] BUFFERSIZE = new String[]
   	{
   		"10", "15", "20", "25", DEFAULT_MSBUFFERSIZE, "40", "50", "75", "100", "150", "175", "200", "250", "500", "750"

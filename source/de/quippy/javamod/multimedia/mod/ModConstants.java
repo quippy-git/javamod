@@ -130,6 +130,15 @@ public class ModConstants
 	public static final int AMIGAEMULATION_NONE			= 0;
 	public static final int AMIGAEMULATION_AMIGA500		= 1;
 	public static final int AMIGAEMULATION_AMIGA1200	= 2;
+	// Interpolation / Emulation Strings for display
+	public static final String[] INTERPOLATION = new String[]
+  	{
+  		"None", "Linear", "Cubic", "Kaiser", "Windowed FIR"
+  	};
+	public static final String[] AMIGA_EMULATION = new String[]
+  	{
+  		"None", "Amiga 500", "Amiga 1200"
+  	};
 
 	//Paula: main crystal oscillator for PAL Amiga systems
 	public static final double	AMIGA_PAL_XTAL_HZ 			= 28375160;
@@ -1066,6 +1075,28 @@ public class ModConstants
 //		final int zeros = digits - hex.length();
 //		for (int i=0; i<zeros; i++) result.append('0');
 //		return (result.append(hex)).toString();
+	}
+	/**
+	 * Return an integer, representing the String converted to byte values in
+	 * BigEndian interpretation ("ABCD" --> 0x41424344
+	 * @since 05.05.2026
+	 * @param magicString the magic code - always four characters!
+	 * @return
+	 */
+	public static int getMagicBE(final String magicString)
+	{
+		return ((magicString.charAt(0) & 0xFF) << 24) | ((magicString.charAt(1) & 0xFF) << 16) | ((magicString.charAt(2) & 0xFF) << 8) | (magicString.charAt(3) & 0xFF);
+	}
+	/**
+	 * Return an integer, representing the String converted to byte values in
+	 * LittleEndian interpretation ("ABCD" --> 0x44434241
+	 * @since 05.05.2026
+	 * @param magicString the magic code - always four characters!
+	 * @return
+	 */
+	public static int getMagicLE(final String magicString)
+	{
+		return ((magicString.charAt(3) & 0xFF) << 24) | ((magicString.charAt(2) & 0xFF) << 16) | ((magicString.charAt(1) & 0xFF) << 8) | (magicString.charAt(0) & 0xFF);
 	}
 	/**
 	 * Our standard Date formatter

@@ -63,7 +63,9 @@ public class Instrument
 	public int midiProgram = 0;		// MIDI Program (1...128). 0 = Don't send.
 	public int midiChannel = 0;		// MIDI Channel (1...16). 0 = Don't send. 17 = Mapped (Send to tracker channel modulo 16).
 	public int pitchWheelDepth = 2;	// MIDI Pitch Wheel Depth and CMD_FINETUNE depth in semitones
-	public int plugin = 0;			// Plugin Number - we do not support MPT standard plugins yet
+	public int mixPlugIn = 0;		// Plugin Number - we do not support MPT standard plugins yet
+	public boolean xm_muteComputer; // XM: mute samples in channel
+	public boolean xm_enableMidi;	// XM: use Midi
 
 	// OMPT
 	public int volRampUp = -1;		// ys of volRamping up, -1 || 0 == use default
@@ -80,19 +82,6 @@ public class Instrument
 	{
 		super();
 	}
-	/**
-	 * Sets the Samplearray
-	 * @since 19.06.2006
-	 * @param sampleIndexArray
-	 */
-	public void setIndexArray(final int[] sampleIndexArray)
-	{
-		this.sampleIndex = sampleIndexArray;
-	}
-	public void setNoteArray(final int[] noteIndexArray)
-	{
-		this.noteIndex = noteIndexArray;
-	}
 	public int getSampleIndex(final int noteIndex)
 	{
 		if (sampleIndex==null) return -1;
@@ -102,124 +91,6 @@ public class Instrument
 	{
 		if (this.noteIndex==null) return noteIndex;
 		return this.noteIndex[noteIndex];
-	}
-	public void setPanningEnvelope(final Envelope panningEnvelope)
-	{
-		this.panningEnvelope = panningEnvelope;
-	}
-	public void setVolumeEnvelope(final Envelope volumeEnvelope)
-	{
-		this.volumeEnvelope = volumeEnvelope;
-	}
-	public void setPitchEnvelope(final Envelope pitchEnvelope)
-	{
-		this.pitchEnvelope = pitchEnvelope;
-	}
-	/**
-	 * @param name The name to set.
-	 */
-	public void setName(final String name)
-	{
-		this.name = name;
-	}
-	/**
-	 * @param dosFileName the dosFileName to set
-	 */
-	public void setDosFileName(final String dosFileName)
-	{
-		this.dosFileName = dosFileName;
-	}
-	/**
-	 * @param volumeFadeOut The volumeFadeOut to set.
-	 */
-	public void setVolumeFadeOut(final int volumeFadeOut)
-	{
-		this.volumeFadeOut = volumeFadeOut;
-	}
-	/**
-	 * @param dublicateNoteCheck the dublicateNoteCheck to set
-	 */
-	public void setDublicateNoteCheck(final int dublicateNoteCheck)
-	{
-		this.dublicateNoteCheck = dublicateNoteCheck;
-	}
-	/**
-	 * @param dublicateNodeAction the dublicateNodeAction to set
-	 */
-	public void setDublicateNoteAction(final int dublicateNoteAction)
-	{
-		this.dublicateNoteAction = dublicateNoteAction;
-	}
-	/**
-	 * @param nna the NewNoteAction to set
-	 */
-	public void setNNA(final int nna)
-	{
-		NNA = nna;
-	}
-	/**
-	 * @param pitchPanSeparation the pitchPanSeparation to set
-	 */
-	public void setPitchPanSeparation(final int pitchPanSeparation)
-	{
-		this.pitchPanSeparation = pitchPanSeparation;
-	}
-	/**
-	 * @param pitchPanCenter the pitchPanCenter to set
-	 */
-	public void setPitchPanCenter(final int pitchPanCenter)
-	{
-		this.pitchPanCenter = pitchPanCenter;
-	}
-	/**
-	 * @param globalVolume the globalVolume to set
-	 */
-	public void setGlobalVolume(final int globalVolume)
-	{
-		this.globalVolume = globalVolume;
-	}
-	/**
-	 * @param defaultPan the defaultPan to set
-	 */
-	public void setDefaultPan(final int newDefaultPanning)
-	{
-		this.defaultPanning = newDefaultPanning;
-	}
-	public void setPanning(final boolean newSetPanning)
-	{
-		setPanning = newSetPanning;
-	}
-	public void setMute(final boolean newMute)
-	{
-		mute = newMute;
-	}
-	/**
-	 * @param randomVolumeVariation the randomVolumeVariation to set
-	 */
-	public void setRandomVolumeVariation(final int randomVolumeVariation)
-	{
-		this.randomVolumeVariation = randomVolumeVariation;
-	}
-	/**
-	 * @param randomPanningVariation the randomPanningVariation to set
-	 */
-	public void setRandomPanningVariation(final int randomPanningVariation)
-	{
-		this.randomPanningVariation = randomPanningVariation;
-	}
-	/**
-	 * @param initialFilterCutoff the initialFilterCutoff to set
-	 */
-	public void setInitialFilterCutoff(final int initialFilterCutoff)
-	{
-		this.initialFilterCutoff = initialFilterCutoff;
-	}
-	/**
-	 * @param initialFilterResonance the initialFilterResonance to set
-	 */
-	public void setInitialFilterResonance(final int initialFilterResonance)
-	{
-		this.initialFilterResonance = initialFilterResonance;
 	}
 	/**
 	 * @return

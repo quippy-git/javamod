@@ -1679,7 +1679,7 @@ public abstract class BasicModMixer
 		// special MOD sample offset handling
 		if (isMOD && aktMemo.prevSampleOffset>0 && aktMemo.currentSample!=null)
 		{
-			final int max = aktMemo.currentSample.length-1;
+			final int max = aktMemo.currentSample.sampleLength-1;
 			aktMemo.currentSamplePos = (aktMemo.prevSampleOffset>max)?max:aktMemo.prevSampleOffset;
 		}
 		else
@@ -2277,7 +2277,7 @@ public abstract class BasicModMixer
 	protected void fitIntoLoops(final ChannelMemory aktMemo)
 	{
 		final Sample sample = aktMemo.currentSample;
-		if (sample.length<=0) return;
+		if (sample.sampleLength<=0) return;
 
 		aktMemo.currentTuningPos += aktMemo.currentTuning;
 		if (aktMemo.currentTuningPos >= ModConstants.SHIFT_MAX)
@@ -2291,8 +2291,8 @@ public abstract class BasicModMixer
 
 			// Set the start/end loop position to check against...
 			int loopStart = 0;
-			int loopEnd = sample.length;
-			int loopLength = sample.length;
+			int loopEnd = sample.sampleLength;
+			int loopLength = sample.sampleLength;
 			int inLoop = 0;
 			boolean interpolateLoop = false;
 
@@ -2329,7 +2329,7 @@ public abstract class BasicModMixer
 						aktMemo.prevSampleOffset = 0;
 						// ProTracker always jumps to the loopStart and with empty loops these are 0-2 (mostly a silent part of the sample)
 						// but we reset that to 0/0 and wouldn't loop in (0/2) anyways - so we jump at the sample end in that case to simulate that.
-						aktMemo.currentSamplePos = ((sample.loopType&ModConstants.LOOP_ON)!=0)?aktMemo.currentSample.loopStart:aktMemo.currentSample.length-1;
+						aktMemo.currentSamplePos = ((sample.loopType&ModConstants.LOOP_ON)!=0)?aktMemo.currentSample.loopStart:aktMemo.currentSample.sampleLength-1;
 						aktMemo.doFastVolRamp = true;
 						return;
 					}

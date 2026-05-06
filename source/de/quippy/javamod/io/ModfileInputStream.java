@@ -81,6 +81,16 @@ public class ModfileInputStream extends RandomAccessInputStreamImpl
 	{
 		return fileName;
 	}
+	public boolean checkMagic(final int magicBytes) throws IOException
+	{
+		if (available()<4) return false;
+
+		final int read = readIntelDWord();
+		if (read==magicBytes) return true;
+
+		skipBack(4);
+		return false;
+	}
 	private void checkForPackedFiles()
 	{
 		try

@@ -166,7 +166,7 @@ public class SampleInstrumentPlayer
 	}
 	private void playSample()
 	{
-		if (sample==null || sample.length==0) return;
+		if (sample==null || sample.sampleLength==0) return;
 
 		final int sampleRate = currentModMixer.getCurrentSampleRate();
 		final int sampleSizeInBits = currentModMixer.getCurrentSampleSizeInBits();
