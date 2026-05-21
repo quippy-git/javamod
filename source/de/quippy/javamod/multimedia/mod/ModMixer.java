@@ -26,6 +26,7 @@ import javax.sound.sampled.AudioFormat;
 import de.quippy.javamod.mixer.BasicMixer;
 import de.quippy.javamod.mixer.dsp.iir.filter.Dither;
 import de.quippy.javamod.multimedia.mod.loader.Module;
+import de.quippy.javamod.multimedia.mod.midi.ModMidiMixer;
 import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer;
 
 /**
@@ -36,6 +37,7 @@ public class ModMixer extends BasicMixer
 {
 	private final Module mod;
 	private final BasicModMixer modMixer;
+	private ModMidiMixer modMidiMixer;
 
 	private int bufferSize;
 	private int sampleSizeInBits;
@@ -120,6 +122,14 @@ public class ModMixer extends BasicMixer
 		modDSP.initModDSP(sampleRate);
 		
 		setAudioFormat(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false)); // signed, little endian
+		if (modMidiMixer!=null) modMidiMixer.openOutputDevice();
+	}
+	public void setModMidiMixer(final ModMidiMixer newModMidiMixer)
+	{
+		if (modMixer!=null)
+			modMixer.setModMidiMixer(modMidiMixer = newModMidiMixer);
+		else
+			modMidiMixer = null;
 	}
 	/**
 	 * @param doNoiseReduction The doNoiseReduction to set.
@@ -581,6 +591,7 @@ public class ModMixer extends BasicMixer
 		{
 			modMixer.setFireUpdates(false);
 			setIsStopped();
+			if (modMidiMixer!=null) modMidiMixer.closeOuptutDevice();
 			closeAudioDevice();
 		}
 	}

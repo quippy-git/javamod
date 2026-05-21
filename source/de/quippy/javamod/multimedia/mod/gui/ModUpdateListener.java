@@ -32,8 +32,8 @@ public interface ModUpdateListener
 {
 	public class TimedInformation
 	{
-		public long samplesMixed;
-		public long timeCode;
+		public final long samplesMixed;
+		public final long timeCode;
 
 		public TimedInformation(final int sampleRate, final long samplesMixed)
 		{
@@ -49,9 +49,8 @@ public interface ModUpdateListener
 	}
 	public class PatternPositionInformation extends TimedInformation
 	{
-		public boolean active;
-		public int patternIndex;
-		public int patternRow;
+		public final int patternIndex;
+		public final int patternRow;
 
 		public PatternPositionInformation(final int sampleRate, final long samplesMixed, final long position)
 		{
@@ -68,33 +67,41 @@ public interface ModUpdateListener
 	}
 	public class PeekInformation extends TimedInformation
 	{
-		public int channel;
-		public int actPeekLeft;
-		public int actPeekRight;
-		public boolean isSurround;
+		public final int channel;
+		public final int actPeekLeft;
+		public final int actPeekRight;
+		public final boolean isSurround;
+		public final boolean isMidiAdlib;
 
-		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final int actPeekLeft, final int actPeekRight, final boolean isSurround)
+		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final int actPeekLeft, final int actPeekRight, final boolean isSurround, final boolean isMidiAdlib)
 		{
 			super(sampleRate, samplesMixed);
 			this.channel = channel;
 			this.actPeekLeft = actPeekLeft;
 			this.actPeekRight = actPeekRight;
 			this.isSurround = isSurround;
+			this.isMidiAdlib = isMidiAdlib;
 		}
+		public PeekInformation(final int sampleRate, final long samplesMixed, final int channel, final int actPeekLeft, final int actPeekRight, final boolean isSurround)
+		{
+			this(sampleRate, samplesMixed, channel, actPeekLeft, actPeekRight, isSurround, false);
+		}
+		
 		@Override
 		public String toString()
 		{
-			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":Helpers.EMPTY_STING);
+			return super.toString()+"-->Peek: "+channel+": " + actPeekLeft + "/" + actPeekRight + ((isSurround)?" is surround":Helpers.EMPTY_STING) + ((isMidiAdlib)?" is Midi / Adlib ":Helpers.EMPTY_STING);
 		}
 	}
 	public class StatusInformation
 	{
-		public boolean status;
+		public final boolean status;
 
 		public StatusInformation(final boolean newStatus)
 		{
 			status = newStatus;
 		}
+		
 		@Override
 		public String toString()
 		{

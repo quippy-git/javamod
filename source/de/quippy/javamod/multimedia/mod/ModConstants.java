@@ -90,6 +90,7 @@ public class ModConstants
 	// Panning values for old ProTracker and STMs / S3Ms
 	public static final int OLD_PANNING_LEFT	= 0;								// 0: full left, 64: quarter left
 	public static final int OLD_PANNING_RIGHT	= 256 - OLD_PANNING_LEFT;
+	public static final int PANNING_CENTER		= 128;
 	// Special panning values for S3M and IT
 	public static final int CHANNEL_IS_MUTED	= 0x80<<2;							// IT and S3M use this
 	public static final int CHANNEL_IS_SURROUND = 100<<2;							// IT uses this (YES, not hex!)
@@ -202,7 +203,10 @@ public class ModConstants
 	public static final int DNA_FADE		= 0x02;
 
 	// KeyOff and NoteCut values
-	public static final int NO_NOTE			=  0;
+	public static final int NO_NOTE			= 0;
+	public static final int NOTE_MIN		= 1;
+	public static final int NOTE_MAX		= 120;
+	public static final int NOTE_MIDDLEC    = (5 * 12 + NOTE_MIN);
 	public static final int KEY_OFF			= -1;
 	public static final int NOTE_CUT		= -2;
 	public static final int NOTE_FADE		= -3;

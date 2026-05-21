@@ -59,7 +59,7 @@ public abstract class Module
 	private static final int dFdd_PITCHCARRY 	= 0x2000;
 	private static final int dFdd_MUTE 			= 0x4000;
 
-		private String fileName;
+	private String fileName;
 	private String trackerName;
 	private String modID;
 
@@ -1417,8 +1417,10 @@ public abstract class Module
 				ins.mixPlugIn = (int)inputStream.readIntelBytes(size);
 				break;
 			case 0x50564548: //"PVEH" PluginVelocityHandling
+				ins.pluginVelocityHandling = (int)inputStream.readIntelBytes(size);
+				break;
 			case 0x50564F48: //"PVOH" PluginVolumeHandling
-				inputStream.skip(size);
+				ins.pluginVolumeHandling = (int)inputStream.readIntelBytes(size);
 				break;
 			case 0x4D422E2E: //"MB.." MidiBank
 				ins.midiBank = (int)inputStream.readIntelBytes(size);

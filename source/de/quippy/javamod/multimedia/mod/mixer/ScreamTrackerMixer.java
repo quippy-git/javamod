@@ -30,6 +30,7 @@ import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
 import de.quippy.javamod.multimedia.mod.loader.pattern.PatternElement;
 import de.quippy.javamod.multimedia.mod.midi.MidiMacros;
+import de.quippy.javamod.multimedia.mod.midi.ModMidiMixer;
 
 /**
  * This is the screamtracker mixing routine with all special mixing
@@ -115,8 +116,18 @@ public class ScreamTrackerMixer extends BasicModMixer
 				return (ModConstants.FreqS3MTable[noteIndex%12]<<7)>>(noteIndex/12);
 
 			default:
-				return super.getFineTunePeriod(aktMemo, period);
+				return 0; // something went wrong
 		}
+	}
+	/**
+	 * @param aktMemo
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.mixer.BasicModMixer#getFineTunePeriod(de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory)
+	 */
+	@Override
+	protected int getFineTunePeriod(final ChannelMemory aktMemo)
+	{
+		return (aktMemo.assignedNoteIndex==0)?0:getFineTunePeriod(aktMemo, aktMemo.assignedNoteIndex);
 	}
 	/**
 	 * @param aktMemo
@@ -242,6 +253,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				continue;
 
 			final ChannelMemory currentNNAChannel = channelMemory[c];
+			// we can again save time not doing anything on inactive channels
 			if (!isChannelActive(currentNNAChannel)) continue;
 
 			if (currentNNAChannel.channelNumber == channelNumber)
@@ -257,9 +269,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 						final int note = aktMemo.assignedNoteIndex;
 						// ** With other players, the noteindex of instrument mapping
 						// ** might count!! Would be this:
-						//final int note = inst.getNoteIndex(aktMemo.assignedNoteIndex-1)+1;
+						//final int note = inst.getNoteIndex(aktMemo.assignedNoteIndex - ModConstants.NOTE_MIN) + ModConstants.NOTE_MIN;
 						// *********
-						if (note>0 &&
+						if (note>ModConstants.NO_NOTE &&
 								note==currentNNAChannel.assignedNoteIndex &&
 								instr==currentNNAChannel.assignedInstrument)
 							applyDNA = true;
@@ -282,6 +294,22 @@ public class ScreamTrackerMixer extends BasicModMixer
 
 				if (applyDNA)
 				{
+					// to PlugIn:
+					if (aktMemo.assignedNoteIndex>ModConstants.NO_NOTE)
+					{
+						switch (instr.dublicateNoteAction)
+						{
+							case ModConstants.DNA_CUT:
+							case ModConstants.DNA_FADE:
+							case ModConstants.DNA_OFF:
+								if (aktMemo.lastMidiNoteWithoutArp>ModConstants.NO_NOTE)
+								{
+									modMidiMixer.sendMidiNote(aktMemo, aktMemo.lastMidiNoteWithoutArp | ModMidiMixer.MIDI_NOTE_OFF, 0);
+									aktMemo.lastMidiNoteWithoutArp = ModConstants.NO_NOTE;
+								}
+								break;
+						}
+					}
 					// We have a match!
 					switch (instr.dublicateNoteAction)
 					{
@@ -296,6 +324,34 @@ public class ScreamTrackerMixer extends BasicModMixer
 							break;
 					}
 				}
+			}
+		}
+	}
+	/**
+	 * @since 19.05.2026
+	 * @param aktMemo
+	 * @param NNA
+	 */
+	protected void doNNAPlugins(final ChannelMemory aktMemo, final int NNA)
+	{
+		// Do we need to apply New/Duplicate Note Action to a VSTi?
+		boolean applyNNAtoPlug = false;
+		if (aktMemo.hasMidiOutput() && aktMemo.hasNewNote())
+		{
+			applyNNAtoPlug = (aktMemo.lastMidiNoteWithoutArp!=ModConstants.NO_NOTE && modMidiMixer.isNotePlaying(aktMemo, aktMemo.lastMidiNoteWithoutArp));
+		}
+		if (applyNNAtoPlug)
+		{
+			switch (NNA)
+			{
+				case ModConstants.NNA_CONTINUE:
+					break;
+				case ModConstants.NNA_CUT:
+				case ModConstants.NNA_FADE:
+				case ModConstants.NNA_OFF:
+					modMidiMixer.sendMidiNote(aktMemo, ModConstants.KEY_OFF, 0);
+					aktMemo.lastMidiNoteWithoutArp = ModConstants.NO_NOTE;
+					break;
 			}
 		}
 	}
@@ -376,9 +432,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 		for (int c=mod.getNChannels(); c<maxChannels; c++)
 		{
 			final ChannelMemory currentNNAChannel = channelMemory[c];
-			if (!isChannelActive(currentNNAChannel)) continue;
+			if (!isChannelActive(currentNNAChannel) && !aktMemo.hasMidiOutput()) continue;
 			if (currentNNAChannel.channelNumber == channelNumber)
+			{
 				doNNA(currentNNAChannel, NNA);
+				if (aktMemo.hasMidiOutput()) doNNAPlugins(aktMemo, NNA);
+			}
 		}
 	}
 	/**
@@ -387,13 +446,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	protected void doNNAAutoInstrument(final ChannelMemory aktMemo)
 	{
-		if (!isChannelActive(aktMemo) || aktMemo.muted || aktMemo.noteCut) return;
+		if ((!isChannelActive(aktMemo) && !aktMemo.hasMidiOutput()) || aktMemo.muted || aktMemo.noteCut) return;
 
 		final Instrument currentInstrument = aktMemo.assignedInstrument;
-		// NNA_CUT is default for instruments with no NNA
-		// so do not copy this to a new channel for just finishing
-		// it off then.
-		if ((currentInstrument!=null) && (currentInstrument.NNA != ModConstants.NNA_CUT))
+		if (currentInstrument!=null)
 		{
 			final int nna;
 			if (aktMemo.tempNNAAction>-1)
@@ -404,7 +460,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 			else
 				nna = currentInstrument.NNA;
 
-			doNNANew(aktMemo, nna);
+			// NNA_CUT is default for instruments with no NNA
+			// so do not copy this to a new channel for just finishing
+			// it off then.
+			if (currentInstrument.NNA!=ModConstants.NNA_CUT) doNNANew(aktMemo, nna);
+			// but apply to plugins - which is only midi
+			if (aktMemo.hasMidiOutput()) doNNAPlugins(aktMemo, nna);
 		}
 	}
 	/**
@@ -508,10 +569,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 	protected void setNewInstrumentAndPeriod(final ChannelMemory aktMemo)
 	{
 		final PatternElement element = aktMemo.currentElement;
-//		final boolean isNoteDelay = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
-		final boolean isKeyOff = element.getPeriod()==ModConstants.KEY_OFF || element.getNoteIndex()==ModConstants.KEY_OFF;
-		final boolean isNewNote = hasNewNote(element);
+//		final boolean isNoteDelayEffect = isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam);
 		final boolean isPortaToNoteEffect = isPortaToNoteEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam, aktMemo.currentAssignedVolumeEffekt, aktMemo.currentAssignedVolumeEffektOp, aktMemo.currentAssignedNotePeriod);
+		final boolean isKeyOff = element.getPeriod()==ModConstants.KEY_OFF || element.getNoteIndex()==ModConstants.KEY_OFF;
+		final boolean isNewNote = aktMemo.hasNewNote();
 
 		// Do Instrument default NNA
 		if (isIT && isNewNote &&
@@ -529,8 +590,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 		aktMemo.assignedNotePeriod = aktMemo.currentAssignedNotePeriod;
 		aktMemo.assignedNoteIndex = aktMemo.currentAssignedNoteIndex;
 		aktMemo.assignedSample = (aktMemo.currentAssignedInstrument!=null)?
-		                            ((aktMemo.assignedNoteIndex>0)? // but only if we also have a note index, if not, ignore it!
-		        				       mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex-1))
+		                            ((aktMemo.assignedNoteIndex>ModConstants.NO_NOTE)? // but only if we also have a note index, if not, ignore it!
+		        				       mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrument.getSampleIndex(aktMemo.assignedNoteIndex - ModConstants.NOTE_MIN))
 		        				       :null) // Instrument set without a note - so no mapping to sample possible!
 		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 
@@ -582,6 +643,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 				resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 			}
 		}
+		else
+		if (element.getInstrument()>0 && aktMemo.hasMidiOutput())
+			resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
 
 		// Now safe those instruments for later re-use
 		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
@@ -620,9 +684,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 			{
 				// now the correct note index from the mapping table, if we have an instrument and a valid note index
 				// the sample was already read before
-				if (aktMemo.assignedInstrument!=null && aktMemo.assignedNoteIndex>0)
+				if (aktMemo.assignedInstrument!=null && aktMemo.assignedNoteIndex>ModConstants.NO_NOTE)
 				{
-					aktMemo.assignedNoteIndex = aktMemo.assignedInstrument.getNoteIndex(aktMemo.assignedNoteIndex-1)+1;
+					aktMemo.assignedNoteIndex = aktMemo.assignedInstrument.getNoteIndex(aktMemo.assignedNoteIndex - ModConstants.NOTE_MIN) + ModConstants.NOTE_MIN;
 					// Now set filters from instrument for IT
 					if (isIT) useFilter = setFilterAndRandomVariations(aktMemo, aktMemo.assignedInstrument, useFilter);
 				}
@@ -672,9 +736,16 @@ public class ScreamTrackerMixer extends BasicModMixer
 				// and set the resonance, settings were stored above in instr. value copy
 				if ((/*aktMemo.resonance>0 || */aktMemo.cutOff<0x7F) && useFilter) setupChannelFilter(aktMemo, true, 256);
 				if (isNewNote && !isPortaToNoteEffect) reset_VibTremPan_TablePositions(aktMemo); // IT resets vibrato table position with a new note (and only that position)
+
 			}
 			// write back, if noteIndex was changed by instrument note mapping
 			aktMemo.assignedNoteIndex = savedNoteIndex;
+		}
+
+		// send possible Midi Note:
+		if (aktMemo.hasMidiOutput())
+		{
+			modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, isPortaToNoteEffect);
 		}
 	}
 	/**
@@ -720,7 +791,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		if (aktMemo.assignedEffekt==0) return;
 
 		final Instrument ins = aktMemo.assignedInstrument;
-		final PatternElement element = aktMemo.currentElement;
 
 		if (isS3M && aktMemo.assignedEffektParam!=0)
 			setS3MParameterMemory(aktMemo, aktMemo.assignedEffektParam);
@@ -782,7 +852,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				doPortaUp(aktMemo, true, false);
 				break;
 			case 0x07: 			// Porta To Note
-				if (hasNewNote(element)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
+				if (aktMemo.hasNewNote()) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				if (aktMemo.assignedEffektParam!=0)
 				{
 					aktMemo.portaNoteStep = aktMemo.assignedEffektParam;
@@ -837,7 +907,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					doVolumeSlideEffekt(aktMemo);
 				break;
 			case 0x0C:			// Porta To Note + VolumeSlide
-				if (hasNewNote(element)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
+				if (aktMemo.hasNewNote()) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				// Fine Volume Up/Down and FastSlides
 				if (aktMemo.assignedEffektParam!=0) aktMemo.volumSlideValue = aktMemo.assignedEffektParam;
 				if (isFineSlide(aktMemo.volumSlideValue) || (mod.getSongFlags()&ModConstants.SONG_FASTVOLSLIDES)!=0)
@@ -867,7 +937,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 						aktMemo.sampleOffset = newSampleOffset;
 				}
 				aktMemo.prevSampleOffset = aktMemo.sampleOffset;
-				doSampleOffsetEffekt(aktMemo, element);
+				doSampleOffsetEffekt(aktMemo);
 				break;
 			case 0x10:			// Panning Slide
 				if (aktMemo.assignedEffektParam!=0) aktMemo.panningSlideValue = aktMemo.assignedEffektParam;
@@ -1020,7 +1090,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 								break;
 							case 0xF: // Play backward. The current instrument will be played backwards, or it will temporarily set the direction of a loop to go backward.
 								if (aktMemo.currentSample!=null && aktMemo.currentSamplePos==0 && aktMemo.currentSample.sampleLength>0 &&
-									(hasNewNote(element) || (aktMemo.currentSample.loopType&ModConstants.LOOP_ON)!=0))
+									(aktMemo.hasNewNote() || (aktMemo.currentSample.loopType&ModConstants.LOOP_ON)!=0))
 								{
 									aktMemo.currentSamplePos = aktMemo.currentSample.sampleLength-1;
 									aktMemo.currentTuningPos = 0;
@@ -1292,6 +1362,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					break;
 			}
 		}
+		if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, aktMemo.portaStepUp, true);
 	}
 	/**
 	 * Convenient Method for the Porta Down Effekt
@@ -1300,12 +1371,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	private void doPortaDown(final ChannelMemory aktMemo, final boolean firstTick, final boolean inVolColum)
 	{
-		final int indicatorPortaUp = aktMemo.portaStepDown&0xF0;
+		final int indicatorPortaDown = aktMemo.portaStepDown&0xF0;
 		if (inVolColum)
 			doFreqSlide(aktMemo, aktMemo.portaStepDown);
 		else
 		{
-			switch (indicatorPortaUp)
+			switch (indicatorPortaDown)
 			{
 				case 0xE0:
 					if (firstTick) doExtraFineSlide(aktMemo, aktMemo.portaStepDown&0x0F);
@@ -1318,6 +1389,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					break;
 			}
 		}
+		if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, -aktMemo.portaStepDown, true);
 	}
 	/**
 	 * Convenient Method for the Porta to note Effekt
@@ -1350,6 +1422,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 			else
 				setNewPlayerTuningFor(aktMemo);
 		}
+//		if (aktMemo.hasMidiOutput())
+//		{
+//			int pwd = 2;
+//			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
+//			modMidiMixer.midiTonePortamento(aktMemo, aktMemo.portaNoteStep, aktMemo.portaTargetNotePeriod, pwd);
+//		}
 	}
 	/**
 	 * returns values in the range of -64..64
@@ -1491,7 +1569,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				vdepth += 2; // same result as periodAdd>>=2;
 		}
 
-		periodAdd = (periodAdd * aktMemo.vibratoAmplitude) >> vdepth; // more or less the same as "/(1<<attenuaton)" :)
+		final int midiDepth = periodAdd = (periodAdd * aktMemo.vibratoAmplitude) >> vdepth; // more or less the same as "/(1<<attenuaton)" :)
 
 		if (frequencyTableType==ModConstants.IT_LINEAR_TABLE)
 		{
@@ -1514,6 +1592,13 @@ public class ScreamTrackerMixer extends BasicModMixer
 		}
 		else
 			setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod - (periodAdd<<2));
+		
+		if (aktMemo.hasMidiOutput())
+		{
+			int pwd = 2;
+			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
+			modMidiMixer.midiVibrato(aktMemo, midiDepth, pwd);
+		}
 
 		if (!isTick0 || (isIT && !oldITEffects)) aktMemo.vibratoTablePos = (vibPos + (aktMemo.vibratoStep<<2))&0xFF;
 	}
@@ -1556,7 +1641,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		final boolean isTick0 = currentTick==currentTempo;
 		final boolean oldITEffects = (mod.getSongFlags()&ModConstants.SONG_ITOLDEFFECTS)!=0;
 		// What the... ITs do not reset the tremolo table pos, when not set to use oldITEffects
-		if (isTick0 && hasNewNote(aktMemo.currentElement) && !aktMemo.tremoloNoRetrig && (!isIT || oldITEffects)) aktMemo.tremoloTablePos = 0;
+		if (isTick0 && aktMemo.hasNewNote() && !aktMemo.tremoloNoRetrig && (!isIT || oldITEffects)) aktMemo.tremoloTablePos = 0;
 
 		if (aktMemo.currentVolume>0 || isIT)
 		{
@@ -1650,9 +1735,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 * @param aktMemo
 	 * @param element
 	 */
-	protected void doSampleOffsetEffekt(final ChannelMemory aktMemo, final PatternElement element)
+	protected void doSampleOffsetEffekt(final ChannelMemory aktMemo)
 	{
-		if (hasNoNote(element) || aktMemo.currentSample==null || aktMemo.sampleOffset==-1) return;
+		if (aktMemo.hasNoNote() || aktMemo.currentSample==null || aktMemo.sampleOffset==-1) return;
 
 		// IT compatibility: If this note is not mapped to a sample, ignore it.
 		// It is questionable, if this check is needed - aktMemo.currentSample should already be null...
@@ -2017,8 +2102,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				doPanning(aktMemo, aktMemo.assignedVolumeEffektOp, ModConstants.PanBits.Pan6Bit);
 				break;
 			case 0x0B: // Tone Porta
-				final PatternElement element = aktMemo.currentElement;
-				if (hasNewNote(element)) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
+				if (aktMemo.hasNewNote()) aktMemo.portaTargetNotePeriod = getFineTunePeriod(aktMemo);
 				if (aktMemo.assignedVolumeEffektOp!=0)
 				{
 					final int index = (aktMemo.assignedVolumeEffektOp>9)?9:aktMemo.assignedVolumeEffektOp&0x0F;
@@ -2048,7 +2132,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					if (cues!=null && aktMemo.assignedVolumeEffektOp <= cues.length)
 					{
 						if (aktMemo.assignedVolumeEffektOp!=0) aktMemo.sampleOffset = cues[aktMemo.assignedVolumeEffektOp - 1];
-						doSampleOffsetEffekt(aktMemo, aktMemo.currentElement);
+						doSampleOffsetEffekt(aktMemo);
 					}
 				}
 				break;

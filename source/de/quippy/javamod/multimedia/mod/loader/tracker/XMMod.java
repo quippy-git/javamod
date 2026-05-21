@@ -87,6 +87,16 @@ public class XMMod extends ProTrackerMod
 		return MODFILEEXTENSION;
 	}
 	/**
+	 * @param channel
+	 * @return
+	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getPanningValue(int)
+	 */
+	@Override
+	public int getPanningValue(final int channel)
+	{
+		return ModConstants.PANNING_CENTER;
+	}
+	/**
 	 * @return
 	 * @see de.quippy.javamod.multimedia.mod.loader.Module#getFrequencyTable()
 	 */
@@ -495,7 +505,11 @@ public class XMMod extends ProTrackerMod
 			currentIns.noteIndex = new int[96];
 			for (int i=0; i<96; i++)
 			{
-				currentIns.sampleIndex[i] = inputStream.read() + sampleOffsetIndex + 1;
+				final int sampleIndex = inputStream.read();
+				if (sampleIndex < anzSamples) // if this instrument has no samples associated, sampleIndex=0, anzSamples=0
+					currentIns.sampleIndex[i] = sampleIndex + sampleOffsetIndex + 1;
+				else
+					currentIns.sampleIndex[i] = 0;
 				currentIns.noteIndex[i] = i;
 			}
 
@@ -555,6 +569,19 @@ public class XMMod extends ProTrackerMod
 			currentIns.midiProgram = inputStream.readIntelWord();		// MIDI Program (0...127)
 			currentIns.pitchWheelDepth = inputStream.readIntelWord();	// MIDI Pitch Wheel Range (0...36 halftones)
 			currentIns.xm_muteComputer = inputStream.read()>0;			// Mute instrument if MIDI is enabled (0 / 1)
+			// sanitize if midi is enabled
+			if (currentIns.xm_enableMidi)
+			{
+				currentIns.midiChannel++;
+				if (currentIns.midiChannel<1) currentIns.midiChannel = 1;
+				else
+				if (currentIns.midiChannel>16) currentIns.midiChannel = 16;
+				
+				currentIns.midiProgram++;
+				if (currentIns.midiProgram<1) currentIns.midiProgram = 1;
+				else
+				if (currentIns.midiProgram>128) currentIns.midiProgram = 128; 
+			}
 			
 			// At this point 15 bytes of junk follows - we ignore that by
 			inputStream.seek(LSEEK+=instrumentHeaderSize);

@@ -59,6 +59,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiSystem;
+import javax.sound.midi.MidiUnavailableException;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
@@ -1255,6 +1258,48 @@ public class Helpers
 			AudioInfos = result.toString();
 		}
 		return AudioInfos;
+	}
+	/**
+	 * @since 24.10.2010
+	 * @return
+	 */
+	public static MidiDevice.Info[] getMidiOutDevices()
+	{
+		final ArrayList<MidiDevice.Info> midiOuts = new ArrayList<>();
+		final MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+		for (final MidiDevice.Info element : infos)
+		{
+			try
+			{
+				final MidiDevice device = MidiSystem.getMidiDevice(element);
+				if (device.getMaxReceivers() != 0) midiOuts.add(element);
+			}
+			catch (final MidiUnavailableException e)
+			{
+			}
+		}
+		final MidiDevice.Info[] result = new MidiDevice.Info[midiOuts.size()];
+		midiOuts.toArray(result);
+		return result;
+	}
+	/**
+	 * @since 27.11.2010
+	 * @return
+	 */
+	public static javax.sound.sampled.Mixer.Info[] getInputMixerNames()
+	{
+		final ArrayList<javax.sound.sampled.Mixer.Info> mixers = new ArrayList<>();
+		final javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
+		final Line.Info lineInfo = new Line.Info(TargetDataLine.class);
+		for (final javax.sound.sampled.Mixer.Info element : mixerInfos)
+		{
+			final javax.sound.sampled.Mixer mixer = AudioSystem.getMixer(element);
+			if (mixer.isLineSupported(lineInfo))
+			{
+				mixers.add(element);
+			}
+		}
+		return mixers.toArray(new javax.sound.sampled.Mixer.Info[mixers.size()]);
 	}
 	/**
 	 * Registers all Classes that should not load during playback

@@ -254,7 +254,7 @@ public class MidiMixer extends BasicMixer
 				midiOutput = MidiSystem.getMidiDevice(outputDeviceInfo);
 			}
 			if (!midiOutput.isOpen()) midiOutput.open();
-			if (midiOutput instanceof Synthesizer && (soundBankFile!=null))
+			if (soundBankFile!=null && midiOutput instanceof Synthesizer)
 			{
 				try
 				{

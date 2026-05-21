@@ -26,6 +26,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import javax.sound.midi.MidiDevice;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -41,6 +42,16 @@ public abstract class MultimediaContainer
 	private final ArrayList<MultimediaContainerEventListener> listeners = new ArrayList<>();
 	private URL fileURL = null;
 
+	protected static MidiDevice.Info[] MIDIOUTDEVICEINFOS;
+	protected static javax.sound.sampled.Mixer.Info[] MIXERDEVICEINFOS;
+
+	static
+	{
+		// This can sometimes take a while
+		if (MIDIOUTDEVICEINFOS==null) MIDIOUTDEVICEINFOS = Helpers.getMidiOutDevices();
+		if (MIXERDEVICEINFOS==null) MIXERDEVICEINFOS = Helpers.getInputMixerNames();
+	}
+	
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -131,6 +142,22 @@ public abstract class MultimediaContainer
 	public String getSongName()
 	{
 		return MultimediaContainerManager.getSongNameFromURL(fileURL);
+	}
+	/**
+	 * @since 16.05.2026
+	 * @return
+	 */
+	public static javax.sound.sampled.Mixer.Info[] getMixerDeviceIndos()
+	{
+		return MIXERDEVICEINFOS;
+	}
+	/**
+	 * @since 16.05.2026
+	 * @return
+	 */
+	public static MidiDevice.Info[] getMidiOutDeviceInfos()
+	{
+		return MIDIOUTDEVICEINFOS;
 	}
 	/**
 	 * This method will only do (!)locally(!) what is needed to pick up

@@ -36,9 +36,10 @@ import javax.swing.JComponent;
 public class PeekMeterComponent extends JComponent
 {
 	private static final long serialVersionUID = -3051678250074031407L;
+	private static final int MIDI_COLOR_START = 8;
 	
 	private int peekLeft, peekRight;
-	private boolean isSurround;
+	private boolean isSurround, isMidiAdlib;
 	
 	private Color[] peekMeterColors;
 
@@ -52,12 +53,17 @@ public class PeekMeterComponent extends JComponent
 	}
 	private void initialize()
 	{
-		peekMeterColors = new Color[8];
+		peekMeterColors = new Color[16];
+//		for (int i=0; i<8; i++)
+//		{
+//			final int r = i*255/8;
+//			final int g = 255-r;
+//			peekMeterColors[i] = new Color(r, g, 0);
+//		}
 		for (int i=0; i<8; i++)
 		{
-			final int r = i*255/8;
-			final int g = 255-r;
-			peekMeterColors[i] = new Color(r, g, 0);
+			peekMeterColors[i] 					= (i<4)?new Color(0x00, 0xC8, 0x00): (i<6)?new Color(0xFF, 0xC8, 0x00) : new Color(0xE1, 0x00, 0x00);
+			peekMeterColors[i+MIDI_COLOR_START] = (i<4)?new Color(0x18, 0x96, 0xE1): (i<6)?new Color(0xFF, 0xC8, 0x00) : new Color(0xE1, 0x00, 0x00);
 		}
 	}
 	/**
@@ -66,11 +72,16 @@ public class PeekMeterComponent extends JComponent
 	 * @param peekRight a value between 0 and 7
 	 * @param isSurround
 	 */
-	public void setMeterValues(final int peekLeft, final int peekRight, final boolean isSurround)
+	public void setMeterValues(final int peekLeft, final int peekRight, final boolean isSurround, final boolean isMidiAdlib)
 	{
+		// do we have to repaint?
+		if (this.peekLeft==peekLeft && this.peekRight==peekRight && 
+			this.isSurround==isSurround && this.isMidiAdlib==isMidiAdlib) return;
+		// yes, we need to repaint
 		this.peekLeft = peekLeft;
 		this.peekRight = peekRight;
 		this.isSurround = isSurround;
+		this.isMidiAdlib = isMidiAdlib;
 		repaint();
 	}
 	/**
@@ -124,17 +135,17 @@ public class PeekMeterComponent extends JComponent
 		
 		// draw the rectangles with clipping considered
 		final Rectangle clipping = g.getClipBounds();
-		for (int i=0; i<8; i++)
+		for (int i=0, c=(isMidiAdlib)?MIDI_COLOR_START:0; i<8; i++,c++)
 		{
 			if (i<peekLeft)
 			{
-				g.setColor(peekMeterColors[i]);
+				g.setColor(peekMeterColors[c]);
 				fillRectWithClipping(g, xLeft, 1, barWidth-1, height, clipping);
 			}
 			xLeft += addLeft;
 			if (i<peekRight)
 			{
-				g.setColor(peekMeterColors[i]);
+				g.setColor(peekMeterColors[c]);
 				fillRectWithClipping(g, xRight, 1, barWidth-1, height, clipping);
 			}
 			xRight += addRight;

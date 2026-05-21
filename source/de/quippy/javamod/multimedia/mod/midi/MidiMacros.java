@@ -129,7 +129,7 @@ public class MidiMacros
 	 */
 	public static void createFixedMacro(final String[] fixedMacros, final FixedMacroTypes macroType)
 	{
-		for (int i = 0; i < ANZ_ZXX; i++)
+		for (int i=0; i<ANZ_ZXX; i++)
 		{
 			String formatString = null;
 			int param = i;

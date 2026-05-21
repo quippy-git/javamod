@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 Zeta
+# JavaMod V3.9.6 Eta
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -110,7 +110,7 @@ JavaMod incorporates modified versions of the following libraries:
 * NEW: Dithering was changed to an integer version to gain more performance
 * NEW: Introduction of SampleFrame to avoid something like long[] to retrieve
        sample data
-* NEW: Preparing load of MIDI Data (XM, IT, OMPT/MPT)
+* NEW: Preparing load and playback of MIDI Data (XM, IT, OMPT/MPT)
 * NEW: Instrument Dialog got some fancy sliders for some values plus nice
        tooltip texts
 

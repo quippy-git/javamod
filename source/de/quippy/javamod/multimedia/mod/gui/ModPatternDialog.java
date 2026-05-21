@@ -76,6 +76,7 @@ import de.quippy.javamod.system.Helpers;
 public class ModPatternDialog extends JDialog implements ModUpdateListener
 {
 	private static final long serialVersionUID = 4511905120124137632L;
+
 	// This is a kind of a hack to fill the row - and it must have contend - otherwise it does not work
 	private static final int ANZ_BUTTONS = 4;
 	private static final JLabel EMPTY_LABEL_CHANNEL = new JLabel(" ");
@@ -921,12 +922,12 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	 * @param volLeft
 	 * @param volRight
 	 */
-	private void updateVolume(final int channel, final int peekVolumeLeft, final int peekVolumeRight, final boolean isSurround)
+	private void updateVolume(final int channel, final int peekVolumeLeft, final int peekVolumeRight, final boolean isSurround, final boolean isMidiAdlib)
 	{
 		// because of possible race conditions (EventQueue.invokeLater) a new mod can already be loaded while the old updater is still updating for an old mod
 		// this should not happen, but occasional it does
 		if (channelButtons!=null && channel<channelButtons.length && peakMeterButtons[channel]!=null)
-			peakMeterButtons[channel].setMeterValues(peekVolumeLeft, peekVolumeRight, isSurround);
+			peakMeterButtons[channel].setMeterValues(peekVolumeLeft, peekVolumeRight, isSurround, isMidiAdlib);
 	}
 	/**
 	 * @since 28.11.2023
@@ -938,7 +939,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 			final int channels = channelButtons.length;
 			for (int c=0; c<channels; c++)
 			{
-				updateVolume(c, 0, 0, false);
+				updateVolume(c, 0, 0, false, false);
 			}
 		}
 	}
@@ -1343,7 +1344,7 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 	@Override
 	public void getPeekInformation(final PeekInformation infoObject)
 	{
-		if (isVisible()) updateVolume(infoObject.channel, infoObject.actPeekLeft, infoObject.actPeekRight, infoObject.isSurround);
+		if (isVisible()) updateVolume(infoObject.channel, infoObject.actPeekLeft, infoObject.actPeekRight, infoObject.isSurround, infoObject.isMidiAdlib);
 	}
 	/**
 	 * @param infoObject

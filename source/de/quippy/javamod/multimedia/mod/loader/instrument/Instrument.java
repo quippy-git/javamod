@@ -22,6 +22,7 @@
 package de.quippy.javamod.multimedia.mod.loader.instrument;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.multimedia.mod.midi.ModMidiMixer;
 
 /**
  * @author Daniel Becker
@@ -59,13 +60,15 @@ public class Instrument
 	public int volumeFadeOut = -1;
 
 	// Midi and Plugin stuff
-	public int midiBank = 0;		// MIDI Bank (1...16384). 0 = Don't send.
-	public int midiProgram = 0;		// MIDI Program (1...128). 0 = Don't send.
-	public int midiChannel = 0;		// MIDI Channel (1...16). 0 = Don't send. 17 = Mapped (Send to tracker channel modulo 16).
-	public int pitchWheelDepth = 2;	// MIDI Pitch Wheel Depth and CMD_FINETUNE depth in semitones
-	public int mixPlugIn = 0;		// Plugin Number - we do not support MPT standard plugins yet
-	public boolean xm_muteComputer; // XM: mute samples in channel
-	public boolean xm_enableMidi;	// XM: use Midi
+	public int midiBank					= 0;											// MIDI Bank (1...16384). 0 = Don't send.
+	public int midiProgram				= 0;											// MIDI Program (1...128). 0 = Don't send.
+	public int midiChannel				= 0;											// MIDI Channel (1...16). 0 = Don't send. 17 = Mapped (Send to tracker channel modulo 16).
+	public int pitchWheelDepth			= 2;											// MIDI Pitch Wheel Depth and CMD_FINETUNE depth in semitones
+	public int mixPlugIn				= 0;											// Plugin Number - we do not support MPT standard plugins yet
+	public boolean xm_muteComputer		= false;										// XM: mute samples in channel
+	public boolean xm_enableMidi		= false;										// XM: use Midi
+	public int pluginVelocityHandling	= ModMidiMixer.PLUGIN_VELOCITYHANDLING_CHANNEL;	// extended Instrument OpenModPlug PVEH
+	public int pluginVolumeHandling		= ModMidiMixer.PLUGIN_VOLUMEHANDLING_IGNORE;	// extended Instrument OpenModPlug PVOH
 
 	// OMPT
 	public int volRampUp = -1;		// ys of volRamping up, -1 || 0 == use default
@@ -91,6 +94,10 @@ public class Instrument
 	{
 		if (this.noteIndex==null) return noteIndex;
 		return this.noteIndex[noteIndex];
+	}
+	public boolean hasValidMidiChannel()
+	{
+		return (midiChannel>=1 && midiChannel<=18);
 	}
 	/**
 	 * @return

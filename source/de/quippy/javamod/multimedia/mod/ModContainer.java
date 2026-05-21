@@ -21,19 +21,25 @@
  */
 package de.quippy.javamod.multimedia.mod;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 
+import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiDevice.Info;
+
 import de.quippy.javamod.mixer.Mixer;
 import de.quippy.javamod.multimedia.MultimediaContainer;
 import de.quippy.javamod.multimedia.MultimediaContainerManager;
+import de.quippy.javamod.multimedia.midi.MidiContainer;
 import de.quippy.javamod.multimedia.mod.gui.ModInstrumentDialog;
 import de.quippy.javamod.multimedia.mod.gui.ModPatternDialog;
 import de.quippy.javamod.multimedia.mod.gui.ModSampleDialog;
 import de.quippy.javamod.multimedia.mod.gui.SongUpdater;
 import de.quippy.javamod.multimedia.mod.loader.Module;
 import de.quippy.javamod.multimedia.mod.loader.ModuleFactory;
+import de.quippy.javamod.multimedia.mod.midi.ModMidiMixer;
 import de.quippy.javamod.system.Helpers;
 import de.quippy.javamod.system.Log;
 
@@ -58,6 +64,9 @@ public class ModContainer extends MultimediaContainer
 	public static final String PROPERTY_PLAYER_DITHERFILTER = "javamod.player.ditherfilter";
 	public static final String PROPERTY_PLAYER_DITHERTYPE = "javamod.player.dithertype";
 	public static final String PROPERTY_PLAYER_DITHERBYPASS = "javamod.player.ditherbypass";
+	public static final String PROPERTY_PLAYER_MIDIOUTPUTDEVICE = "javamod.player.outputdevice";
+	public static final String PROPERTY_PLAYER_MIDISOUNDBANK = "javamod.player.soundbankurl";
+
 
 	private static final String PROPERTY_PATTERN_POS = "javamod.player.position.patterns";
 	private static final String PROPERTY_PATTERN_SIZE = "javamod.player.size.patterns";
@@ -68,6 +77,7 @@ public class ModContainer extends MultimediaContainer
 	private static final String PROPERTY_INSTRUMENT_POS = "javamod.player.position.instruments";
 	private static final String PROPERTY_INSTRUMENT_SIZE = "javamod.player.size.instruments";
 	private static final String PROPERTY_INSTRUMENT_VISABLE = "javamod.player.open.instruments";
+	
 
 	/* GUI Constants ---------------------------------------------------------*/
 	public static final String DEFAULT_BITSPERSAMPLE = "16";
@@ -85,6 +95,8 @@ public class ModContainer extends MultimediaContainer
 	public static final String DEFAULT_DITHERFILTER = "4";
 	public static final String DEFAULT_DITHERTYPE = "2";
 	public static final String DEFAULT_DITHERBYPASS = "false";
+	public static final String DEFAULT_MIDIOUTPUTDEVICE = "Gervill";
+	public static final String DEFAULT_MIDISOUNDBANKURL = Helpers.EMPTY_STING;
 	protected static final String[] SAMPLERATE = new String[]
 	{
 		"8000", "11025", "16000", "22050", "33075", "44100", DEFAULT_SAMPLERATE, "96000", "192000"
@@ -122,6 +134,15 @@ public class ModContainer extends MultimediaContainer
 		MultimediaContainerManager.registerContainer(new ModContainer());
 	}
 
+	protected static MidiDevice.Info getMidiOutDeviceByName(final String midiDeviceName)
+	{
+		for (final Info element : MidiContainer.MIDIOUTDEVICEINFOS)
+		{
+			if (element.getName().equalsIgnoreCase(midiDeviceName))
+				return element;
+		}
+		return null;
+	}
 	/**
 	 * @since: 12.10.2007
 	 */
@@ -280,6 +301,8 @@ public class ModContainer extends MultimediaContainer
 		currentProps.setProperty(PROPERTY_PLAYER_DITHERFILTER, newProps.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 		currentProps.setProperty(PROPERTY_PLAYER_DITHERTYPE, newProps.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		currentProps.setProperty(PROPERTY_PLAYER_DITHERBYPASS, newProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
+		currentProps.setProperty(PROPERTY_PLAYER_MIDIOUTPUTDEVICE, newProps.getProperty(PROPERTY_PLAYER_MIDIOUTPUTDEVICE, DEFAULT_MIDIOUTPUTDEVICE));
+		currentProps.setProperty(PROPERTY_PLAYER_MIDISOUNDBANK, newProps.getProperty(PROPERTY_PLAYER_MIDISOUNDBANK, DEFAULT_MIDISOUNDBANKURL));
 
 		if (!MultimediaContainerManager.isHeadlessMode())
 		{
@@ -344,7 +367,19 @@ public class ModContainer extends MultimediaContainer
 			props.setProperty(PROPERTY_PLAYER_DITHERFILTER, currentProps.getProperty(PROPERTY_PLAYER_DITHERFILTER, DEFAULT_DITHERFILTER));
 			props.setProperty(PROPERTY_PLAYER_DITHERTYPE, currentProps.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 			props.setProperty(PROPERTY_PLAYER_DITHERBYPASS, currentProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
+			props.setProperty(PROPERTY_PLAYER_MIDIOUTPUTDEVICE, currentProps.getProperty(PROPERTY_PLAYER_MIDIOUTPUTDEVICE, DEFAULT_MIDIOUTPUTDEVICE));
+			props.setProperty(PROPERTY_PLAYER_MIDISOUNDBANK, currentProps.getProperty(PROPERTY_PLAYER_MIDISOUNDBANK, DEFAULT_MIDISOUNDBANKURL));
 		}
+	}
+	private File getSoundBankFile()
+	{
+		final String soundBankFile = (currentProps!=null)?currentProps.getProperty(PROPERTY_PLAYER_MIDISOUNDBANK, DEFAULT_MIDISOUNDBANKURL):DEFAULT_MIDISOUNDBANKURL;
+		if (soundBankFile==null || soundBankFile.isEmpty()) return null;
+		return new File(soundBankFile);
+	}
+	private MidiDevice.Info getMidiInfo()
+	{
+		return ModContainer.getMidiOutDeviceByName((currentProps!=null)?currentProps.getProperty(PROPERTY_PLAYER_MIDIOUTPUTDEVICE, DEFAULT_MIDIOUTPUTDEVICE):DEFAULT_MIDIOUTPUTDEVICE);
 	}
 	/**
 	 * Public, because is used in ModInstrumentDialog and ModSampleDialog for play back of instruments / samples
@@ -373,7 +408,13 @@ public class ModContainer extends MultimediaContainer
 		final int ditherType = Integer.parseInt(currentProps.getProperty(PROPERTY_PLAYER_DITHERTYPE, DEFAULT_DITHERTYPE));
 		final boolean ditherByPass = Boolean.parseBoolean(currentProps.getProperty(PROPERTY_PLAYER_DITHERBYPASS, DEFAULT_DITHERBYPASS));
 		
-		return new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, amigaEmulation, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		final ModMixer newModMixer = new ModMixer(currentMod, bitsPerSample, channels, frequency, isp, amigaEmulation, wideStereoMix, noiseReduction, megaBass, dcRemoval, loopValue, maxNNAChannels, msBufferSize, ditherFilter, ditherType, ditherByPass);
+		
+		// we need to add the midi output - by reading from the midi
+		final MidiDevice.Info info = getMidiInfo();
+		final File soundBankFile = getSoundBankFile();
+		newModMixer.setModMidiMixer(new ModMidiMixer(info, soundBankFile, currentMod.getNChannels()));
+		return newModMixer;
 	}
 	/**
 	 * Will create a new mixer for the currently loaded mod.

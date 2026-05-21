@@ -24,7 +24,6 @@ package de.quippy.javamod.multimedia.midi;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Properties;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -34,12 +33,8 @@ import javax.sound.midi.MidiDevice.Info;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.Track;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.TargetDataLine;
 import javax.swing.JPanel;
 
 import de.quippy.javamod.io.FileOrPackedInputStream;
@@ -65,14 +60,11 @@ public class MidiContainer extends MultimediaContainer
 	public static final String PROPERTY_MIDIPLAYER_MIXERNAME = "javamod.player.midi.mixername";
 	public static final String PROPERTY_MIDIPLAYER_PORTNAME = "javamod.player.midi.portname";
 	/* GUI Constants ---------------------------------------------------------*/
-	public static final String DEFAULT_OUTPUTDEVICE = "Java Sound Synthesizer";
+	public static final String DEFAULT_OUTPUTDEVICE = "Gervill";
 	public static final String DEFAULT_SOUNDBANKURL = Helpers.EMPTY_STING;
 	public static final String DEFAULT_CAPUTRE = "0";
 	public static final String DEFAULT_MIXERNAME = Helpers.EMPTY_STING;
 	public static final String DEFAULT_PORTNAME = Helpers.EMPTY_STING;
-
-	public static MidiDevice.Info[] MIDIOUTDEVICEINFOS;
-	public static javax.sound.sampled.Mixer.Info[] MIXERDEVICEINFOS;
 
 	private Properties currentProps = null;
 
@@ -86,33 +78,7 @@ public class MidiContainer extends MultimediaContainer
 	 */
 	static
 	{
-		// This can sometimes take a while
-		MIDIOUTDEVICEINFOS = getMidiOutDevices();
-		MIXERDEVICEINFOS = getInputMixerNames();
 		MultimediaContainerManager.registerContainer(new MidiContainer());
-	}
-	/**
-	 * @since 24.10.2010
-	 * @return
-	 */
-	private static MidiDevice.Info[] getMidiOutDevices()
-	{
-		final ArrayList<MidiDevice.Info> midiOuts = new ArrayList<>();
-		final MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
-		for (final Info element : infos)
-		{
-			try
-			{
-				final MidiDevice device = MidiSystem.getMidiDevice(element);
-				if (device.getMaxReceivers() != 0) midiOuts.add(element);
-			}
-			catch (final MidiUnavailableException e)
-			{
-			}
-		}
-		final MidiDevice.Info[] result = new MidiDevice.Info[midiOuts.size()];
-		midiOuts.toArray(result);
-		return result;
 	}
 	/**
 	 * @since 28.11.2010
@@ -129,24 +95,10 @@ public class MidiContainer extends MultimediaContainer
 		return null;
 	}
 	/**
-	 * @since 27.11.2010
+	 * @since 28.11.2010
+	 * @param inputMixerDeviceName
 	 * @return
 	 */
-	private static javax.sound.sampled.Mixer.Info[] getInputMixerNames()
-	{
-		final ArrayList<javax.sound.sampled.Mixer.Info> mixers = new ArrayList<>();
-		final javax.sound.sampled.Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
-		final Line.Info lineInfo = new Line.Info(TargetDataLine.class);
-		for (final javax.sound.sampled.Mixer.Info element : mixerInfos)
-		{
-			final javax.sound.sampled.Mixer mixer = AudioSystem.getMixer(element);
-			if (mixer.isLineSupported(lineInfo))
-			{
-				mixers.add(element);
-			}
-		}
-		return mixers.toArray(new javax.sound.sampled.Mixer.Info[mixers.size()]);
-	}
 	protected static javax.sound.sampled.Mixer.Info getInputMixerByName(final String inputMixerDeviceName)
 	{
 		for (final javax.sound.sampled.Mixer.Info element : MidiContainer.MIXERDEVICEINFOS)
