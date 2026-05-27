@@ -283,6 +283,7 @@ public class ProTrackerMod extends Module
 				isStarTrekker = true;
 				modSpeedIsTicks = true;
 				setNChannels(Integer.parseInt(Character.toString(modID.charAt(3))));
+				if (getNChannels()<=4) isAmigaLike = true;
 				return "Startrekker (" + modID + ")";
 			}
 			if (modID.endsWith("CHN"))

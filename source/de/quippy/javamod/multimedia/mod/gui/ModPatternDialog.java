@@ -1145,7 +1145,15 @@ public class ModPatternDialog extends JDialog implements ModUpdateListener
 						clearCurrentEffectNames();
 					}
 				}
-				catch (final Throwable ex) { /*NOOP*/ }
+				catch (final Throwable ex)
+				{ 
+					// NOOP 
+					// Invoke Later problem:
+					// as this is called from the SWING Queue, it might be that updating the
+					// display is not finished, when a new MOD is loaded,
+					// That might lead to ArrayIndexOutOfBoundsException, as the global arrays
+					// are already changing when a new mod is loaded
+				}
 			}
 		});
 	}

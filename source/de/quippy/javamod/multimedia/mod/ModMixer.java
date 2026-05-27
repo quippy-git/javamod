@@ -124,12 +124,13 @@ public class ModMixer extends BasicMixer
 		setAudioFormat(new AudioFormat(sampleRate, sampleSizeInBits, channels, true, false)); // signed, little endian
 		if (modMidiMixer!=null) modMidiMixer.openOutputDevice();
 	}
+	/**
+	 * @since 14.05.2026
+	 * @param newModMidiMixer
+	 */
 	public void setModMidiMixer(final ModMidiMixer newModMidiMixer)
 	{
-		if (modMixer!=null)
-			modMixer.setModMidiMixer(modMidiMixer = newModMidiMixer);
-		else
-			modMidiMixer = null;
+		modMixer.setModMidiMixer(modMidiMixer = newModMidiMixer);
 	}
 	/**
 	 * @param doNoiseReduction The doNoiseReduction to set.

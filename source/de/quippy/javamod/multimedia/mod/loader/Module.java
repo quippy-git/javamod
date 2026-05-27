@@ -1357,7 +1357,7 @@ public abstract class Module
 				readExtendedFlags(inputStream, ins, size);
 				break;
 			case 0x47562E2E: //"GV.." Global Volume
-				ins.globalVolume = (int)inputStream.readIntelBytes(size);
+				ins.globalVolume = (int)inputStream.readIntelBytes(size)<<1; // our global volume is 0..128 - not 0..64
 				break;
 			case 0x502E2E2E: //"P..." Pan
 				ins.defaultPanning = (int)inputStream.readIntelBytes(size);
@@ -1662,6 +1662,17 @@ public abstract class Module
 						inputStream.skip(size);
 					break;
 				case 0x504D4D2E: //"PMM." - MixLevels - this is OMPT specific to let old MPTs sound equally - we ignore that for now
+					final int mixLevel = (int)inputStream.readIntelBytes(size);
+					switch (mixLevel)
+					{
+						case 0: modType |= ModConstants.MODTYPE_MIX_Original; break;
+						case 1: modType |= ModConstants.MODTYPE_MIX_v1_17RC1; break;
+						case 2: modType |= ModConstants.MODTYPE_MIX_v1_17RC2; break;
+						case 3: modType |= ModConstants.MODTYPE_MIX_v1_17RC3; break;
+						case 4: modType |= ModConstants.MODTYPE_MIX_Compatible; break;
+						case 5: modType |= ModConstants.MODTYPE_MIX_CompatibleFT2; break;
+					}
+					break;
 				case 0x4D53462E: //"MSF." - Playback Compatibility Flags - OMPT specific - we ignore that
 				case 0x4D494D41: //"MIMA" - MidiMapper - guess we cannot use this - especially when running on Linux
 				default: // if it is not implemented, skip it!

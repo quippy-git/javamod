@@ -53,6 +53,25 @@ public class ScreamTrackerMixer extends BasicModMixer
 		super(mod, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
 		isNotITCompatMode = (mod.getSongFlags() & ModConstants.SONG_ITCOMPATMODE)==0;
 		is_S3M_GUS = (mod.getSongFlags() & ModConstants.SONG_S3M_GUS)!=0;
+		if (isIT) // IT && ITEx
+		{
+			minTempo = 32;
+			if (isModPlug)
+				maxTempo = 512;
+			else
+				maxTempo = 255;
+		}
+		else
+		if (isModPlug) // MPTM
+		{
+			minTempo = 32;
+			maxTempo = 1000;
+		}
+		else
+		{
+			minTempo = 33;
+			maxTempo = 255;
+		}
 	}
 	/**
 	 * Sets the borders for Portas
@@ -254,8 +273,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 
 			final ChannelMemory currentNNAChannel = channelMemory[c];
 			// we can again save time not doing anything on inactive channels
-			if (!isChannelActive(currentNNAChannel)) continue;
+			if (!currentNNAChannel.isChannelActive()) continue;
 
+			boolean applyDNAToPlug = false;
 			if (currentNNAChannel.channelNumber == channelNumber)
 			{
 				boolean applyDNA = false;
@@ -275,6 +295,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 								note==currentNNAChannel.assignedNoteIndex &&
 								instr==currentNNAChannel.assignedInstrument)
 							applyDNA = true;
+						if (aktMemo.hasMidiOutput()) applyDNAToPlug = true;
 						break;
 					case ModConstants.DCT_SAMPLE:
 						final Sample sample = aktMemo.currentSample;
@@ -286,8 +307,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 					case ModConstants.DCT_INSTRUMENT:
 						if (instr==currentNNAChannel.assignedInstrument)
 							applyDNA = true;
+						if (aktMemo.hasMidiOutput()) applyDNAToPlug = true;
 						break;
 					case ModConstants.DCT_PLUGIN:
+						if (aktMemo.hasMidiOutput()) applyDNAToPlug = true;
 						// TODO: Unsupported
 						break;
 				}
@@ -295,7 +318,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				if (applyDNA)
 				{
 					// to PlugIn:
-					if (aktMemo.assignedNoteIndex>ModConstants.NO_NOTE)
+					if (applyDNAToPlug && aktMemo.assignedNoteIndex>ModConstants.NO_NOTE)
 					{
 						switch (instr.dublicateNoteAction)
 						{
@@ -350,6 +373,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				case ModConstants.NNA_FADE:
 				case ModConstants.NNA_OFF:
 					modMidiMixer.sendMidiNote(aktMemo, ModConstants.KEY_OFF, 0);
+					aktMemo.arpeggioLastNote = ModConstants.NO_NOTE;
 					aktMemo.lastMidiNoteWithoutArp = ModConstants.NO_NOTE;
 					break;
 			}
@@ -391,7 +415,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		for (int c=mod.getNChannels(); c<maxChannels; c++)
 		{
 			final ChannelMemory memo = channelMemory[c];
-			if (!isChannelActive(memo))
+			if (!memo.isChannelActive())
 			{
 				newChannel = memo;
 				break;
@@ -432,11 +456,15 @@ public class ScreamTrackerMixer extends BasicModMixer
 		for (int c=mod.getNChannels(); c<maxChannels; c++)
 		{
 			final ChannelMemory currentNNAChannel = channelMemory[c];
-			if (!isChannelActive(currentNNAChannel) && !aktMemo.hasMidiOutput()) continue;
+			if (!currentNNAChannel.isChannelActive() && !aktMemo.hasMidiOutput()) continue;
 			if (currentNNAChannel.channelNumber == channelNumber)
 			{
 				doNNA(currentNNAChannel, NNA);
-				if (aktMemo.hasMidiOutput()) doNNAPlugins(aktMemo, NNA);
+				if (aktMemo.hasMidiOutput())
+				{
+					doNNAPlugins(currentNNAChannel, NNA); // Maybe not a good idea?
+					//modMidiMixer.sendMidiNote(currentNNAChannel, currentNNAChannel.lastMidiNoteWithoutArp | ModMidiMixer.MIDI_NOTE_OFF, 0);
+				}
 			}
 		}
 	}
@@ -446,7 +474,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	protected void doNNAAutoInstrument(final ChannelMemory aktMemo)
 	{
-		if ((!isChannelActive(aktMemo) && !aktMemo.hasMidiOutput()) || aktMemo.muted || aktMemo.noteCut) return;
+		if ((!aktMemo.isChannelActive() && !aktMemo.hasMidiOutput()) || aktMemo.muted || aktMemo.noteCut) return;
 
 		final Instrument currentInstrument = aktMemo.assignedInstrument;
 		if (currentInstrument!=null)
@@ -475,7 +503,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	protected void doNoteCut(final ChannelMemory aktMemo)
 	{
 		aktMemo.noteCut = true;
-		//currentVolume = 0;
+		//aktMemo.currentVolume = 0;
 		// Schism sets tuning=0 and deletes the last period
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
 		// that would be our way:
@@ -714,6 +742,11 @@ public class ScreamTrackerMixer extends BasicModMixer
 						resetEnvelopes(aktMemo);
 						resetAutoVibrato(aktMemo, aktMemo.currentSample);
 					}
+				}
+				else
+				if (aktMemo.hasMidiOutput()) // Argh! pure midi instruments do not have a sample - so at least set these.
+				{
+					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
 				}
 			}
 
@@ -1189,10 +1222,11 @@ public class ScreamTrackerMixer extends BasicModMixer
 					else
 						newTempo = aktMemo.oldTempoParameter;
 				}
-				if (newTempo>0x20) currentBPM = newTempo;
-				if (isModPlug && currentBPM>0x200) currentBPM = 0x200; // 512 for MPT ITex
-				else
-				if (currentBPM>0xFF) currentBPM = 0xFF;
+				if (newTempo>=0x20)
+				{
+					currentBPM = newTempo;
+					if (currentBPM>maxTempo) currentBPM = maxTempo;
+				}
 				break;
 			case 0x15:			// Fine Vibrato
 				// This effect is identical to the vibrato, but has a 4x smaller amplitude (more precise).
@@ -1362,7 +1396,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 					break;
 			}
 		}
-		if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, aktMemo.portaStepUp, true);
+
+		if (aktMemo.hasMidiOutput()) modMidiMixer.midiPortamento(aktMemo, aktMemo.portaStepUp, true, currentTempo==currentTick);
 	}
 	/**
 	 * Convenient Method for the Porta Down Effekt
@@ -1389,7 +1424,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 					break;
 			}
 		}
-		if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, -aktMemo.portaStepDown, true);
+
+		if (aktMemo.hasMidiOutput()) modMidiMixer.midiPortamento(aktMemo, -aktMemo.portaStepDown, true, currentTempo==currentTick);
 	}
 	/**
 	 * Convenient Method for the Porta to note Effekt
@@ -1422,12 +1458,12 @@ public class ScreamTrackerMixer extends BasicModMixer
 			else
 				setNewPlayerTuningFor(aktMemo);
 		}
-//		if (aktMemo.hasMidiOutput())
-//		{
-//			int pwd = 2;
-//			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
-//			modMidiMixer.midiTonePortamento(aktMemo, aktMemo.portaNoteStep, aktMemo.portaTargetNotePeriod, pwd);
-//		}
+		if (aktMemo.hasMidiOutput())
+		{
+			int pwd = 2;
+			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
+			modMidiMixer.midiTonePortamento(aktMemo, aktMemo.portaNoteStep, aktMemo.currentAssignedNoteIndex, pwd);
+		}
 	}
 	/**
 	 * returns values in the range of -64..64
@@ -1756,7 +1792,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	/**
 	 * With IT Mods arpeggios refer to the current pitch (currentNotePeriod)
 	 * and cannot be calculated in advance. We need to do that here, when
-	 * it is needed. Formular is (currentNotePeriod / 2^(halftone/12))
+	 * it is needed. Formula is (currentNotePeriod / 2^(halftone/12))
 	 * @since 06.06.2020
 	 * @param aktMemo
 	 */
@@ -1779,6 +1815,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 			nextNotePeriod = aktMemo.arpeggioNote[aktMemo.arpeggioIndex];
 		}
 		if (nextNotePeriod!=0) setNewPlayerTuningFor(aktMemo, nextNotePeriod);
+		if (aktMemo.hasMidiOutput()) modMidiMixer.midiArpeggio(aktMemo, aktMemo.arpeggioIndex);
 	}
 	/**
 	 * Convenient Method for the VolumeSlide Effekt
@@ -1896,6 +1933,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
 				aktMemo.doFastVolRamp = true;
 			}
+			if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);
 		}
 	}
 	/**
@@ -2017,18 +2055,18 @@ public class ScreamTrackerMixer extends BasicModMixer
 				break;
 			case 0x14 :			// Set Speed
 				final int newTempo = aktMemo.oldTempoParameter;
-				if ((newTempo&0xF0)==0x00)	// 0x0X
+				if (newTempo<0x20)
 				{
-					currentBPM -= newTempo&0xF;
-					if (currentBPM<0x20) currentBPM = 0x20;
-				}
-				else
-				if ((newTempo&0xF0)==0x10)	// 0x1X
-				{
-					currentBPM += newTempo&0xF;
-					if (isModPlug && currentBPM>0x200) currentBPM = 0x200; // 512 for MPT ITex
+					if ((newTempo&0xF0)==0x10)	// 0x1X
+					{
+						currentBPM += newTempo&0xF;
+						if (currentBPM>maxTempo) currentBPM = maxTempo;
+					}
 					else
-					if (currentBPM>0xFF) currentBPM = 0xFF;
+					{
+						currentBPM -= newTempo&0xF;
+						if (currentBPM<minTempo) currentBPM = minTempo;
+					}
 				}
 				break;
 			case 0x15 :			// Fine Vibrato

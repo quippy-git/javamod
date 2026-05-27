@@ -76,14 +76,16 @@ public class ModInstrumentDialog extends JDialog
 {
 	private static final long serialVersionUID = -5890906666611603247L;
 
-	private static final int SAMPLE_MAP_LINE_LENGTH = 15;
-	private static final String THREE_BARS = "---";
-	private static final char PLUSMINUS = '±';
-	private static final String DEFAULT_STR = "Default";
+	private static final int	SAMPLE_MAP_LINE_LENGTH	= 15;
+	private static final String	THREE_BARS				= "---";
+	private static final char	PLUSMINUS				= '±';
+	private static final String	DEFAULT_STR				= "Default";
+	private static final String	NOT_SET					= "Not Set";
+	private static final String	ERROR					= "? (ERROR)";
 
-	public static final String BUTTONPLAY_INACTIVE = "/de/quippy/javamod/main/gui/ressources/play.gif";
-	public static final String BUTTONPLAY_ACTIVE = "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
-	public static final String BUTTONPLAY_NORMAL = "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
+	public static final String	BUTTONPLAY_INACTIVE		= "/de/quippy/javamod/main/gui/ressources/play.gif";
+	public static final String	BUTTONPLAY_ACTIVE		= "/de/quippy/javamod/main/gui/ressources/play_aktiv.gif";
+	public static final String	BUTTONPLAY_NORMAL		= "/de/quippy/javamod/main/gui/ressources/play_normal.gif";
 
 	private ImageIcon buttonPlay_Active = null;
 	private ImageIcon buttonPlay_Inactive = null;
@@ -1303,7 +1305,7 @@ public class ModInstrumentDialog extends JDialog
 		switch (nna)
 		{
 			case -1:
-				return "-1";
+				return NOT_SET;
 			case ModConstants.NNA_CONTINUE:
 				return "Continue";
 			case ModConstants.NNA_CUT:
@@ -1313,14 +1315,14 @@ public class ModInstrumentDialog extends JDialog
 			case ModConstants.NNA_OFF:
 				return "Note Off";
 		}
-		return "? (ERROR)";
+		return ERROR;
 	}
 	private String getDNACheckString(final int dnacheck)
 	{
 		switch (dnacheck)
 		{
 			case -1:
-				return "-1";
+				return NOT_SET;
 			case ModConstants.DCT_NONE:
 				return "Disabled";
 			case ModConstants.DCT_INSTRUMENT:
@@ -1332,14 +1334,14 @@ public class ModInstrumentDialog extends JDialog
 			case ModConstants.DCT_SAMPLE:
 				return "Sample";
 		}
-		return "? (ERROR)";
+		return ERROR;
 	}
 	private String getDNAActionString(final int dna)
 	{
 		switch (dna)
 		{
 			case -1:
-				return "-1";
+				return NOT_SET;
 			case ModConstants.DNA_CUT:
 				return "Note Cut";
 			case ModConstants.DNA_FADE:
@@ -1347,7 +1349,7 @@ public class ModInstrumentDialog extends JDialog
 			case ModConstants.DNA_OFF:
 				return "Note Off";
 		}
-		return "? (ERROR)";
+		return ERROR;
 	}
 	private String getFilterModeString(final int filterMode)
 	{
@@ -1366,6 +1368,8 @@ public class ModInstrumentDialog extends JDialog
 	}
 	private String getSampleMapString(final int[] noteIndex, final int[] sampleIndex)
 	{
+		if (noteIndex==null) return Helpers.EMPTY_STING;
+
 		final StringBuilder sb = new StringBuilder();
 		for (int i=0; i<noteIndex.length; i++)
 		{
@@ -1406,6 +1410,13 @@ public class ModInstrumentDialog extends JDialog
 		spinnerModelData.add(ModConstants.getAsHex(0, 2));
 		getSelectInstrument().setModel(new SpinnerListModel(spinnerModelData));
 
+		clearInstrumentFields();
+
+		// after setting the new model, make the editor of the spinner un-editable
+		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
+	}
+	private void clearInstrumentFields()
+	{
 		getButton_Play().setEnabled(false);
 		markRowInSampleMap(-1);
 
@@ -1450,12 +1461,14 @@ public class ModInstrumentDialog extends JDialog
 		getVolumeEnvelopePanel().setEnvelope(null);
 		getPanningEnvelopePanel().setEnvelope(null);
 		getPitchEnvelopePanel().setEnvelope(null);
-
-		// after setting the new model, make the editor of the spinner un-editable
-		((DefaultEditor)getSelectInstrument().getEditor()).getTextField().setEditable(false);
 	}
 	private void fillWithInstrument(final Instrument newInstrument)
 	{
+		if (newInstrument==null)
+		{
+			clearInstrumentFields();
+			return;
+		}
 		getInstrumentName().setText(newInstrument.name);
 		getInstrumentName().setCaretPosition(0); getInstrumentName().moveCaretPosition(0);
 		getFileName().setText(newInstrument.dosFileName);
@@ -1466,7 +1479,7 @@ public class ModInstrumentDialog extends JDialog
 		getSetPan().setFixedState(newInstrument.setPanning);
 		getSetPanValue().setText(Integer.toString(newInstrument.defaultPanning));
 
-		getPitchPanSep().setText(Integer.toString(newInstrument.pitchPanSeparation));
+		getPitchPanSep().setText((newInstrument.pitchPanSeparation<0)?NOT_SET:Integer.toString(newInstrument.pitchPanSeparation));
 		getPitchPanCenter().setText(ModConstants.getNoteNameForIndex(newInstrument.pitchPanCenter + 1));
 
 		getRamping().setText((newInstrument.volRampUp>0)?Integer.toString(newInstrument.volRampUp):DEFAULT_STR);

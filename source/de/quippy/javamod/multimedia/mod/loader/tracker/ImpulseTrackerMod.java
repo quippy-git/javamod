@@ -529,7 +529,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		hasModPlugExtensions = patNames!=null || chnNames!=null || hasMixPlugins;
 		
 		// now for some disguised MPTs
-		if (version==0x0217 && cmwt==0x200 && reserved==0)
+		if (version==0x0217 && cmwt==0x200 && reserved==0 && !isBeRoTracker)
 		{
 			if (hasModPlugExtensions ||
 				arrangement!=null && arrangement[arrangement.length-1]==0xFF ||
@@ -537,13 +537,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 			{
 				lastSavedWithVersion = 0x01160000;
 				setTrackerName("ModPlug Tracker 1.09 - 1.16");
+				setModType(getModType() | ModConstants.MODTYPE_MPT);
 			}
 			else
 			{
 				lastSavedWithVersion = 0x01170000;
 				setTrackerName("OpenMPT 1.17 " + ModConstants.COMPAT_MODE);
 			}
-			setModType(getModType() | ModConstants.MODTYPE_MPT);
 		}
 
 		// read the song Message
@@ -591,6 +591,10 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 				trkVersion = inputStream.readIntelWord();
 				/*NoS = */inputStream.read();
 				inputStream.skip(1); // Reserved
+				// Default values:
+				currentIns.dublicateNoteAction = ModConstants.DNA_CUT;
+				currentIns.pitchPanSeparation = 0;
+				currentIns.pitchPanCenter = 60; // C-5
 				currentIns.globalVolume = 128;
 				currentIns.setPanning = false;
 				currentIns.defaultPanning = 128;
@@ -664,6 +668,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 					currentIns.mixPlugIn = currentIns.midiChannel-128;
 					currentIns.midiChannel = 0;
 				}
+				// save once if instrument has valid midi data and midi output
+				currentIns.hasValidMidiData = (currentIns.hasValidMidiBank() && currentIns.hasValidMidiChannel() && currentIns.hasValidMidiProgram());
 			}
 
 			currentIns.noteIndex = new int[120];
@@ -992,8 +998,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// a problem, because the theoretical length of the last compressed sample
 		// cannot be calculated without reading it
 		// We however load all samples - so we do not need this hack
-//		if (beyondLastSample>0)
-//		{
+		if (beyondLastSample>0)
+		{
 			inputStream.seek(beyondLastSample);
 //			if (lastUnreadSampleCompressed)
 //			{
@@ -1012,9 +1018,12 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 //					inputStream.skip(inputStream.readIntelWord());
 //				}
 //			}
-//		}
+		}
 
 		final boolean hasExtraInstrumentInfos = loadExtendedInstrumentProperties(inputStream);
+		if (hasExtraInstrumentInfos && !isBeRoTracker)
+			setModType(getModType() | ModConstants.MODTYPE_MIX_Original);
+		
 		final boolean hasExtraSongProperties = loadExtendedSongProperties(inputStream, false);
 		if (hasExtraSongProperties) // Amount of channels might have changed
 		{
@@ -1032,6 +1041,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		cleanUpArrangement();
 
 		if (lastSavedWithVersion==-1 && version==0x0888) lastSavedWithVersion = 0x01170000;
+
 		if (lastSavedWithVersion!=-1 && (getTrackerName()==null || getTrackerName().isEmpty()))
 		{
 			setTrackerName("OpenMPT " + ModConstants.getModPlugVersionString(lastSavedWithVersion));
@@ -1153,6 +1163,17 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		// With OpenModPlug Files we create default channel colors if none are set
 		if ((getModType()&(ModConstants.MODTYPE_MPT | ModConstants.MODTYPE_OMPT))!=0 && patternContainer.getChannelColors()==null)
 			patternContainer.createMPTMDefaultRainbowColors();
+
+		// reset if instrument has valid midi data and midi output - with OMPT the plugin is important - even if that instrument has a sample mapping!
+		if ((getModType()&ModConstants.MODTYPE_OMPT)!=0)
+		{
+			final Instrument[] ins = instrumentContainer.getInstruments();
+			for (int i=0; i<ins.length; i++)
+			{
+				final Instrument currentIns = ins[i];
+				currentIns.hasValidMidiData = (currentIns.mixPlugIn>0 && currentIns.hasValidMidiBank() && currentIns.hasValidMidiChannel() && currentIns.hasValidMidiProgram());
+			}
+		}
 
 		// avoid devision by zero at calculateSamplesPerTick
 		if (rowsPerBeat==0 && tempoMode==ModConstants.TEMPOMODE_MODERN) rowsPerBeat = 1;

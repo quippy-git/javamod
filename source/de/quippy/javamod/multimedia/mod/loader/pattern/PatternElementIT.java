@@ -137,11 +137,13 @@ public class PatternElementIT extends PatternElement
 				}
 				break;
 			case 0x14: return
+				((effektOp==0)?		// 0x00
+				    "Set BPM (cont.)":
 				(effektOp>>4==0)? 	// 0x0X
-					"Set BPM (slower)":
+				    "Set BPM (slow.)":
 				(effektOp>>4==1)? 	// 0x1X
-					"Set BPM (faster)":
-					"Set BPM";		// else
+					"Set BPM (fast.)":
+					"Set BPM");
 			case 0x15: return "Fine Vibrato";
 			case 0x16: return "Set Global Volume";
 			case 0x17: return "Global Volume Slide";

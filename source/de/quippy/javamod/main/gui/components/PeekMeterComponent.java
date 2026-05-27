@@ -62,8 +62,8 @@ public class PeekMeterComponent extends JComponent
 //		}
 		for (int i=0; i<8; i++)
 		{
-			peekMeterColors[i] 					= (i<4)?new Color(0x00, 0xC8, 0x00): (i<6)?new Color(0xFF, 0xC8, 0x00) : new Color(0xE1, 0x00, 0x00);
-			peekMeterColors[i+MIDI_COLOR_START] = (i<4)?new Color(0x18, 0x96, 0xE1): (i<6)?new Color(0xFF, 0xC8, 0x00) : new Color(0xE1, 0x00, 0x00);
+			peekMeterColors[i] 					= (i<4)?new Color(0x00C800) : (i<6)?new Color(0xFFC800) : new Color(0xE10000);
+			peekMeterColors[i+MIDI_COLOR_START] = (i<4)?new Color(0x1896E1) : (i<6)?new Color(0xFFC800) : new Color(0xE10000);
 		}
 	}
 	/**
@@ -137,17 +137,11 @@ public class PeekMeterComponent extends JComponent
 		final Rectangle clipping = g.getClipBounds();
 		for (int i=0, c=(isMidiAdlib)?MIDI_COLOR_START:0; i<8; i++,c++)
 		{
-			if (i<peekLeft)
-			{
-				g.setColor(peekMeterColors[c]);
-				fillRectWithClipping(g, xLeft, 1, barWidth-1, height, clipping);
-			}
+			g.setColor(peekMeterColors[c]);
+			if (i<peekLeft) fillRectWithClipping(g, xLeft, 1, barWidth-1, height, clipping);
 			xLeft += addLeft;
-			if (i<peekRight)
-			{
-				g.setColor(peekMeterColors[c]);
-				fillRectWithClipping(g, xRight, 1, barWidth-1, height, clipping);
-			}
+			
+			if (i<peekRight) fillRectWithClipping(g, xRight, 1, barWidth-1, height, clipping);
 			xRight += addRight;
 		}
 	}

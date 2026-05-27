@@ -498,7 +498,7 @@ public class ScreamTrackerMod extends Module
 		for (int c=0; c<32; c++)
 		{
 			final int status = channelStatus[c]&0xFF;
-			if ((status & ~0x80)<19 || !REMOVE_UNUSED_CHANNELS) // active channel
+			if ((status & ~0x80)<0x19 || !REMOVE_UNUSED_CHANNELS) // active channel
 			{
 				tmpPanning[anzChannels] = tmpPanning[c];
 				channelMap[c] = anzChannels++;

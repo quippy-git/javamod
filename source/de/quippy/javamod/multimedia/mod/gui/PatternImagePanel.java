@@ -597,11 +597,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 			}
 			else
 			{
-				final int checkRow = rowNumber+1;
 				final Pattern parentPattern = row.getParentPattern();
-				final int rowsPerMeasure = parentPattern.getRowsPerBeat();
+				final int rowsPerMeasure = parentPattern.getRowsPerMeasure();
 				final int rowsPerBeat = parentPattern.getRowsPerBeat();
-				g.setColor((checkRow%rowsPerMeasure)==0?HIGHLIGHT_LINE_1[colorIndex]:(checkRow%rowsPerBeat)==0?HIGHLIGHT_LINE_2[colorIndex]:BACKGROUND[colorIndex]);
+				g.setColor((rowNumber%rowsPerMeasure)==0?HIGHLIGHT_LINE_1[colorIndex]:(rowNumber%rowsPerBeat)==0?HIGHLIGHT_LINE_2[colorIndex]:BACKGROUND[colorIndex]);
 			}
 
 			fillRectWithClipping(g, x, y, patternRowLength, charDim.height, clipping);

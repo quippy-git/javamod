@@ -65,8 +65,9 @@ public class Instrument
 	public int midiChannel				= 0;											// MIDI Channel (1...16). 0 = Don't send. 17 = Mapped (Send to tracker channel modulo 16).
 	public int pitchWheelDepth			= 2;											// MIDI Pitch Wheel Depth and CMD_FINETUNE depth in semitones
 	public int mixPlugIn				= 0;											// Plugin Number - we do not support MPT standard plugins yet
-	public boolean xm_muteComputer		= false;										// XM: mute samples in channel
+	public boolean xm_muteComputer		= false;										// XM: mute samples in channel (only midi device)
 	public boolean xm_enableMidi		= false;										// XM: use Midi
+	public boolean hasValidMidiData		= false;										// true, if this instrument has valid midi data (you don't say!)
 	public int pluginVelocityHandling	= ModMidiMixer.PLUGIN_VELOCITYHANDLING_CHANNEL;	// extended Instrument OpenModPlug PVEH
 	public int pluginVolumeHandling		= ModMidiMixer.PLUGIN_VOLUMEHANDLING_IGNORE;	// extended Instrument OpenModPlug PVOH
 
@@ -98,6 +99,14 @@ public class Instrument
 	public boolean hasValidMidiChannel()
 	{
 		return (midiChannel>=1 && midiChannel<=18);
+	}
+	public boolean hasValidMidiBank()
+	{
+		return (midiBank>=1 && midiBank<=16384);
+	}
+	public boolean hasValidMidiProgram()
+	{
+		return (midiProgram>=1 && midiProgram<=128);
 	}
 	/**
 	 * @return

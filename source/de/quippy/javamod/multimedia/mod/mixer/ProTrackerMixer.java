@@ -49,6 +49,17 @@ public class ProTrackerMixer extends BasicModMixer
 	public ProTrackerMixer(final Module mod, final int sampleRate, final int doISP, final int doAmigaEmulation, final int doNoLoops, final int maxNNAChannels)
 	{
 		super(mod, sampleRate, doISP, doAmigaEmulation, doNoLoops, maxNNAChannels);
+		// We set these values - however, we do not use them
+		if (isXM)
+		{
+			minTempo = 32;
+			maxTempo = 1000; // XMEx same!
+		}
+		else
+		{
+			minTempo = 32;
+			maxTempo = 255;
+		}
 	}
 
 	/**
@@ -345,7 +356,9 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void doNNAPlugins_XM(final ChannelMemory aktMemo)
 	{
 		// Do we need to apply New/Duplicate Note Action for Midi?
-		if (aktMemo.hasMidiOutput() && aktMemo.hasNewNote() && aktMemo.lastMidiNoteWithoutArp!=ModConstants.NO_NOTE && modMidiMixer.isNotePlaying(aktMemo, aktMemo.lastMidiNoteWithoutArp))
+		if (aktMemo.hasMidiOutput() && 
+			(aktMemo.hasNewNote() && !isPortaToNoteEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam, aktMemo.currentAssignedVolumeEffekt, aktMemo.currentAssignedVolumeEffektOp, aktMemo.currentAssignedNotePeriod)) && 
+			aktMemo.lastMidiNoteWithoutArp!=ModConstants.NO_NOTE && modMidiMixer.isNotePlaying(aktMemo, aktMemo.lastMidiNoteWithoutArp))
 		{
 			modMidiMixer.sendMidiNote(aktMemo, ModConstants.KEY_OFF, 0);
 			aktMemo.lastMidiNoteWithoutArp = ModConstants.NO_NOTE;
@@ -1031,7 +1044,7 @@ public class ProTrackerMixer extends BasicModMixer
 		if (isMOD)
 		{
 			final int tick = currentTempo - currentTick; // we count downwards...
-			aktMemo.arpeggioIndex = tick%3;
+			aktMemo.arpeggioIndex = tick % 3;
 		}
 		else
 		{
@@ -1042,6 +1055,7 @@ public class ProTrackerMixer extends BasicModMixer
 				aktMemo.arpeggioIndex = currentTick % 3;
 		}
 		setNewPlayerTuningFor(aktMemo, aktMemo.arpeggioNote[aktMemo.arpeggioIndex]);
+		if (aktMemo.hasMidiOutput()) modMidiMixer.midiArpeggio(aktMemo, currentTick % 3);
 	}
 	/**
 	 * @since 20.03.2024
@@ -1151,6 +1165,13 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 		else
 			setNewPlayerTuningFor(aktMemo);
+		
+		if (aktMemo.hasMidiOutput())
+		{
+			int pwd = 2;
+			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
+			modMidiMixer.midiTonePortamento(aktMemo, aktMemo.portaNoteStep>>ModConstants.PERIOD_SHIFT, aktMemo.currentAssignedNoteIndex+12, pwd);
+		}
 	}
 	/**
 	 * Convenient Method for the Porta Up Effekt
@@ -1172,7 +1193,7 @@ public class ProTrackerMixer extends BasicModMixer
 			final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
 			if ((short)tmpPeriod<1) aktMemo.currentNotePeriod = 1<<(ModConstants.PERIOD_SHIFT-2);
 			
-			if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, op>>ModConstants.PERIOD_SHIFT, true);
+			if (aktMemo.hasMidiOutput()) modMidiMixer.midiPortamento(aktMemo, op>>ModConstants.PERIOD_SHIFT, true, currentTempo==currentTick);
 		}
 
 		setNewPlayerTuningFor(aktMemo);
@@ -1197,7 +1218,7 @@ public class ProTrackerMixer extends BasicModMixer
 			final int tmpPeriod = aktMemo.currentNotePeriod>>(ModConstants.PERIOD_SHIFT-2);
 			if ((short)tmpPeriod>32000) aktMemo.currentNotePeriod = (32000-1)<<(ModConstants.PERIOD_SHIFT-2);
 
-			if (aktMemo.hasMidiOutput()) midiPortamento(aktMemo, -(op>>ModConstants.PERIOD_SHIFT), true);
+			if (aktMemo.hasMidiOutput()) modMidiMixer.midiPortamento(aktMemo, -(op>>ModConstants.PERIOD_SHIFT), true, currentTempo==currentTick);
 		}
 
 		setNewPlayerTuningFor(aktMemo);
@@ -1518,7 +1539,7 @@ public class ProTrackerMixer extends BasicModMixer
 				}
 			}
 			else
-			if (tick>0 && (tick % aktMemo.retrigMemo) == 0) // only on tick non zero
+			if (tick>0 && (tick % aktMemo.retrigMemo)==0) // only on tick non zero
 			{
 				doRetrig = true;
 			}
@@ -1532,6 +1553,8 @@ public class ProTrackerMixer extends BasicModMixer
 				triggerFTNote(aktMemo, 0);
 				// triggerInstrument:
 				triggerFTInstrument(aktMemo);
+				// And also with Midi
+				if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);
 			}
 			return;
 		}
@@ -1578,6 +1601,10 @@ public class ProTrackerMixer extends BasicModMixer
 			aktMemo.doFastVolRamp = true;
 
 			triggerFTNote(aktMemo, 0);
+			// don't triggerInstrument (like above)
+			//triggerFTInstrument(aktMemo);
+			// And also with Midi
+			if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);
 		}
 	}
 	/**
@@ -1631,7 +1658,7 @@ public class ProTrackerMixer extends BasicModMixer
 		{
 			final long a = sample.sampleL[sampleIndex];
 			final long b = sample.sampleL[(loopLength==1)?loopStart + Sample.INTERPOLATION_LOOK_AHEAD:sampleIndex + 1];
-			sample.sampleL[sampleIndex++] = (a + b) >> 1;
+			sample.sampleL[sampleIndex++] = (a + b) / 2;
 		}
 		while (--loopLength >= 0);
 	}

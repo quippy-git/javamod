@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 Eta
+# JavaMod V3.9.6 Theta (MIDI RELEASE)
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -99,10 +99,20 @@ JavaMod incorporates modified versions of the following libraries:
        not "ONLY ON TICK 0"
 * FIX: XM: loading of instruments was blocked if no sample data present. That is
        not a good idea.
+* FIX: XM saved with OMPT were played far too loud, version detection optimized
+* NEW: Mixing levels set with OMPT are read (XMex, S3MEx, ITex, MPTM) and set 
+* FIX: XM: instrument header length considered
+* FIX: OMPT saves Global Volume in extended instrument values - uses 1..64,
+       but JavaMod needs 0..128
 * FIX: IT: Do not check for magic IMPS - IT doesn't as well and some trackers
        even do not write it
 * FIX: IT: Even if the sample size is zero, jump to the loading point of non
        existent sample data
+* FIX: IT: set more default values with old instrument format
+* FIX: Loading of s3m - removing unused channels - it's 0x19 - damn!
+* FIX: Error in loading patch.003-files for Sierra SCIs - URL does not behave
+       anymore (no decoding of URL "%20" etc)
+* NEW: added MixingLevels of OMPT, XMs and ITs make use of that
 * NEW: Properties file is written in sorted order, for whatever that is good for
 * NEW: Amiga 500 and Amiga 1200 Filters added. We use Paula-emulation from
        8BitBubsy/Aciddose implementation. Is only used if Mod is an AMIGA MOD
@@ -110,7 +120,7 @@ JavaMod incorporates modified versions of the following libraries:
 * NEW: Dithering was changed to an integer version to gain more performance
 * NEW: Introduction of SampleFrame to avoid something like long[] to retrieve
        sample data
-* NEW: Preparing load and playback of MIDI Data (XM, IT, OMPT/MPT)
+* NEW: Preparing load and playback of MIDI Data (XM, IT, MPTM)
 * NEW: Instrument Dialog got some fancy sliders for some values plus nice
        tooltip texts
 

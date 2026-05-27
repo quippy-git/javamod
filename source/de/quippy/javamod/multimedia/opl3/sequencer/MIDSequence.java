@@ -40,6 +40,7 @@ import de.quippy.javamod.multimedia.MultimediaContainerManager;
 import de.quippy.javamod.multimedia.opl3.emu.EmuOPL;
 import de.quippy.javamod.multimedia.opl3.emu.EmuOPL.oplType;
 import de.quippy.javamod.system.Helpers;
+import de.quippy.javamod.system.Log;
 
 /**
  * @author Daniel Becker
@@ -373,14 +374,19 @@ public class MIDSequence extends OPL3Sequence
 		final String fileName = Helpers.getFileNameFromURL(fileURL);
 		if (fileName.length()<3) return false; // already finished
 
-		final String path = fileURL.getFile();
-		final String patchFileName = ((new StringBuilder()).append(path.substring(0, path.lastIndexOf('/'))).append('/').append(fileName.substring(0, 3)).append("patch.003")).toString();
-
 		RandomAccessInputStreamImpl inputStream = null;
 		try
 		{
+			final String path = fileURL.toURI().getPath();
+			final String patchFileName = ((new StringBuilder()).append(path.substring(0, path.lastIndexOf('/'))).append('/').append(fileName.substring(0, 3)).append("patch.003")).toString();
+
 			//final URL patchFileURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), patchFileName);
-			final URL patchFileURL = (new URI(fileURL.getProtocol(), fileURL.getUserInfo(), fileURL.getHost(), fileURL.getPort(), patchFileName, fileURL.getQuery(), fileURL.getRef())).toURL();			if (!Helpers.urlExists(patchFileURL)) return false;
+			final URL patchFileURL = (new URI(fileURL.getProtocol(), fileURL.getUserInfo(), fileURL.getHost(), fileURL.getPort(), patchFileName, fileURL.getQuery(), fileURL.getRef())).toURL();
+			if (!Helpers.urlExists(patchFileURL))
+			{
+				Log.error("Patchfile "+patchFileURL+" was not found!");
+				return false;
+			}
 			inputStream = new RandomAccessInputStreamImpl(patchFileURL);
 			if (inputStream.available()==0) return false;
 
@@ -486,11 +492,14 @@ public class MIDSequence extends OPL3Sequence
 					type = FILE_CMF;
 				break;
 			case 0x84:
-				if (magicBytes[1]==0 && load_sierra_ins(url))
+				if (magicBytes[1]==0)
+				{
+					/*final boolean success = */load_sierra_ins(url); // if the file is not found, nothing bad happens - there is just silence!
 					if (magicBytes[2] == 0xF0)
 						type = FILE_ADVSIERRA;
 					else
 						type = FILE_SIERRA;
+				}
 				break;
 			default:
 				final long size = ((long)magicBytes[0]&0xFF) | (((long)magicBytes[1]&0xFF)<<8) | (((long)magicBytes[3]&0xFF)<<24) | (((long)magicBytes[2]&0xFF)<<16);

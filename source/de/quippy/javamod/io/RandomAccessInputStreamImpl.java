@@ -850,7 +850,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	}
 	/**
 	 * Will read size bytes from a stream and convert that to an integer value of
-	 * type byte (1), short (2), int (4), long(8).
+	 * type byte (1), short (2), int (4), long (8).
 	 * Sizes bigger than 8 will be ignored, but "size" bytes will be skipped.
 	 * @since 03.02.2024
 	 * @param size
@@ -871,7 +871,7 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 	}
 	/**
 	 * Will read size bytes from a stream and convert that to an integer value of
-	 * type byte (1), short (2), int (4), long(8).
+	 * type byte (1), short (2), int (4), long (8).
 	 * Sizes bigger than 8 will be ignored, but "size" bytes will be skipped.
 	 * @since 03.02.2024
 	 * @param size
@@ -884,12 +884,8 @@ public class RandomAccessInputStreamImpl extends InputStream implements RandomAc
 		if (size!=0)
 		{
 			final int readBytes = (size>8)?8:size;
-			int shift = 0;
-			for (int i=0; i<readBytes; i++)
-			{
-				result |= (read()<<shift);
-				shift+=8;
-			}
+			for (int i=0, shift=0; i<readBytes; i++, shift+=8)
+				result |= ((long)(read()&0xFF))<<shift;
 			skip(size-readBytes);
 		}
 		return result;

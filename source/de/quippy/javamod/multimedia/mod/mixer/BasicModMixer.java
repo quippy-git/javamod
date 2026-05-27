@@ -126,7 +126,10 @@ public abstract class BasicModMixer
 		public int EFxSpeed, EFxDelay, EFxOffset; // MOD specific: invertLoop (trash the sample)
 		
 		public int midiVULeft, midiVURight;
+		// for Midi Arpeggios and to send appropriate Midi_OFF-commands, we need to remember the
+		// arpeggio base note and the last arpeggio note
 		public int lastMidiNoteWithoutArp;
+		public int arpeggioLastNote;
 		private int midiMictroTuning; // use setter and getters for this one!
 
 		public int jumpLoopPatternRow, jumpLoopRepeatCount, jumpLoopITLastRow;
@@ -193,6 +196,7 @@ public abstract class BasicModMixer
 
 			activeMidiMacro = 0;
 			midiVULeft = midiVURight = 0;
+			arpeggioLastNote = ModConstants.NO_NOTE;
 			lastMidiNoteWithoutArp = ModConstants.NO_NOTE;
 			midiMictroTuning = 0;
 
@@ -278,6 +282,22 @@ public abstract class BasicModMixer
 			filter_Y2 = fromMe.filter_Y2;
 			filter_Y3 = fromMe.filter_Y3;
 			filter_Y4 = fromMe.filter_Y4;
+//			lastMidiNoteWithoutArp = fromMe.lastMidiNoteWithoutArp;
+		}
+		/**
+		 * This channel is active if
+		 * - it has a sample set
+		 * - its tuning is not 0
+		 * - its playing instrument has not finished yet
+		 * - its channelNumber is not -1 (that is a free NNA)
+		 * - Silence is not a factor - samples need to be rendered even if silent (XMs)
+		 * @since 30.03.2010
+		 * @param aktMemo
+		 * @return
+		 */
+		protected boolean isChannelActive()
+		{
+			return (!instrumentFinished && currentTuning!=0 && currentSample!=null && channelNumber!=-1);
 		}
 		/**
 		 * @since 15.05.2026
@@ -285,7 +305,8 @@ public abstract class BasicModMixer
 		 */
 		protected boolean hasMidiOutput()
 		{
-			return (currentAssignedInstrument!=null && currentAssignedInstrument.hasValidMidiChannel());
+			// we use the xm_enableMidi field - also for ITs and OMPTs - if valid midi data is present, we assume midi is used
+			return (currentAssignedInstrument!=null && currentAssignedInstrument.hasValidMidiData);
 		}
 		/**
 		 * @since 18.05.2026
@@ -358,6 +379,8 @@ public abstract class BasicModMixer
 	protected ChannelMemory[] channelMemory;
 	protected int maxNNAChannels; // configured value: the complete amount of mixing channels
 	protected int maxChannels;
+
+	protected int minTempo, maxTempo;
 
 	protected Random swinger;
 
@@ -585,7 +608,8 @@ public abstract class BasicModMixer
 		globalFilterMode = false; // IT default: every note resets filter to current values set - flattens the filter envelope
 		swinger = new Random();
 
-		if ((mod.getModType()&ModConstants.MODTYPE_MPT)!=0) // is it Legacy MPT?
+		if ((mod.getModType()&ModConstants.MODTYPE_MPT)!=0 || // is it Legacy MPT?
+			(mod.getModType()&(ModConstants.MODTYPE_MIX_ALL_LEGACY))!=0)
 		{
 			// Do global Pre-Amp - with legacy ModPlug Tracker this was used...
 			// legacy: that is MPT <=1.17RC2
@@ -611,7 +635,9 @@ public abstract class BasicModMixer
 			useSoftPanning = false;
 		}
 		else
-		if ((mod.getModType()&ModConstants.MODTYPE_OMPT)!=0) // Open Modplug Tracker?
+		if (((mod.getModType()&ModConstants.MODTYPE_OMPT)!=0 ||  // Open Modplug Tracker?
+			 (mod.getModType()&ModConstants.MODTYPE_MIX_v1_17RC3)!=0) &&
+			(mod.getModType()&(ModConstants.MODTYPE_MIX_Compatible | ModConstants.MODTYPE_MIX_CompatibleFT2))==0)
 		{
 			masterVolume = mod.getMixingPreAmp();
 			extraAttenuation = 0;
@@ -621,6 +647,11 @@ public abstract class BasicModMixer
 		else // default ProTracker, FT2, s3m, ...
 		{
 			masterVolume = mod.getMixingPreAmp();
+			if ((mod.getModType()&ModConstants.MODTYPE_MIX_Compatible)!=0)
+				masterVolume = ModConstants.MAX_MIXING_PREAMP>>2;
+			else
+			if ((mod.getModType()&ModConstants.MODTYPE_MIX_CompatibleFT2)!=0)
+				masterVolume = 192>>2;
 			extraAttenuation = 1;
 			globalPreAmpShift = ModConstants.PREAMP_SHIFT;
 			useSoftPanning = false;
@@ -695,7 +726,14 @@ public abstract class BasicModMixer
 		// with ProTracker, these values will not differ
 		// if paulaFilter is null at the end, no paulaFilter is usable/needed
 		setPaula(doAmigaEmulation, sampleRate, maxChannels);
+
+		// and reset the midi mixer
+		if (modMidiMixer!=null) modMidiMixer.resetMidiMixer(mod.getNChannels());
 	}
+	/**
+	 * @since 14.05.2026
+	 * @param newModMidiMixer
+	 */
 	public void setModMidiMixer(final ModMidiMixer newModMidiMixer)
 	{
 		modMidiMixer = newModMidiMixer;
@@ -854,7 +892,7 @@ public abstract class BasicModMixer
 		for (int i=0; i<maxChannels; i++)
 		{
 			final ChannelMemory aktMemo = channelMemory[i];
-			if (isChannelActive(aktMemo)) result++;
+			if (aktMemo.isChannelActive()) result++;
 		}
 		return result;
 	}
@@ -1205,47 +1243,6 @@ public abstract class BasicModMixer
 	 */
 	protected abstract void setNewInstrumentAndPeriod(final ChannelMemory aktMemo);
 	/**
-	 * Send portamento commands to plugins
-	 * @since 21.05.2026
-	 * @param aktMemo
-	 * @param param
-	 * @param doFineSlides
-	 */
-	protected void midiPortamento(final ChannelMemory aktMemo, final int param, final boolean doFineSlides)
-	{
-		final int actualParam = (param>0)?param:-param;
-		int pitchBend = 0;
-
-		// Old MIDI Pitch Bends:
-		// - Applied on every tick
-		// - No fine pitch slides (they are interpreted as normal slides)
-		// New MIDI Pitch Bends:
-		// - Behavior identical to sample pitch bends if the instrument's PWD parameter corresponds to the actual VSTi setting.
-		if (doFineSlides && actualParam>=0xE0)
-		{
-			if (currentTempo==currentTick) // first tick!
-			{
-				// Extra fine slide...
-				pitchBend = (actualParam & 0x0F) * ((param<0)?-1:1);
-				if(actualParam >= 0xF0)
-				{
-					pitchBend <<= 2; // ... or just a fine slide!
-				}
-			}
-		}
-		else
-		{
-			pitchBend = param << 2; // Regular slide
-		}
-
-		if(pitchBend!=0)
-		{
-			int pwd = 13; // Early OpenMPT legacy... Actually it's not *exactly* 13, but close enough...
-			if (aktMemo.assignedInstrument!=null) pwd = aktMemo.assignedInstrument.pitchWheelDepth;
-			modMidiMixer.midiPitchBend(aktMemo, pitchBend, pwd);
-		}
-	}
-	/**
 	 * @since 19.06.2020
 	 * @param aktMemo
 	 */
@@ -1253,7 +1250,7 @@ public abstract class BasicModMixer
 	{
 		// do not reactivate a dead channel or reactivate a
 		// running noteFade
-		if (!aktMemo.noteFade && isChannelActive(aktMemo))
+		if (!aktMemo.noteFade && aktMemo.isChannelActive() || aktMemo.hasMidiOutput())
 		{
 			aktMemo.fadeOutVolume = ModConstants.MAXFADEOUTVOLUME;
 			aktMemo.noteFade = true;
@@ -1433,7 +1430,7 @@ public abstract class BasicModMixer
 				aktMemo.noteFade = false; // no instrument, no fade out - stop this calculation...
 
 			// With IT a finished noteFade also sets the instrument as finished
-			if (isIT && aktMemo.fadeOutVolume<=0 && isChannelActive(aktMemo))
+			if (isIT && aktMemo.fadeOutVolume<=0 && aktMemo.isChannelActive())
 			{
 				aktMemo.instrumentFinished = true;
 				if (aktMemo.isNNA) aktMemo.channelNumber = -1;
@@ -1488,17 +1485,6 @@ public abstract class BasicModMixer
 		}
 		else
 		{
-			if (isXM)
-			{
-				// From OpenMPT the following helpful hint:
-				// FT2 uses square root panning. There is a 256-entry LUT for this,
-				// but FT2's internal panning ranges from 0 to 255 only, meaning that
-				// you can never truly achieve 100% right panning in FT2, only 100% left.
-				if (currentPanning>255) currentPanning = 255;
-				aktMemo.actVolumeLeft  = (currentVolume * ModConstants.XMPanningTable[256-currentPanning])>>16;
-				aktMemo.actVolumeRight = (currentVolume * ModConstants.XMPanningTable[    currentPanning])>>16;
-			}
-			else
 			if (useSoftPanning) // OpenModPlug has this.
 			{
 				if (currentPanning<128)
@@ -1511,6 +1497,17 @@ public abstract class BasicModMixer
 					aktMemo.actVolumeLeft  = (currentVolume * (256 - currentPanning))>>8;
 					aktMemo.actVolumeRight = (currentVolume *                    128)>>8; // max:256
 				}
+			}
+			else
+			if (isXM)
+			{
+				// From OpenMPT the following helpful hint:
+				// FT2 uses square root panning. There is a 256-entry LUT for this,
+				// but FT2's internal panning ranges from 0 to 255 only, meaning that
+				// you can never truly achieve 100% right panning in FT2, only 100% left.
+				if (currentPanning>255) currentPanning = 255;
+				aktMemo.actVolumeLeft  = (currentVolume * ModConstants.XMPanningTable[256-currentPanning])>>16;
+				aktMemo.actVolumeRight = (currentVolume * ModConstants.XMPanningTable[    currentPanning])>>16;
 			}
 			else
 			{
@@ -1680,21 +1677,6 @@ public abstract class BasicModMixer
 		{
 			// Forget about it for now
 		}
-	}
-	/**
-	 * This channel is active if
-	 * - it has a sample set
-	 * - its tuning is not 0
-	 * - its playing instrument has not finished yet
-	 * - its channelNumber is not -1 (that is a free NNA)
-	 * - Silence is not a factor - samples need to be rendered even if silent (XMs)
-	 * @since 30.03.2010
-	 * @param aktMemo
-	 * @return
-	 */
-	protected boolean isChannelActive(final ChannelMemory aktMemo)
-	{
-		return (aktMemo!=null)?(!aktMemo.instrumentFinished && aktMemo.currentTuning!=0 && aktMemo.currentSample!=null && aktMemo.channelNumber!=-1):false;
 	}
 	/**
 	 * Service method to reset envelope pointers when
@@ -1873,6 +1855,17 @@ public abstract class BasicModMixer
 //			setNewPlayerTuningFor(aktMemo);
 //		}
 
+		if (/*aktMemo.hasMidiOutput() && */aktMemo.arpeggioLastNote>ModConstants.NO_NOTE)
+		{
+			modMidiMixer.sendMidiNote(aktMemo, aktMemo.arpeggioLastNote | ModMidiMixer.MIDI_NOTE_OFF, 0);
+			if (aktMemo.arpeggioLastNote!=aktMemo.lastMidiNoteWithoutArp)
+			{
+				final Instrument instrument = aktMemo.currentAssignedInstrument;
+				modMidiMixer.sendMidiNote(aktMemo, aktMemo.lastMidiNoteWithoutArp, (instrument.pluginVelocityHandling == ModMidiMixer.PLUGIN_VELOCITYHANDLING_CHANNEL) ? aktMemo.currentVolume<<2 : instrument.globalVolume<<1);
+			}
+			aktMemo.arpeggioLastNote=ModConstants.NO_NOTE;
+		}
+
 		if (aktMemo.arpeggioIndex>=0)
 		{
 			aktMemo.arpeggioIndex=-1;
@@ -1900,10 +1893,7 @@ public abstract class BasicModMixer
 				 (isXM && aktMemo.vibratoOn && currentElement.getEffekt()!=4 && currentElement.getEffekt()!=6))
 			{
 				setNewPlayerTuningFor(aktMemo);
-				if (aktMemo.hasMidiOutput())
-				{
-					modMidiMixer.midiVibrato(aktMemo, 0, 0);
-				}
+				if (aktMemo.hasMidiOutput()) modMidiMixer.midiVibrato(aktMemo, 0, 0);
 			}
 			aktMemo.vibratoOn = false;
 			aktMemo.vibratoVolOn = false; // only set with XMs
@@ -2659,7 +2649,7 @@ public abstract class BasicModMixer
 			for (int c=0; c<maxChannels; c++)
 			{
 				final ChannelMemory aktMemo = channelMemory[c];
-				final boolean channelIsActive = isChannelActive(aktMemo);
+				final boolean channelIsActive = aktMemo.isChannelActive();
 				final boolean isPlayingMidi = aktMemo.hasMidiOutput();
 				aktMemo.bigSampleLeft = aktMemo.bigSampleRight = 0;
 
@@ -2672,13 +2662,13 @@ public abstract class BasicModMixer
 					aktMemo.midiVULeft  = (aktMemo.midiVULeft  > VUMETER_DECAY) ? (aktMemo.midiVULeft  - VUMETER_DECAY) : 0;
 					aktMemo.midiVURight = (aktMemo.midiVURight > VUMETER_DECAY) ? (aktMemo.midiVURight - VUMETER_DECAY) : 0;
 
-					// Update VU-Meter (nRealVolume is 14-bit)
-					int vul = (aktMemo.currentVolume * (256-aktMemo.panning))>>8;
+					// Update VU-Meter
+					int vul = aktMemo.actVolumeLeft>>(ModConstants.MAXVOLUMESHIFT+2);
 					if (vul > 127) vul = 127;
 					if (aktMemo.midiVULeft > 127) aktMemo.midiVULeft = vul;
 					vul>>=1;
 					if (aktMemo.midiVULeft < vul) aktMemo.midiVULeft = vul;
-					int vur = (aktMemo.currentVolume * (    aktMemo.panning))>>8;
+					int vur = aktMemo.actVolumeRight>>(ModConstants.MAXVOLUMESHIFT+2);
 					if (vur > 127) vur = 127;
 					if (aktMemo.midiVURight > 127) aktMemo.midiVURight = vur;
 					vur>>=1;
