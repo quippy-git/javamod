@@ -25,12 +25,14 @@ import java.io.File;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Soundbank;
 import javax.sound.midi.Synthesizer;
+import javax.sound.midi.SysexMessage;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
@@ -165,6 +167,22 @@ public class ModMidiMixer
 		}
 	}
 	
+	public class RawMidiMessage extends MidiMessage
+	{
+		protected RawMidiMessage(byte[] data)
+		{
+			super(data);
+		}
+
+		@Override
+		public Object clone()
+		{
+	        byte[] newData = new byte[length];
+	        System.arraycopy(data, 0, newData, 0, newData.length);
+			return new RawMidiMessage(data);
+		}
+	}
+	
 	private final MidiDevice.Info outputDeviceInfo;
 	private final File soundBankFile;
 	private MidiDevice midiOutput;
@@ -234,13 +252,46 @@ public class ModMidiMixer
 		receiver = null;
 	}
 	/**
+	 * @since 29.05.2026
+	 * @param data
+	 */
+	public void sendSysExToReceiver(final byte[] data)
+	{
+		try
+		{
+			if (receiver!=null)
+				receiver.send(new SysexMessage(data, data.length), -1);
+		}
+		catch (Throwable ex)
+		{
+			Log.error("[ModMidiMixher]::sendSysExToReceiver", ex);
+		}
+		
+	}
+	/**
+	 * @since 28.05.2026
+	 * @param data
+	 */
+	public void sendToReceiver(final byte[] data)
+	{
+		try
+		{
+			if (receiver!=null)
+				receiver.send(new RawMidiMessage(data), -1);
+		}
+		catch (Throwable ex)
+		{
+			Log.error("[ModMidiMixher]::sendToReceiver", ex);
+		}
+	}
+	/**
 	 * @since 23.05.2026
 	 * @param command
 	 * @param channel
 	 * @param data1
 	 * @param data2
 	 */
-	private void sendToReceiver(final int command, final int channel, final int data1, final int data2)
+	public void sendToReceiver(final int command, final int channel, final int data1, final int data2)
 	{
 		try
 		{
@@ -249,7 +300,7 @@ public class ModMidiMixer
 		}
 		catch (InvalidMidiDataException ex)
 		{
-			Log.error("[ModMidiMixher]::triggerMidiNote", ex);
+			Log.error("[ModMidiMixher]::sendToReceiver", ex);
 		}
 	}
 	/**
@@ -263,7 +314,7 @@ public class ModMidiMixer
 		final Instrument instrument = aktMemo.currentAssignedInstrument;
 		if (instrument==null) return false;
 
-		final MidiChannelMemory midiMemo = midiChan[instrument.midiChannel - 1];
+		final MidiChannelMemory midiMemo = midiChan[instrument.getMidiChannel(aktMemo.channelNumber)];
 		final int trkChannel = aktMemo.channelNumber;
 		
 		if (note<=ModConstants.NO_NOTE || trkChannel>midiMemo.noteOnMap[note].length)
@@ -282,7 +333,7 @@ public class ModMidiMixer
 		{
 			final Instrument instrument = aktMemo.currentAssignedInstrument;
 			if (instrument!=null && instrument.hasValidMidiChannel())
-				return instrument.midiChannel - 1;
+				return instrument.getMidiChannel(aktMemo.channelNumber);
 		}
 		return 0;
 	}
@@ -503,7 +554,7 @@ public class ModMidiMixer
 		final int midiProg = instrument.midiProgram - 1;
 		
 		final int trkChannel = aktMemo.channelNumber;
-		final int midiChannel = instrument.midiChannel - 1;
+		final int midiChannel = instrument.getMidiChannel(aktMemo.channelNumber);
 		final MidiChannelMemory midiMemo = midiChan[midiChannel];
 		final int maxNote = midiMemo.noteOnMap.length;
 		final boolean bankChanged = midiMemo.lastMidiBank != midiBank && (midiBank< 0x4000);
@@ -659,7 +710,7 @@ public class ModMidiMixer
 					velocity = aktMemo.currentVolume<<2; // 0..64 --> 0..256
 			}
 			
-			velocity += aktMemo.swingVolume;
+			velocity += aktMemo.swingVolume<<2; // 0..64 --> 0..256
 			if (velocity<0) velocity = 0; else if (velocity>256) velocity = 256;
 			
 			if (note>ModConstants.NO_NOTE)
@@ -672,7 +723,7 @@ public class ModMidiMixer
 		final boolean processVolumeAlsoOnNote = (instrument.pluginVelocityHandling == PLUGIN_VELOCITYHANDLING_VOLUME);
 		if ((hasVolumeCommand && note==ModConstants.NO_NOTE) || (note>ModConstants.NO_NOTE && processVolumeAlsoOnNote))
 		{
-			final int midiChannel = instrument.midiChannel - 1;
+			final int midiChannel = instrument.getMidiChannel(aktMemo.channelNumber);
 			switch(instrument.pluginVolumeHandling)
 			{
 				case PLUGIN_VOLUMEHANDLING_DRYWET: // TODO: dry / wet mix

@@ -1084,7 +1084,7 @@ public class XMMod extends ProTrackerMod
 			{
 				madeWithTracker = "FastTracker 2 or compatible";
 				final int highVersion = (version>>8)&0xFF;
-				madeWithTracker = "FastTracker II V" + ModConstants.getAsHex(highVersion, (highVersion>0x0f)?2:1) + "." + ModConstants.getAsHex(version&0xFF, 2);
+				madeWithTracker = "FastTracker II - File version " + ModConstants.getAsHex(highVersion, (highVersion>0x0f)?2:1) + "." + ModConstants.getAsHex(version&0xFF, 2);
 				if (!trackerName.endsWith("   "))
 					madeWithTracker += " (generic)";
 			}

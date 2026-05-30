@@ -49,7 +49,15 @@ public class PatternElementIT extends PatternElement
 	@Override
 	public char getEffektChar()
 	{
-		return (effekt==0x1B)?'#':(effekt==0 && effektOp!=0)?'.':(char)('A' + effekt - 1);
+		switch (effekt)
+		{	
+			case 0x1B: return '#';
+			case 0x1C: return '\\';
+			case 0x1D: return ':';
+			case 0x1E: return '+';
+			case 0x1F: return '*';
+			default: return (effekt==0 && effektOp!=0)?'.':(char)('A' + effekt - 1);
+		}
 	}
 	/**
 	 * @return
@@ -114,14 +122,10 @@ public class PatternElementIT extends PatternElement
 							case 0x0: return "No Surround";
 							case 0x1: return "Enabl. Surround";
 							// MPT Effects only
-//							case 0x8: // Disable reverb for this channel
-//								break;
-//							case 0x9: // Force reverb for this channel
-//								break;
-//							case 0xA: // Select mono surround mode (center channel). This is the default
-//								break;
-//							case 0xB: // Select quad surround mode: this allows you to pan in the rear channels, especially useful for 4-speakers playback. Note that S9A and S9B do not activate the surround for the current channel, it is a global setting that will affect the behavior of the surround for all channels. You can enable or disable the surround for individual channels by using the S90 and S91 effects. In quad surround mode, the channel surround will stay active until explicitely disabled by a S90 effect
-//								break;
+							case 0x8: return "Disable reverb";
+							case 0x9: return "Force reverb";
+							case 0xA: return "mono surround";
+							case 0xB: return "quad surround";
 							case 0xC: return "Global FilterMode Off";
 							case 0xD: return "Global FilterMode On";
 							case 0xE: return "Play Forward";
@@ -152,6 +156,9 @@ public class PatternElementIT extends PatternElement
 			case 0x1A: return "Midi Macro";
 			case 0x1B: return "Parameter Extension";
 			case 0x1C: return "Smooth Midi Macro";
+			case 0x1D: return "Note Delay&Cut";
+			case 0x1E: return "Set Finetune";
+			case 0x1F: return "Smooth Finetune";
 		}
 		//Log.error("Unknown: " + ModConstants.getAsHex(effekt, 2) + "/" + ModConstants.getAsHex(effektOp, 2));
 		return Helpers.EMPTY_STING;
@@ -219,14 +226,10 @@ public class PatternElementIT extends PatternElement
 							case 0x0: return EFFECT_PANNING;
 							case 0x1: return EFFECT_PANNING;
 							// MPT Effects only
-//							case 0x8: // Disable reverb for this channel
-//								break;
-//							case 0x9: // Force reverb for this channel
-//								break;
-//							case 0xA: // Select mono surround mode (center channel). This is the default
-//								break;
-//							case 0xB: // Select quad surround mode: this allows you to pan in the rear channels, especially useful for 4-speakers playback. Note that S9A and S9B do not activate the surround for the current channel, it is a global setting that will affect the behavior of the surround for all channels. You can enable or disable the surround for individual channels by using the S90 and S91 effects. In quad surround mode, the channel surround will stay active until explicitely disabled by a S90 effect
-//								break;
+							case 0x8: return EFFECT_PANNING;
+							case 0x9: return EFFECT_PANNING;
+							case 0xA: return EFFECT_PANNING;
+							case 0xB: return EFFECT_PANNING;
 							case 0xC: return EFFECT_GLOBAL;
 							case 0xD: return EFFECT_GLOBAL;
 							case 0xE: return EFFECT_NORMAL;
@@ -250,6 +253,9 @@ public class PatternElementIT extends PatternElement
 			case 0x1A: return EFFECT_NORMAL;
 			case 0x1B: return EFFECT_NORMAL;
 			case 0x1C: return EFFECT_NORMAL;
+			case 0x1D: return EFFECT_NORMAL;
+			case 0x1E: return EFFECT_PITCH;
+			case 0x1F: return EFFECT_PITCH;
 		}
 		return EFFECT_UNKNOWN;
 	}

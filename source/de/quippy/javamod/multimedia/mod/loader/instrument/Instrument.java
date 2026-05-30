@@ -98,7 +98,20 @@ public class Instrument
 	}
 	public boolean hasValidMidiChannel()
 	{
-		return (midiChannel>=1 && midiChannel<=18);
+		return (midiChannel>=1 && midiChannel<=17);
+	}
+	/**
+	 * Get the intended MIDI channel - mapping included
+	 * @since 29.05.2026
+	 * @param trackerChannel
+	 * @return
+	 */
+	public int getMidiChannel(final int trackerChannel)
+	{
+		if (midiChannel==17)
+			return trackerChannel % 16;
+		else
+			return midiChannel - 1;
 	}
 	public boolean hasValidMidiBank()
 	{

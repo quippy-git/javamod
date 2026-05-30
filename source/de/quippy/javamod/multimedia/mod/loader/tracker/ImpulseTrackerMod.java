@@ -1168,10 +1168,13 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 		if ((getModType()&ModConstants.MODTYPE_OMPT)!=0)
 		{
 			final Instrument[] ins = instrumentContainer.getInstruments();
-			for (int i=0; i<ins.length; i++)
+			if (ins!=null)
 			{
-				final Instrument currentIns = ins[i];
-				currentIns.hasValidMidiData = (currentIns.mixPlugIn>0 && currentIns.hasValidMidiBank() && currentIns.hasValidMidiChannel() && currentIns.hasValidMidiProgram());
+				for (int i=0; i<ins.length; i++)
+				{
+					final Instrument currentIns = ins[i];
+					currentIns.hasValidMidiData = (currentIns.mixPlugIn>0 && currentIns.hasValidMidiBank() && currentIns.hasValidMidiChannel() && currentIns.hasValidMidiProgram());
+				}
 			}
 		}
 

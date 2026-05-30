@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 Theta (MIDI RELEASE)
+# JavaMod V3.9.6 Iota (MIDI RELEASE)
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -18,7 +18,7 @@ On Linux consider starting with OpenGL render pipeline activated:
    java -Dsun.java2d.opengl=true -jar ./javamod.jar
 
 ## Remarks to 3.9.x version updates
-With JavaMod versions 4.0 to 5.0 I want to integrate Midi and AdLib support.
+With JavaMod versions 4.0 to 5.0 I want to integrate AdLib support.
 However, before starting that I want to have all test mods of Schism and
 Open ModPlug Tracker to work. We finished MOD, XM, STM and S3M with this version
 and a whole lot of other stuff as well. So I decided to release new versions
@@ -112,6 +112,11 @@ JavaMod incorporates modified versions of the following libraries:
 * FIX: Loading of s3m - removing unused channels - it's 0x19 - damn!
 * FIX: Error in loading patch.003-files for Sierra SCIs - URL does not behave
        anymore (no decoding of URL "%20" etc)
+* FIX: Positions jumps exceeding song length mean "go to restart position"
+* FIX: Because of envModifiers we need OMPTs way of Resonance and Filters. 
+       LUTs are now correctly calculated.
+* NEW: added missing effects of OMPT: setFinetune, setSmoothFinetune and
+       Note Delay&Cut
 * NEW: added MixingLevels of OMPT, XMs and ITs make use of that
 * NEW: Properties file is written in sorted order, for whatever that is good for
 * NEW: Amiga 500 and Amiga 1200 Filters added. We use Paula-emulation from

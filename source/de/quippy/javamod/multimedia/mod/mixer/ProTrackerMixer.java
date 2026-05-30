@@ -725,10 +725,13 @@ public class ProTrackerMixer extends BasicModMixer
 						aktMemo.tremoloNoRetrig = (effektOp&0x4)!=0;
 						break;
 					case 0x8:	// XM: undefinded, XM ModPlug extended: Fine Panning or MOD:Karplus Strong
-						if (isMOD)
+						if (isMOD) 
 							doKarplusStrong(aktMemo);
+//							// ModPlug does Panning in this case. That might be very wrong - and doPanning blocks it currently
+//							doPanning(aktMemo, effektOp, ModConstants.PanBits.Pan4Bit);
 						else
-						if (isXM && isModPlug) doPanning(aktMemo, effektOp, ModConstants.PanBits.Pan4Bit);
+						if (isXM && isModPlug)
+							doPanning(aktMemo, effektOp, ModConstants.PanBits.Pan4Bit);
 						break;
 					case 0x9:	// Retrig Note
 						aktMemo.retrigCount = aktMemo.retrigMemo = effektOp;
@@ -781,8 +784,9 @@ public class ProTrackerMixer extends BasicModMixer
 						else
 						if (isMOD)
 						{
-							aktMemo.EFxSpeed = effektOp;
-							doFunkIt(aktMemo);
+							aktMemo.EFxSpeed = (effektOp&0xF)<<4 | (aktMemo.EFxSpeed&0xF);
+							if ((aktMemo.EFxSpeed&0xF0)>0)
+								doFunkIt(aktMemo);
 						}
 						break;
 				}
@@ -805,15 +809,15 @@ public class ProTrackerMixer extends BasicModMixer
 				}
 				else
 				{
-					// FT2 appears to be decrementing the tick count before checking for zero,
-					// so it effectively counts down 65536 ticks with speed = 0 (song speed is a 16-bit variable in FT2)
-					// With ProTracker we need to stop the song
 					if (aktMemo.assignedEffektParam==0)
 					{
+						// FT2 decrements the tick count before checking for zero, so with a zero value
+						// it effectively counts down 65536 ticks (song speed is a 16-bit variable in FT2)
+						// However,as we do not want to wait hours, we stop the song - which might also be intended. 
 						if (isXM)
 							currentTick = currentTempo = 0xFFFF;
-						else
-						if (isMOD)
+//						else
+//						if (isMOD) // With ProTracker we need to stop the song
 						{
 							// we do this via the looping fade out with a fade out time of zero
 							// to not introduce a new variable here.
@@ -1600,30 +1604,27 @@ public class ProTrackerMixer extends BasicModMixer
 
 			aktMemo.doFastVolRamp = true;
 
-			triggerFTNote(aktMemo, 0);
-			// don't triggerInstrument (like above)
-			//triggerFTInstrument(aktMemo);
+			triggerFTNote(aktMemo, 0); // don't triggerInstrument (like above)
 			// And also with Midi
 			if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);
 		}
 	}
 	/**
 	 * 8bitbubsy delivered a solution for this effect, MPT implemented it as well
-	 * Why MPT does also consider sustainLoops (MODs do not have that) is beyond
-	 * my knowledge...
 	 * @since 31.01.2024
 	 * @param aktMemo
 	 * @param effectOp
 	 */
 	private void doFunkIt(final ChannelMemory aktMemo)
 	{
-		if (aktMemo.EFxSpeed==0) return;
+		final int funkSpeed = aktMemo.EFxSpeed>>4; 
+		if (funkSpeed==0) return;
 
 		final Sample sample = aktMemo.currentSample;
 		if (sample==null || !sample.hasSampleData() || (sample.loopType&ModConstants.LOOP_ON)==0)
 			return;
 
-		aktMemo.EFxDelay += ModConstants.modEFxTable[aktMemo.EFxSpeed & 0x0F];
+		aktMemo.EFxDelay += ModConstants.modEFxTable[funkSpeed];
 		if (aktMemo.EFxDelay>=0x80)
 		{
 			aktMemo.EFxDelay = 0;
@@ -1640,25 +1641,26 @@ public class ProTrackerMixer extends BasicModMixer
 	 * This is a little used effect, despite being present in original ProTracker.
 	 * E8x was sometimes entirely replaced with code used for demo fx syncing in
 	 * demo mod players
+	 * It is permanently disabled by ModConstants.SUPPORT_E8x_EFFECT = false;
 	 * @since 09.03.2024
 	 * @param aktMemo
 	 */
 	private void doKarplusStrong(final ChannelMemory aktMemo)
 	{
 		if (!ModConstants.SUPPORT_E8x_EFFECT) return;
-
+		
 		final Sample sample = aktMemo.currentSample;
 		if (sample==null || sample.sampleL==null || (sample.loopType&(ModConstants.LOOP_ON | ModConstants.LOOP_SUSTAIN_ON))==0)
 			return;
 
-		final int loopStart = (sample.loopType&ModConstants.LOOP_ON)!=0?sample.loopStart:sample.sustainLoopStart;
-		int loopLength = (sample.loopType&ModConstants.LOOP_ON)!=0?sample.loopLength:sample.sustainLoopLength;
-		int sampleIndex = loopStart + Sample.INTERPOLATION_LOOK_AHEAD;
+		final int sampleIndexStart = sample.loopStart + Sample.INTERPOLATION_LOOK_AHEAD;
+		int sampleIndex = sampleIndexStart;
+		int loopLength = sample.loopLength & 0xFFFF; // already samples (no *2) and as we will do the warp around in the loop, no " - 2"
 		do
 		{
 			final long a = sample.sampleL[sampleIndex];
-			final long b = sample.sampleL[(loopLength==1)?loopStart + Sample.INTERPOLATION_LOOK_AHEAD:sampleIndex + 1];
-			sample.sampleL[sampleIndex++] = (a + b) / 2;
+			final long b = sample.sampleL[(loopLength==1)?sampleIndexStart:sampleIndex + 1]; // Wrap around
+			sample.sampleL[sampleIndex++] = (a + b) >> 1;
 		}
 		while (--loopLength >= 0);
 	}
