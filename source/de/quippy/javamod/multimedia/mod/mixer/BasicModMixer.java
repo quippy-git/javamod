@@ -1307,7 +1307,7 @@ public abstract class BasicModMixer
 			final boolean rampUp = targetVolLeft>aktMemo.actRampVolLeft || targetVolRight>aktMemo.actRampVolRight;
 
 			// FT2 XMs have a default smooth VolRamp of 5ms for fastVolRamp and one tick, if not
-			int rampLengthYS = (isXM)?5000:(rampUp)?ModConstants.VOLRAMPLEN_UP_YS:ModConstants.VOLRAMPLEN_DOWN_YS;
+			int rampLengthYS = (isXM && (mod.getSongFlags()&ModConstants.SONG_FT2VOLUMERAMPING)!=0)?5000:(rampUp)?ModConstants.VOLRAMPLEN_UP_YS:ModConstants.VOLRAMPLEN_DOWN_YS;
 			final int defaultRampLen = (isXM && !aktMemo.doFastVolRamp)?samplesPerTick:(int)((long)sampleRate * (long)rampLengthYS / 1000000L);
 
 			// Override default with settings in instruments, if any (only for ramp up!)
@@ -1715,11 +1715,11 @@ public abstract class BasicModMixer
 					data = (calcPanning<1)?1:(calcPanning>127)?127:calcPanning;
 					break;
 				case 'a': // High byte of bank select
-					if(instrument.hasValidMidiBank())
+					if (instrument.hasValidMidiBank())
 						data = ((instrument.midiBank - 1) >> 7) & 0x7F;
 					break;
 				case 'b': // Low byte of bank select
-					if(instrument.hasValidMidiBank())
+					if (instrument.hasValidMidiBank())
 						data = (instrument.midiBank - 1) & 0x7F;
 					break;
 				case 'p': // Program select
@@ -1756,12 +1756,12 @@ public abstract class BasicModMixer
 					int startPos = outPos;
 					while (startPos>0 && out[--startPos]!=0xF0) {} // avoid "empty control statement" warning
 	
-					if(outPos-startPos<3 || out[startPos]!=0xF0)
+					if (outPos-startPos<3 || out[startPos]!=0xF0)
 						continue;
 	
 					// If first byte of model number is 0, read one more
 					int checksumStart = (out[startPos+3]!=0) ? 5 : 6;
-					if(outPos-startPos<checksumStart)
+					if (outPos-startPos<checksumStart)
 						continue;
 	
 					for(int p=startPos+checksumStart; p!=outPos; p++)
@@ -1847,7 +1847,7 @@ public abstract class BasicModMixer
 					aktMemo.cutOff = (int)calculateSmoothParamChange(aktMemo, aktMemo.cutOff, param);
 				//aktMemo.restoreResonanceOnNewNote = 0;
 				/*int cutoff = */setupChannelFilter(aktMemo, !aktMemo.filterOn, 256);
-//				if(cutoff >= 0 && aktMemo.isAdLib && opl!=null && !localOnly)
+//				if (cutoff >= 0 && aktMemo.isAdLib && opl!=null && !localOnly)
 //				{
 //					// Cutoff doubles as modulator intensity for FM instruments
 //					opl.volume(aktMemo, cutoff / 4, true);
@@ -1886,16 +1886,16 @@ public abstract class BasicModMixer
 //			{
 //				// F0.F0.{80|n}.xx / F0.F1.n.xx: Set VST effect parameter n to xx
 //				PLUGINDEX plug = (plugin != 0) ? plugin : GetBestPlugin(playState, nChn, PrioritiseChannel, EvenIfMuted);
-//				if(plug > 0 && plug <= MAX_MIXPLUGINS && param < 0x80)
+//				if (plug > 0 && plug <= MAX_MIXPLUGINS && param < 0x80)
 //				{
 //					plug--;
-//					if(IMixPlugin *pPlugin = m_MixPlugins[plug].pMixPlugin; pPlugin)
+//					if (IMixPlugin *pPlugin = m_MixPlugins[plug].pMixPlugin; pPlugin)
 //					{
 //						const PlugParamIndex plugParam = isExtended ? (0x80 + macroCode) : (macroCode & 0x7F);
 //						const PlugParamValue value = param / 127.0f;
-//						if(localOnly)
+//						if (localOnly)
 //							playState.m_midiMacroEvaluationResults->pluginParameter[{plug, plugParam}] = value;
-//						else if(!isSmooth)
+//						else if (!isSmooth)
 //							pPlugin->SetParameter(plugParam, value);
 //						else
 //							pPlugin->SetParameter(plugParam, CalculateSmoothParamChange(playState, pPlugin->GetParameter(plugParam), value));
@@ -1948,7 +1948,7 @@ public abstract class BasicModMixer
 			if (out[sendPos]==0xF0)
 			{
 				// SysEx start
-				if((outSize-sendPos>=4) && (out[sendPos+1]==0xF0 || out[sendPos+1]==0xF1))
+				if (outSize-sendPos>=4 && (out[sendPos+1]==0xF0 || out[sendPos+1]==0xF1))
 				{
 					// Internal macro (normal (F0F0) or extended (F0F1)), 4 bytes long
 					sendLen = 4;
@@ -1997,7 +1997,7 @@ public abstract class BasicModMixer
 				sendLen = msgSize<size?msgSize:size;
 			}
 
-			if(sendLen==0) break;
+			if (sendLen==0) break;
 
 			if (out[sendPos]<0xF0)
 			{
@@ -2495,9 +2495,12 @@ public abstract class BasicModMixer
 			final boolean ignoreLoop = (doNoLoops&ModConstants.PLAYER_LOOP_IGNORE)!=0;
 			final boolean fadeOutLoop = (doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0;
 			final boolean loopSong = (doNoLoops&ModConstants.PLAYER_LOOP_LOOPSONG)!=0;
+			final int songLength = mod.getSongLength();
+			final int[] arrangement = mod.getArrangement();
+
 			if (patternBreakPatternIndex!=-1)
 			{
-				if (patternBreakPatternIndex>=mod.getSongLength())
+				if (patternBreakPatternIndex>=songLength)
 					patternBreakPatternIndex = mod.getSongRestart();
 
 				final boolean infiniteLoop = isInfiniteLoop(patternBreakPatternIndex, patternBreakRowIndex);
@@ -2533,9 +2536,9 @@ public abstract class BasicModMixer
 			}
 
 			// sanity check FT2.09 style
-			if (isXM && currentArrangement<mod.getSongLength())
+			if (isXM && currentArrangement<songLength)
 			{
-				final int patIndex = mod.getArrangement()[currentArrangement];
+				final int patIndex = arrangement[currentArrangement];
 				final Pattern pat = mod.getPatternContainer().getPattern(patIndex);
 				if (currentRow >= pat.getRowCount())
 				{
@@ -2551,18 +2554,28 @@ public abstract class BasicModMixer
 			resetJumpPositionSet();
 
 			// End of song? Fetch new pattern if not...
-			if (currentArrangement<mod.getSongLength())
+			if (currentArrangement<songLength)
 			{
-				currentPatternIndex = mod.getArrangement()[currentArrangement];
-				currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
+				currentPatternIndex = arrangement[currentArrangement];
+				// Jump over marker pattern
+				while ((currentPatternIndex==ModConstants.IGNORE_PAT_INDEX || currentPatternIndex==ModConstants.INVALID_PAT_INDEX) && currentArrangement<songLength)
+				{
+					currentArrangement++;
+					if (currentArrangement>=songLength) break;
+					currentPatternIndex = arrangement[currentArrangement];
+				}
+				// still not at end of song?
+				if (currentArrangement<songLength)
+					currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
 			}
-			else
+			// End of song? Fetch new pattern if not...
+			if (currentArrangement>=songLength)
 			{
 				if (!ignoreLoop && loopSong)
 				{
 					currentArrangement = mod.getSongRestart(); // can be -1 if not set
 					if (currentArrangement < 0) currentArrangement = 0;
-					currentPatternIndex = mod.getArrangement()[currentArrangement];
+					currentPatternIndex = arrangement[currentArrangement];
 					currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
 					// as this is per definition an infinite loop, activate fadeout, if wished
 					if ((doNoLoops&ModConstants.PLAYER_LOOP_FADEOUT)!=0)
@@ -2822,7 +2835,7 @@ public abstract class BasicModMixer
 			// Evaluate the doISP: if paulaFilter is active, do NO ISP! Otherwise, respect assignment in assignedInstrument (OMPT)
 			final int doISPhere = (paulaFilter!=null)?0:  
 								  (aktMemo.assignedInstrument!=null && aktMemo.assignedInstrument.resampling>-1)?aktMemo.assignedInstrument.resampling:doISP;
-			aktMemo.currentSample.getInterpolatedSample(samples, doISPhere, aktMemo.currentTuning, aktMemo.currentSamplePos, aktMemo.currentTuningPos, !aktMemo.isForwardDirection, aktMemo.interpolationMagic);
+			aktMemo.currentSample.getInterpolatedSample(samples, doISPhere, aktMemo.currentTuning, aktMemo.currentSamplePos, aktMemo.currentTuningPos, aktMemo.interpolationMagic);
 			
 			if (paulaFilter!=null)
 			{

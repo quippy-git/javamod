@@ -70,8 +70,7 @@ public class ModConstants
 	public static final int MODTYPE_MIX_Compatible		= 0x1000; // A mixmode that is intended to be compatible to legacy trackers (IT/FT2/etc). This is basically derived from mixmode 1.17 RC3, with panning mode and volume levels changed. Sample attenuation is the same as in Schism Tracker (more attenuation than with RC3, thus VSTi attenuation is also higher).
 	public static final int MODTYPE_MIX_CompatibleFT2	= 0x2000; // A mixmode that is intended to be compatible to legacy trackers (IT/FT2/etc). This is basically derived from mixmode 1.17 RC3, with panning mode and volume levels changed. Sample attenuation is the same as in Schism Tracker (more attenuation than with RC3, thus VSTi attenuation is also higher).
 	public static final int MODTYPE_MIX_ALL_LEGACY		= MODTYPE_MIX_Original | MODTYPE_MIX_v1_17RC1 | MODTYPE_MIX_v1_17RC2;
-	
-	
+
 	public static final int MODTYPE_FASTTRACKER = MODTYPE_MOD | MODTYPE_XM;
 	public static final int MODTYPE_SCREAMTRACKER = MODTYPE_S3M | MODTYPE_STM;
 	public static final int MODTYPE_IMPULSETRACKER = MODTYPE_IT | MODTYPE_SCREAMTRACKER;
@@ -134,8 +133,9 @@ public class ModConstants
 	public static final int INTERPOLATION_NONE			= 0;
 	public static final int INTERPOLATION_LINEAR		= 1;
 	public static final int INTERPOLATION_CUBIC			= 2;
-	public static final int INTERPOLATION_KAISER		= 3;
-	public static final int INTERPOLATION_WINDOWSFIR	= 4;
+	public static final int INTERPOLATION_KAISER_8		= 3;
+	public static final int INTERPOLATION_KAISER_16		= 4;
+	public static final int INTERPOLATION_WINDOWSFIR	= 5;
 	// AmigaEmulation
 	public static final int AMIGAEMULATION_NONE			= 0;
 	public static final int AMIGAEMULATION_AMIGA500		= 1;
@@ -143,7 +143,7 @@ public class ModConstants
 	// Interpolation / Emulation Strings for display
 	public static final String[] INTERPOLATION = new String[]
   	{
-  		"None", "Linear", "Cubic", "Kaiser", "Windowed FIR"
+  		"None", "Linear", "Cubic", "Sinc 8 taps", "Sinc 16 taps", "Windowed FIR"
   	};
 	public static final String[] AMIGA_EMULATION = new String[]
   	{
@@ -221,6 +221,9 @@ public class ModConstants
 	public static final int NOTE_FADE		= -3;
 	public static final int NOTE_PC			= -4; // TODO: Param Control 'note'. Changes param value on first tick.
 	public static final int NOTE_PCS		= -5; // TODO: Param Control (Smooth) 'note'. Interpolates param value during the whole row.
+	
+	public static final int INVALID_PAT_INDEX	= 0xFFFF; // The Open Modplug tracker marker pattern in the order list
+	public static final int IGNORE_PAT_INDEX	= INVALID_PAT_INDEX - 1;
 
 	// Filter Modes
 	public static final int  FLTMODE_LOWPASS		= 0;
@@ -236,22 +239,22 @@ public class ModConstants
 	public static final double TWO_PI				= 2.0d * Math.PI;
 
 	// Module flags
-	public static final int SONG_EMBEDMIDICFG	= 0x00001;
-	public static final int SONG_FASTVOLSLIDES	= 0x00002;
-	public static final int SONG_ITOLDEFFECTS	= 0x00004;
-	public static final int SONG_ITCOMPATMODE	= 0x00008;
-	public static final int SONG_LINEARSLIDES	= 0x00010;
-	public static final int SONG_EXFILTERRANGE	= 0x00020;
-	public static final int SONG_AMIGALIMITS	= 0x00040;
-	public static final int SONG_ISSTEREO		= 0x00080;
-	public static final int SONG_USEINSTRUMENTS = 0x00100;
-	public static final int SONG_ST2VIBRATO		= 0x00200;
-	public static final int SONG_ST2TEMPO		= 0x00400;
-	public static final int SONG_AMIGASLIDES	= 0x00800;
-	public static final int SONG_VOL0MIXOPTI	= 0x01000;
-	public static final int SONG_USEMIDIPITCH	= 0x02000;
-	public static final int SONG_S3M_GUS		= 0x80000;
-
+	public static final int SONG_EMBEDMIDICFG		= 0x00000001;
+	public static final int SONG_FASTVOLSLIDES		= 0x00000002;
+	public static final int SONG_ITOLDEFFECTS		= 0x00000004;
+	public static final int SONG_ITCOMPATMODE		= 0x00000008;
+	public static final int SONG_LINEARSLIDES		= 0x00000010;
+	public static final int SONG_EXFILTERRANGE		= 0x00000020;
+	public static final int SONG_AMIGALIMITS		= 0x00000040;
+	public static final int SONG_ISSTEREO			= 0x00000080;
+	public static final int SONG_USEINSTRUMENTS 	= 0x00000100;
+	public static final int SONG_ST2VIBRATO			= 0x00000200;
+	public static final int SONG_ST2TEMPO			= 0x00000400;
+	public static final int SONG_AMIGASLIDES		= 0x00000800;
+	public static final int SONG_VOL0MIXOPTI		= 0x00001000;
+	public static final int SONG_USEMIDIPITCH		= 0x00002000;
+	public static final int SONG_FT2VOLUMERAMPING	= 0x00004000;
+	public static final int SONG_S3M_GUS			= 0x00080000;
 	// Player flags
 	public static final int PLAYER_LOOP_DEACTIVATED = 0x00;
 	public static final int PLAYER_LOOP_FADEOUT 	= 0x01;

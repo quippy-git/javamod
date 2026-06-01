@@ -22,6 +22,7 @@
 package de.quippy.javamod.multimedia.mod.mixer.interpolation;
 
 import de.quippy.javamod.multimedia.mod.ModConstants;
+import de.quippy.javamod.system.FastMath;
 
 /**
  * @author Daniel Becker
@@ -31,15 +32,19 @@ public class Kaiser
 {
 	public  static final int SINC_PHASES_BITS	= 12;
 	private static final int SINC_PHASES		= (1<<SINC_PHASES_BITS);
-	public  static final int SINC_WIDTH			= 8;
 	public  static final int SINC_MASK			= (SINC_PHASES-1);
-	private static final int SINC_PHASES_ALL	= SINC_PHASES * SINC_WIDTH;
 	public  static final int SINC_QUANTSHIFT	= 15;
 	public  static final int SINC_FRACSHIFT		= ModConstants.SHIFT - SINC_PHASES_BITS;
 
-	public  static final int[] gKaiserSinc = new int [SINC_PHASES_ALL];
-	public  static final int[] gDownsample13x = new int [SINC_PHASES_ALL];
-	public  static final int[] gDownsample2x = new int [SINC_PHASES_ALL];
+	public  static final int SINC_WIDTH_8		= 8 * SINC_PHASES;
+	public  static final int[] gKaiserSinc_8 = new int [SINC_WIDTH_8];
+	public  static final int[] gDownsample13x_8 = new int [SINC_WIDTH_8];
+	public  static final int[] gDownsample2x_8 = new int [SINC_WIDTH_8];
+
+	public  static final int SINC_WIDTH_16		= 16 * SINC_PHASES;
+	public  static final int[] gKaiserSinc_16 = new int [SINC_WIDTH_16];
+	public  static final int[] gDownsample13x_16 = new int [SINC_WIDTH_16];
+	public  static final int[] gDownsample2x_16 = new int [SINC_WIDTH_16];
 
 	public  static final int gDownsample2x_Limit	= 0x13 << (ModConstants.SHIFT-4);
 	public  static final int gDownsample13x_Limit	= 0x18 << (ModConstants.SHIFT-4);
@@ -59,18 +64,18 @@ public class Kaiser
 
 	private static double iZero(final double y)
 	{
-		double s = 1, ds = 1, d = 0;
+		double s = 1d, ds = 1d, d = 0d;
 		do
 		{
 			d = d + 2;
 			ds = ds * (y * y) / (d * d);
 			s = s + ds;
 		}
-		while(ds > 1E-7 * s);
+		while(ds > 1E-9 * s);
 
 		return s;
 	}
-	private static void getSinc(final int[] lut, final double beta, double cutoff)
+	private static void getSinc(final int numTaps, final int[] lut, final double beta, double cutoff)
 	{
 		if(cutoff>0.999)
 		{
@@ -79,30 +84,41 @@ public class Kaiser
 			cutoff = 0.999;
 		}
 		final double izeroBeta = iZero(beta);
-		final double kPi = 4.0 * Math.atan(1.0) * cutoff;
-		for (int isrc = 0; isrc<SINC_PHASES_ALL; isrc++)
+		final double kPi = 4.0d * Math.atan(1.0d) * cutoff; // 4.0 * Math.atan(1.0d) is equal to PI - with highest precision
+		
+		final int length = numTaps * SINC_PHASES;
+		final int tapBits = FastMath.log2(numTaps);
+		final int tapsMinus1 = numTaps - 1;
+		final double xMul = 1.0 / ((numTaps / 2) * (numTaps / 2));
+		final int midTap = (numTaps / 2) * SINC_PHASES;
+		
+		for (int isrc = 0; isrc<length; isrc++)
 		{
-			double fsinc;
-			int ix = 7 - (isrc & 7);
-			ix = (ix * SINC_PHASES) + (isrc >> 3);
-			if(ix == ((SINC_WIDTH/2) * SINC_PHASES))
+			final int ix = ((tapsMinus1 - (isrc & tapsMinus1)) * SINC_PHASES) + (isrc >> tapBits);
+
+			double dsinc;
+			if (ix == midTap)
 			{
-				fsinc = 1.0;
+				dsinc = 1.0d;
 			}
 			else
 			{
-				final double x = (ix - ((SINC_WIDTH/2) * SINC_PHASES)) * (1.0 / SINC_PHASES);
+				final double x = (double)(ix - midTap) * (1.0d / (double)SINC_PHASES);
 				final double xPi = x * kPi;
-				fsinc = Math.sin(xPi) * iZero(beta * Math.sqrt(1 - x * x * (1.0 / 16.0))) / (izeroBeta * xPi); // Kaiser window
+				dsinc = Math.sin(xPi) * iZero(beta * Math.sqrt(1.0d - x * x * xMul)) / (izeroBeta * xPi); // Kaiser window
 			}
-			final double coeff = fsinc * cutoff;
+			final double coeff = dsinc * cutoff;
 			lut[isrc] = (int) Math.floor(coeff * (1 << SINC_QUANTSHIFT));
 		}
 	}
 	private static void initialize()
 	{
-		getSinc(gKaiserSinc, 9.6377d, 0.97d);
-		getSinc(gDownsample13x, 8.5d, 0.5d);
-		getSinc(gDownsample2x, 7.0d, 0.425d);
+		getSinc(8, gKaiserSinc_8, 9.6377d, 0.97d);
+		getSinc(8, gDownsample13x_8, 8.5d, 0.5d);
+		getSinc(8, gDownsample2x_8, 7.0d, 0.425d);
+		
+		getSinc(16, gKaiserSinc_16, 9.6377d, 0.97d);
+		getSinc(16, gDownsample13x_16, 8.5d, 0.5d);
+		getSinc(16, gDownsample2x_16, 7.0d, 0.425d);
 	}
 }

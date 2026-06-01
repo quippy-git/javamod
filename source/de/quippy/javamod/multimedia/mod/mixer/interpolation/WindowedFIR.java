@@ -62,10 +62,10 @@ public class WindowedFIR
 	private static final int	WFIR_BLACKMAN4T74	=	6;
 	private static final int	WFIR_KAISER4T		=	7;
 	// Default settings:
-//	private static final float	WFIR_CUTOFF			=	0.90f; // cutoff (1.0 == pi/2)
-//	private static final int	WFIR_TYPE			=	WFIR_BLACKMANEXACT;
-	private static final float	WFIR_CUTOFF			=	0.97f;
-	private static final int	WFIR_TYPE			=	WFIR_KAISER4T;
+	private static final float	WFIR_CUTOFF			=	0.90f; // cutoff (1.0 == pi/2)
+	private static final int	WFIR_TYPE			=	WFIR_BLACKMANEXACT;
+//	private static final float	WFIR_CUTOFF			=	0.97f;
+//	private static final int	WFIR_TYPE			=	WFIR_KAISER4T;
 
 	private static final double	M_zEPS				=	1e-8;
 

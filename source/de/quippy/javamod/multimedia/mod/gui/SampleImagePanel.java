@@ -60,7 +60,7 @@ public class SampleImagePanel extends JComponent
 
 		if (buffer!=null)
 		{
-			final int anzSamples = sample.sampleLength; //-1; // with this we show the first sample for interpolation as well - but is needed for loopEnd display
+			final int anzSamples = sample.sampleLength; //-1; // without the "-1" we show the first sample for interpolation as well - but is needed for loopEnd display
 
 			int xpOld = 0;
 			int ypOld = 0;

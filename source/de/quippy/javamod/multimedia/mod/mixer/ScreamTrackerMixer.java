@@ -793,7 +793,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					}
 				}
 				else
-				if (aktMemo.hasMidiOutput()) // Argh! pure midi instruments do not have a sample - so at least set these.
+				if (aktMemo.hasMidiOutput()) // Pure MIDI instruments do not have a sample - so at least set these.
 				{
 					aktMemo.noteCut = aktMemo.keyOff = aktMemo.noteFade = false;
 				}
@@ -888,10 +888,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 					if (isSTM)
 					{
 						if (newTempo==0) break;
-						if ((mod.getVersion()&0x0F)<21) // set Tempo needs correction, depending on stm version.
+						if ((mod.getVersion()&0xFF)<21) // set Tempo needs correction, depending on stm version - we could do that during loading however.
 							newTempo = ((newTempo/10)<<4)+(newTempo%10);
 					}
-					currentTick = currentTempo = ((newTempo>>4)!=0?newTempo>>4:1);
+					currentTick = currentTempo = newTempo>>4; 
 					currentBPM = ModConstants.convertST2tempo(newTempo);
 				}
 				else

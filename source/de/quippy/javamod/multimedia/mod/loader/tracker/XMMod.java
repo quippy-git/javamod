@@ -445,9 +445,6 @@ public class XMMod extends ProTrackerMod
 		setBPMSpeed(inputStream.readIntelUnsignedWord());
 
 		// always space for 256 pattern...
-		// ModPlug allows marker pattern like in IT
-		//  255 = "---", End of song marker
-		//  254 = "+++", Skip to next order
 		allocArrangement(256);
 		final int[] arrangement = getArrangement();
 		for (int i=0; i<256; i++) arrangement[i]=inputStream.read();
@@ -947,16 +944,6 @@ public class XMMod extends ProTrackerMod
 			readXMSampleData(inputStream, instrumentContainer, sampleOffsetIndex, 0);
 		}
 
-		// Remove marker pattern (supported with OpenModPlug in some versions)
-		cleanUpArrangement();
-
-		// Fix lamb_-_dark_lighthouse.xm, which only contains one pattern and an empty order list
-		if (getSongLength()==0 && (madeWith&verEmptyOrders)==0)
-		{
-			getArrangement()[0] = 1;
-			setSongLength(1);
-		}
-
 		midiMacros = new MidiMacros();
 		boolean hasMidiConfig = false;
 		boolean hasExtraInstrumentInfos = false;
@@ -1057,9 +1044,36 @@ public class XMMod extends ProTrackerMod
 			setModType(getModType() | ModConstants.MODTYPE_MPT); 
 		}
 
+		// ModPlug allowed marker pattern like in IT
+		//  255 = "---", End of song marker
+		//  254 = "+++", Skip to next order
+		// We no longer allow any --- or +++ items in the order list now.
+		if (lastSavedWithVersion>0 && lastSavedWithVersion<0x1220202) // V1.22.02.02
+		{
+			int realLen = 0;
+			for (int i=0; i<getSongLength(); i++)
+			{
+				int patNum = arrangement[i];
+				if (patNum==0xFE && !isValidPatternNumber(patNum)) // remove +++ markers
+					continue;
+				if (patNum==0xFF && !isValidPatternNumber(patNum)) // replace --- marker
+					patNum = ModConstants.INVALID_PAT_INDEX;
+				arrangement[realLen++]=patNum;
+			}
+			setSongLength(realLen);
+			removeEndOfArrangement(); // so we centrally can decide (XM, S3M, IT) if we want to keep those
+		}
+		
+		// Fix lamb_-_dark_lighthouse.xm, which only contains one pattern and an empty order list
+		if (getSongLength()==0 && (madeWith&verEmptyOrders)==0)
+		{
+			arrangement[0] = 0;
+			setSongLength(1);
+		}
+
 		if ((madeWith&verFT2Generic)!=0)
 		{
-//			m_nMixLevels = MixLevels::CompatibleFT2;
+			setModType(getModType() | ModConstants.MODTYPE_MIX_Compatible);
 			if (!hasMidiConfig)
 			{
 				// FT2 allows typing in arbitrary unsupported effect letters such as Zxx.
@@ -1067,11 +1081,11 @@ public class XMMod extends ProTrackerMod
 				midiMacros.clearZxxMacros();
 			}
 
-//			if(version >= 0x0104)	// Old versions of FT2 didn't have (smooth) ramping. Disable it for those versions where we can be sure that there should be no ramping.
-//			{
-//				// apply FT2-style super-soft volume ramping
-//				m_playBehaviour.set(kFT2VolumeRamping);
-//			}
+			if (version >= 0x0104)	// Old versions of FT2 didn't have (smooth) ramping. Disable it for those versions where we can be sure that there should be no ramping.
+			{
+				// apply FT2-style super-soft volume ramping
+				songFlags |= ModConstants.SONG_FT2VOLUMERAMPING;
+			}
 		}
 		if (madeWithTracker==null)
 		{

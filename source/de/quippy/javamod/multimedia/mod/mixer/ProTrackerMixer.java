@@ -627,7 +627,7 @@ public class ProTrackerMixer extends BasicModMixer
 				patternJumpRowIndex = patternBreakRowIndex;
 				patternBreakSet = true;
 				break;
-			case 0x0C:			// Set volume
+			case 0x0C:			// Set Volume
 				aktMemo.currentVolume = aktMemo.assignedEffektParam;
 				if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
 				else
@@ -725,7 +725,7 @@ public class ProTrackerMixer extends BasicModMixer
 						aktMemo.tremoloNoRetrig = (effektOp&0x4)!=0;
 						break;
 					case 0x8:	// XM: undefinded, XM ModPlug extended: Fine Panning or MOD:Karplus Strong
-						if (isMOD) 
+						if (isMOD)
 							doKarplusStrong(aktMemo);
 //							// ModPlug does Panning in this case. That might be very wrong - and doPanning blocks it currently
 //							doPanning(aktMemo, effektOp, ModConstants.PanBits.Pan4Bit);

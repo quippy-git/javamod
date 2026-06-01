@@ -124,8 +124,9 @@ public class PatternElementIT extends PatternElement
 							// MPT Effects only
 							case 0x8: return "Disable reverb";
 							case 0x9: return "Force reverb";
-							case 0xA: return "mono surround";
-							case 0xB: return "quad surround";
+							case 0xA: return "Mono surround";
+							case 0xB: return "Quad surround";
+							// ----------------
 							case 0xC: return "Global FilterMode Off";
 							case 0xD: return "Global FilterMode On";
 							case 0xE: return "Play Forward";
@@ -230,6 +231,7 @@ public class PatternElementIT extends PatternElement
 							case 0x9: return EFFECT_PANNING;
 							case 0xA: return EFFECT_PANNING;
 							case 0xB: return EFFECT_PANNING;
+							// ----------------
 							case 0xC: return EFFECT_GLOBAL;
 							case 0xD: return EFFECT_GLOBAL;
 							case 0xE: return EFFECT_NORMAL;

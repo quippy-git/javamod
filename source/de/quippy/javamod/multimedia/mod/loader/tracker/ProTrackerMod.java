@@ -732,6 +732,5 @@ public class ProTrackerMod extends Module
 			if ((current.sampleType&ModConstants.SM_ADPCM) != 0) inputStream.skip(5);
 			readSampleData(current, inputStream);
 		}
-		cleanUpArrangement();
 	}
 }

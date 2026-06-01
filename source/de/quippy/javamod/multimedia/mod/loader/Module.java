@@ -641,7 +641,7 @@ public abstract class Module
 							current.sampleR[s] = ModConstants.promoteSigned16BitToSigned32Bit(delta += (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord());
 					}
 				}
-				else
+				else // PTM8Dto16 means 8 bit deltas to promote to 16 Bit samples
 				{
 					byte delta = 0;
 					for (int s=0; s<current.sampleLength; s++)
@@ -660,20 +660,14 @@ public abstract class Module
 				for (int s=0; s<current.sampleLength; s++)
 				{
 					final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-					if (isUnsigned) // unsigned
-						current.sampleL[s]=ModConstants.promoteUnsigned16BitToSigned32Bit(sample);
-					else
-						current.sampleL[s]=ModConstants.promoteSigned16BitToSigned32Bit(sample);
+					current.sampleL[s]=(isUnsigned)?ModConstants.promoteUnsigned16BitToSigned32Bit(sample):ModConstants.promoteSigned16BitToSigned32Bit(sample);
 				}
 				if (isStereo)
 				{
 					for (int s=0; s<current.sampleLength; s++)
 					{
 						final short sample = (isBigEndian)?inputStream.readMotorolaWord():inputStream.readIntelWord();
-						if (isUnsigned) // unsigned
-							current.sampleR[s]=ModConstants.promoteUnsigned16BitToSigned32Bit(sample);
-						else
-							current.sampleR[s]=ModConstants.promoteSigned16BitToSigned32Bit(sample);
+						current.sampleR[s]=(isUnsigned)?ModConstants.promoteUnsigned16BitToSigned32Bit(sample):ModConstants.promoteSigned16BitToSigned32Bit(sample);
 					}
 				}
 			}
@@ -682,23 +676,16 @@ public abstract class Module
 				for (int s=0; s<current.sampleLength; s++)
 				{
 					final byte sample = inputStream.readByte();
-					if (isUnsigned) // unsigned
-						current.sampleL[s]=ModConstants.promoteUnsigned8BitToSigned32Bit(sample);
-					else
-						current.sampleL[s]=ModConstants.promoteSigned8BitToSigned32Bit(sample);
+					current.sampleL[s]=(isUnsigned)?ModConstants.promoteUnsigned8BitToSigned32Bit(sample):ModConstants.promoteSigned8BitToSigned32Bit(sample);
 				}
 				if (isStereo)
 				{
 					for (int s=0; s<current.sampleLength; s++)
 					{
 						final byte sample = inputStream.readByte();
-						if (isUnsigned) // unsigned
-							current.sampleR[s]=ModConstants.promoteUnsigned8BitToSigned32Bit(sample);
-						else
-							current.sampleR[s]=ModConstants.promoteSigned8BitToSigned32Bit(sample);
+						current.sampleR[s]=(isUnsigned)?ModConstants.promoteUnsigned8BitToSigned32Bit(sample):ModConstants.promoteSigned8BitToSigned32Bit(sample);
 					}
 				}
-
 			}
 			current.fixSampleLoops(getModType());
 		}
@@ -795,22 +782,23 @@ public abstract class Module
 		arrangementPositionPlayed = new boolean[length];
 	}
 	/**
-	 * Automatically cleans up the arrangement data (if illegal pattnums
-	 * or marker pattern are in there...)
-	 * @since 03.10.2010
+	 * Automatically remove the "end of order" marker
+	 * @since 31.05.2026
 	 */
-	protected void cleanUpArrangement()
+	protected void removeEndOfArrangement()
 	{
 		int realLen = 0;
 		for (int i=0; i<songLength; i++)
 		{
-			if (getArrangement()[i]==255) // end of Song:
-				break;
-			else
-			if (getArrangement()[i]<254 && getArrangement()[i]<getNPattern())
-				getArrangement()[realLen++]=getArrangement()[i];
+//			if (arrangement[i]==0xFF && !isValidPatternNumber(arrangement[i])) break; // should have been translated!
+			if (arrangement[i]==ModConstants.INVALID_PAT_INDEX) break;
+			arrangement[realLen++] = arrangement[i];
 		}
 		songLength = realLen;
+	}
+	public boolean isValidPatternNumber(final int patNum)
+	{
+		return patNum < getNPattern();
 	}
 	/**
 	 * @return Returns the arrangement.

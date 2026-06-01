@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 Iota (MIDI RELEASE)
+# JavaMod V3.9.6 Kappa (MIDI RELEASE)
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -115,6 +115,11 @@ JavaMod incorporates modified versions of the following libraries:
 * FIX: Positions jumps exceeding song length mean "go to restart position"
 * FIX: Because of envModifiers we need OMPTs way of Resonance and Filters. 
        LUTs are now correctly calculated.
+* FIX: OMPT supports marker pattern. That influences the values of PositionJump.
+       So we cannot just throw them out, we need to keep them.
+* FIX: STM set tempo/bpm handling was wrong because of wrong version setting,
+       overwriting the low version number
+* FIX: Ping Pong Loops and interpolation magic had an error!
 * NEW: added missing effects of OMPT: setFinetune, setSmoothFinetune and
        Note Delay&Cut
 * NEW: added MixingLevels of OMPT, XMs and ITs make use of that
@@ -125,7 +130,14 @@ JavaMod incorporates modified versions of the following libraries:
 * NEW: Dithering was changed to an integer version to gain more performance
 * NEW: Introduction of SampleFrame to avoid something like long[] to retrieve
        sample data
-* NEW: Preparing load and playback of MIDI Data (XM, IT, MPTM)
+* NEW: Sinc 8 and 16 taps - Windowed FIR is still on the menue
+* NEW: MIDI Data (XM, IT, MPTM), Midi Macros, all loaded, interpreted and send
+       to a selected MIDI device.
+       Remarks:
+       - Select a MIDI device in the MOD config dialog. The MIDI-device for
+         MIDI playback is handled separately.
+       - With Gervill you can select a soundfont SF2-File
+       - Gervill is not quite good at time sync
 * NEW: Instrument Dialog got some fancy sliders for some values plus nice
        tooltip texts
 

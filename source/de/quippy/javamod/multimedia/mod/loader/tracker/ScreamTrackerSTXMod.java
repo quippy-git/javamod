@@ -464,7 +464,6 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 			if (subversion==0) inputStream.skip(2); // skip the pattern size in front of pattern
 			setPattern(pattNum, inputStream);
 		}
-		cleanUpArrangement();
 		setTrackerName("ST Music Interface Kit V1." + subversion);
 	}
 }

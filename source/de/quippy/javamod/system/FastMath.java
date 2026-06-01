@@ -172,6 +172,16 @@ public class FastMath
 	    return Double.longBitsToDouble(((long)(k + 1023)) << 52) * y;
 	}
 	/**
+	 * @since 01.06.2026
+	 * @param bits
+	 * @return
+	 */
+	public static int log2(final int bits)
+	{
+	    if (bits <= 0) throw new IllegalArgumentException("No negative numbers at Log2 allowed!");
+	    return 31 - Integer.numberOfLeadingZeros(bits);
+	}
+	/**
 	 * @since 29.01.2023
 	 * @param x
 	 * @return

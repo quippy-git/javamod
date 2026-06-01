@@ -79,7 +79,7 @@ public class PatternElementXM extends PatternElement
 			case 0x09: return "Sample Offset";
 			case 0x0A: return "Volume Slide";
 			case 0x0B: return "Pattern Position Jump";
-			case 0x0C: return "Set volume";
+			case 0x0C: return "Set Volume";
 			case 0x0D: return "Pattern break";
 			case 0x0E:
 				final int effektOpEx = effektOp&0x0F;
