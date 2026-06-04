@@ -368,25 +368,25 @@ public class Sample
 	{
 		final int poslo = (currentTuningPos >> CubicSpline.SPLINE_FRACSHIFT) & CubicSpline.SPLINE_FRACMASK;
 
-		long v1 = (CubicSpline.lut[poslo  ]*sampleL[currentSamplePos-1]) +
+		long s1 = (CubicSpline.lut[poslo  ]*sampleL[currentSamplePos-1]) +
 				  (CubicSpline.lut[poslo+1]*sampleL[currentSamplePos  ]) +
 				  (CubicSpline.lut[poslo+2]*sampleL[currentSamplePos+1]) +
 				  (CubicSpline.lut[poslo+3]*sampleL[currentSamplePos+2]);
-		result.left =  v1 >> CubicSpline.SPLINE_QUANTBITS;
+		result.left =  s1 >> CubicSpline.SPLINE_QUANTBITS;
 
 		if (sampleR!=null)
 		{
-			v1 = (CubicSpline.lut[poslo  ]*sampleR[currentSamplePos-1]) +
+			s1 = (CubicSpline.lut[poslo  ]*sampleR[currentSamplePos-1]) +
 				 (CubicSpline.lut[poslo+1]*sampleR[currentSamplePos  ]) +
 				 (CubicSpline.lut[poslo+2]*sampleR[currentSamplePos+1]) +
 				 (CubicSpline.lut[poslo+3]*sampleR[currentSamplePos+2]);
-			result.right = v1 >> CubicSpline.SPLINE_QUANTBITS;
+			result.right = s1 >> CubicSpline.SPLINE_QUANTBITS;
 		}
 		else
 			result.right = result.left;
 	}
 	/**
-	 * does a Kaiser Window interpolation with the next sample
+	 * does a Kaiser Window (8 taps) interpolation with the next sample
 	 * @since 21.02.2024
 	 * @param result
 	 * @param currentSamplePos
@@ -401,7 +401,7 @@ public class Sample
 							(currentTuning>Kaiser.gDownsample13x_Limit)?Kaiser.gDownsample13x_8:
 							Kaiser.gKaiserSinc_8;
 
-		long v1 = (sinc[poslo  ]*sampleL[currentSamplePos-3]) +
+		long s1 = (sinc[poslo  ]*sampleL[currentSamplePos-3]) +
 				  (sinc[poslo+1]*sampleL[currentSamplePos-2]) +
 				  (sinc[poslo+2]*sampleL[currentSamplePos-1]) +
 				  (sinc[poslo+3]*sampleL[currentSamplePos  ]) +
@@ -409,11 +409,11 @@ public class Sample
 				  (sinc[poslo+5]*sampleL[currentSamplePos+2]) +
 				  (sinc[poslo+6]*sampleL[currentSamplePos+3]) +
 				  (sinc[poslo+7]*sampleL[currentSamplePos+4]);
-		result.left = v1 >> Kaiser.SINC_QUANTSHIFT;
+		result.left = s1 >> Kaiser.SINC_QUANTSHIFT;
 
 		if (sampleR!=null)
 		{
-			v1 = (sinc[poslo  ]*sampleR[currentSamplePos-3]) +
+			s1 = (sinc[poslo  ]*sampleR[currentSamplePos-3]) +
 				 (sinc[poslo+1]*sampleR[currentSamplePos-2]) +
 				 (sinc[poslo+2]*sampleR[currentSamplePos-1]) +
 				 (sinc[poslo+3]*sampleR[currentSamplePos  ]) +
@@ -421,13 +421,13 @@ public class Sample
 				 (sinc[poslo+5]*sampleR[currentSamplePos+2]) +
 				 (sinc[poslo+6]*sampleR[currentSamplePos+3]) +
 				 (sinc[poslo+7]*sampleR[currentSamplePos+4]);
-			result.right = v1 >> Kaiser.SINC_QUANTSHIFT;
+			result.right = s1 >> Kaiser.SINC_QUANTSHIFT;
 		}
 		else
 			result.right = result.left;
 	}
 	/**
-	 * does a Kaiser Window interpolation with the next sample
+	 * does a Kaiser Window (16 taps) interpolation with the next sample
 	 * @since 21.02.2024
 	 * @param result
 	 * @param currentSamplePos
@@ -442,7 +442,7 @@ public class Sample
 							(currentTuning>Kaiser.gDownsample13x_Limit)?Kaiser.gDownsample13x_16:
 							Kaiser.gKaiserSinc_16;
 
-		long v1 = (sinc[poslo   ]*sampleL[currentSamplePos-7]) +
+		long s1 = (sinc[poslo   ]*sampleL[currentSamplePos-7]) +
 				  (sinc[poslo+ 1]*sampleL[currentSamplePos-6]) +
 				  (sinc[poslo+ 2]*sampleL[currentSamplePos-5]) +
 				  (sinc[poslo+ 3]*sampleL[currentSamplePos-4]) +
@@ -458,11 +458,11 @@ public class Sample
 				  (sinc[poslo+13]*sampleL[currentSamplePos+6]) + 
 				  (sinc[poslo+14]*sampleL[currentSamplePos+7]) + 
 				  (sinc[poslo+15]*sampleL[currentSamplePos+8]); 
-		result.left = v1 >> Kaiser.SINC_QUANTSHIFT;
+		result.left = s1 >> Kaiser.SINC_QUANTSHIFT;
 
 		if (sampleR!=null)
 		{
-			v1 = (sinc[poslo   ]*sampleR[currentSamplePos-7]) +
+			s1 = (sinc[poslo   ]*sampleR[currentSamplePos-7]) +
 				 (sinc[poslo+ 1]*sampleR[currentSamplePos-6]) +
 				 (sinc[poslo+ 2]*sampleR[currentSamplePos-5]) +
 				 (sinc[poslo+ 3]*sampleR[currentSamplePos-4]) +
@@ -478,7 +478,7 @@ public class Sample
 				 (sinc[poslo+13]*sampleR[currentSamplePos+6]) + 
 				 (sinc[poslo+14]*sampleR[currentSamplePos+7]) + 
 				 (sinc[poslo+15]*sampleR[currentSamplePos+8]); 
-			result.right = v1 >> Kaiser.SINC_QUANTSHIFT;
+			result.right = s1 >> Kaiser.SINC_QUANTSHIFT;
 		}
 		else
 			result.right = result.left;
@@ -493,27 +493,27 @@ public class Sample
 	{
 		final int poslo = ((currentTuningPos+WindowedFIR.WFIR_FRACHALVE)>>WindowedFIR.WFIR_FRACSHIFT) & WindowedFIR.WFIR_FRACMASK;
 
-		long v1 = (WindowedFIR.lut[poslo  ]*sampleL[currentSamplePos-3]) +
+		long s1 = (WindowedFIR.lut[poslo  ]*sampleL[currentSamplePos-3]) +
 				  (WindowedFIR.lut[poslo+1]*sampleL[currentSamplePos-2]) +
 				  (WindowedFIR.lut[poslo+2]*sampleL[currentSamplePos-1]) +
-				  (WindowedFIR.lut[poslo+3]*sampleL[currentSamplePos  ]);
-		long v2 = (WindowedFIR.lut[poslo+4]*sampleL[currentSamplePos+1]) +
+				  (WindowedFIR.lut[poslo+3]*sampleL[currentSamplePos  ]) +
+				  (WindowedFIR.lut[poslo+4]*sampleL[currentSamplePos+1]) +
 				  (WindowedFIR.lut[poslo+5]*sampleL[currentSamplePos+2]) +
 				  (WindowedFIR.lut[poslo+6]*sampleL[currentSamplePos+3]) +
 				  (WindowedFIR.lut[poslo+7]*sampleL[currentSamplePos+4]);
-		result.left = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
+		result.left = s1 >> WindowedFIR.WFIR_QUANTBITS;
 
 		if (sampleR!=null)
 		{
-			v1 = (WindowedFIR.lut[poslo  ]*sampleR[currentSamplePos-3]) +
+			s1 = (WindowedFIR.lut[poslo  ]*sampleR[currentSamplePos-3]) +
 				 (WindowedFIR.lut[poslo+1]*sampleR[currentSamplePos-2]) +
 				 (WindowedFIR.lut[poslo+2]*sampleR[currentSamplePos-1]) +
-				 (WindowedFIR.lut[poslo+3]*sampleR[currentSamplePos  ]);
-			v2 = (WindowedFIR.lut[poslo+4]*sampleR[currentSamplePos+1]) +
+				 (WindowedFIR.lut[poslo+3]*sampleR[currentSamplePos  ]) +
+				 (WindowedFIR.lut[poslo+4]*sampleR[currentSamplePos+1]) +
 				 (WindowedFIR.lut[poslo+5]*sampleR[currentSamplePos+2]) +
 				 (WindowedFIR.lut[poslo+6]*sampleR[currentSamplePos+3]) +
 				 (WindowedFIR.lut[poslo+7]*sampleR[currentSamplePos+4]);
-			result.right = (v1>>1) + (v2>>1) >> (WindowedFIR.WFIR_QUANTBITS-1);
+			result.right = s1 >> WindowedFIR.WFIR_QUANTBITS;
 		}
 		else
 			result.right = result.left;
@@ -543,15 +543,15 @@ public class Sample
 				case ModConstants.INTERPOLATION_CUBIC:
 					getCubicInterpolated(result, sampleIndex, currentTuningPos);
 					break;
-				case ModConstants.INTERPOLATION_WINDOWSFIR:
-					getFIRInterpolated(result, sampleIndex, currentTuningPos);
-					break;
 				case ModConstants.INTERPOLATION_KAISER_8:
 					getKaiser8Interpolated(result, sampleIndex, currentTuning, currentTuningPos);
 					break;
 				default:
 				case ModConstants.INTERPOLATION_KAISER_16:
 					getKaiser16Interpolated(result, sampleIndex, currentTuning, currentTuningPos);
+					break;
+				case ModConstants.INTERPOLATION_WINDOWSFIR:
+					getFIRInterpolated(result, sampleIndex, currentTuningPos);
 					break;
 			}
 		}

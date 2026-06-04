@@ -1,4 +1,4 @@
-# JavaMod V3.9.6 Kappa (MIDI RELEASE)
+# JavaMod V3.9.6 (The MIDI release)
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
@@ -119,7 +119,9 @@ JavaMod incorporates modified versions of the following libraries:
        So we cannot just throw them out, we need to keep them.
 * FIX: STM set tempo/bpm handling was wrong because of wrong version setting,
        overwriting the low version number
-* FIX: Ping Pong Loops and interpolation magic had an error!
+* FIX: Ping Pong Loops and interpolation magic had an error - so why not
+       overhaul that completely. Added Kaiser Window with 16 taps. The Windowed
+       FIR interpolation is still existing but moved in favour of Kaiser.
 * NEW: added missing effects of OMPT: setFinetune, setSmoothFinetune and
        Note Delay&Cut
 * NEW: added MixingLevels of OMPT, XMs and ITs make use of that

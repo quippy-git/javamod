@@ -48,7 +48,7 @@
  * - enabled reuse by removing statics - subclasses receive "their" own OPL3
  * - moved to "de.quippy.opl3" package inside the project
  * - added switch statement "case off" in getEnvelope
- * - HigHats, Cymbals, Snare and Bass Drum were to silent. Fixed
+ * - HigHats, Cymbals, Snare and Bass Drum were too silent. Fixed
  *   with some hack! This needs introspection!
  */
 
@@ -1161,7 +1161,7 @@ class EnvelopeGenerator
 				else
 					stage = Stage.SUSTAIN;
 			case SUSTAIN:
-				// The Sustain stage is mantained all the time of the Key ON,
+				// The Sustain stage is maintained all the time of the Key ON,
 				// even if we are in non-sustaining mode.
 				// This is necessary because, if the key is still pressed, we can
 				// change back and forth the state of EGT, and it will release and
