@@ -162,9 +162,6 @@ public class ModConstants
 //	public static final double	PAL_PAULA_MAX_HZ			= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_PERIOD);
 //	public static final double	PAL_PAULA_MAX_SAFE_HZ		= (PAULA_PAL_CLK / (double)PAL_PAULA_MIN_SAFE_PERIOD);
 
-	public static final int INTERWEAVE_FRAC		= 4;
-	public static final int INTERWEAVE_LEN		= 1<<INTERWEAVE_FRAC;
-
 	// The volume ramping constants
 	public static final int VOLRAMPLEN_FRAC		= 12;
 	public static final int VOLRAMPLEN			= 1<<VOLRAMPLEN_FRAC;

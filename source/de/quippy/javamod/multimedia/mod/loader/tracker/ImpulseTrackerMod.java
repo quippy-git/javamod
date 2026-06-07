@@ -751,6 +751,8 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 
 			final Sample currentSample = new Sample();
 
+			currentSample.ITPingPongCorrection = 1; // Set to one for ImpulseTracker (and all the others)
+
 			currentSample.dosFileName = inputStream.readString(13);
 			final int globalVolume = inputStream.read();
 			currentSample.globalVolume = (globalVolume>64)?64:globalVolume;

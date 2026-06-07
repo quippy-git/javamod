@@ -349,6 +349,15 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 	}
 	/**
+	 * @since 05.06.2026
+	 * @param aktMemo
+	 */
+	protected void doNoteCut(final ChannelMemory aktMemo)
+	{
+		aktMemo.currentVolume = 0;
+		aktMemo.doFastVolRamp = true;
+	}
+	/**
 	 * @since 19.05.2026
 	 * @param aktMemo
 	 * @param NNA
@@ -758,8 +767,7 @@ public class ProTrackerMixer extends BasicModMixer
 						{
 							if (effektOp==0) // instant noteCut on first Tick
 							{
-								aktMemo.currentVolume = 0;
-								aktMemo.doFastVolRamp = true;
+								doNoteCut(aktMemo);
 							}
 							else
 								aktMemo.noteCutCount = effektOp;
@@ -1801,8 +1809,7 @@ public class ProTrackerMixer extends BasicModMixer
 							if (aktMemo.noteCutCount<=0)
 							{
 								aktMemo.noteCutCount=-1;
-								aktMemo.currentVolume = 0;
-								aktMemo.doFastVolRamp = true;
+								doNoteCut(aktMemo);
 							}
 						}
 						break;
