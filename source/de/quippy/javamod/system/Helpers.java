@@ -931,8 +931,9 @@ public class Helpers
 	 * If the baseURL provided is not absolute this method will generate an absolute file path
 	 * based on the inputFileName string
 	 * This works only for protocol "file"!!
-	 * @param baseURL
-	 * @param fileName
+	 * THIS IS FOR PLAYLISTS ONLY! It expects a file name at the end of baseURL - and so does a "getParent()"
+	 * @param baseURL the playlist file name with a full pathname
+	 * @param fileName one filename of the list
 	 * @return
 	 * @since 23.03.2011
 	 */
@@ -949,52 +950,58 @@ public class Helpers
 				return fileURL;
 			else
 			{
-				// get the path portion of the URL - this might lead to the same value of inputFileName (mostly it should)
-				String fileName = fileURL.toURI().getPath();
-				// and remove a possible trailing slash
-				if (fileName.charAt(0) == '/') fileName = fileName.substring(1);
+				final String path = createLocalFileStringFromURL(baseURL, true);
+				final Path basePath = Paths.get(path);
+				final Path fileName = Paths.get(inputFileName);
+				final String result = basePath.getParent().resolve(fileName).normalize().toString(); 
+				return createURLfromString(result);
 
-				// Get the path portion of the URL - and do (since Java 20) decode URL type entries (like %20 for spaces)!
-				final String path = baseURL.toURI().getPath();
-				
-				// a windows network drive is represented by "file:////servername/path..." - which is not a valid URI and the later "normalize" will delete those
-				final boolean isWindowsNetworkDrive = path.startsWith("//");
-
-				// now get rid of playlist file name
-				final int lastSlash = path.lastIndexOf('/');
-				final StringBuilder relPath = new StringBuilder(path.substring(0, lastSlash + 1));
-				
-				int iterations = 0;
-				
-				URL fullURL = new URI(baseURL.getProtocol(), null, baseURL.getHost(), baseURL.getPort(), ((new StringBuilder(relPath)).append(fileName)).toString(), null, null).toURL();
-				while (!urlExists(fullURL) && iterations<256)
-				{
-					relPath.append("../");
-					fullURL = new URI(baseURL.getProtocol(), null, baseURL.getHost(), baseURL.getPort(), ((new StringBuilder(relPath)).append(fileName)).toString(), null, null).toURL();
-					iterations++;
-				}
-				if (iterations<256)
-				{
-					try
-					{
-						final URI returnURL = fullURL.toURI().normalize();
-						if (isWindowsNetworkDrive) // normalize will delete the trailing "////" in front - so re-add those 
-							return new URI(returnURL.getScheme(), null, returnURL.getHost(), returnURL.getPort(), ((new StringBuilder("///")).append(returnURL.getPath())).toString(), null, null).toURL();
-						else
-							return returnURL.toURL();
-					}
-					catch (final URISyntaxException x)
-					{
-						Log.error("[createAbsolutePathForFile]", x);
-					}
-					// we failed :(, so just the fullURL
-					return fullURL;
-				}
-				else
-				{
-					Log.info("File not found: " + inputFileName + " in relation to " + baseURL);
-					return Helpers.createURLfromString(inputFileName);
-				}
+//				// get the path portion of the URL - this might lead to the same value of inputFileName (mostly it should)
+//				String fileName = fileURL.toURI().getPath();
+//				// and remove a possible trailing slash
+//				if (fileName.charAt(0) == '/') fileName = fileName.substring(1);
+//
+//				// Get the path portion of the URL - and do (since Java 20) decode URL type entries (like %20 for spaces)!
+//				final String path = baseURL.toURI().getPath();
+//				
+//				// a windows network drive is represented by "file:////servername/path..." - which is not a valid URI and the later "normalize" will delete those
+//				final boolean isWindowsNetworkDrive = path.startsWith("//");
+//
+//				// now get rid of playlist file name
+//				final int lastSlash = path.lastIndexOf('/');
+//				final StringBuilder relPath = new StringBuilder(path.substring(0, lastSlash + 1));
+//				
+//				int iterations = 0;
+//				
+//				URL fullURL = new URI(baseURL.getProtocol(), null, baseURL.getHost(), baseURL.getPort(), ((new StringBuilder(relPath)).append(fileName)).toString(), null, null).toURL();
+//				while (!urlExists(fullURL) && iterations<256)
+//				{
+//					relPath.append("../");
+//					fullURL = new URI(baseURL.getProtocol(), null, baseURL.getHost(), baseURL.getPort(), ((new StringBuilder(relPath)).append(fileName)).toString(), null, null).toURL();
+//					iterations++;
+//				}
+//				if (iterations<256)
+//				{
+//					try
+//					{
+//						final URI returnURL = fullURL.toURI().normalize();
+//						if (isWindowsNetworkDrive) // normalize will delete the trailing "////" in front - so re-add those 
+//							return new URI(returnURL.getScheme(), null, returnURL.getHost(), returnURL.getPort(), ((new StringBuilder("///")).append(returnURL.getPath())).toString(), null, null).toURL();
+//						else
+//							return returnURL.toURL();
+//					}
+//					catch (final URISyntaxException x)
+//					{
+//						Log.error("[createAbsolutePathForFile]", x);
+//					}
+//					// we failed :(, so just the fullURL
+//					return fullURL;
+//				}
+//				else
+//				{
+//					Log.info("File not found: " + inputFileName + " in relation to " + baseURL);
+//					return Helpers.createURLfromString(inputFileName);
+//				}
 			}
 		}
 		catch (final Throwable ex)

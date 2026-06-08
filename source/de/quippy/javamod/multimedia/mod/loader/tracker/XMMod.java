@@ -657,11 +657,11 @@ public class XMMod extends ProTrackerMod
 				volumeEnvelope.setNumberOfPoints(inputStream.read());
 				panningEnvelope.setNumberOfPoints(inputStream.read());
 	
-				volumeEnvelope.setSustainPoints_XM(inputStream.read());
+				volumeEnvelope.setSustainPoint_XM(inputStream.read());
 				volumeEnvelope.loopStartPoint = inputStream.read();
 				volumeEnvelope.loopEndPoint = inputStream.read();
 	
-				panningEnvelope.setSustainPoints_XM(inputStream.read());
+				panningEnvelope.setSustainPoint_XM(inputStream.read());
 				panningEnvelope.loopStartPoint = inputStream.read();
 				panningEnvelope.loopEndPoint = inputStream.read();
 	

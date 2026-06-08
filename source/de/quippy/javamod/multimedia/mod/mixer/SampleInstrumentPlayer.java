@@ -74,6 +74,7 @@ public class SampleInstrumentPlayer
 		{
 			currentMixer = currentModMixer.getModMixer();
 			aktMemo = currentMixer.new ChannelMemory();
+			aktMemo.rampDownMemory = currentMixer.new ChannelMemory();
 			aktMemo.instrumentFinished = true;
 		}
 	}
@@ -200,7 +201,7 @@ public class SampleInstrumentPlayer
 			if (aktMemo.noteFade && (aktMemo.fadeOutVolume<=0 || (aktMemo.actVolumeLeft<=0 && aktMemo.actRampVolRight<=0))) aktMemo.instrumentFinished=true;
 
 			//and then render one tick of sample data
-			currentMixer.mixChannelIntoBuffers(leftBuffer, rightBuffer, 0, samplesPerTick, aktMemo);
+			currentMixer.mixChannelIntoBuffers(leftBuffer, rightBuffer, 0, samplesPerTick, aktMemo, false);
 
 			// copy those to the render buffer
 			for (int s=0; s<samplesPerTick; s++)

@@ -484,6 +484,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		if (newChannel!=null)
 		{
 			newChannel.setUpFrom(aktMemo);
+			prepareRampDown(newChannel);
 			doDNA(aktMemo);
 			doNNA(newChannel, NNA);
 			// stop the current channel - it is copied
@@ -548,7 +549,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 	protected void doNoteCut(final ChannelMemory aktMemo)
 	{
 		aktMemo.noteCut = true;
-		aktMemo.doFastVolRamp = true;
+		//aktMemo.doFastVolRamp = true;
+		initRampDown(aktMemo);
 		//aktMemo.currentVolume = 0;
 		// Schism sets tuning=0 and deletes the last period
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
