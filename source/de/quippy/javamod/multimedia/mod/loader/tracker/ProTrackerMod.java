@@ -52,7 +52,7 @@ public class ProTrackerMod extends Module
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new ProTrackerMod());
+		ModuleFactory.registerModuleLoader(new ProTrackerMod());
 	}
 
 	private boolean isAmigaLike;			// Protracker like AMIGA mods. Others are played in XM-Mode

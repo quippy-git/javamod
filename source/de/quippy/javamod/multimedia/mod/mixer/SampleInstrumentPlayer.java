@@ -36,7 +36,6 @@ import de.quippy.javamod.multimedia.mod.ModConstants;
 import de.quippy.javamod.multimedia.mod.ModMixer;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Instrument;
 import de.quippy.javamod.multimedia.mod.loader.instrument.Sample;
-import de.quippy.javamod.multimedia.mod.mixer.BasicModMixer.ChannelMemory;
 
 /**
  * @author Daniel Becker
@@ -73,8 +72,8 @@ public class SampleInstrumentPlayer
 		if (currentModMixer!=null)
 		{
 			currentMixer = currentModMixer.getModMixer();
-			aktMemo = currentMixer.new ChannelMemory();
-			aktMemo.rampDownMemory = currentMixer.new ChannelMemory();
+			aktMemo = new ChannelMemory();
+			aktMemo.rampDownMemory = new ChannelMemory();
 			aktMemo.instrumentFinished = true;
 		}
 	}

@@ -50,7 +50,7 @@ public class MultiTrackerMod extends ProTrackerMod
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new MultiTrackerMod());
+		ModuleFactory.registerModuleLoader(new MultiTrackerMod());
 	}
 
 	protected int[] panningValue;

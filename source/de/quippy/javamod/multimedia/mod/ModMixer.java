@@ -473,7 +473,8 @@ public class ModMixer extends BasicMixer
 		final SampleFrame samples = new SampleFrame();
 
 		// how many Samples can we write out? We will need that to reset the currentSamplesWritten if MOD is looped.
-		final long allSamplesWritten = (getLengthInMilliseconds()!=-1)?getLengthInMilliseconds() * sampleRate / 1000L:-1;
+		final long lengthInMS = getLengthInMilliseconds();
+		final long allSamplesWritten = (lengthInMS!=-1)?lengthInMS * sampleRate / 1000L:-1;
 
 		try
 		{

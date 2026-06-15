@@ -203,6 +203,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 		if (newPeriod<=0)
 		{
 			aktMemo.currentTuning = 0;
+			if (!aktMemo.instrumentFinished) startRampDown(aktMemo);
 			return;
 		}
 
@@ -214,7 +215,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 			case ModConstants.IT_LINEAR_TABLE:
 				final long itTuning = ((((long)ModConstants.BASEPERIOD)<<(ModConstants.PERIOD_SHIFT + ModConstants.SHIFT)) * (long)aktMemo.currentFinetuneFrequency) / (long)sampleRate;
 				aktMemo.currentTuning = (int)(itTuning / newPeriod);
-				return;
+				break;
+
 			case ModConstants.STM_S3M_TABLE:
 			case ModConstants.IT_AMIGA_TABLE:
 				if (isS3M)
@@ -232,12 +234,14 @@ public class ScreamTrackerMixer extends BasicModMixer
 				}
 				else
 					aktMemo.currentTuning = globalTuning / ((newPeriod>aktMemo.portaStepDownEnd)?aktMemo.portaStepDownEnd:(newPeriod<aktMemo.portaStepUpEnd)?aktMemo.portaStepUpEnd:newPeriod);
-				return;
+				break;
+
 			default:
 				// if we end up here, something went terribly wrong!
-				super.setNewPlayerTuningFor(aktMemo, newPeriod);
-				return;
+				aktMemo.currentTuning = 0;
+				break;
 		}
+		if (aktMemo.currentTuning==0 && !aktMemo.instrumentFinished) startRampDown(aktMemo);
 	}
 	/**
 	 * @param aktMemo
@@ -484,7 +488,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		if (newChannel!=null)
 		{
 			newChannel.setUpFrom(aktMemo);
-			prepareRampDown(newChannel);
 			doDNA(aktMemo);
 			doNNA(newChannel, NNA);
 			// stop the current channel - it is copied
@@ -534,11 +537,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 			else
 				nna = currentInstrument.NNA;
 
-			// NNA_CUT is default for instruments with no NNA
-			// so do not copy this to a new channel for just finishing
-			// it off then.
-			/*if (currentInstrument.NNA!=ModConstants.NNA_CUT)*/ doNNANew(aktMemo, nna);
-			// but apply to plugins - which is only midi
+			doNNANew(aktMemo, nna);
+			// also apply to plugins - which is only midi
 			if (aktMemo.hasMidiOutput()) doNNAPlugins(aktMemo, nna);
 		}
 	}
@@ -549,13 +549,10 @@ public class ScreamTrackerMixer extends BasicModMixer
 	protected void doNoteCut(final ChannelMemory aktMemo)
 	{
 		aktMemo.noteCut = true;
-		//aktMemo.doFastVolRamp = true;
-		initRampDown(aktMemo);
 		//aktMemo.currentVolume = 0;
+		//aktMemo.doFastVolRamp = true;
 		// Schism sets tuning=0 and deletes the last period
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0);
-		// that would be our way:
-		//aktMemo.instrumentFinished = true;
 		if (aktMemo.hasMidiOutput()) modMidiMixer.sendMidiNote(aktMemo, ModConstants.KEY_OFF, 0);
 	}
 	/**
@@ -579,7 +576,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 	}
 	/**
 	 * To not over and over again implement the same algorithm, this method
-	 * will return a -value or a value. Just add (or substract) it
+	 * will return a -value or a value. Just add (or subtract) it
 	 * @since 22.12.2023
 	 * @param effectOp
 	 * @return
@@ -633,7 +630,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		resetFineTune(aktMemo, aktMemo.currentSample);
 		resetEnvelopes(aktMemo);
 		resetAutoVibrato(aktMemo, aktMemo.currentSample);
-		aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * @since 14.07.2024
@@ -1302,6 +1298,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 						globalVolume <<= 1;
 						if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
 					}
+					aktMemo.doFastVolRamp = true;
 				}
 				break;
 			case 0x17:			// Global Volume Slide
@@ -1729,7 +1726,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 
 		final int newPanning = aktMemo.currentInstrumentPanning + (((pDelta * aktMemo.panbrelloAmplitude) + 2) >> 3); // +2: round me at bit 1
 		aktMemo.panning = (newPanning<0)?0:((newPanning>256)?256:newPanning);
-		aktMemo.doFastVolRamp=true;
+		//aktMemo.doFastVolRamp=true;
 	}
 	/**
 	 * Convenient Method for the tremolo effekt
@@ -1749,7 +1746,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 			if (aktMemo.currentVolume>ModConstants.MAX_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MAX_SAMPLE_VOL;
 			else
 			if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
-			aktMemo.doFastVolRamp = true;
 		}
 		if (!isTick0 || (isIT && !oldITEffects)) aktMemo.tremoloTablePos += aktMemo.tremoloStep<<2;
 	}
@@ -1891,7 +1887,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		else
 		if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
 		aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
-		aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * Same as the volumeSlide, but affects the channel volume
@@ -1915,7 +1910,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		aktMemo.panning -= getFineSlideValue(aktMemo.panningSlideValue)<<2;
 		if (aktMemo.panning<0) aktMemo.panning=0; else if (aktMemo.panning>256) aktMemo.panning=256;
 		aktMemo.currentInstrumentPanning = aktMemo.panning; // IT stays on panning value and pans around that one
-		aktMemo.doFastVolRamp=true;
 	}
 	/**
 	 * Convenient Method for the Global VolumeSlideEffekt
@@ -1994,6 +1988,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				else
 				if (aktMemo.currentVolume<ModConstants.MIN_SAMPLE_VOL) aktMemo.currentVolume = ModConstants.MIN_SAMPLE_VOL;
 				aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+
 				aktMemo.doFastVolRamp = true;
 			}
 			if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);

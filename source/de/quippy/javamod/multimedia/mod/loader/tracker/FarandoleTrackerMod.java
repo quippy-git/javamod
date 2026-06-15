@@ -50,7 +50,7 @@ public class FarandoleTrackerMod extends ScreamTrackerMod
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new FarandoleTrackerMod());
+		ModuleFactory.registerModuleLoader(new FarandoleTrackerMod());
 	}
 
 	private static final int FARFILEMAGIC = 0xFE524146;

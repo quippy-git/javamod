@@ -134,8 +134,8 @@ public class ModConstants
 	public static final int INTERPOLATION_LINEAR		= 1;
 	public static final int INTERPOLATION_CUBIC			= 2;
 	public static final int INTERPOLATION_KAISER_8		= 3;
-	public static final int INTERPOLATION_KAISER_16		= 4;
-	public static final int INTERPOLATION_WINDOWSFIR	= 5;
+	public static final int INTERPOLATION_WINDOWSFIR	= 4;
+	public static final int INTERPOLATION_KAISER_16		= 5;
 	// AmigaEmulation
 	public static final int AMIGAEMULATION_NONE			= 0;
 	public static final int AMIGAEMULATION_AMIGA500		= 1;
@@ -143,7 +143,7 @@ public class ModConstants
 	// Interpolation / Emulation Strings for display
 	public static final String[] INTERPOLATION = new String[]
   	{
-  		"None", "Linear", "Cubic", "Sinc 8 taps", "Sinc 16 taps", "Windowed FIR"
+  		"None", "Linear", "Cubic", "Sinc 8 taps", "Sinc 8 + Low Pass", "Sinc 16 taps"
   	};
 	public static final String[] AMIGA_EMULATION = new String[]
   	{

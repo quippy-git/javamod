@@ -186,24 +186,44 @@ public class MidiMacros
 	}
 	/**
 	 * Return the size of a midi message
+	 * see ShortMessage::getDataLength
 	 * @since 28.05.2026
 	 * @param firstByte
 	 * @return
 	 */
 	public static int getEventLength(final int firstByte)
 	{
+		// channel voice and mode messages
 		switch (firstByte & 0xF0)
 		{
+			case 0x80:
+			case 0x90:
+			case 0xA0:
+			case 0xB0:
+			case 0xE0:
+				return 3;
 			case 0xC0:
 			case 0xD0:
 				return 2;
-			case 0xF0:
+			case 0xF0: // system common and system real-time messages
 				switch (firstByte)
 				{
-					case 0xF1:
-					case 0xF3:
+					case 0xF6: // Tune Request
+					case 0xF7: // EOX
+						// System real-time messages
+					case 0xF8: // Timing Clock
+					case 0xF9: // Undefined
+					case 0xFA: // Start
+					case 0xFB: // Continue
+					case 0xFC: // Stop
+					case 0xFD: // Undefined
+					case 0xFE: // Active Sensing
+					case 0xFF: // System Reset
+						return 1;
+					case 0xF1: // MTC Quarter Frame
+					case 0xF3: // Song Select
 						return 2;
-					case 0xF2:
+					case 0xF2: // Song Position Pointer
 						return 3;
 					default:
 						return 1;

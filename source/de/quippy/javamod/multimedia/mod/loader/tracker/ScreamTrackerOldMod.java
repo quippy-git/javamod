@@ -53,7 +53,7 @@ public class ScreamTrackerOldMod extends Module
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new ScreamTrackerOldMod());
+		ModuleFactory.registerModuleLoader(new ScreamTrackerOldMod());
 	}
 
 	/**

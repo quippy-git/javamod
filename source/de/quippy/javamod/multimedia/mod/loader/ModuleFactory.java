@@ -40,6 +40,10 @@ public class ModuleFactory
 {
 	private static Map<String, Module> fileExtensionMap;
 	private static ArrayList<Module> modulesArray;
+
+	// A cache of the last loaded MOD for getInstance
+	private static Module lastLoadedMod;
+	private static URL lastLoadedModURL;
 	/**
 	 * Constructor for ModuleFactory - This Class Is A Singleton
 	 */
@@ -71,14 +75,14 @@ public class ModuleFactory
 			modulesArray = new ArrayList<>();
 		return modulesArray;
 	}
-	public static void registerModule(final Module mod)
+	public static void registerModuleLoader(final Module mod)
 	{
 		getModulesArray().add(mod);
 		final String[] extensions = mod.getFileExtensionList();
 		for (final String extension : extensions)
 			getFileExtensionMap().put(extension, mod);
 	}
-	public static void deregisterModule(final Module mod)
+	public static void deregisterModuleLoader(final Module mod)
 	{
 		getModulesArray().remove(mod);
 		final String[] extensions = mod.getFileExtensionList();
@@ -107,7 +111,9 @@ public class ModuleFactory
 		{
 			try
 			{
-				if (mod.checkLoadingPossible(input)) return mod;
+				input.seek(0);
+				if (mod.checkLoadingPossible(input))
+					return mod.loadModFile(input);
 			}
 			catch (final IOException ex)
 			{
@@ -128,9 +134,8 @@ public class ModuleFactory
 		{
 			try
 			{
-				final Module result = mod.loadModFile(input);
 				input.seek(0);
-				return result; // <-- here this loading was a success!
+				return mod.loadModFile(input); // no Exception, loading was a success
 			}
 			catch (final Throwable ex)
 			{
@@ -164,6 +169,9 @@ public class ModuleFactory
 	 */
 	public static Module getInstance(final URL url) throws IOException
 	{
+		// return last loaded MOD, if same instance is requested again
+		if (lastLoadedMod!=null && lastLoadedModURL!=null && lastLoadedModURL.sameFile(url)) return lastLoadedMod;
+
 		ModfileInputStream inputStream = null;
 		try
 		{
@@ -171,16 +179,15 @@ public class ModuleFactory
 			Module mod = getModuleFromStreamByID(inputStream);
 			// If the header gives no infos, it's obviously a Noise Tracker file
 			// So let's try all loaders
-			if (mod!=null)
-				return mod.loadModFile(inputStream);
-			else
+			if (mod==null)
 			{
 				mod = getModuleFromStream(inputStream);
-				if (mod!=null)
-					return mod;
-				else
+				if (mod==null) // still no success - unsupported!
 					throw new IOException("Unsupported MOD-Type: " + inputStream.getFileName());
 			}
+
+			lastLoadedModURL = url;
+			return lastLoadedMod = mod;
 		}
 		catch (final Throwable ex)
 		{

@@ -169,7 +169,8 @@ public class Paula
 	public class BLEP
 	{
 		// this BLEP table was coded by aciddose
-		private static final double[] ACIDDOSE_LUT = {
+		private static final double[] ACIDDOSE_LUT =
+		{
            	 1.000047730261351741631870027, 1.000070326525919428561905988, 1.000026295486963423542192686, 0.999910424773336803383472216,
         	 0.999715744379055859525351480, 0.999433014919733908598686867, 0.999050085771328588712947294, 0.998551121919525108694415394,
         	 0.997915706233591937035498631, 0.997117832692634098457062919, 0.996124815495205595539118804, 0.994896148570364013963285288,
@@ -234,7 +235,6 @@ public class Paula
         	 0.000000037708832885684096027, 0.000000044457942869060847864, 0.000000039034296310091607592, 0.000000028962932871006776366,
         	 0.000000018763994698223029203, 0.000000010636937008622986639, 0.000000005187099504706206719, 0.000000002093670467469700098,
         	 0.000000000648951812097509606, 0.000000000132018063854003986, 0.000000000011591335682393882, 0.000000000000000000000000000,
-
         	 0.000000000000000000000000000 // 8bitbubsy: one extra zero is required for interpolation look-up
 		};
 
@@ -247,17 +247,17 @@ public class Paula
 		private static final int BLEP_BUFFER_SIZE	= BLEP_ZC + BLEP_OS;
 		private static final int BLEP_BUFFER_MASK	= BLEP_BUFFER_SIZE-1;
 		
-		// Scaling the bits - what a mess!
-		private static final int BLEP_SCALE			= 48; // Needed so the table keeps its values
-		private static final int SAMPLE_PRESHIFT	= 24; // we only have 8 Bit samples with Paula
+		// Scaling the bits
+		private static final int SAMPLE_PRESHIFT	= 32 - 8; // we only have 8 Bit samples with Paula
+		private static final int BLEP_SCALE			= 64 - (32-SAMPLE_PRESHIFT) - 1; // 64-8-1=55 Bits. At least Q48 needed so the table keeps its values. The 64-8 would work, but lets keep one bit of head room
 		private static final int BLEP_RESTSHIFT		= BLEP_SCALE - SAMPLE_PRESHIFT;
 
 		// Factors to use - so we do not miss the 1L (!)
 		private static final long BLEP_FACTOR		= 1L<<BLEP_SCALE;
-		private static final long SAMPLE_FACTOR		= 1L<<BLEP_RESTSHIFT;
+		private static final long SAMPLE_FACTOR		= 1L<<SAMPLE_PRESHIFT;
 		private static final long BLEP_REST_FACTOR	= 1L<<BLEP_RESTSHIFT;
 
-		private static final long[] BLEP_TABLE = new long[BLEP_SIZE + 1];
+		private static final long[] BLEP_TABLE = new long[BLEP_SIZE];
 		private long[] blepBuffer = new long[BLEP_BUFFER_SIZE];
 
 		private int blepPos, blepSamplesLeft;
@@ -276,7 +276,7 @@ public class Paula
 		{
 			// We use the original table from Aciddose and convert it on the fly
 			// at class loading.
-			for (int i=0; i<ACIDDOSE_LUT.length; i++)
+			for (int i=0; i<BLEP_SIZE; i++)
 				BLEP_TABLE[i] = (long)(ACIDDOSE_LUT[i] * (double)BLEP_FACTOR);
 		}
 

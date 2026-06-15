@@ -72,7 +72,7 @@ public class XMMod extends ProTrackerMod
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new XMMod());
+		ModuleFactory.registerModuleLoader(new XMMod());
 	}
 
 	private int version;

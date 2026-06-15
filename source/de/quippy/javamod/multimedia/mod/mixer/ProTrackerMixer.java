@@ -165,7 +165,7 @@ public class ProTrackerMixer extends BasicModMixer
 				else
 				if (clampedPeriod<ModConstants.PAL_PAULA_MIN_PERIOD) clampedPeriod = ModConstants.PAL_PAULA_MIN_PERIOD; // close to what happens on real Amiga
 				aktMemo.currentTuning = globalTuning / clampedPeriod;
-				return;
+				break;
 
 			case ModConstants.XM_AMIGA_TABLE:
 			case ModConstants.XM_LINEAR_TABLE:
@@ -173,9 +173,8 @@ public class ProTrackerMixer extends BasicModMixer
 				if (period==0)
 				{
 					aktMemo.currentTuning = 0;
-					return;
 				}
-				
+				else
 				if (frequencyTableType==ModConstants.XM_AMIGA_TABLE)
 				{
 					aktMemo.currentTuning = (globalTuning / period)>>2;
@@ -190,13 +189,14 @@ public class ProTrackerMixer extends BasicModMixer
 					final int newFrequency = ModConstants.lintab[remainder] >> (((14 - quotient) & 0x1F)-2); // values are 4 times bigger in FT2
 					aktMemo.currentTuning = (int)(((long)newFrequency<<ModConstants.SHIFT) / sampleRate);
 				}
-				return;
+				break;
 
 			default:
 				// if we end up here, something went terribly wrong!
-				super.setNewPlayerTuningFor(aktMemo, newPeriod);
-				return;
+				aktMemo.currentTuning = 0;
+				break;
 		}
+		if (aktMemo.currentTuning==0 && !aktMemo.instrumentFinished) startRampDown(aktMemo);
 	}
 	/**
 	 * @param aktMemo
@@ -339,8 +339,7 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 		else
 		{
-			aktMemo.currentVolume = 0;
-			aktMemo.doFastVolRamp = true;
+			doNoteCut(aktMemo);
 		}
 		final Envelope panningEnv = (currentInstrument!=null)?currentInstrument.panningEnvelope:null;
 		if (panningEnv!=null && !panningEnv.on) // another FT2 Bug
@@ -354,8 +353,10 @@ public class ProTrackerMixer extends BasicModMixer
 	 */
 	protected void doNoteCut(final ChannelMemory aktMemo)
 	{
-		aktMemo.currentVolume = 0;
+//		startRampDown(aktMemo);
+//		aktMemo.instrumentFinished = true;
 		aktMemo.doFastVolRamp = true;
+		aktMemo.currentVolume = 0;
 	}
 	/**
 	 * @since 19.05.2026
@@ -840,6 +841,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x10:			// Set global volume
 				globalVolume = (aktMemo.assignedEffektParam)<<1;
 				if (globalVolume>ModConstants.MAXGLOBALVOLUME) globalVolume = ModConstants.MAXGLOBALVOLUME;
+				aktMemo.doFastVolRamp = true;
 				break;
 			case 0x11:			// Global volume slide
 				//doGlobalVolumeSlideEffekt(aktMemo); //NOT ON TICK ZERO!
@@ -1367,7 +1369,6 @@ public class ProTrackerMixer extends BasicModMixer
 		final int pDelta = getVibratoDelta(aktMemo.panbrelloType, (aktMemo.panbrelloTablePos+0x10)>>2); // start with top value and be slow
 		final int newPanning = aktMemo.currentInstrumentPanning + (((pDelta * aktMemo.panbrelloAmplitude) + 4) >> 4); // +4: round me at bit 2
 		aktMemo.panning = (newPanning<0)?0:((newPanning>256)?256:newPanning);
-		aktMemo.doFastVolRamp=true;
 
 		aktMemo.panbrelloTablePos += aktMemo.panbrelloStep;
 	}
@@ -1423,6 +1424,7 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 
 		aktMemo.currentInstrumentVolume = aktMemo.currentVolume;
+		if (isMOD) aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * Convenient Method for the Global VolumeSlide effect
@@ -1490,13 +1492,15 @@ public class ProTrackerMixer extends BasicModMixer
 		}
 		else // FT2
 		{
-			aktMemo.currentSamplePos = aktMemo.sampleOffset;
-			if (aktMemo.currentSamplePos >= length)
+			if (aktMemo.sampleOffset >= length)
 			{
+				startRampDown(aktMemo);
 				aktMemo.currentSamplePos = sample.sampleLength-1;
 				aktMemo.instrumentFinished = true;
 				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0); // FT2 Compatibility: Don't play note if offset is beyond sample/loop length
 			}
+			else
+				aktMemo.currentSamplePos = aktMemo.sampleOffset;
 		}
 	}
 	/**
@@ -1934,7 +1938,7 @@ public class ProTrackerMixer extends BasicModMixer
 				break;
 			case 0x08: // Set Panning
 				aktMemo.FT2AllowRetriggerQuirk = aktMemo.assignedVolumeEffektOp==0;
-				// I was not able find out why, but a note delay with a note cut will ignore the panning in volume column.
+				// I was not able to find out why, but a note delay with a note cut will ignore the panning in volume column.
 				// However, a volume set is not ignored. The volume and panning are explicitly set in the noteDelay function
 				// but somehow the panning gets reset.
 				if (isXM && aktMemo.currentElement!=null && aktMemo.currentElement.getNoteIndex()==ModConstants.KEY_OFF && isNoteDelayEffekt(aktMemo.currentAssignedEffekt, aktMemo.currentAssignedEffektParam))

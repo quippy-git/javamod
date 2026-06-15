@@ -52,7 +52,7 @@ public class ScreamTrackerSTXMod extends ScreamTrackerOldMod
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new ScreamTrackerSTXMod());
+		ModuleFactory.registerModuleLoader(new ScreamTrackerSTXMod());
 	}
 	/**
 	 * Constructor for ScreamTrackerSTXMod

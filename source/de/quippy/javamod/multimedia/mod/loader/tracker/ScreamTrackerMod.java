@@ -97,7 +97,7 @@ public class ScreamTrackerMod extends Module
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new ScreamTrackerMod());
+		ModuleFactory.registerModuleLoader(new ScreamTrackerMod());
 	}
 
 	protected int flags;

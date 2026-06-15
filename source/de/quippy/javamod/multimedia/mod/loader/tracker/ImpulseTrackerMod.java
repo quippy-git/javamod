@@ -74,7 +74,7 @@ public class ImpulseTrackerMod extends ScreamTrackerMod
 	 */
 	static
 	{
-		ModuleFactory.registerModule(new ImpulseTrackerMod());
+		ModuleFactory.registerModuleLoader(new ImpulseTrackerMod());
 	}
 
 	protected int cmwt;
