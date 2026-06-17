@@ -108,7 +108,7 @@ public class SampleInstrumentPlayer
 	public void stopPlayback()
 	{
 		if (instrument!=null)
-			aktMemo.keyOff = true;
+			currentMixer.doKeyOff(aktMemo); // FT2 needs more than just a flag...
 		else
 		{
 			doHardStop = true;

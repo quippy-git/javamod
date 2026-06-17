@@ -321,7 +321,7 @@ public abstract class BasicModMixer
 				masterVolume = 192>>2;
 			else
 				masterVolume = mod.getMixingPreAmp(); // will result in "MIN_MIXING_PREAMP" for all except IT
-			extraAttenuation = (isIT)?0:1;
+			extraAttenuation = 1;
 			globalPreAmpShift = ModConstants.PREAMP_SHIFT;
 			useSoftPanning = false;
 		}
@@ -946,6 +946,14 @@ public abstract class BasicModMixer
 	 */
 	protected abstract void setNewInstrumentAndPeriod(final ChannelMemory aktMemo);
 	/**
+	 * Need this for the SampleInstrumentPlayer to be callable.
+	 * FT2 does a bit more to release the sustain part of an envelope than just
+	 * setting keyOff=true like Impulse Tracker does
+	 * @since 17.06.2026
+	 * @param aktMemo
+	 */
+	protected abstract void doKeyOff(final ChannelMemory aktMemo);
+	/**
 	 * @since 19.06.2020
 	 * @param aktMemo
 	 */
@@ -1062,6 +1070,15 @@ public abstract class BasicModMixer
 					aktMemo.volXMEnvPos = (int)(volPos>>32);
 					final int newVol = volumeEnv.getValueForPosition(aktMemo.volEnvTick, aktMemo.volXMEnvPos); // 0..512
 					currentVolume = (currentVolume * newVol) >> 9;
+					// Now release any NNA Channel, that is never coming up again
+					// That is, if this channel is an NNA, the envelope has a loop and that loop is zero
+					// because in an NNA there will be no event releasing that loop / sustain
+					// both *IsZero can only be true, if a loop is existing AND it is zero - so no additional check for active loop necessary
+					if (aktMemo.isNNA && currentVolume==0 && (volumeEnv.loopIsZero || volumeEnv.sustainIsZero))
+					{
+						aktMemo.instrumentFinished = true;
+						aktMemo.channelNumber = -1;
+					}
 				}
 			}
 
@@ -1122,33 +1139,26 @@ public abstract class BasicModMixer
 		}
 
 		// Even though a keyOff (===) releases the sustain (if any), it initializes a note fade additionally
+		// and we do that centrally, because this init can also come from the envelope
 		if (aktMemo.keyOff) initNoteFade(aktMemo);
 
 		// Do the note fade
 		// With XMs, a note fade without an instrument results in a note off, which is already done in doKeyOff()
 		if (aktMemo.noteFade)
 		{
-			if (aktMemo.fadeOutVolume<=0 &&
-				aktMemo.actRampVolLeft==0 && aktMemo.actRampVolRight==0) // end reached? need to check this first to go the whole distance!
-//				&& aktMemo.deltaVolLeft==0 && aktMemo.deltaVolRight==0) 
-			{
-				//aktMemo.noteFade = false; // prevent from accidently reactivating a note fade
-
-				currentVolume = 0; // then volume is zero
-
-				// With IT a finished noteFade also sets the instrument as finished
-				if (isIT && aktMemo.isChannelActive())
-				{
-					startRampDown(aktMemo); // finish off any rest, because we stop the instrument
-					aktMemo.instrumentFinished = true;
-					if (aktMemo.isNNA) aktMemo.channelNumber = -1; // plus release an NNA channel
-				}
-			}
-			else
-			if (currentInstrument!=null) // in this scenario this cannot be, but to avoid "possible null pointer access" warning
+			if (currentInstrument!=null)
 			{
 				aktMemo.fadeOutVolume -= (currentInstrument.volumeFadeOut<<1);
-				if (aktMemo.fadeOutVolume<0) aktMemo.fadeOutVolume = 0;
+				if (aktMemo.fadeOutVolume<0)
+				{
+					aktMemo.fadeOutVolume = 0;
+				    if (aktMemo.actRampVolLeft==0 && aktMemo.actRampVolRight==0) // ramping reached the zero?
+				    {
+						// With IT a finished noteFade also sets the instrument as finished
+						if (isIT) aktMemo.instrumentFinished = true;
+						if (aktMemo.isNNA) aktMemo.channelNumber = -1; // plus release an NNA channel
+				    }
+				}
 				currentVolume = (currentVolume * aktMemo.fadeOutVolume) >> ModConstants.MAXFADEOUTVOLSHIFT;
 			}
 //			else
@@ -1370,7 +1380,7 @@ public abstract class BasicModMixer
 					}
 					break;
 				case 'v': // Channel Volume
-					// currentVolume: 0..64 swingVolume: 0..64 globalVolume: 0..128 --> >>7 channelVolume: 0..64 --> >>6 ins.globalVolume: 0..128 --> <<7 --> >> 20 - 1 to result in 0..128
+					// currentVolume: 0..64 swingVolume: 0..64 globalVolume: 0..128 --> >>7 channelVolume: 0..64 --> >>6 ins.globalVolume: 0..128 --> >>7 --> >> 20 - 1 to result in 0..128
 					int velocity = (int)(((long)(aktMemo.currentVolume+aktMemo.swingVolume) * (long)globalVolume * (long)aktMemo.channelVolume * (long)instrument.globalVolume) >> (7+6+7-1));
 					data = (velocity<1)?1:(velocity>127)?127:velocity;
 					break;
@@ -1804,6 +1814,7 @@ public abstract class BasicModMixer
 			// Sample panning overrides instrument panning
 			if (newSample.setPanning) aktMemo.currentInstrumentPanning = aktMemo.panning = newSample.defaultPanning;
 		}
+		// if a rampDown/Up is needed, the caller must decide
 		//aktMemo.doFastVolRamp = true; // resetting the volume means some kind of "re-trigger" - do not make it soft!
 	}
 	/**
@@ -1912,8 +1923,11 @@ public abstract class BasicModMixer
 		if (aktMemo.tremoloOn) // We have a tremolo for reset
 		{
 			aktMemo.tremoloOn = false;
-			if (!isXM) aktMemo.currentVolume = aktMemo.currentInstrumentVolume;
-			//aktMemo.doFastVolRamp = true;
+			if (!isXM)
+			{
+				aktMemo.currentVolume = aktMemo.currentInstrumentVolume;
+				//aktMemo.doFastVolRamp = true;
+			}
 		}
 
 		if (aktMemo.panbrelloOn) // We have a panbrello for reset
@@ -2043,15 +2057,10 @@ public abstract class BasicModMixer
 	 */
 	protected void startRampDown(final ChannelMemory aktMemo)
 	{
-		if (aktMemo.isChannelActive()) // rampDown needed?
+		if (aktMemo.isChannelActive() && !aktMemo.hasMidiOutput() && (aktMemo.actRampVolLeft>0 || aktMemo.actRampVolRight>0)) // rampDown needed?
 		{
 			aktMemo.setUpRampDown(); // copy current to rampDownMemory
 			calculateVolRampLen(aktMemo.rampDownMemory);
-		}
-		else 
-		if (aktMemo.isNNA) // just to be sure: if we want to ramp down a finished NNA channel (NOTE_CUT), release it - nobody else would!
-		{
-			aktMemo.channelNumber = -1;
 		}
 	}
 	/**
@@ -2670,16 +2679,7 @@ public abstract class BasicModMixer
 				final ChannelMemory rampDownMemo = aktMemo.rampDownMemory;
 				if (rampDownMemo.currentTuning==0 && !rampDownMemo.instrumentFinished)
 					rampDownMemo.currentTuning = 1;
-				if (rampDownMemo.isChannelActive() && !rampDownMemo.hasMidiOutput())
-				{
-					mixChannelIntoBuffers(leftBuffer, rightBuffer, startIndex, endIndex, rampDownMemo, true);
-					// if the ramp down was finished and this is an NNA Channel (NOTE_CUT), we also release the NNA channel
-					if (rampDownMemo.instrumentFinished && aktMemo.isNNA)
-					{
-						aktMemo.instrumentFinished = true;
-						aktMemo.channelNumber = -1;
-					}
-				}
+				if (rampDownMemo.isChannelActive()) mixChannelIntoBuffers(leftBuffer, rightBuffer, startIndex, endIndex, rampDownMemo, true);
 
 				final boolean channelIsActive = aktMemo.isChannelActive();
 				final boolean isPlayingMidi = aktMemo.hasMidiOutput();

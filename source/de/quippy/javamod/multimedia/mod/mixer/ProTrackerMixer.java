@@ -329,6 +329,7 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void doKeyOff(final ChannelMemory aktMemo)
 	{
 		aktMemo.keyOff = true;
+
 		// XM has a certain envelope tick reset with key off and existing envelopes - tick is reset to the previous start position
 		// That way a sustain release is managed - however, with panning because of a bug, that does not work
 		final Instrument currentInstrument = aktMemo.assignedInstrument;
@@ -1536,7 +1537,11 @@ public class ProTrackerMixer extends BasicModMixer
 					doRetrig = ((tick % aktMemo.retrigCount)==0);
 			}
 			if (doRetrig)
+			{
+//				aktMemo.prepareRampDown(); // We might be still on our old sample before this row
 				resetInstrumentPointers(aktMemo, true);
+				aktMemo.rampDownMemory.instrumentFinished=true; // No Ramp Down
+			}
 			return;
 		}
 
@@ -1562,6 +1567,7 @@ public class ProTrackerMixer extends BasicModMixer
 
 			if (doRetrig)
 			{
+//				aktMemo.prepareRampDown(); // We might be still on our old sample before this row
 				// FT2 does triggerNote and triggerInstrument at this point
 				// triggerNote will reset the sample and recalculate the period
 				// and set that - but as that should not have changed, at the
@@ -1571,6 +1577,7 @@ public class ProTrackerMixer extends BasicModMixer
 				triggerFTInstrument(aktMemo);
 				// And also with Midi
 				if (aktMemo.hasMidiOutput()) modMidiMixer.processMidiOut(aktMemo, 0, -1, 0x01, false);
+				aktMemo.rampDownMemory.instrumentFinished=true; // No Ramp Down
 			}
 			return;
 		}
