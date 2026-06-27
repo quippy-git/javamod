@@ -277,7 +277,7 @@ public abstract class BasicModMixer
 		swinger = new Random();
 
 		if ((mod.getModType()&ModConstants.MODTYPE_MPT)!=0 || // is it Legacy MPT?
-			(mod.getModType()&(ModConstants.MODTYPE_MIX_ALL_LEGACY))!=0) // or at least legacy mixing?
+			(mod.getModType()&ModConstants.MODTYPE_MIX_ALL_LEGACY)!=0) // or at least legacy mixing?
 		{
 			// Do global Pre-Amp - with legacy ModPlug Tracker this was used...
 			// legacy: that is MPT <=1.17RC2
@@ -2404,153 +2404,6 @@ public abstract class BasicModMixer
 		return (currentPatternIndex==-1 && currentTick<=0);
 	}
 	/**
-	 * Add current speed to samplepos and
-	 * fit currentSamplePos into loop values
-	 * or signal Sample finished
-	 * @since 18.06.2006
-	 * @param aktMemo
-	 */
-	protected void fitIntoLoops(final ChannelMemory aktMemo)
-	{
-		final Sample sample = aktMemo.currentSample;
-		if (sample.sampleLength<=0) return;
-
-		aktMemo.currentTuningPos += aktMemo.currentTuning;
-		if (aktMemo.currentTuningPos >= ModConstants.SHIFT_MAX)
-		{
-			final int addToSamplePos = aktMemo.currentTuningPos >> ModConstants.SHIFT;
-			aktMemo.currentTuningPos &= ModConstants.SHIFT_MASK;
-			
-			// New tuning position - so initiate a blebInjection:
-			// 8BitBubsy's paulaGenerateSamples
-			if (paulaFilter!=null) paulaFilter.refetchPeriod(aktMemo.channelNumber, aktMemo.currentTuning, aktMemo.currentTuningPos);
-
-			// Set the start/end loop position to check against...
-			int loopStart = 0;
-			int loopEnd = sample.sampleLength;
-			int loopLength = sample.sampleLength;
-			int inLoop = 0;
-
-			if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
-			{
-				loopStart = sample.sustainLoopStart;
-				loopEnd = sample.sustainLoopStop;
-				loopLength = sample.sustainLoopLength;
-				inLoop = ModConstants.LOOP_SUSTAIN_ON;
-			}
-			else
-			if ((sample.loopType&ModConstants.LOOP_ON)!=0)
-			{
-				loopStart = sample.loopStart;
-				loopEnd = sample.loopStop;
-				loopLength = sample.loopLength;
-				inLoop = ModConstants.LOOP_ON;
-			}
-
-			// If Forward direction:
-			if (aktMemo.isForwardDirection)
-			{
-				aktMemo.currentSamplePos += addToSamplePos;
-
-				// do we have an overrun of border?
-				if (aktMemo.currentSamplePos >= loopEnd)
-				{
-					// In a mod file - if a new sample is set but not activated, activate now at end of loop
-					// but do not set volume or finetune. That was set before.
-					if (isMOD && aktMemo.assignedSample!=null && aktMemo.currentSample!=aktMemo.assignedSample)
-					{
-						startRampDown(aktMemo);
-						aktMemo.currentSample = aktMemo.assignedSample;
-						//aktMemo.assignedSample = null;
-						aktMemo.prevSampleOffset = 0;
-						// ProTracker always jumps to the loopStart and with empty loops these are 0-2 (mostly a silent part of the sample)
-						// but we reset that to 0/0 and wouldn't loop in (0/2) anyways - so we jump at the sample end in that case to simulate that.
-						aktMemo.currentSamplePos = ((sample.loopType&ModConstants.LOOP_ON)!=0)?aktMemo.currentSample.loopStart:aktMemo.currentSample.sampleLength-1;
-						return;
-					}
-					else
-					// We need to check against a loop set - maybe a sustain loop is finished
-					// but no normal loop is set:
-					if (inLoop==0) // if no loop, loopEnd is sampleLength - we are finished.
-					{
-						aktMemo.instrumentFinished = true;
-						aktMemo.interpolationMagic = 0;
-						// if this is a NNA channel, free it
-						if (aktMemo.isNNA) aktMemo.channelNumber = -1;
-						return;
-					}
-					else
-					{
-						// check if loop, that was enabled, is a ping pong
-					    // Edge case scenario with ping pongs: short loop length, high pitched note - we need to simulate the several back bounces
-						if ((inLoop == ModConstants.LOOP_ON && (sample.loopType & ModConstants.LOOP_IS_PINGPONG)!=0) ||
-							(inLoop == ModConstants.LOOP_SUSTAIN_ON && (sample.loopType & ModConstants.LOOP_SUSTAIN_IS_PINGPONG)!=0))
-						{
-							final int overShoot = aktMemo.currentSamplePos - loopEnd;
-						    final int numberOfLoops = overShoot / loopLength;
-						    final int rest = overShoot % loopLength;
-						    
-						    if ((numberOfLoops & 1) == 0)
-						    {
-						        // equal number of runs: we run backwards from loopEnd, corrected with rest
-						        aktMemo.isForwardDirection = false;
-						        aktMemo.currentSamplePos = loopEnd - rest - sample.ITPingPongCorrection;
-						    }
-						    else
-						    {
-						        // unequal number of runs: we run forward from loopStart, corrected with rest
-						        aktMemo.isForwardDirection = true;
-						        aktMemo.currentSamplePos = loopStart + rest; // no IT correction here
-						    }
-						}
-						else
-						{
-							aktMemo.currentSamplePos = loopStart + ((aktMemo.currentSamplePos - loopEnd) % loopLength);
-						}
-					}
-				}
-			}
-			else // Backwards in Ping Pong
-			{
-				aktMemo.currentSamplePos -= addToSamplePos;
-
-				if (aktMemo.currentSamplePos <= loopStart)
-				{
-				    final int overShoot = loopStart - aktMemo.currentSamplePos;
-				    final int numberOfLoops = overShoot / loopLength;
-				    final int rest = overShoot % loopLength;
-				    
-				    if ((numberOfLoops & 1) == 0)
-				    {
-				        // equal number of runs: we run forward from loopStart, corrected with rest
-				        aktMemo.isForwardDirection = true;
-				        aktMemo.currentSamplePos = loopStart + rest; // no IT correction here
-				    }
-				    else
-				    {
-				        // unequal number of runs: we run backwards from loopEnd, corrected with rest
-				        aktMemo.isForwardDirection = false;
-				        aktMemo.currentSamplePos = loopEnd - rest - sample.ITPingPongCorrection;
-				    }
-				}
-			}
-
-			// after reposition of sample pointer, check for interpolation magic
-			// I have no idea if that is still really needed, as we respect backwards direction with interpolation - but does not do any harm as well!
-			if (inLoop == ModConstants.LOOP_SUSTAIN_ON && !aktMemo.keyOff) // Sustain Loop on?
-			{
-				aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos);
-			}
-			else
-			if (inLoop == ModConstants.LOOP_ON)
-			{
-				aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos);
-			}
-			else
-				aktMemo.interpolationMagic = 0;
-		}
-	}
-	/**
 	 * Fill the buffers with channel data
 	 * @since 18.06.2006
 	 * @param leftBuffer
@@ -2561,15 +2414,40 @@ public abstract class BasicModMixer
 	 */
 	protected void mixChannelIntoBuffers(final long[] leftBuffer, final long[] rightBuffer, final int startIndex, final int endIndex, final ChannelMemory aktMemo, final boolean isRampDown)
 	{
+		Sample sample = aktMemo.currentSample;
+		if (sample==null || sample.sampleLength<=0) return;
+
+		// Set the start/end loop position to check against...
+		int loopStart = 0;
+		int loopEnd = sample.sampleLength;
+		int loopLength = sample.sampleLength;
+		int inLoop = 0;
+
+		if ((sample.loopType&ModConstants.LOOP_SUSTAIN_ON)!=0 && !aktMemo.keyOff) // Sustain Loop on?
+		{
+			loopStart = sample.sustainLoopStart;
+			loopEnd = sample.sustainLoopStop;
+			loopLength = sample.sustainLoopLength;
+			inLoop = ModConstants.LOOP_SUSTAIN_ON;
+		}
+		else
+		if ((sample.loopType&ModConstants.LOOP_ON)!=0)
+		{
+			loopStart = sample.loopStart;
+			loopEnd = sample.loopStop;
+			loopLength = sample.loopLength;
+			inLoop = ModConstants.LOOP_ON;
+		}
+
+		final int doISPhere = (paulaFilter!=null)?0:(aktMemo.assignedInstrument!=null && aktMemo.assignedInstrument.resampling>-1)?aktMemo.assignedInstrument.resampling:doISP;
+		
 		for (int i=startIndex; i<endIndex; i++)
 		{
 			// Retrieve the sample data for this point (interpolated, if necessary)
 			// the array "samples" is created with 2 elements per default
 			// we will receive 2 long values even with mono samples
 			// Evaluate the doISP: if paulaFilter is active, do NO ISP! Otherwise, respect assignment in assignedInstrument (OMPT)
-			final int doISPhere = (paulaFilter!=null)?0:  
-								  (aktMemo.assignedInstrument!=null && aktMemo.assignedInstrument.resampling>-1)?aktMemo.assignedInstrument.resampling:doISP;
-			aktMemo.currentSample.getInterpolatedSample(samples, doISPhere, aktMemo.currentTuning, aktMemo.currentSamplePos, aktMemo.currentTuningPos, !aktMemo.isForwardDirection, aktMemo.interpolationMagic);
+			sample.getInterpolatedSample(samples, doISPhere, aktMemo.currentTuning, aktMemo.currentSamplePos, aktMemo.currentTuningPos, !aktMemo.isForwardDirection, aktMemo.interpolationMagic);
 			
 			if (paulaFilter!=null)
 			{
@@ -2616,7 +2494,10 @@ public abstract class BasicModMixer
 			}
 			
 			if (isRampDown && aktMemo.deltaVolLeft==0 && aktMemo.deltaVolRight==0)
+			{
 				aktMemo.instrumentFinished = true;
+				break;
+			}
 
 			// do not store, if muted...
 			if (!aktMemo.muted)
@@ -2637,7 +2518,117 @@ public abstract class BasicModMixer
 			}
 
 			// Now next sample plus fit into loops - if any
-			fitIntoLoops(aktMemo);
+			aktMemo.currentTuningPos += aktMemo.currentTuning;
+			if (aktMemo.currentTuningPos < ModConstants.SHIFT_MAX) continue;
+
+			final int addToSamplePos = aktMemo.currentTuningPos >> ModConstants.SHIFT;
+			aktMemo.currentTuningPos &= ModConstants.SHIFT_MASK;
+			
+			// New tuning position - so initiate a blebInjection:
+			// 8BitBubsy's paulaGenerateSamples
+			if (paulaFilter!=null) paulaFilter.refetchPeriod(aktMemo.channelNumber, aktMemo.currentTuning, aktMemo.currentTuningPos);
+
+			// If Forward direction:
+			if (aktMemo.isForwardDirection)
+			{
+				aktMemo.currentSamplePos += addToSamplePos;
+
+				// do we have an overrun of border?
+				if (aktMemo.currentSamplePos >= loopEnd)
+				{
+					// In a mod file - if a new sample is set but not activated, activate now at end of loop
+					// but do not set volume or finetune. That was set before.
+					if (isMOD && aktMemo.assignedSample!=null && aktMemo.currentSample!=aktMemo.assignedSample)
+					{
+						sample = aktMemo.currentSample = aktMemo.assignedSample;
+						aktMemo.prevSampleOffset = 0;
+						// ProTracker always jumps to the loopStart and with empty loops these are 0-2 (mostly a silent part of the sample)
+						// but we reset that to 0/0 and wouldn't loop in (0/2) anyways - so we jump at the sample end in that case to simulate that.
+						aktMemo.currentSamplePos = ((sample.loopType&ModConstants.LOOP_ON)!=0)?aktMemo.currentSample.loopStart:aktMemo.currentSample.sampleLength-1;
+						aktMemo.currentTuningPos = 0;
+						continue;
+					}
+
+					// We need to check against a loop set - maybe a sustain loop is finished
+					// but no normal loop is set:
+					if (inLoop==0) // if no loop, loopEnd is sampleLength - we are finished.
+					{
+						aktMemo.instrumentFinished = true;
+						aktMemo.interpolationMagic = 0;
+						// if this is a NNA channel, free it
+						if (aktMemo.isNNA) aktMemo.channelNumber = -1;
+						break;
+					}
+
+					// check if loop, that was enabled, is a ping pong
+				    // Edge case scenario with ping pongs: short loop length, high pitched note - we need to simulate the several back bounces
+					if ((inLoop == ModConstants.LOOP_ON && (sample.loopType & ModConstants.LOOP_IS_PINGPONG)!=0) || 
+						(inLoop == ModConstants.LOOP_SUSTAIN_ON && (sample.loopType & ModConstants.LOOP_SUSTAIN_IS_PINGPONG)!=0))
+					{
+						final int overShoot = aktMemo.currentSamplePos - loopEnd;
+					    final int numberOfLoops = overShoot / loopLength;
+					    final int rest = overShoot % loopLength;
+					    
+					    if ((numberOfLoops & 1) == 0)
+					    {
+					        // equal number of runs: we run backwards from loopEnd, corrected with rest
+					        aktMemo.isForwardDirection = false;
+					        aktMemo.currentSamplePos = loopEnd - rest - sample.ITPingPongCorrection;
+					    }
+					    else
+					    {
+					        // unequal number of runs: we run forward from loopStart, corrected with rest
+					        aktMemo.isForwardDirection = true;
+					        aktMemo.currentSamplePos = loopStart + rest; // no IT correction here
+					    }
+					}
+					else
+					{
+						//aktMemo.currentSamplePos = loopStart + ((aktMemo.currentSamplePos - loopEnd) % loopLength);
+						// Modulo is expensive - at least most of the time:
+						aktMemo.currentSamplePos -= loopLength;
+						while (aktMemo.currentSamplePos >= loopEnd) aktMemo.currentSamplePos -= loopLength;
+					}
+				}
+			}
+			else // Backwards in Ping Pong
+			{
+				aktMemo.currentSamplePos -= addToSamplePos;
+
+				if (aktMemo.currentSamplePos <= loopStart)
+				{
+				    final int overShoot = loopStart - aktMemo.currentSamplePos;
+				    final int numberOfLoops = overShoot / loopLength;
+				    final int rest = overShoot % loopLength;
+				    
+				    if ((numberOfLoops & 1) == 0)
+				    {
+				        // equal number of runs: we run forward from loopStart, corrected with rest
+				        aktMemo.isForwardDirection = true;
+				        aktMemo.currentSamplePos = loopStart + rest; // no IT correction here
+				    }
+				    else
+				    {
+				        // unequal number of runs: we run backwards from loopEnd, corrected with rest
+				        aktMemo.isForwardDirection = false;
+				        aktMemo.currentSamplePos = loopEnd - rest - sample.ITPingPongCorrection;
+				    }
+				}
+			}
+
+			// after reposition of sample pointer, check for interpolation magic
+			// I have no idea if that is still really needed, as we respect backwards direction with interpolation - but does not do any harm as well!
+			if (inLoop == ModConstants.LOOP_SUSTAIN_ON) // Sustain Loop on?
+			{
+				aktMemo.interpolationMagic = sample.getSustainLoopMagic(aktMemo.currentSamplePos);
+			}
+			else
+			if (inLoop == ModConstants.LOOP_ON)
+			{
+				aktMemo.interpolationMagic = sample.getLoopMagic(aktMemo.currentSamplePos);
+			}
+			else
+				aktMemo.interpolationMagic = 0;
 
 			if (aktMemo.instrumentFinished) break;
 		}
