@@ -2538,14 +2538,25 @@ public abstract class BasicModMixer
 				{
 					// In a mod file - if a new sample is set but not activated, activate now at end of loop
 					// but do not set volume or finetune. That was set before.
-					if (isMOD && aktMemo.assignedSample!=null && aktMemo.currentSample!=aktMemo.assignedSample)
+					if (isMOD && aktMemo.assignedSample!=null && sample!=aktMemo.assignedSample)
 					{
 						sample = aktMemo.currentSample = aktMemo.assignedSample;
-						aktMemo.prevSampleOffset = 0;
+						// also set new loop endpoints (No sustain with Protracker Mods)
 						// ProTracker always jumps to the loopStart and with empty loops these are 0-2 (mostly a silent part of the sample)
 						// but we reset that to 0/0 and wouldn't loop in (0/2) anyways - so we jump at the sample end in that case to simulate that.
-						aktMemo.currentSamplePos = ((sample.loopType&ModConstants.LOOP_ON)!=0)?aktMemo.currentSample.loopStart:aktMemo.currentSample.sampleLength-1;
-						aktMemo.currentTuningPos = 0;
+						if ((sample.loopType&ModConstants.LOOP_ON)!=0)
+						{
+							aktMemo.currentSamplePos = loopStart = sample.loopStart;
+							loopEnd = sample.loopStop;
+							inLoop = ModConstants.LOOP_ON;
+						}
+						else
+						{
+							loopStart = 0;
+							aktMemo.currentSamplePos = (loopLength = loopEnd = sample.sampleLength) - 1;
+							inLoop = 0;
+						}
+						aktMemo.currentTuningPos = aktMemo.prevSampleOffset = 0;
 						continue;
 					}
 
@@ -2629,8 +2640,6 @@ public abstract class BasicModMixer
 			}
 			else
 				aktMemo.interpolationMagic = 0;
-
-			if (aktMemo.instrumentFinished) break;
 		}
 	}
 	/**
