@@ -274,10 +274,11 @@ public class Envelope
 			sustainStartPoint = Helpers.limitMax(sustainStartPoint, sustainEndPoint);
 		}
 		else
-		{
 			endPoint = -1;
+
+		if (endPoint<0)
 			on=sustain=loop=carry=filter=xm_style=false;
-		}
+
 		loopIsZero = false;
 		if (loop)
 		{

@@ -2164,18 +2164,19 @@ public class ProTrackerMixer extends BasicModMixer
 					if (aktMemo.assignedVolumeEffektOp!=0)
 						aktMemo.portaNoteStep = aktMemo.assignedVolumeEffektOp<<(ModConstants.PERIOD_SHIFT + 4);
 					preparePortaToNoteEffect(aktMemo);
-					doVolumeColumnRowEffekt(aktMemo);
-					doRowEffects(aktMemo);
-					return;
+//					doVolumeColumnRowEffekt(aktMemo);
+//					doRowEffects(aktMemo);
+//					return;
 				}
+				else
 				if (aktMemo.assignedEffekt==0x03 || aktMemo.assignedEffekt==0x05)
 				{
 					if (aktMemo.assignedEffekt!=0x05 && aktMemo.assignedEffektParam!=0)
 						aktMemo.portaNoteStep = aktMemo.assignedEffektParam<<ModConstants.PERIOD_SHIFT;
 					preparePortaToNoteEffect(aktMemo);
-					doVolumeColumnRowEffekt(aktMemo);
-					doRowEffects(aktMemo);
-					return;
+//					doVolumeColumnRowEffekt(aktMemo);
+//					doRowEffects(aktMemo);
+//					return;
 				}
 				// K00 would be handled here plus "no note, but instrument"
 				// however, we have setNewInstrumentAndPeriod for that cases
