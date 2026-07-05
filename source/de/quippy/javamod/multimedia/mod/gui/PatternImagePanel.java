@@ -87,7 +87,7 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	private int fullRowLength;			// length of a row WITH button
 	private int rowsAbove = -1;			// rows above our play indicator
 	private int rowsBelow = -1;			// rows below (and with) our play indicator. rowsAbove + rowsBelow are the full amount of displayable rows
-	private int currentChannels = -1;	// channels of the currentPattern
+	private int currentChannels = 0;	// channels of the currentPattern
 	private int parentWidth = -1;		// width of the canvas (JViewport)
 	private int parentHeight = -1;		// height of the canvas (JViewport)
 	private Dimension charDim = null;	// dimensions of one char
@@ -269,6 +269,10 @@ public class PatternImagePanel extends JComponent implements Scrollable
 	{
 		selectionColor = newSelectionColor;
 		playSelectionColor = newDimSelectionColor;
+	}
+	public void setChannels(final int channels)
+	{
+		currentChannels = channels;
 	}
 	public static Color getButtonColor()
 	{
@@ -477,11 +481,11 @@ public class PatternImagePanel extends JComponent implements Scrollable
 		rowsAbove = displayableRows>>1;
 		rowsBelow = displayableRows - rowsAbove;
 
-		currentChannels = (currentPattern==null)?0:currentPattern.getChannels();
+//		currentChannels = (currentPattern!=null)?currentPattern.getChannels():(prevPattern!=null)?prevPattern.getChannels():(nextPattern!=null)?nextPattern.getChannels():0;
 		patternRowLength = currentChannels * patternElementLength;
+		fullRowLength = patternRowLength + buttonLength;
 
-		fullRowLength = (currentPattern==null)?0:patternRowLength + buttonLength;
-		final int rows = (currentPattern==null)?0:currentPattern.getRowCount();
+		final int rows = (currentPattern!=null)?currentPattern.getRowCount():0;
 		int fullRowsHeight = (currentPattern==null)?parentHeight:(rows + rowsAbove + rowsBelow) * charDim.height; // two pixels insets at bottom...
 
 		setSize(fullRowLength, fullRowsHeight);

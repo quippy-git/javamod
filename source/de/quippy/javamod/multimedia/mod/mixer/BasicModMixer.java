@@ -255,9 +255,8 @@ public abstract class BasicModMixer
 
 		// Set to first pattern
 		currentTick = currentArrangement = currentRow = 0;
-		currentPatternIndex = mod.getArrangement()[currentArrangement];
-		currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-
+		skipIllegalPattern(mod.getArrangement(), mod.getSongLength());
+		
 		patternDelayCount = patternTicksDelayCount =
 		patternJumpRowIndex = patternBreakRowIndex = patternBreakPatternIndex = -1;
 		patternJumpSet = patternBreakSet = false;
@@ -305,7 +304,7 @@ public abstract class BasicModMixer
 		else
 		if (((mod.getModType()&ModConstants.MODTYPE_OMPT)!=0 ||  // Open Modplug Tracker?
 			 (mod.getModType()&ModConstants.MODTYPE_MIX_v1_17RC3)!=0) &&
-			(mod.getModType()&(ModConstants.MODTYPE_MIX_Compatible | ModConstants.MODTYPE_MIX_CompatibleFT2))==0) // But no compatible Mixing!
+			 (mod.getModType()&(ModConstants.MODTYPE_MIX_Compatible | ModConstants.MODTYPE_MIX_CompatibleFT2))==0) // But no compatible Mixing!
 		{
 			masterVolume = mod.getMixingPreAmp();
 			extraAttenuation = 0;
@@ -1814,8 +1813,7 @@ public abstract class BasicModMixer
 			// Sample panning overrides instrument panning
 			if (newSample.setPanning) aktMemo.currentInstrumentPanning = aktMemo.panning = newSample.defaultPanning;
 		}
-		// if a rampDown/Up is needed, the caller must decide
-		//aktMemo.doFastVolRamp = true; // resetting the volume means some kind of "re-trigger" - do not make it soft!
+		aktMemo.doFastVolRamp = true; // resetting the volume means some kind of "re-trigger" - do not make it soft!
 	}
 	/**
 	 * reset table positions of vibrato, tremolo and panbrello - if allowed
@@ -2176,6 +2174,30 @@ public abstract class BasicModMixer
 		}
 	}
 	/**
+	 * Sets currentPatternIndex and currentPattern to the next valid Pattern.
+	 * I.e. it will skip illegal pattern (==null or marker pattern)
+	 * @since 04.07.2026
+	 * @param arrangement
+	 * @param songLength
+	 */
+	protected void skipIllegalPattern(final int[] arrangement, final int songLength)
+	{
+		currentPatternIndex = arrangement[currentArrangement];
+		Pattern pattern = mod.getPatternContainer().getPattern(currentPatternIndex);
+		// Jump over marker pattern
+		while ((currentPatternIndex==ModConstants.IGNORE_PAT_INDEX || currentPatternIndex==ModConstants.INVALID_PAT_INDEX || pattern==null) && currentArrangement<songLength)
+		{
+			currentArrangement++;
+			if (currentArrangement>=songLength) break;
+			pattern = mod.getPatternContainer().getPattern(currentPatternIndex = arrangement[currentArrangement]);
+		}
+		// still not at end of song?
+		if (currentArrangement<songLength)
+			currentPattern = pattern;
+		else
+			currentPattern = null;
+	}
+	/**
 	 * Will proceed to the next row, the next pattern or signal "end of song"
 	 * Will also perform any pattern jumps and pattern breaks
 	 * @since 24.07.2024
@@ -2249,7 +2271,7 @@ public abstract class BasicModMixer
 			{
 				final int patIndex = arrangement[currentArrangement];
 				final Pattern pat = mod.getPatternContainer().getPattern(patIndex);
-				if (currentRow >= pat.getRowCount())
+				if (pat!=null && currentRow>=pat.getRowCount())
 				{
 					currentArrangement--;
 					currentRow=0;
@@ -2264,26 +2286,15 @@ public abstract class BasicModMixer
 
 			// End of song? Fetch new pattern if not...
 			if (currentArrangement<songLength)
-			{
-				currentPatternIndex = arrangement[currentArrangement];
-				// Jump over marker pattern
-				while ((currentPatternIndex==ModConstants.IGNORE_PAT_INDEX || currentPatternIndex==ModConstants.INVALID_PAT_INDEX) && currentArrangement<songLength)
-				{
-					currentArrangement++;
-					if (currentArrangement>=songLength) break;
-					currentPatternIndex = arrangement[currentArrangement];
-				}
-				// still not at end of song?
-				if (currentArrangement<songLength)
-					currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
-			}
+				skipIllegalPattern(arrangement, songLength);
+
 			// End of song? Fetch new pattern if not...
 			if (currentArrangement>=songLength)
 			{
 				if (!ignoreLoop && loopSong)
 				{
 					currentArrangement = mod.getSongRestart(); // can be -1 if not set
-					if (currentArrangement < 0) currentArrangement = 0;
+					if (currentArrangement<0) currentArrangement = 0;
 					currentPatternIndex = arrangement[currentArrangement];
 					currentPattern = mod.getPatternContainer().getPattern(currentPatternIndex);
 					// as this is per definition an infinite loop, activate fadeout, if wished

@@ -114,7 +114,7 @@ public class PatternContainer
 	}
 	public int getChannels()
 	{
-		return (patterns!=null && patterns.length>0 && patterns[0]!=null)?patterns[0].getChannels():0;
+		return (parentMod!=null)?parentMod.getNChannels():0;
 	}
 	/**
 	 * @since 23.08.2008
@@ -136,21 +136,23 @@ public class PatternContainer
 	 */
 	public Pattern getPattern(final int patternIndex)
 	{
-		return patterns[patternIndex];
+		return (patternIndex<patterns.length)?patterns[patternIndex]:null;
 	}
 	/**
 	 * @return Returns the pattern.
 	 */
 	public PatternRow getPatternRow(final int patternIndex, final int row)
 	{
-		return (patterns[patternIndex]!=null)?patterns[patternIndex].getPatternRow(row):null;
+		final Pattern pattern = getPattern(patternIndex);
+		return (pattern!=null)?pattern.getPatternRow(row):null;
 	}
 	/**
 	 * @return Returns the pattern.
 	 */
 	public PatternElement getPatternElement(final int patternIndex, final int row, final int channel)
 	{
-		return (patterns[patternIndex]!=null)?patterns[patternIndex].getPatternElement(row, channel):null;
+		final Pattern pattern = getPattern(patternIndex);
+		return (pattern!=null)?pattern.getPatternElement(row, channel):null;
 	}
 	/**
 	 * @param pattern The pattern to set.

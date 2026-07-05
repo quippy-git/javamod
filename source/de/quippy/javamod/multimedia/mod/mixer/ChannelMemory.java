@@ -110,6 +110,7 @@ public class ChannelMemory
 	public boolean tremorWasActive;
 	public int retrigCount, retrigMemo, retrigVolSlide;
 	public boolean FT2AllowRetriggerQuirk;
+	public int FT2_oldVolume, FT2_oldPanning;
 	public int sampleOffset, highSampleOffset, prevSampleOffset;
 	public int oldTempoParameter; // IT has Tempo memory
 	public int S_Effect_Memory; // IT specific S00 Memory
@@ -174,6 +175,10 @@ public class ChannelMemory
 		retrigCount = retrigMemo = retrigVolSlide = sampleOffset = highSampleOffset = prevSampleOffset = 0;
 		oldTempoParameter = S_Effect_Memory = IT_EFG = 0;
 		EFxSpeed = EFxDelay = EFxOffset = 0;
+		
+		FT2AllowRetriggerQuirk = false;
+		FT2_oldPanning = 128;
+		FT2_oldVolume = 0;
 
 		doSurround = false;
 

@@ -269,19 +269,23 @@ public class ProTrackerMixer extends BasicModMixer
 		aktMemo.assignedNoteIndex = note;
 
 		final Instrument ins = mod.getInstrumentContainer().getInstrument(aktMemo.currentAssignedInstrumentIndex-1);
-		aktMemo.assignedSample = (ins!=null)?mod.getInstrumentContainer().getSample(ins.getSampleIndex(note-1)):mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
+		final Sample sam = aktMemo.assignedSample = (ins!=null)?mod.getInstrumentContainer().getSample(ins.getSampleIndex(note-1)):mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 		aktMemo.assignedInstrumentIndex = aktMemo.currentAssignedInstrumentIndex;
 		aktMemo.assignedInstrument = aktMemo.currentAssignedInstrument;
 
 		if (note>96) note = 96;
-		aktMemo.currentSample = aktMemo.assignedSample;
-		if (aktMemo.assignedSample!=null) note += aktMemo.assignedSample.transpose;
+		aktMemo.currentSample = sam;
+		if (sam!=null) note += sam.transpose;
 
 		note&=0xFF; // note is an uint8_t - simulate
 		if (note>=10*12) return; // this is an uint8 compare and works for <0 as well - well at least when we do not get *that* negative...
 
 		// Memorize volumes to set in FT2 code, but do not do it (chn->oldVol...)
-		// resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.currentSample);
+		if (sam!=null)
+		{
+			aktMemo.FT2_oldVolume = sam.volume;
+			aktMemo.FT2_oldPanning = sam.defaultPanning;
+		}
 		resetFineTune(aktMemo, aktMemo.currentSample); // fineTune and other resets...
 		if (aktMemo.assignedEffekt==0x0E && (aktMemo.assignedEffektParam&0xF0)==0x50)
 			aktMemo.currentFineTune = ((aktMemo.assignedEffektParam&0x0F)<<4)-128;
@@ -296,6 +300,18 @@ public class ProTrackerMixer extends BasicModMixer
 			setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod);
 		}
 		resetInstrumentPointers(aktMemo, true);
+	}
+	/**
+	 * We need to move this to like FT2 does it
+	 * @since 05.07.2026
+	 * @param aktMemo
+	 */
+	protected void resetVolume(final ChannelMemory aktMemo)
+	{
+//		resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
+		aktMemo.currentInstrumentVolume= aktMemo.currentVolume = aktMemo.FT2_oldVolume;
+		aktMemo.panning = aktMemo.FT2_oldPanning;
+		aktMemo.doFastVolRamp = true;
 	}
 	/**
 	 * Convenient Method of FT2 retriggerInstrument
@@ -477,7 +493,7 @@ public class ProTrackerMixer extends BasicModMixer
 				doKeyOff(aktMemo);
 
 				if (element.getInstrument()>0)
-					resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
+					resetVolume(aktMemo);
 
 				// with a delayed keyOff, this needs to be done!
 				if (isNoteDelayEffect)
@@ -502,7 +518,7 @@ public class ProTrackerMixer extends BasicModMixer
 				if (element.getInstrument()>0)
 				{
 					// reset for new Instrument
-					resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.assignedSample);
+					resetVolume(aktMemo);
 					if (!isKeyOff) triggerFTInstrument(aktMemo);
 				}
 			}
@@ -574,8 +590,11 @@ public class ProTrackerMixer extends BasicModMixer
 					aktMemo.portaStepDown=(aktMemo.assignedEffektParam&0xFF)<<ModConstants.PERIOD_SHIFT;
 				break;
 			case 0x03:	 		// Porta To Note
-				if (aktMemo.assignedEffektParam!=0) aktMemo.portaNoteStep = aktMemo.assignedEffektParam<<ModConstants.PERIOD_SHIFT;
-				preparePortaToNoteEffect(aktMemo);
+				if (isMOD) // for FT this is now in processEffekts 
+				{
+					if (aktMemo.assignedEffektParam!=0) aktMemo.portaNoteStep = aktMemo.assignedEffektParam<<ModConstants.PERIOD_SHIFT;
+					preparePortaToNoteEffect(aktMemo);
+				}
 				break;
 			case 0x04:			// Vibrato
 				if ((aktMemo.assignedEffektParam>>4)!=0) aktMemo.vibratoStep = aktMemo.assignedEffektParam>>4;
@@ -584,17 +603,18 @@ public class ProTrackerMixer extends BasicModMixer
 				doVibratoEffekt(aktMemo);
 				break;
 			case 0x05:			// Porta To Note + VolumeSlide
-				preparePortaToNoteEffect(aktMemo);
-				// With Protracker Mods Porta without Parameter is just Porta, no Volume Slide - has not effect memory
-				if (isMOD && aktMemo.assignedEffektParam==0)
-					aktMemo.volumSlideValue = 0;
-				else
+				if (isMOD) // for FT this is now in processEffekts
+				{
+					preparePortaToNoteEffect(aktMemo);
+					// With Protracker Mods Porta without Parameter is just Porta, no Volume Slide - has no effect memory
+					if (aktMemo.assignedEffektParam==0) aktMemo.volumSlideValue = 0;
+				}
 				if (aktMemo.assignedEffektParam!=0) aktMemo.volumSlideValue = aktMemo.assignedEffektParam;
 				break;
 			case 0x06:			// Vibrato + VolumeSlide
 				aktMemo.vibratoOn = true;
 				doVibratoEffekt(aktMemo);
-				// With Protracker Mods Vibrato without Parameter is just Vibrato, no Volume Slide - has not effect memory
+				// With Protracker Mods Vibrato without Parameter is just Vibrato, no Volume Slide - has no effect memory
 				if (isMOD && aktMemo.assignedEffektParam==0)
 					aktMemo.volumSlideValue = 0;
 				else
@@ -661,18 +681,21 @@ public class ProTrackerMixer extends BasicModMixer
 				final int effektOp = aktMemo.assignedEffektParam&0x0F;
 				switch (aktMemo.assignedEffektParam>>4)
 				{
-					case 0x0:	// Set filter (MODs and XMs!)
-						// 0: on, 1: off (yes, really!)
-						if (paulaFilter!=null)
-							paulaFilter.setLEDFilter((effektOp&0x01)==0);
-						else
+					case 0x0:	// Set filter (MODs and NOT XMs!)
+						if (isMOD)
 						{
-							// Simulate with IT resonance filter
-							aktMemo.cutOff = ((effektOp&0x01)==0)?0x30:0x7F; // an educated guess on the value, that sounds reasonable...
-							// other standard values for the simulation...
-							aktMemo.filterMode = ModConstants.FLTMODE_LOWPASS;
-							aktMemo.resonance = 0x00;
-							setupChannelFilter(aktMemo, !aktMemo.filterOn, 256);
+							// 0: on, 1: off (yes, really!)
+							if (paulaFilter!=null)
+								paulaFilter.setLEDFilter((effektOp&0x01)==0);
+							else
+							{
+								// Simulate with IT resonance filter
+								aktMemo.cutOff = ((effektOp&0x01)==0)?0x30:0x7F; // an educated guess on the value, that sounds reasonable...
+								// other standard values for the simulation...
+								aktMemo.filterMode = ModConstants.FLTMODE_LOWPASS;
+								aktMemo.resonance = 0x00;
+								setupChannelFilter(aktMemo, !aktMemo.filterOn, 256);
+							}
 						}
 						break;
 					case 0x1:	// Fine Porta Up
@@ -1134,7 +1157,7 @@ public class ProTrackerMixer extends BasicModMixer
 
 			if (element.getInstrument()>0)
 			{
-				resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
+				resetVolume(aktMemo);
 				if (!isKeyOff) triggerFTInstrument(aktMemo);
 			}
 		}
@@ -1842,7 +1865,7 @@ public class ProTrackerMixer extends BasicModMixer
 
 								final PatternElement element = aktMemo.currentElement;
 								triggerFTNote(aktMemo, element.getNoteIndex());
-								if (element.getInstrument()>0) resetVolumeAndPanning(aktMemo, aktMemo.currentAssignedInstrument, aktMemo.currentSample);
+								if (element.getInstrument()>0) resetVolume(aktMemo);
 								triggerFTInstrument(aktMemo);
 								// With XMs, at finishing a note delay, only volume (0x01) or panning (0x08) are
 								// executed (explicitly at noteDelay())
@@ -1956,11 +1979,7 @@ public class ProTrackerMixer extends BasicModMixer
 			case 0x0A: // Panning Slide Right
 				break;
 			case 0x0B: // Tone Porta
-				// With XMs the porta2note effect is not changed, if a note delay is set.
-				// However, no special treatment needed, as note delays are handled as in FT2 - so automatically working
-				if (aktMemo.assignedVolumeEffektOp!=0)
-					aktMemo.portaNoteStep = aktMemo.assignedVolumeEffektOp<<(ModConstants.PERIOD_SHIFT + 4);
-				preparePortaToNoteEffect(aktMemo);
+				// This is now done in processEffekts
 				break;
 //			case 0x0C: // Porta Down
 //				if (aktMemo.volumeEffektOp!=0) aktMemo.portaStepDown = aktMemo.volumeEffektOp<<2;
@@ -2126,11 +2145,43 @@ public class ProTrackerMixer extends BasicModMixer
 	@Override
 	protected void processEffekts(final ChannelMemory aktMemo)
 	{
-		doVolumeColumnRowEffekt(aktMemo);
-		// in getNewNote, volume column porta has precedence for effekt porta. The latter is not performed
-		// plus, the "triggerNote" is not performed, but there, Sample Offset is done
-		if (isXM && aktMemo.assignedVolumeEffekt==0x0B && ((aktMemo.assignedEffekt==0x03 || aktMemo.assignedEffekt==0x05) || aktMemo.assignedEffekt==0x09))
-			return;
-		doRowEffects(aktMemo);
+		if (isMOD)
+		{
+			doRowEffects(aktMemo);
+		}
+		else
+		{
+			// only handle effects here when no E90 (retrigger note, parameter zero)
+			if (aktMemo.assignedEffekt!=0x0E || aktMemo.assignedEffektParam!=0x90)
+			{
+				// in getNewNote, volume column porta has precedence for effekt porta. The latter is not performed
+				// plus, the "triggerNote" is not performed, but there, Sample Offset is done
+				// Furthermore we first prepare for the target and THEN we will perform the tick Zero effects!
+				if (aktMemo.assignedVolumeEffekt==0x0B)
+				{
+					// With XMs the porta2note effect is not changed, if a note delay is set.
+					// However, no special treatment needed, as note delays are handled as in FT2 - so automatically working
+					if (aktMemo.assignedVolumeEffektOp!=0)
+						aktMemo.portaNoteStep = aktMemo.assignedVolumeEffektOp<<(ModConstants.PERIOD_SHIFT + 4);
+					preparePortaToNoteEffect(aktMemo);
+					doVolumeColumnRowEffekt(aktMemo);
+					doRowEffects(aktMemo);
+					return;
+				}
+				if (aktMemo.assignedEffekt==0x03 || aktMemo.assignedEffekt==0x05)
+				{
+					if (aktMemo.assignedEffekt!=0x05 && aktMemo.assignedEffektParam!=0)
+						aktMemo.portaNoteStep = aktMemo.assignedEffektParam<<ModConstants.PERIOD_SHIFT;
+					preparePortaToNoteEffect(aktMemo);
+					doVolumeColumnRowEffekt(aktMemo);
+					doRowEffects(aktMemo);
+					return;
+				}
+				// K00 would be handled here plus "no note, but instrument"
+				// however, we have setNewInstrumentAndPeriod for that cases
+			}
+			doVolumeColumnRowEffekt(aktMemo);
+			doRowEffects(aktMemo);
+		}
 	}
 }
