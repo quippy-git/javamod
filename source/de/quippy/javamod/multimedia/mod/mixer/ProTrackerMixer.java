@@ -309,7 +309,7 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void resetVolume(final ChannelMemory aktMemo)
 	{
 //		resetVolumeAndPanning(aktMemo, aktMemo.assignedInstrument, aktMemo.assignedSample);
-		aktMemo.currentInstrumentVolume= aktMemo.currentVolume = aktMemo.FT2_oldVolume;
+		aktMemo.currentInstrumentVolume = aktMemo.currentVolume = aktMemo.FT2_oldVolume;
 		aktMemo.panning = aktMemo.FT2_oldPanning;
 		aktMemo.doFastVolRamp = true;
 	}

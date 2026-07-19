@@ -1,4 +1,4 @@
-# JavaMod V3.9.7 Theta
+# JavaMod V3.9.7
 JavaMod - a java based multimedia player for Protracker, Fast Tracker, 
 Impulse Tracker, Scream Tracker and other mod files plus
 SID, MP3, WAV, OGG, APE, FLAC, MIDI, AdLib ROL-Files (OPL), ...
