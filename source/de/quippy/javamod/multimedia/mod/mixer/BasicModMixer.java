@@ -2559,15 +2559,18 @@ public abstract class BasicModMixer
 						{
 							aktMemo.currentSamplePos = loopStart = sample.loopStart;
 							loopEnd = sample.loopStop;
+							loopLength = sample.loopLength;
 							inLoop = ModConstants.LOOP_ON;
 						}
 						else
 						{
 							loopStart = 0;
-							aktMemo.currentSamplePos = (loopLength = loopEnd = sample.sampleLength) - 1;
+							aktMemo.currentSamplePos = (loopEnd = loopLength = sample.sampleLength) - 1;
 							inLoop = 0;
 						}
 						aktMemo.currentTuningPos = aktMemo.prevSampleOffset = 0;
+						// The interpolation magic still belongs to the sample just left; recompute it for the new one
+						aktMemo.interpolationMagic = (inLoop==ModConstants.LOOP_ON)?sample.getLoopMagic(aktMemo.currentSamplePos):0;
 						continue;
 					}
 
