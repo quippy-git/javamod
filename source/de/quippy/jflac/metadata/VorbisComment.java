@@ -35,7 +35,7 @@ public class VorbisComment extends Metadata {
     private static final String EMPTY_STRING = "";
 	protected byte[] vendorString = new byte[0];
     protected int numComments = 0;
-    protected VorbisString[] comments;
+    protected VorbisString[] comments = new VorbisString[0];
 
     /**
      * The constructor.
