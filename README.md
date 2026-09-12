@@ -89,12 +89,16 @@ JavaMod incorporates modified versions of the following libraries:
   * support external saved samples (needs MP3, FLAC, ... loading)
 
 ## New in Version 3.9.8
+Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: Sample swap with MODs in mixChannelIntoBuffers did not properly (re)set
        all variables (sampleLength / interpolationMagic). Error was hidden by
-       Amiga emulation. (Thanks to Adam Waldenberg)
-* FIX: reading cues: sampleIndex is starting at 1 - forgot to subtract 1 from
-       index. (Thanks to Adam Waldenberg)
-       
+       Amiga emulation. 
+* FIX: reading cues: sampleIndex is starting at 1 - missed to subtract 1 from
+       index.
+* FIX: jFlac::VorbisComment: empty comments lead to a NullPointer Exception
+* FIX: jFlac: 24 bit flacs need RICE2 decoding
+Own Fixes:
+
 ## New in Version 3.9.7
 * FIX: Complete overhaul of volume ramping - got rid of the default
        "interweaving" technology

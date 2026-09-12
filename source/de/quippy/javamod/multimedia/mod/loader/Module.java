@@ -1625,21 +1625,19 @@ public abstract class Module
 						if (sampleIndex>0 && sampleIndex<=getNSamples())
 						{
 							final Sample sample = getInstrumentContainer().getSample(sampleIndex - 1);
-							if (sample==null) // huh?
+							if (sample!=null) // huh?
 							{
-								inputStream.skip(cues<<2);
+								// future versions of OMPT might have more than 9 cues...
+								final int[] theCues = new int[cues<Sample.MAX_CUES?Sample.MAX_CUES:cues];
+								int cue = 0;
+								for (; cue<cues; cue++) theCues[cue] = inputStream.readIntelDWord();
+								// if we had less than max_cues, fill up with default
+								for (; cue<Sample.MAX_CUES; cue++) theCues[cue] = sample.sampleLength;
+								sample.setCues(theCues);
 								break;
 							}
-							// future versions of OMPT might have more than 9 cues...
-							final int[] theCues = new int[cues<Sample.MAX_CUES?Sample.MAX_CUES:cues];
-							int cue = 0;
-							for (; cue<cues; cue++) theCues[cue] = inputStream.readIntelDWord();
-							// if we had less than max_cues, fill up with default
-							for (; cue<Sample.MAX_CUES; cue++) theCues[cue] = sample.sampleLength;
-							sample.setCues(theCues);
 						}
-						else
-							inputStream.skip(cues<<2);
+						inputStream.skip(cues<<2);
 					}
 					else
 						inputStream.skip(size);
@@ -1654,7 +1652,7 @@ public abstract class Module
 					else
 						inputStream.skip(size);
 					break;
-				case 0x504D4D2E: //"PMM." - MixLevels - this is OMPT specific to let old MPTs sound equally - we ignore that for now
+				case 0x504D4D2E: //"PMM." - MixLevels - this is OMPT specific to let old MPTs sound equally
 					final int mixLevel = (int)inputStream.readIntelBytes(size);
 					switch (mixLevel)
 					{

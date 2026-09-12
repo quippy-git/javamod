@@ -54,7 +54,7 @@ public class VorbisComment extends Metadata {
 
         // read comments
         numComments = is.readRawIntLittleEndian();
-        if (numComments > 0) comments = new VorbisString[numComments];
+        if (numComments > 0) comments = new VorbisString[numComments]; 
         for (int i = 0; i < numComments; i++) {
             comments[i] = new VorbisString(is);
         }
@@ -77,7 +77,7 @@ public class VorbisComment extends Metadata {
     }
 
     public String[] getCommentByName( final String key )  {
-        if (key == null ) return null;
+        if (key == null || comments == null) return null; // or "numComments<1"
         final java.util.ArrayList<String> sbuff = new java.util.ArrayList<>();
         for (final VorbisString comment2 : comments)
 		{

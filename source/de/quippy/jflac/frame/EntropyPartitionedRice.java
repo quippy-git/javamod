@@ -30,9 +30,11 @@ import de.quippy.jflac.io.BitInputStream;
  */
 public class EntropyPartitionedRice extends EntropyCodingMethod {
     private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN = 4; /* bits */
+    private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN = 5; /* bits */
     private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN = 5; /* bits */
-    private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER = 15;
+    //private static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER = 15;
 
+    protected boolean rice2; // Whether the parameters are the 5-bit ones of RICE2, with 31 as the escape instead of 15.
     protected int order; // The partition order, i.e. # of contexts = 2 ^ order.
     protected EntropyPartitionedRiceContents contents; // The context's Rice parameters and/or raw bits.
 
@@ -53,11 +55,13 @@ public class EntropyPartitionedRice extends EntropyCodingMethod {
         final int partitionSamples = partitionOrder > 0 ? header.blockSize >> partitionOrder : header.blockSize - predictorOrder;
         contents.ensureSize(Math.max(6, partitionOrder));
         contents.parameters = new int[partitions];
+        final int parameterLength = rice2 ? ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
+        final int escapeParameter = (1 << parameterLength) - 1;
 
         for (int partition = 0; partition < partitions; partition++) {
-            int riceParameter = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);
+            int riceParameter = is.readRawUInt(parameterLength);
             contents.parameters[partition] = riceParameter;
-            if (riceParameter < ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+            if (riceParameter < escapeParameter) {
                 final int u = (partitionOrder == 0 || partition > 0) ? partitionSamples : partitionSamples - predictorOrder;
                 is.readRiceSignedBlock(residual, sample, u, riceParameter);
                 sample += u;
