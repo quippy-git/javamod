@@ -64,9 +64,11 @@ public class ChannelFixed extends Channel {
         EntropyPartitionedRice pr;
         switch (type) {
             case ENTROPY_CODING_METHOD_PARTITIONED_RICE :
+            case ENTROPY_CODING_METHOD_PARTITIONED_RICE2 :
                 final int u32 = is.readRawUInt(ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN);
                 pr = new EntropyPartitionedRice();
                 entropyCodingMethod = pr;
+                pr.rice2 = type == ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
                 pr.order = u32;
                 pr.contents = channelData.getPartitionedRiceContents();
                 pr.readResidual(is, order, pr.order, header, channelData.getResidual());

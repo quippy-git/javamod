@@ -29,6 +29,9 @@ public abstract class Channel {
     /** Partisioned Rice Encoding Method. */
     public static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0;
 
+    /** Partitioned Rice Encoding Method with 5-bit parameters, which 24-bit streams need. */
+    public static final int ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1;
+
     /** The size of the encoding method field (in bits). */
     public static final int ENTROPY_CODING_METHOD_TYPE_LEN = 2;
 
