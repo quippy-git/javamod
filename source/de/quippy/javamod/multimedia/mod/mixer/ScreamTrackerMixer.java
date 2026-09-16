@@ -128,6 +128,8 @@ public class ScreamTrackerMixer extends BasicModMixer
 			case ModConstants.IT_AMIGA_TABLE:
 				final int s3mNote=ModConstants.FreqS3MTable[noteIndex%12];
 				final int s3mOctave=noteIndex/12;
+				// A note on a channel no sample was ever set for has no frequency to play at
+				if (aktMemo.currentFinetuneFrequency==0) return 0;
 				// If I do not do it like this, it is too precise - and limits do not work
 				return (int)(ModConstants.BASEFREQUENCY * ((long)s3mNote<<5) / ((long)aktMemo.currentFinetuneFrequency<<s3mOctave))<<(ModConstants.PERIOD_SHIFT-2);
 
