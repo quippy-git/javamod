@@ -96,7 +96,9 @@ Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: reading cues: sampleIndex is starting at 1 - missed to subtract 1 from
        index.
 * FIX: jFlac::VorbisComment: empty comments lead to a NullPointer Exception
-* FIX: jFlac: 24 bit flacs need RICE2 decoding
+* FIX: jFlac 24 bit flacs need RICE2 decoding
+* FIX: ScreamTrackerMixer::getFineTunePeriod will fail if no sample was ever set
+* FIX: startRampDown will ramp down the wrong sample with noteCut
 Own Fixes:
 
 ## New in Version 3.9.7

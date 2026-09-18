@@ -33,8 +33,8 @@ public class VorbisComment extends Metadata {
     //private static final int VORBIS_COMMENT_NUM_COMMENTS_LEN = 32; // bits
 
     private static final String EMPTY_STRING = "";
-	protected byte[] vendorString = new byte[0];
-    protected int numComments = 0;
+	protected byte[] vendorString;
+    protected int numComments;
     protected VorbisString[] comments;
 
     /**
@@ -54,7 +54,7 @@ public class VorbisComment extends Metadata {
 
         // read comments
         numComments = is.readRawIntLittleEndian();
-        if (numComments > 0) comments = new VorbisString[numComments]; 
+        comments = new VorbisString[numComments];
         for (int i = 0; i < numComments; i++) {
             comments[i] = new VorbisString(is);
         }
@@ -65,19 +65,18 @@ public class VorbisComment extends Metadata {
      */
     @Override
 	public String toString() {
-	final StringBuilder sb = new StringBuilder("VendorString '").append(new String(vendorString)).append("'\n");
-	sb.append("VorbisComment (count=" + numComments + ")");
+        final StringBuilder sb = new StringBuilder("VendorString '").append(new String(vendorString)).append("'\n");
+        sb.append("VorbisComment (count=" + numComments + ")");
 
         for (int i = 0; i < numComments; i++) {
             sb.append("\n\t" + comments[i].toString());
         }
 
         return sb.toString();
-
     }
 
     public String[] getCommentByName( final String key )  {
-        if (key == null || comments == null) return null; // or "numComments<1"
+        if (key == null) return null;
         final java.util.ArrayList<String> sbuff = new java.util.ArrayList<>();
         for (final VorbisString comment2 : comments)
 		{
@@ -87,7 +86,7 @@ public class VorbisComment extends Metadata {
                 if( comment.substring(0, eqpos).equalsIgnoreCase(key) )
                     sbuff.add( comment.substring(eqpos+1, comment.length()) );
         }
-        return sbuff.toArray(new String[0]);
+        return sbuff.toArray(new String[numComments]);
     }
     public String getComment()
     {

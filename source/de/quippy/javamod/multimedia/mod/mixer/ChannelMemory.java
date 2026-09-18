@@ -279,15 +279,14 @@ public class ChannelMemory
 	 * @since 07.06.2026
 	 * @param aktMemo
 	 */
-	protected void setUpRampDown()
+	protected void setUpRampDown(final boolean forceCurrentSample)
 	{
-		// is already checked in BasicModMixer::startRampDown
-//		if (hasMidiOutput()) return; // no ramp down for midi channels
-
 //		rampDownMemory.currentElement = currentElement; // DEBUG:where were we set? 
 
-		if (rampDownMemory.currentSample==null) rampDownMemory.currentSample = currentSample;
-		if (rampDownMemory.assignedInstrument==null) rampDownMemory.assignedInstrument = assignedInstrument;
+		// were typically are already set via prepareRampDown - so only set again if forced to do so (noteCut)
+		if (rampDownMemory.currentSample==null || forceCurrentSample) rampDownMemory.currentSample = currentSample;
+		if (rampDownMemory.assignedInstrument==null || forceCurrentSample) rampDownMemory.assignedInstrument = assignedInstrument;
+
 		rampDownMemory.instrumentFinished = instrumentFinished;
 		rampDownMemory.muted = muted;
 		rampDownMemory.currentTuning = currentTuning;

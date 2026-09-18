@@ -196,7 +196,7 @@ public class ProTrackerMixer extends BasicModMixer
 				aktMemo.currentTuning = 0;
 				break;
 		}
-		if (aktMemo.currentTuning==0 && !aktMemo.instrumentFinished) startRampDown(aktMemo);
+		if (aktMemo.currentTuning==0 && !aktMemo.instrumentFinished) startRampDown(aktMemo, true);
 	}
 	/**
 	 * @param aktMemo
@@ -299,7 +299,7 @@ public class ProTrackerMixer extends BasicModMixer
 			aktMemo.currentNotePeriod = note2Period[noteIndex]<<(ModConstants.PERIOD_SHIFT-2); // table values are already shifted by 2
 			setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod);
 		}
-		resetInstrumentPointers(aktMemo, true);
+		resetInstrumentPointers(aktMemo, false);
 	}
 	/**
 	 * We need to move this to like FT2 does it
@@ -336,7 +336,7 @@ public class ProTrackerMixer extends BasicModMixer
 	{
 		aktMemo.currentSample = aktMemo.assignedSample;
 		setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = getFineTunePeriod(aktMemo));
-		resetInstrumentPointers(aktMemo, true);
+		resetInstrumentPointers(aktMemo, false);
 	}
 	/**
 	 * @since 26.07.2024
@@ -453,7 +453,7 @@ public class ProTrackerMixer extends BasicModMixer
 					{
 						// Now activate new Instrument...
 						aktMemo.currentSample = aktMemo.assignedSample;
-						resetInstrumentPointers(aktMemo, true);
+						resetInstrumentPointers(aktMemo, false);
 					}
 				}
 			}
@@ -1518,10 +1518,9 @@ public class ProTrackerMixer extends BasicModMixer
 		{
 			if (aktMemo.sampleOffset >= length)
 			{
-				startRampDown(aktMemo);
+				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0); // FT2 Compatibility: Don't play note if offset is beyond sample/loop length
 				aktMemo.currentSamplePos = sample.sampleLength-1;
 				aktMemo.instrumentFinished = true;
-				setNewPlayerTuningFor(aktMemo, aktMemo.currentNotePeriod = 0); // FT2 Compatibility: Don't play note if offset is beyond sample/loop length
 			}
 			else
 				aktMemo.currentSamplePos = aktMemo.sampleOffset;
@@ -1562,7 +1561,7 @@ public class ProTrackerMixer extends BasicModMixer
 			if (doRetrig)
 			{
 //				aktMemo.prepareRampDown(); // We might be still on our old sample before this row
-				resetInstrumentPointers(aktMemo, true);
+				resetInstrumentPointers(aktMemo, false);
 				aktMemo.rampDownMemory.instrumentFinished=true; // No Ramp Down
 			}
 			return;
