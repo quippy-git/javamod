@@ -331,8 +331,20 @@ public class XMMod extends ProTrackerMod
 			// Therefore lets seek at the end of sample data.
 			final long filePointer = inputStream.getFilePointer();
 			readSampleData(current, inputStream);
-			inputStream.seek(filePointer + current.byteLength);
+			inputStream.seek(filePointer + packedLengthOf(current));
 		}
+	}
+	/**
+	 * How many bytes of the file the sample takes. ModPlug packs a sample as ADPCM into a table of sixteen
+	 * deltas and a nibble per point, while the header goes on naming the unpacked length.
+	 * @since 20.09.2026
+	 * @param sample
+	 * @return
+	 */
+	private static int packedLengthOf(final Sample sample)
+	{
+		if ((sample.sampleType & ModConstants.SM_ADPCM)!=0) return 16 + ((sample.byteLength + 1)>>1);
+		return sample.byteLength;
 	}
 	/**
 	 * Get the ModType
