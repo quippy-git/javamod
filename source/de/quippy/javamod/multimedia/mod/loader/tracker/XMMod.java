@@ -326,12 +326,13 @@ public class XMMod extends ProTrackerMod
 		for (int samIndex=0; samIndex<anzSamples; samIndex++)
 		{
 			final Sample current = instrumentContainer.getSample(samIndex + sampleOffsetIndex);
-			// XMs can have 16bit samples with an uneven amount of bytes. Even though I have no idea why that is:
-			// as we convert to "amount of samples to read", that extra byte is not read nor skipped.
-			// Therefore lets seek at the end of sample data.
+			// XMs can have 16bit samples with an uneven amount of bytes. Even though I have no idea why that is.
+			// As we convert to "amount of samples to read", that extra byte is not read nor skipped.
+			// Therefore let's seek to the end of sample data.
+			// For ADPCM packed samples the size must be calculated
 			final long filePointer = inputStream.getFilePointer();
 			readSampleData(current, inputStream);
-			inputStream.seek(filePointer + current.byteLength);
+			inputStream.seek(filePointer + (((current.sampleType & ModConstants.SM_ADPCM)!=0)?16+((current.byteLength+1)>>1):current.byteLength));
 		}
 	}
 	/**

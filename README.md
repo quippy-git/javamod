@@ -96,9 +96,13 @@ Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: reading cues: sampleIndex is starting at 1 - missed to subtract 1 from
        index.
 * FIX: jFlac::VorbisComment: empty comments lead to a NullPointer Exception
-* FIX: jFlac 24 bit flacs need RICE2 decoding
+* FIX: jFlac: 24 bit flacs need RICE2 decoding
 * FIX: ScreamTrackerMixer::getFineTunePeriod will fail if no sample was ever set
 * FIX: startRampDown will ramp down the wrong sample with noteCut
+* FIX: IT: a retrigger of 0 does not mean "use memo" but retrigger every tick
+* FIX: XMs: After reading sample data we reset the file pointer to the end of
+       the sample data - to skip unused/unread samples. However, with ADPCM
+       packed samples (thanks old ModPlug!) size needs to be calculated! 
 Own Fixes:
 
 ## New in Version 3.9.7

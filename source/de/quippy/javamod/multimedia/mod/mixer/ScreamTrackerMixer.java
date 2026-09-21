@@ -1030,7 +1030,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					doPanningSlideEffekt(aktMemo);
 				break;
 			case 0x11:			// Retrig Note
-				if ((aktMemo.assignedEffektParam&0xF)!=0)
+				if (aktMemo.assignedEffektParam!=0)
 				{
 					aktMemo.retrigMemo = aktMemo.assignedEffektParam&0xF;
 					aktMemo.retrigVolSlide = aktMemo.assignedEffektParam>>4;
@@ -1962,7 +1962,9 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 */
 	protected void doRetrigNote(final ChannelMemory aktMemo, final boolean inTick)
 	{
-		if (((currentTempo - currentTick) % aktMemo.retrigMemo) == 0 && inTick)
+		// Qx0 names no speed of its own and retriggers on every tick
+		final int retrigSpeed = (aktMemo.retrigMemo==0)?1:aktMemo.retrigMemo;
+		if (((currentTempo - currentTick) % retrigSpeed) == 0 && inTick)
 		{
 			aktMemo.retrigCount = aktMemo.retrigMemo;
 
