@@ -2570,6 +2570,8 @@ public abstract class BasicModMixer
 						aktMemo.currentTuningPos = aktMemo.prevSampleOffset = 0;
 						// The interpolation magic still belongs to the sample just left; recompute it for the new one
 						aktMemo.interpolationMagic = (inLoop==ModConstants.LOOP_ON)?sample.getLoopMagic(aktMemo.currentSamplePos):0;
+						// A ramp down from here on fades out the sample now playing, not the one kept at the start of the row
+						if (!isRampDown && aktMemo.rampDownMemory.instrumentFinished) aktMemo.rampDownMemory.currentSample = sample;
 						continue;
 					}
 
