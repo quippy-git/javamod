@@ -108,7 +108,8 @@ Fixes suggested by Adam Waldenberg (many thanks)
        packed samples (thanks old ModPlug!) size needs to be calculated!
 * FIX: Mods with more than 4 channels are considered as MODs but played as
        FastTracker note range - which leads to different finetune.
-       That was missed in Arpeggios and the glissando part in PortaToNote. 
+       That was missed in Arpeggios and the glissando part in PortaToNote.
+* FIX: inplace sample swap with MODs must also reset ramp down sample. Urgh! 
 Own Fixes:
 * FIX: Re-Loading the same file did nothing (because of caching URL) even when
        file was changed. Now last modification time stamp is also verified.
