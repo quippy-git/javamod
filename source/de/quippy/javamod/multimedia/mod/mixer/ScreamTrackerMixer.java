@@ -670,8 +670,6 @@ public class ScreamTrackerMixer extends BasicModMixer
 		        				       :null) // Instrument set without a note - so no mapping to sample possible!
 		        				    :mod.getInstrumentContainer().getSample(aktMemo.currentAssignedInstrumentIndex-1);
 
-		if (aktMemo.assignedEffekt!=0x11) aktMemo.retrigCount = -1; // Effect Retrigger Note: indicating, that a retrigger is not continuing
-
 		boolean hasInstrument = element.getInstrument()>0 && aktMemo.assignedSample!=null;
 		if (hasInstrument) // At this point we reset volume and panning for IT, STM, S3M
 		{
@@ -1035,8 +1033,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 					aktMemo.retrigMemo = aktMemo.assignedEffektParam&0xF;
 					aktMemo.retrigVolSlide = aktMemo.assignedEffektParam>>4;
 				}
-				doRetrigNote(aktMemo, aktMemo.retrigCount!=-1); // with retrigCount we indicate a continues retrigger. If that is the case, retrigger also on Tick Zero. It is reset in setNewInstrumentAndPeriod
-				aktMemo.retrigCount = 0; // != -1
+				doRetrigNote(aktMemo); // with retrigCount we indicate a continues retrigger. If that is the case, retrigger also on Tick Zero. It is reset in setNewInstrumentAndPeriod
 				break;
 			case 0x12:			// Tremolo
 				if ((aktMemo.assignedEffektParam>>4)!=0) aktMemo.tremoloStep = aktMemo.assignedEffektParam>>4;
@@ -1960,11 +1957,14 @@ public class ScreamTrackerMixer extends BasicModMixer
 	 * @since 04.04.2020
 	 * @param aktMemo
 	 */
-	protected void doRetrigNote(final ChannelMemory aktMemo, final boolean inTick)
+	protected void doRetrigNote(final ChannelMemory aktMemo)
 	{
-		// Qx0 names no speed of its own and retriggers on every tick
-		final int retrigSpeed = (aktMemo.retrigMemo==0)?1:aktMemo.retrigMemo;
-		if (((currentTempo - currentTick) % retrigSpeed) == 0 && inTick)
+		if (currentTick==currentTempo && aktMemo.currentElement.getNoteIndex()!= ModConstants.NO_NOTE)
+		{
+			aktMemo.retrigCount = aktMemo.retrigMemo;
+			return;
+		}
+		if ((--aktMemo.retrigCount)<=0)
 		{
 			aktMemo.retrigCount = aktMemo.retrigMemo;
 
@@ -2090,7 +2090,7 @@ public class ScreamTrackerMixer extends BasicModMixer
 				}
 				break;
 			case 0x11 :			// Retrig Note
-				doRetrigNote(aktMemo, true);
+				doRetrigNote(aktMemo);
 				break;
 			case 0x12 :			// Tremolo
 				doTremoloEffekt(aktMemo);

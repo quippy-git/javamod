@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.quippy.javamod.io.ModfileInputStream;
+import de.quippy.javamod.system.Helpers;
 
 /**
  * Returns the appropiate ModuleClass for the desired ModFile
@@ -44,6 +45,7 @@ public class ModuleFactory
 	// A cache of the last loaded MOD for getInstance
 	private static Module lastLoadedMod;
 	private static URL lastLoadedModURL;
+	private static long lasLoadedModTimeStamp;
 	/**
 	 * Constructor for ModuleFactory - This Class Is A Singleton
 	 */
@@ -169,8 +171,8 @@ public class ModuleFactory
 	 */
 	public static Module getInstance(final URL url) throws IOException
 	{
-		// return last loaded MOD, if same instance is requested again
-		if (lastLoadedMod!=null && lastLoadedModURL!=null && lastLoadedModURL.sameFile(url)) return lastLoadedMod;
+		// return last loaded MOD, if same instance is requested again - i.e. same URL and same time stamp
+		if (lastLoadedMod!=null && lastLoadedModURL!=null && lastLoadedModURL.sameFile(url) && Helpers.getFileModification(url)==lasLoadedModTimeStamp) return lastLoadedMod;
 
 		ModfileInputStream inputStream = null;
 		try
@@ -187,6 +189,7 @@ public class ModuleFactory
 			}
 
 			lastLoadedModURL = url;
+			lasLoadedModTimeStamp = Helpers.getFileModification(url);
 			return lastLoadedMod = mod;
 		}
 		catch (final Throwable ex)

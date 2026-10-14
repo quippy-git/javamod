@@ -99,11 +99,19 @@ Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: jFlac: 24 bit flacs need RICE2 decoding
 * FIX: ScreamTrackerMixer::getFineTunePeriod will fail if no sample was ever set
 * FIX: startRampDown will ramp down the wrong sample with noteCut
-* FIX: IT: a retrigger of 0 does not mean "use memo" but retrigger every tick
+* FIX: IT/s3m, stm: a retrigger of 0 does not mean "use memo" but retrigger
+       every tick.
+       Now did a complete overhaul - in contrast to Pro/Fasttracker we need to
+       count and not do a modulo on ticks.
 * FIX: XMs: After reading sample data we reset the file pointer to the end of
        the sample data - to skip unused/unread samples. However, with ADPCM
-       packed samples (thanks old ModPlug!) size needs to be calculated! 
+       packed samples (thanks old ModPlug!) size needs to be calculated!
+* FIX: Mods with more than 4 channels are considered as MODs but played as
+       FastTracker note range - which leads to different finetune.
+       That was missed in Arpeggios and the glissando part in PortaToNote. 
 Own Fixes:
+* FIX: Re-Loading the same file did nothing (because of caching URL) even when
+       file was changed. Now last modification time stamp is also verified.
 
 ## New in Version 3.9.7
 * FIX: Complete overhaul of volume ramping - got rid of the default

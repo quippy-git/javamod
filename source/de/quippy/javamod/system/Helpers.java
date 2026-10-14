@@ -47,12 +47,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -811,6 +813,32 @@ public class Helpers
 	public static boolean isFile(final URL url)
 	{
 		return isFile(url.getProtocol());
+	}
+	/**
+	 * @since 24.09.2026
+	 * @param url
+	 * @return
+	 */
+	public static long getFileModification(final URL url)
+	{
+		try
+		{
+			if (isFile(url))
+			{
+				Path path = Paths.get(url.toURI());
+				return Files.getLastModifiedTime(path).toInstant().getEpochSecond();
+			}
+			else
+			{
+				HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+				connection.setRequestMethod("HEAD");
+				return connection.getLastModified() / 1000L;
+			}
+		}
+		catch (Exception ex)
+		{
+		}
+		return -1;
 	}
 	/**
 	 * @since 22.07.2015

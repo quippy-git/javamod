@@ -560,7 +560,7 @@ public class ProTrackerMixer extends BasicModMixer
 					// I consider it a bug that with arpeggios the base note is not newly calculated with finetune
 					// but the notes 1 and 2 are. However, that is what PT2 did. I guess that was fixed.
 					// FT2 however does not change instruments when no note is set - so there we are fine.
-					if (isMOD)
+					if (frequencyTableType == ModConstants.AMIGA_TABLE)
 					{
 						aktMemo.arpeggioNote[0] = getFineTunePeriod(aktMemo);
 						aktMemo.arpeggioNote[1] = adjustPTPeriodFromNote(aktMemo, aktMemo.arpeggioNote[0], (aktMemo.arpeggioParam >>4));
@@ -1196,7 +1196,7 @@ public class ProTrackerMixer extends BasicModMixer
 
 		if (aktMemo.glissando)
 		{
-			if (isMOD)
+			if (frequencyTableType == ModConstants.AMIGA_TABLE)
 				setNewPlayerTuningFor(aktMemo, adjustPTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
 			else
 				setNewPlayerTuningFor(aktMemo, adjustFTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
