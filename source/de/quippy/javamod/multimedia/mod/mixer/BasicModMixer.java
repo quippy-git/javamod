@@ -101,6 +101,10 @@ public abstract class BasicModMixer
 	protected boolean doLoopingGlobalFadeout; // means we are in a loop condition and do a fade out now. 0: deactivated, 1: fade out, 2: just ignore loop
 	protected int loopingFadeOutValue;
 
+	// Stop with ringing voices (ProTracker F00)
+	protected boolean songStopped;
+	private int ringOutTicks;
+
 	// The listeners for update events - so far only one known off
 	private final ArrayList<ModUpdateListener> listeners;
 	private boolean fireUpdates = false;
@@ -333,6 +337,7 @@ public abstract class BasicModMixer
 		// Reset FadeOut
 		doLoopingGlobalFadeout = false;
 		loopingFadeOutValue = ModConstants.MAXFADEOUTVOLUME;
+		songStopped = false;
 
 		// initialize every used channel
 		final int nChannels = mod.getNChannels();
@@ -502,6 +507,7 @@ public abstract class BasicModMixer
 				fullLength += samplesPerTick;
 				currentMilliseconds = fullLength * 1000L / sampleRate;
 				finished = doRowAndTickEvents();
+				if (isMOD) moveSamplePositionsOn();
 			}
 			// Silence all and everything to avoid clicks and arbitrary sounds...
 			for (int c=0; c<maxChannels; c++)
@@ -548,6 +554,7 @@ public abstract class BasicModMixer
 				{
 					fullLength += samplesPerTick;
 					finished = doRowAndTickEvents();
+					if (isMOD) moveSamplePositionsOn();
 					if (currentArrangement!=arrangementIndex && currentArrangement<msTimeIndex.length)
 						msTimeIndex[arrangementIndex=currentArrangement] = fullLength * 1000L / sampleRate;
 				}
@@ -2310,6 +2317,63 @@ public abstract class BasicModMixer
 		}
 	}
 	/**
+	 * ProTracker stops the song at F00 but leaves its voices running at the pitch and volume they have, each
+	 * until its sample ends or its loop comes round.
+	 */
+	private int ticksToRingOut()
+	{
+		long ringingFrames = 0;
+		for (int c=0; c<maxChannels; c++)
+		{
+			final ChannelMemory aktMemo = channelMemory[c];
+			if (!aktMemo.isChannelActive()) continue;
+			final Sample sample = aktMemo.currentSample;
+			final boolean looped = (sample.loopType&ModConstants.LOOP_ON)!=0;
+			final int samplesLeft = (aktMemo.isForwardDirection)
+					? ((looped)?sample.loopStop:sample.sampleLength) - aktMemo.currentSamplePos
+					: aktMemo.currentSamplePos - sample.loopStart;
+			final long frames = (((long)samplesLeft<<ModConstants.SHIFT) - aktMemo.currentTuningPos) / aktMemo.currentTuning;
+			if (frames>ringingFrames) ringingFrames = frames;
+		}
+		return (int)((ringingFrames + samplesPerTick - 1) / samplesPerTick);
+	}
+	/**
+	 * Moves the sample positions on by a tick as mixing would, for the passes that measure or seek without
+	 * mixing, so that a song stopped with F00 rings out from where its voices have got to.
+	 */
+	private void moveSamplePositionsOn()
+	{
+		for (int c=0; c<maxChannels; c++)
+		{
+			final ChannelMemory aktMemo = channelMemory[c];
+			if (!aktMemo.isChannelActive()) continue;
+			final long tuningPos = aktMemo.currentTuningPos + (long)aktMemo.currentTuning * samplesPerTick;
+			aktMemo.currentTuningPos = (int)(tuningPos & ModConstants.SHIFT_MASK);
+			aktMemo.currentSamplePos += (int)(tuningPos >> ModConstants.SHIFT);
+
+			Sample sample = aktMemo.currentSample;
+			boolean looped = (sample.loopType&ModConstants.LOOP_ON)!=0;
+			if (aktMemo.currentSamplePos >= ((looped)?sample.loopStop:sample.sampleLength))
+			{
+				if (aktMemo.assignedSample!=null && sample!=aktMemo.assignedSample)
+				{
+					sample = aktMemo.currentSample = aktMemo.assignedSample;
+					looped = (sample.loopType&ModConstants.LOOP_ON)!=0;
+					aktMemo.currentSamplePos = sample.loopStart;
+				}
+				else
+				if (looped)
+					aktMemo.currentSamplePos = sample.loopStart + (aktMemo.currentSamplePos - sample.loopStart) % sample.loopLength;
+				if (!looped)
+				{
+					aktMemo.instrumentFinished = true;
+					continue;
+				}
+			}
+			aktMemo.interpolationMagic = (looped)?sample.getLoopMagic(aktMemo.currentSamplePos):0;
+		}
+	}
+	/**
 	 * Do the events during a Tick.
 	 * @return true, if finished!
 	 */
@@ -2326,6 +2390,15 @@ public abstract class BasicModMixer
 				currentTick = 0;
 				return true; // We did a fadeout and are finished now
 			}
+		}
+
+		if (songStopped)
+		{
+			if (--ringOutTicks > 0) return false;
+			currentPatternIndex = -1;
+			currentPattern = null;
+			currentTick = 0;
+			return true;
 		}
 
 		// ProTracker 1/2 had BPM sets centrally as first command in the Tick based loop.
@@ -2399,6 +2472,12 @@ public abstract class BasicModMixer
 			{
 				// Do the row events
 				doRowEvents();
+				// Stopped only now, so that the notes of the whole row still start
+				if (songStopped)
+				{
+					ringOutTicks = ticksToRingOut();
+					return false;
+				}
 				if (patternDelayCount>0) return false;
 			}
 			proceedToNextRow();
