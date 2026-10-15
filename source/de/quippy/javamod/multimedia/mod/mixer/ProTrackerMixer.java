@@ -849,8 +849,9 @@ public class ProTrackerMixer extends BasicModMixer
 						// However,as we do not want to wait hours, we stop the song - which might also be intended. 
 						if (isXM)
 							currentTick = currentTempo = 0xFFFF;
-//						else
-//						if (isMOD) // With ProTracker we need to stop the song
+						if (isMOD) // ProTracker stops the song but leaves its voices running
+							songStopped = true;
+						else
 						{
 							// we do this via the looping fade out with a fade out time of zero
 							// to not introduce a new variable here.
