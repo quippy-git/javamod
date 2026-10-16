@@ -854,8 +854,9 @@ public class ProTrackerMixer extends BasicModMixer
 						{
 							// we do this via the looping fade out with a fade out time of zero
 							// to not introduce a new variable here.
-							doLoopingGlobalFadeout = true;
-							loopingFadeOutValue = 0;
+//							doLoopingGlobalFadeout = true;
+//							loopingFadeOutValue = 0;
+							modFinished_ProTrackerModF00 = true;
 						}
 					}
 					else

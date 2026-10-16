@@ -96,6 +96,7 @@ public abstract class BasicModMixer
 	protected int doNoLoops; // activates infinite loop recognition
 
 	protected boolean modFinished;
+	protected boolean modFinished_ProTrackerModF00; // If that is set, stop MOD if all channels are finished
 
 	// FadeOut
 	protected boolean doLoopingGlobalFadeout; // means we are in a loop condition and do a fade out now. 0: deactivated, 1: fade out, 2: just ignore loop
@@ -229,7 +230,7 @@ public abstract class BasicModMixer
 	 */
 	public void initializeMixer(final boolean rememberMuteStatus)
 	{
-		modFinished = false;
+		modFinished = modFinished_ProTrackerModF00 = false;
 
 		// to be a bit faster, we do some pre-calculations
 		calculateGlobalTuning();
@@ -501,7 +502,7 @@ public abstract class BasicModMixer
 			{
 				fullLength += samplesPerTick;
 				currentMilliseconds = fullLength * 1000L / sampleRate;
-				finished = doRowAndTickEvents();
+				finished = (doRowAndTickEvents() || modFinished_ProTrackerModF00);
 			}
 			// Silence all and everything to avoid clicks and arbitrary sounds...
 			for (int c=0; c<maxChannels; c++)
@@ -527,11 +528,11 @@ public abstract class BasicModMixer
 		if (mod.getLengthInMilliseconds()==-1)
 		{
 			final boolean fireUpdateStatus = getFireUpdates();
+			final int oldDoNoLoops = doNoLoops;
+			final int oldSampleRate = sampleRate;
 			try
 			{
 				setFireUpdates(false);
-				final int oldDoNoLoops = doNoLoops;
-				final int oldSampleRate = sampleRate;
 
 				changeDoNoLoops(ModConstants.PLAYER_LOOP_FADEOUT);
 				sampleRate = 44100;
@@ -550,16 +551,40 @@ public abstract class BasicModMixer
 					finished = doRowAndTickEvents();
 					if (currentArrangement!=arrangementIndex && currentArrangement<msTimeIndex.length)
 						msTimeIndex[arrangementIndex=currentArrangement] = fullLength * 1000L / sampleRate;
+
+					// ProTracker stops the song at F00 but leaves its voices running at the pitch and volume they have, each
+					// until its sample ends or it is looping. So let's add that to the overall length.
+					// Basic idea by adam-waldenberg
+					if (modFinished_ProTrackerModF00)
+					{
+						long ringingFrames = 0;
+						for (int c=0; c<maxChannels; c++)
+						{
+							final ChannelMemory aktMemo = channelMemory[c];
+							if (!aktMemo.isChannelActive()) continue;
+
+							final Sample sample = aktMemo.currentSample;
+							final boolean looped = (sample.loopType&ModConstants.LOOP_ON)!=0;
+							// This can only be an approximation, as aktMemo.currentSamplePos and aktMemo.currentTuningPos are not set.
+							// We handle it like the samples were all started at F00 command - but that does not need to be the case.
+							final int samplesLeft = (looped)?sample.loopStop:sample.sampleLength;
+							final long frames = ((long)samplesLeft<<ModConstants.SHIFT) / aktMemo.currentTuning;
+
+							if (frames>ringingFrames) ringingFrames = frames;
+						}
+						fullLength += ringingFrames;
+						finished = true;
+					}
 				}
 				mod.setLengthInMilliseconds(fullLength * 1000L / sampleRate);
 
+			}
+			finally
+			{
 				// revert changes
 				sampleRate = oldSampleRate;
 				changeDoNoLoops(oldDoNoLoops);
 				initializeMixer(false);
-			}
-			finally
-			{
 				setFireUpdates(fireUpdateStatus);
 			}
 		}
@@ -2328,6 +2353,21 @@ public abstract class BasicModMixer
 			}
 		}
 
+		// If this was set, we had an F00 event. To tick that out we will stop
+		// when the last sample is finished (or wants to loop)
+		// As we do not proceed with any row, we can return right away
+		// BTW: ProTracker stops instantly but keeps Paula open, so we also do
+		// not call "processEffectsInTick" here!
+		// As looping samples will stop, we alternatively could init a
+		// fade out according to the settings in the UI
+		if (modFinished_ProTrackerModF00)
+		{
+			int channelsActive = 0;
+			for (int c=0; c<maxChannels; c++)
+				if (channelMemory[c].isChannelActive()) channelsActive++;
+			return channelsActive==0;
+		}
+
 		// ProTracker 1/2 had BPM sets centrally as first command in the Tick based loop.
 		// In contrast, all other do it as the last command after RowEffects or directly
 		// on each occurrence.
@@ -2577,7 +2617,7 @@ public abstract class BasicModMixer
 
 					// We need to check against a loop set - maybe a sustain loop is finished
 					// but no normal loop is set:
-					if (inLoop==0) // if no loop, loopEnd is sampleLength - we are finished.
+					if (inLoop==0 || modFinished_ProTrackerModF00) // if no loop, loopEnd is sampleLength - we are finished.
 					{
 						aktMemo.instrumentFinished = true;
 						aktMemo.interpolationMagic = 0;

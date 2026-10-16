@@ -501,7 +501,8 @@ public class Helpers
 					// some files. So we do it manually.
 					// Funny is that File.toURL() works fine!
 					String fileString = Helpers.createStringFromURLString(line);
-					if (fileString.startsWith("file://")) fileString = fileString.substring(7);
+					final int protocollIndex = fileString.indexOf("://");
+					if (protocollIndex>-1) fileString = fileString.substring(protocollIndex+3);
 
 					final File file = new File(fileString);
 					list.add(file);
@@ -528,7 +529,7 @@ public class Helpers
 	 * @param dtde
 	 * @return
 	 */
-	public static List <?> getDropData(final DropTargetDropEvent dtde)
+	public static List<?> getDropData(final DropTargetDropEvent dtde)
 	{
 		List<?> files = null;
         boolean handled = false;

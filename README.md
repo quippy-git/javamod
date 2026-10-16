@@ -109,10 +109,14 @@ Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: Mods with more than 4 channels are considered as MODs but played as
        FastTracker note range - which leads to different finetune.
        That was missed in Arpeggios and the glissando part in PortaToNote.
-* FIX: inplace sample swap with MODs must also reset ramp down sample. Urgh! 
+* FIX: inplace sample swap with MODs must also reset ramp down sample.
+* NEW: "ring out" at ProTracker F00 - stop mod. ProTracker does not shut down
+       Paula and samples play till end (or loop)
 Own Fixes:
 * FIX: Re-Loading the same file did nothing (because of caching URL) even when
        file was changed. Now last modification time stamp is also verified.
+* FIX: With KDE, dropping a file from a ZIP resulted in the unknown protocol
+       krarc:// and got everybody confused
 
 ## New in Version 3.9.7
 * FIX: Complete overhaul of volume ramping - got rid of the default
