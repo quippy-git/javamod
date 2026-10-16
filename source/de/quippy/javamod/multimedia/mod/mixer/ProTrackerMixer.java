@@ -726,9 +726,12 @@ public class ProTrackerMixer extends BasicModMixer
 //							setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
 //						}
 //						else
-						if (frequencyTableType == ModConstants.AMIGA_TABLE)
+						if (isMOD)
 						{
-							aktMemo.currentFineTune = (effektOp>7)?effektOp-16:effektOp;
+							if (frequencyTableType == ModConstants.AMIGA_TABLE) 
+								aktMemo.currentFineTune = (effektOp>7)?effektOp-16:effektOp;
+							else
+								aktMemo.currentFineTune = (effektOp<<4)-128;
 							if (aktMemo.hasNewNote()) setNewPlayerTuningFor(aktMemo, getFineTunePeriod(aktMemo));
 						}
 						break;
@@ -1103,28 +1106,37 @@ public class ProTrackerMixer extends BasicModMixer
 	protected void preparePortaToNoteEffect(final ChannelMemory aktMemo)
 	{
 		final PatternElement element = aktMemo.currentElement;
-		if (frequencyTableType == ModConstants.AMIGA_TABLE)
+		if (isMOD)
 		{
 			if (aktMemo.hasNewNote())
 			{
-				// The original coding in ProTracker
-				final int lookUpFineTune = ((aktMemo.currentFineTune<0)?aktMemo.currentFineTune+16:aktMemo.currentFineTune)*37;
-				final int period = aktMemo.assignedNotePeriod;
-				int i=0;
-				while (true)
+				if (frequencyTableType == ModConstants.AMIGA_TABLE)
 				{
-					if (period>=ModConstants.periodTable[lookUpFineTune + i])
-						break;
-					if (++i>=37)
+					// The original coding in ProTracker
+					final int lookUpFineTune = ((aktMemo.currentFineTune<0)?aktMemo.currentFineTune+16:aktMemo.currentFineTune)*37;
+					final int period = aktMemo.assignedNotePeriod;
+					int i=0;
+					while (true)
 					{
-						i=35;
-						break;
+						if (period>=ModConstants.periodTable[lookUpFineTune + i])
+							break;
+						if (++i>=37)
+						{
+							i=35;
+							break;
+						}
 					}
+	
+					if (aktMemo.currentFineTune<0 && i>0) i--;
+
+					aktMemo.portaTargetNotePeriod = ModConstants.periodTable[lookUpFineTune + i]<<ModConstants.PERIOD_SHIFT;
+				}
+				else // XM_AMIGA_TABLE for multichannel mods - use FT2 period calculations
+				{
+					final int C4Period = (((aktMemo.assignedNoteIndex-1)&0xFF)<<4) + ((aktMemo.currentFineTune>>3) + 16);
+					aktMemo.portaTargetNotePeriod = note2Period[C4Period]<<(ModConstants.PERIOD_SHIFT-2);
 				}
 
-				if (aktMemo.currentFineTune<0 && i>0) i--;
-
-				aktMemo.portaTargetNotePeriod = ModConstants.periodTable[lookUpFineTune + i]<<ModConstants.PERIOD_SHIFT;
 				aktMemo.portamentoDirection_PT_FT = 0;
 
 				if (aktMemo.currentNotePeriodSet == aktMemo.portaTargetNotePeriod) aktMemo.portaTargetNotePeriod = 0;
@@ -1149,7 +1161,8 @@ public class ProTrackerMixer extends BasicModMixer
 					aktMemo.portaTargetNotePeriod = note2Period[note]<<(ModConstants.PERIOD_SHIFT-2);
 					if (aktMemo.portaTargetNotePeriod == aktMemo.currentNotePeriod)
 						aktMemo.portamentoDirection_PT_FT = 0;
-					else if (aktMemo.portaTargetNotePeriod > aktMemo.currentNotePeriod)
+					else
+					if (aktMemo.portaTargetNotePeriod > aktMemo.currentNotePeriod)
 						aktMemo.portamentoDirection_PT_FT = 1;
 					else
 						aktMemo.portamentoDirection_PT_FT = 2;
@@ -1197,7 +1210,7 @@ public class ProTrackerMixer extends BasicModMixer
 
 		if (aktMemo.glissando)
 		{
-			if (frequencyTableType == ModConstants.AMIGA_TABLE)
+			if (frequencyTableType==ModConstants.AMIGA_TABLE)
 				setNewPlayerTuningFor(aktMemo, adjustPTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));
 			else
 				setNewPlayerTuningFor(aktMemo, adjustFTPeriodFromNote(aktMemo, aktMemo.currentNotePeriod, 0));

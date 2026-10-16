@@ -117,6 +117,7 @@ Own Fixes:
        file was changed. Now last modification time stamp is also verified.
 * FIX: With KDE, dropping a file from a ZIP resulted in the unknown protocol
        krarc:// and got everybody confused
+* FIX: Porta2Note with multichannel Mods was crappy and did not work anymore.
 
 ## New in Version 3.9.7
 * FIX: Complete overhaul of volume ramping - got rid of the default
