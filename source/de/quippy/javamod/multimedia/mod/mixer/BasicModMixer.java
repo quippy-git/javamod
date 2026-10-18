@@ -2084,6 +2084,8 @@ public abstract class BasicModMixer
 			aktMemo.setUpRampDown(forceCurrentSample); // copy current to rampDownMemory
 			calculateVolRampLen(aktMemo.rampDownMemory);
 		}
+		// Whether or not there was anything to ramp down, from here on the sample of the row start is gone
+		aktMemo.rampDownPrepared = false;
 	}
 	/**
 	 * Do the Events of a new Row!
@@ -2363,8 +2365,9 @@ public abstract class BasicModMixer
 		if (modFinished_ProTrackerModF00)
 		{
 			int channelsActive = 0;
+			// An empty sample is never mixed and so never finishes - it must not keep us waiting
 			for (int c=0; c<maxChannels; c++)
-				if (channelMemory[c].isChannelActive()) channelsActive++;
+				if (channelMemory[c].isChannelActive() && channelMemory[c].currentSample.sampleLength>0) channelsActive++;
 			return channelsActive==0;
 		}
 
