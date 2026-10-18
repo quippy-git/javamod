@@ -2084,6 +2084,8 @@ public abstract class BasicModMixer
 			aktMemo.setUpRampDown(forceCurrentSample); // copy current to rampDownMemory
 			calculateVolRampLen(aktMemo.rampDownMemory);
 		}
+		// Whether or not there was anything to ramp down, from here on the sample of the row start is gone
+		aktMemo.rampDownPrepared = false;
 	}
 	/**
 	 * Do the Events of a new Row!
