@@ -852,14 +852,14 @@ public class ProTrackerMixer extends BasicModMixer
 						// However,as we do not want to wait hours, we stop the song - which might also be intended. 
 						if (isXM)
 							currentTick = currentTempo = 0xFFFF;
-//						else
-//						if (isMOD) // With ProTracker we need to stop the song
-						{
-							// we do this via the looping fade out with a fade out time of zero
-							// to not introduce a new variable here.
-//							doLoopingGlobalFadeout = true;
-//							loopingFadeOutValue = 0;
+						if (isMOD) // ProTracker stops the song but leaves its voices running
 							modFinished_ProTrackerModF00 = true;
+						else
+						{
+							// FT2 would hold its voices for those 65536 ticks - mostly in silence, so
+							// we do this via the looping fade out with a fade out time of zero
+							doLoopingGlobalFadeout = true;
+							loopingFadeOutValue = 0;
 						}
 					}
 					else
