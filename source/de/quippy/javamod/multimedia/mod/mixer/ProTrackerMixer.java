@@ -828,6 +828,28 @@ public class ProTrackerMixer extends BasicModMixer
 				}
 				break;
 			case 0x0F:			// SET SPEED / BPM
+				if (aktMemo.assignedEffektParam==0) // special "OP is zero" treatment
+				{
+					if (isMOD) // also with multi channel mods - so no "isAmigaLike" check. Might be wrong!
+					{
+						// With ProTracker we would need to stop the song, but even though ProTracker stops
+						// playback, Paula is kept open - so at this time we need special treatment to
+						// finish playback after all samples finished or reached their looping point
+						modFinished_ProTrackerModF00 = true;
+					}
+					else
+					{
+						// FT2 decrements the tick count before checking for zero, so with a zero value
+						// it effectively counts down 65536 ticks (song speed is a 16-bit variable in FT2)
+						// However, as we do not want to wait hours, we stop the song - which might also be intended. 
+						currentTick = currentTempo = 0xFFFF;
+						// To stop the mod, we do this via the looping fade out with a fade out time of zero
+						// to not introduce a new variable here.
+						doLoopingGlobalFadeout = true;
+						loopingFadeOutValue = 0;
+					}
+				}
+				else
 				if (aktMemo.assignedEffektParam>=0x20 && !mod.getModSpeedIsTicks()) // set BPM
 				{
 					if (isMOD && mod.isAmigaLike())
@@ -844,27 +866,7 @@ public class ProTrackerMixer extends BasicModMixer
 					}
 				}
 				else
-				{
-					if (aktMemo.assignedEffektParam==0)
-					{
-						// FT2 decrements the tick count before checking for zero, so with a zero value
-						// it effectively counts down 65536 ticks (song speed is a 16-bit variable in FT2)
-						// However,as we do not want to wait hours, we stop the song - which might also be intended. 
-						if (isXM)
-							currentTick = currentTempo = 0xFFFF;
-//						else
-//						if (isMOD) // With ProTracker we need to stop the song
-						{
-							// we do this via the looping fade out with a fade out time of zero
-							// to not introduce a new variable here.
-//							doLoopingGlobalFadeout = true;
-//							loopingFadeOutValue = 0;
-							modFinished_ProTrackerModF00 = true;
-						}
-					}
-					else
-						currentTick = currentTempo = aktMemo.assignedEffektParam;
-				}
+					currentTick = currentTempo = aktMemo.assignedEffektParam;
 				break;
 			case 0x10:			// Set global volume
 				globalVolume = (aktMemo.assignedEffektParam)<<1;

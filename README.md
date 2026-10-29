@@ -92,32 +92,35 @@ JavaMod incorporates modified versions of the following libraries:
 Fixes suggested by Adam Waldenberg (many thanks)
 * FIX: Sample swap with MODs in mixChannelIntoBuffers did not properly (re)set
        all variables (sampleLength / interpolationMagic). Error was hidden by
-       Amiga emulation. 
+       Amiga emulation
+* FIX: Fastpath in mixChannelsIntoBuffers: if there is no sample to play, set
+       instrumentFinished to true
 * FIX: reading cues: sampleIndex is starting at 1 - missed to subtract 1 from
-       index.
-* FIX: jFlac::VorbisComment: empty comments lead to a NullPointer Exception
+       index
+* FIX: jFlac::VorbisComment: empty comments leads to a NullPointer Exception
 * FIX: jFlac: 24 bit flacs need RICE2 decoding
 * FIX: ScreamTrackerMixer::getFineTunePeriod will fail if no sample was ever set
-* FIX: startRampDown will ramp down the wrong sample with noteCut
+* FIX: startRampDown will ramp down the wrong sample with noteCut, same with
+       retrigger in certain circumstances
 * FIX: IT/s3m, stm: a retrigger of 0 does not mean "use memo" but retrigger
        every tick.
        Now did a complete overhaul - in contrast to Pro/Fasttracker we need to
-       count and not do a modulo on ticks.
+       count and not do a modulo on ticks
 * FIX: XMs: After reading sample data we reset the file pointer to the end of
        the sample data - to skip unused/unread samples. However, with ADPCM
        packed samples (thanks old ModPlug!) size needs to be calculated!
 * FIX: Mods with more than 4 channels are considered as MODs but played as
        FastTracker note range - which leads to different finetune.
-       That was missed in Arpeggios and the glissando part in PortaToNote.
-* FIX: inplace sample swap with MODs must also reset ramp down sample.
+       That was missed in Arpeggios and the glissando part in PortaToNote
+* FIX: inplace sample swap with MODs must also reset ramp down sample
 * NEW: "ring out" at ProTracker F00 - stop mod. ProTracker does not shut down
        Paula and samples play till end (or loop)
 Own Fixes:
 * FIX: Re-Loading the same file did nothing (because of caching URL) even when
-       file was changed. Now last modification time stamp is also verified.
+       file was changed. Now last modification time stamp is also verified
 * FIX: With KDE, dropping a file from a ZIP resulted in the unknown protocol
        krarc:// and got everybody confused
-* FIX: Porta2Note with multichannel Mods was crappy and did not work anymore.
+* FIX: Porta2Note with multichannel Mods was crappy and did not work anymore
 
 ## New in Version 3.9.7
 * FIX: Complete overhaul of volume ramping - got rid of the default

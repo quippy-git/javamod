@@ -2084,6 +2084,8 @@ public abstract class BasicModMixer
 			aktMemo.setUpRampDown(forceCurrentSample); // copy current to rampDownMemory
 			calculateVolRampLen(aktMemo.rampDownMemory);
 		}
+		// Whether or not there was anything to ramp down, from here on the sample of the row start is gone
+		aktMemo.rampDownPrepared = false;
 	}
 	/**
 	 * Do the Events of a new Row!
@@ -2465,7 +2467,11 @@ public abstract class BasicModMixer
 	protected void mixChannelIntoBuffers(final long[] leftBuffer, final long[] rightBuffer, final int startIndex, final int endIndex, final ChannelMemory aktMemo, final boolean isRampDown)
 	{
 		Sample sample = aktMemo.currentSample;
-		if (sample==null || sample.sampleLength<=0) return;
+		if (sample==null || sample.sampleLength<=0)
+		{
+			aktMemo.instrumentFinished = true;
+			return;
+		}
 
 		// Set the start/end loop position to check against...
 		int loopStart = 0;

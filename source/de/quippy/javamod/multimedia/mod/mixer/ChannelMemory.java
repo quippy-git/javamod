@@ -36,6 +36,7 @@ public class ChannelMemory
 	public boolean muted, muteWasITforced;
 	public boolean isNNA;
 	public ChannelMemory rampDownMemory; // will store last seen values for a short ramp down
+	public boolean rampDownPrepared; // rampDownMemory holds the sample from the start of the row and no ramp down started since
 
 	public PatternElement currentElement;
 
@@ -284,8 +285,9 @@ public class ChannelMemory
 //		rampDownMemory.currentElement = currentElement; // DEBUG:where were we set? 
 
 		// were typically are already set via prepareRampDown - so only set again if forced to do so (noteCut)
-		if (rampDownMemory.currentSample==null || forceCurrentSample) rampDownMemory.currentSample = currentSample;
-		if (rampDownMemory.assignedInstrument==null || forceCurrentSample) rampDownMemory.assignedInstrument = assignedInstrument;
+		// or if a ramp down in this row already started a new sample (a retrigger after a new note)
+		if (rampDownMemory.currentSample==null || forceCurrentSample || !rampDownPrepared) rampDownMemory.currentSample = currentSample;
+		if (rampDownMemory.assignedInstrument==null || forceCurrentSample || !rampDownPrepared) rampDownMemory.assignedInstrument = assignedInstrument;
 
 		rampDownMemory.instrumentFinished = instrumentFinished;
 		rampDownMemory.muted = muted;
@@ -323,6 +325,7 @@ public class ChannelMemory
 		{
 			rampDownMemory.currentSample = currentSample;
 			rampDownMemory.assignedInstrument = assignedInstrument;
+			rampDownPrepared = true;
 		}
 		// Do not mix it (yet!) - for instance because of note delay
 		rampDownMemory.instrumentFinished = true;

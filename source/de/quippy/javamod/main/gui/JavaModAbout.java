@@ -52,6 +52,7 @@ public class JavaModAbout extends JDialog
 	private javax.swing.JLabel textLine7 = null;
 	private javax.swing.JLabel textLine8 = null;
 	private javax.swing.JLabel textLine9 = null;
+	private javax.swing.JLabel helpers = null;
 	private javax.swing.JLabel nameRunTime = null;
 	private javax.swing.JLabel versionRunTime = null;
 	private javax.swing.JLabel versionJDK = null;
@@ -107,7 +108,7 @@ public class JavaModAbout extends JDialog
 			final java.awt.GridBagConstraints constraintsButton_GIF = new java.awt.GridBagConstraints();
 			constraintsButton_GIF.gridx = 0;
 			constraintsButton_GIF.gridy = 0;
-			constraintsButton_GIF.gridheight = 13;
+			constraintsButton_GIF.gridheight = 14;
 			constraintsButton_GIF.fill = java.awt.GridBagConstraints.VERTICAL;
 			constraintsButton_GIF.anchor = java.awt.GridBagConstraints.NORTHWEST;
 			constraintsButton_GIF.weightx = 1.0;
@@ -133,13 +134,24 @@ public class JavaModAbout extends JDialog
 			constraintsl_TextLine2.anchor = java.awt.GridBagConstraints.NORTH;
 			constraintsl_TextLine2.fill = java.awt.GridBagConstraints.NONE;
 			constraintsl_TextLine2.weightx = 1.0;
-			constraintsl_TextLine2.weighty = 1.0;
+			constraintsl_TextLine2.weighty = 0.0;
 			constraintsl_TextLine2.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getl_TextLine2(), constraintsl_TextLine2);
 
+			final java.awt.GridBagConstraints constraintsl_Helpers = new java.awt.GridBagConstraints();
+			constraintsl_Helpers.gridx = 1;
+			constraintsl_Helpers.gridy = 2;
+			constraintsl_Helpers.gridwidth = 0;
+			constraintsl_Helpers.anchor = java.awt.GridBagConstraints.NORTH;
+			constraintsl_Helpers.fill = java.awt.GridBagConstraints.NONE;
+			constraintsl_Helpers.weightx = 1.0;
+			constraintsl_Helpers.weighty = 1.0;
+			constraintsl_Helpers.insets = new java.awt.Insets(4, 4, 4, 4);
+			baseContentPane.add(getl_Helpers(), constraintsl_Helpers);
+
 			final java.awt.GridBagConstraints constraintsl_TextLine3 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine3.gridx = 1;
-			constraintsl_TextLine3.gridy = 2;
+			constraintsl_TextLine3.gridy = 3;
 			constraintsl_TextLine3.gridwidth = 0;
 			constraintsl_TextLine3.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine3.fill = java.awt.GridBagConstraints.NONE;
@@ -150,7 +162,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine4 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine4.gridx = 1;
-			constraintsl_TextLine4.gridy = 3;
+			constraintsl_TextLine4.gridy = 4;
 			constraintsl_TextLine4.gridwidth = 0;
 			constraintsl_TextLine4.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine4.fill = java.awt.GridBagConstraints.NONE;
@@ -161,7 +173,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine5 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine5.gridx = 1;
-			constraintsl_TextLine5.gridy = 4;
+			constraintsl_TextLine5.gridy = 5;
 			constraintsl_TextLine5.gridwidth = 0;
 			constraintsl_TextLine5.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine5.fill = java.awt.GridBagConstraints.NONE;
@@ -172,7 +184,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine6 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine6.gridx = 1;
-			constraintsl_TextLine6.gridy = 5;
+			constraintsl_TextLine6.gridy = 6;
 			constraintsl_TextLine6.gridwidth = 0;
 			constraintsl_TextLine6.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine6.fill = java.awt.GridBagConstraints.NONE;
@@ -183,7 +195,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine7 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine7.gridx = 1;
-			constraintsl_TextLine7.gridy = 6;
+			constraintsl_TextLine7.gridy = 7;
 			constraintsl_TextLine7.gridwidth = 0;
 			constraintsl_TextLine7.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine7.fill = java.awt.GridBagConstraints.NONE;
@@ -194,7 +206,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine8 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine8.gridx = 1;
-			constraintsl_TextLine8.gridy = 7;
+			constraintsl_TextLine8.gridy = 8;
 			constraintsl_TextLine8.gridwidth = 0;
 			constraintsl_TextLine8.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine8.fill = java.awt.GridBagConstraints.NONE;
@@ -205,7 +217,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_TextLine9 = new java.awt.GridBagConstraints();
 			constraintsl_TextLine9.gridx = 1;
-			constraintsl_TextLine9.gridy = 8;
+			constraintsl_TextLine9.gridy = 9;
 			constraintsl_TextLine9.gridwidth = 0;
 			constraintsl_TextLine9.anchor = java.awt.GridBagConstraints.CENTER;
 			constraintsl_TextLine9.fill = java.awt.GridBagConstraints.NONE;
@@ -216,7 +228,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_NameRunTime = new java.awt.GridBagConstraints();
 			constraintsl_NameRunTime.gridx = 1;
-			constraintsl_NameRunTime.gridy = 9;
+			constraintsl_NameRunTime.gridy = 10;
 			constraintsl_NameRunTime.gridwidth = 0;
 			constraintsl_NameRunTime.anchor = java.awt.GridBagConstraints.SOUTH;
 			constraintsl_NameRunTime.fill = java.awt.GridBagConstraints.NONE;
@@ -227,7 +239,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_VersionRunTime = new java.awt.GridBagConstraints();
 			constraintsl_VersionRunTime.gridx = 1;
-			constraintsl_VersionRunTime.gridy = 10;
+			constraintsl_VersionRunTime.gridy = 11;
 			constraintsl_VersionRunTime.gridwidth = 0;
 			constraintsl_VersionRunTime.anchor = java.awt.GridBagConstraints.SOUTH;
 			constraintsl_VersionRunTime.fill = java.awt.GridBagConstraints.NONE;
@@ -238,7 +250,7 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsl_VersionJDK = new java.awt.GridBagConstraints();
 			constraintsl_VersionJDK.gridx = 1;
-			constraintsl_VersionJDK.gridy = 11;
+			constraintsl_VersionJDK.gridy = 12;
 			constraintsl_VersionJDK.gridwidth = 0;
 			constraintsl_VersionJDK.anchor = java.awt.GridBagConstraints.SOUTH;
 			constraintsl_VersionJDK.fill = java.awt.GridBagConstraints.NONE;
@@ -249,12 +261,12 @@ public class JavaModAbout extends JDialog
 
 			final java.awt.GridBagConstraints constraintsBtn_OK = new java.awt.GridBagConstraints();
 			constraintsBtn_OK.gridx = 1;
-			constraintsBtn_OK.gridy = 12;
+			constraintsBtn_OK.gridy = 13;
 			constraintsBtn_OK.gridwidth = 0;
 			constraintsBtn_OK.anchor = java.awt.GridBagConstraints.SOUTH;
 			constraintsBtn_OK.fill = java.awt.GridBagConstraints.NONE;
 			constraintsBtn_OK.weightx = 1.0;
-			constraintsBtn_OK.weighty = 0.0;
+			constraintsBtn_OK.weighty = 1.0;
 			constraintsBtn_OK.insets = new java.awt.Insets(4, 4, 4, 4);
 			baseContentPane.add(getBtn_OK(), constraintsBtn_OK);
 		}
@@ -297,6 +309,18 @@ public class JavaModAbout extends JDialog
 			textLine2.setFont(Helpers.getDialogFont());
 		}
 		return textLine2;
+	}
+
+	private javax.swing.JLabel getl_Helpers()
+	{
+		if (helpers == null)
+		{
+			helpers = new javax.swing.JLabel();
+			helpers.setName("helpers");
+			helpers.setText("Supporters: Adam Waldenberg");
+			helpers.setFont(Helpers.getDialogFont());
+		}
+		return helpers;
 	}
 
 	private javax.swing.JLabel getl_TextLine3()
