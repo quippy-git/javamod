@@ -365,7 +365,6 @@ public abstract class BasicModMixer
 				// initialize with global default panning and volume values (get overridden by effect or by instrument/sample settings)
 				aktMemo.currentInstrumentPanning = aktMemo.panning = mod.getPanningValue(c);
 				aktMemo.channelVolume = mod.getChannelVolume(c);
-				initializeMixer(c, aktMemo); // additional Mod specific initializations
 			}
 			else
 			{
@@ -373,6 +372,7 @@ public abstract class BasicModMixer
 				aktMemo.channelNumber = -1;
 				//aktMemo.instrumentFinished = true;
 			}
+			initializeMixer(c, aktMemo); // additional Mod specific initializations
 		}
 		// and reset the mute status again
 		if (muteStatus!=null)

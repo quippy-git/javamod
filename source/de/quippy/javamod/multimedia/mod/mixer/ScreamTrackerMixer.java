@@ -108,8 +108,11 @@ public class ScreamTrackerMixer extends BasicModMixer
 	@Override
 	protected void initializeMixer(final int channel, final ChannelMemory aktMemo)
 	{
-		aktMemo.muteWasITforced = aktMemo.muted = ((mod.getPanningValue(channel) & ModConstants.CHANNEL_IS_MUTED)!=0);
-		aktMemo.doSurround = (mod.getPanningValue(channel) == ModConstants.CHANNEL_IS_SURROUND);
+		if (channel<mod.getNChannels()) // only for non NNA channels
+		{
+			aktMemo.muteWasITforced = aktMemo.muted = ((mod.getPanningValue(channel) & ModConstants.CHANNEL_IS_MUTED)!=0);
+			aktMemo.doSurround = (mod.getPanningValue(channel) == ModConstants.CHANNEL_IS_SURROUND);
+		}
 		setPeriodBorders(aktMemo);
 	}
 	/**

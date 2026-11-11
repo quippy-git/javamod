@@ -113,6 +113,9 @@ Fixes suggested by Adam Waldenberg (many thanks)
        FastTracker note range - which leads to different finetune.
        That was missed in Arpeggios and the glissando part in PortaToNote
 * FIX: inplace sample swap with MODs must also reset ramp down sample
+* FIX: ScreamTrackerMixer::setNewPlayerTuningFor will use portaStepUpEnd and
+       portaStepDownEnd. These were not copied to NNA-Channel - which is bad
+       with PitchEnvelopes being processed on an NNA-Channel
 * NEW: "ring out" at ProTracker F00 - stop mod. ProTracker does not shut down
        Paula and samples play till end (or loop)
 Own Fixes:

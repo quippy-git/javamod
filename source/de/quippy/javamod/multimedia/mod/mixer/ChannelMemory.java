@@ -212,6 +212,7 @@ public class ChannelMemory
 		channelNumber = fromMe.channelNumber;
 		muted = fromMe.muted;
 		muteWasITforced = fromMe.muteWasITforced;
+		rampDownPrepared = fromMe.rampDownPrepared;
 		assignedInstrumentIndex = fromMe.assignedInstrumentIndex;
 		assignedInstrument = fromMe.assignedInstrument;
 		currentNotePeriod = fromMe.currentNotePeriod;
